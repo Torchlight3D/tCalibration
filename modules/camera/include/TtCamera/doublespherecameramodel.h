@@ -1,0 +1,1 @@
+#include "../../src/simple/double_sphere_camera_model.h"

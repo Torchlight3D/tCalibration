@@ -1,0 +1,1 @@
+#include "../../src/simple/omnidirectional_camera_model.h"

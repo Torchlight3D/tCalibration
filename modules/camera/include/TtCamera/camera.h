@@ -1,0 +1,1 @@
+#include "../../src/simple/camera.h"

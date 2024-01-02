@@ -1,0 +1,1 @@
+#include "../../../src/camodocal/EquidistantCamera.h"

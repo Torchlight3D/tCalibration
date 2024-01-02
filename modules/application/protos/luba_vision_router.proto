@@ -1,0 +1,106 @@
+syntax = "proto3";
+
+package thoht.pb;
+
+message DeviceInfo {
+  string name = 1;
+  bool status = 2;
+  string hw_addr = 3;
+}
+
+message Devices {
+  repeated DeviceInfo info = 1;
+}
+
+message StereoImageData {
+  bytes left_image_data = 1;
+  double left_timestamp = 2;
+  bytes right_image_data = 3;
+  double right_timestamp = 4;
+}
+
+message StereoYUVData {
+  bytes left_y = 1;
+  bytes left_uv = 2;
+  double left_timestamp = 3;
+  bytes right_y = 4;
+  bytes right_uv = 5;
+  double right_timestamp = 6;
+}
+
+message ImuData {
+  double acc_x = 1;
+  double acc_y = 2;
+  double acc_z = 3;
+  double gyr_x = 4;
+  double gyr_y = 5;
+  double gyr_z = 6;
+  double timestamp = 7;
+  double temp = 8;
+}
+
+message ImuDataList {
+  repeated ImuData data = 1;
+}
+
+enum PushTarget {
+  TARGET_DEVICE = 0;
+  TARGET_CLOUD = 1;
+}
+
+message CaptureResult {
+  PushTarget target = 1;
+  DeviceInfo device = 2;
+  string name = 3;
+  bool result = 4;
+}
+
+message CalibrationResult {
+  PushTarget target = 1;
+  DeviceInfo device = 2;
+  string name = 3;
+  bytes file_data = 4;
+  bool result = 5;
+}
+
+message UndistortRectifyMap {
+  string name = 1;
+  bytes rectify_map_first = 2;
+  bytes rectify_map_second = 3;
+}
+
+message UndistortRectifyMapResult {
+  string name = 1;
+  bool rectify_map_first_result = 2;
+  bool rectify_map_second_result = 3;
+}
+
+message GenerateResult {
+  bool result = 1;
+  string msg = 2;
+}
+
+message Empty {}
+
+service CameraController {
+  // Devices
+  rpc GetDevicesInfos(Empty) returns (Devices);
+
+  // Visual data
+  rpc GetImage(DeviceInfo) returns (StereoImageData);
+  rpc StartYUVStream(DeviceInfo) returns (stream StereoYUVData);
+  rpc StopYUVStream(DeviceInfo) returns (CaptureResult);
+
+  // Motion data
+  rpc GetImuData(DeviceInfo) returns (ImuData);
+  rpc StartImuDataStream(DeviceInfo) returns (stream ImuDataList);
+  rpc StopImuDataStream(DeviceInfo) returns (CaptureResult);
+  rpc StartRecvImuData(DeviceInfo) returns (stream ImuData);
+  rpc StopRecvImuData(DeviceInfo) returns (CaptureResult);
+  
+  // Result
+  rpc PushCalibrationResult(CalibrationResult) returns (CalibrationResult);
+  rpc PullCalibrationResult(CalibrationResult) returns (CalibrationResult);
+  rpc PushUndistortRectifyMap(UndistortRectifyMap) returns (UndistortRectifyMapResult);
+  rpc GenerateGdc(DeviceInfo) returns (GenerateResult);
+}

@@ -1,0 +1,1 @@
+#include "../../src/spline_trajectory_estimator.h"

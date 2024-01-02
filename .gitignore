@@ -1,1 +1,12 @@
-ref/
+# VS Code
+/.vscode
+
+# Folders
+*build
+/bin
+/_build
+/ref
+
+# Qt
+*.user
+*.autosave

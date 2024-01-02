@@ -1,0 +1,1 @@
+#include "../../src/algo/ba/bundle_adjustment.h"

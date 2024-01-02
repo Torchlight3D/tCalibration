@@ -1,0 +1,29 @@
+﻿<RCC>
+    <qresource>
+        <file>themes/dark.json</file>
+        <file>themes/light.json</file>
+        <file>icons/binocular.svg</file>
+        <file>icons/calculate.svg</file>
+        <file>icons/chart.svg</file>
+        <file>icons/chevron-left.svg</file>
+        <file>icons/chevron-right.svg</file>
+        <file>icons/circle-arrow-up.svg</file>
+        <file>icons/clear.svg</file>
+        <file>icons/cog.svg</file>
+        <file>icons/option-horizontal.svg</file>
+        <file>icons/pause.svg</file>
+        <file>icons/play.svg</file>
+        <file>icons/quality.svg</file>
+        <file>icons/record.svg</file>
+        <file>icons/refresh.svg</file>
+        <file>icons/remove-circle.svg</file>
+        <file>icons/stop.svg</file>
+        <file>icons/th-list.svg</file>
+        <file>icons/16x16/play-idle.png</file>
+        <file>icons/16x16/play-pause.png</file>
+        <file>icons/16x16/play-resume.png</file>
+        <file>icons/16x16/play-stop.png</file>
+        <file>icons/16x16/remove-completed.png</file>
+        <file>logo/logo-256.png</file>
+    </qresource>
+</RCC>

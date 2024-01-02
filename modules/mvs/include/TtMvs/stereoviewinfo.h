@@ -1,0 +1,1 @@
+#include "../../src/desc/stereo_view_info.h"

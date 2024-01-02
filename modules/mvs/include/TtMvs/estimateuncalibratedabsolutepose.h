@@ -1,0 +1,1 @@
+#include "../../src/algo/geometry/estimate_uncalibrated_absolute_pose.h"
