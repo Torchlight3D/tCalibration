@@ -3,7 +3,7 @@
 #include "SingleDisplay.h"
 #include "../BoardParameter.h"
 
-namespace thoht {
+namespace tl {
 
 class NumericalDisplay : public SingleDisplay
 {
@@ -56,4 +56,4 @@ protected:
     double mStatMaxValue;
 };
 
-} // namespace thoht
+} // namespace tl

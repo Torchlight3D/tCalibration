@@ -2,7 +2,7 @@
 
 #include <glog/logging.h>
 
-namespace thoht {
+namespace tl {
 
 bool ProsacSampler::Initialize(int num_datapoints)
 {
@@ -83,4 +83,4 @@ bool ProsacSampler::Sample(std::vector<int>* subset_indices)
     return true;
 }
 
-} // namespace thoht
+} // namespace tl

@@ -6,16 +6,16 @@
 #include <sophus/ceres_manifold.hpp>
 #include <ceres/sphere_manifold.h>
 
-#include <AxCalib/SplineTypes>
-#include <AxCore/TimeUtils>
-#include <AxMath/MathBase>
-#include <AxMVS/Landmark>
-#include <AxMVS/View>
+#include <tCalibration/SplineTypes>
+#include <tCore/TimeUtils>
+#include <tMath/MathBase>
+#include <tMvs/Landmark>
+#include <tMvs/View>
 
 #include "ceres_spline_residuals.h"
 #include "spline_trajectory_estimator.h"
 
-namespace thoht {
+namespace tl {
 
 template <int Order_t>
 SplineTrajectoryEstimator<Order_t>::SplineTrajectoryEstimator()
@@ -1114,4 +1114,4 @@ void SplineTrajectoryEstimator<_T>::setIMUIntrinsics(
         gyro_intrinsics.scaleZ();
 }
 
-} // namespace thoht
+} // namespace tl

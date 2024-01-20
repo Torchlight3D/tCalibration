@@ -7,7 +7,7 @@
 #include <Eigen/Eigenvalues>
 #include <glog/logging.h>
 
-namespace thoht {
+namespace tl {
 
 using internal::CreateMacaulayMatrix;
 using internal::ExtractJacobianCoefficients;
@@ -165,4 +165,4 @@ bool DlsPnp(const Vector2dList& feature_position,
     return !translations.empty();
 }
 
-} // namespace thoht
+} // namespace tl

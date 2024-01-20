@@ -16,7 +16,7 @@ find_package(GTest REQUIRED)
 
 target_link_libraries(${CALIBTARGET_TEST_TARGET}
     PRIVATE
-        ${NS_PREFIX}::CalibTarget
+        ${NS_PREFIX}::Target
         GTest::gtest
         GTest::gtest_main
 )

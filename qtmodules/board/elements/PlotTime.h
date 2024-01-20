@@ -2,7 +2,7 @@
 
 #include "../BoardElement.h"
 
-namespace thoht {
+namespace tl {
 
 class AdaptiveTextElement;
 class AxisRect;
@@ -202,4 +202,4 @@ protected:
     QSharedPointer<QCPAxisTickerDateTime> mTimeTicker;
 };
 
-} // namespace thoht
+} // namespace tl

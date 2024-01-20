@@ -1,6 +1,6 @@
 ﻿#include "TimeSeries.h"
 
-namespace thoht {
+namespace tl {
 
 TimeSeries::TimeSeries(int nbSamples, int sampleSize)
     : TimeSeriesParameter(), mValid(true)
@@ -129,4 +129,4 @@ void TimeSeries::read(bool unread, QVector<double> &timestamps,
     }
 }
 
-} // namespace thoht
+} // namespace tl

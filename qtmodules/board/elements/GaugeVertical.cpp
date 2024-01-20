@@ -12,7 +12,7 @@
 #include "../utils/LayoutGrid.h"
 #include "../data/DataManager.h"
 
-namespace thoht {
+namespace tl {
 
 ///------- GaugeVerticalEditor starts from here
 class GaugeVerticalEditor : public QDialog
@@ -938,6 +938,6 @@ int GaugeVertical::defaultHeight()
     return 4 * mBoard->dashboardLayout()->singleElementRowCount();
 }
 
-} // namespace thoht
+} // namespace tl
 
 #include "GaugeVertical.moc"

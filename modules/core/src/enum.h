@@ -2,7 +2,7 @@
 
 #include <type_traits>
 
-namespace thoht {
+namespace tl {
 
 template <typename Enum_t>
 struct CustomFlags
@@ -83,4 +83,4 @@ constexpr enum_type_ref<Enum_t> operator^=(Enum_t& lhs, Enum_t rhs)
     return lhs;
 }
 
-} // namespace thoht
+} // namespace tl

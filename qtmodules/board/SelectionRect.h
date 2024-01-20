@@ -3,7 +3,7 @@
 #include <QPainterPath>
 #include <QWidget>
 
-namespace thoht {
+namespace tl {
 
 class SelectionRect : public QWidget
 {
@@ -57,4 +57,4 @@ protected:
     QPainterPath mBottomRightPath;
 };
 
-} // namespace thoht
+} // namespace tl

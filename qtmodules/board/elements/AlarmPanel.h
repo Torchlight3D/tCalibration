@@ -2,7 +2,7 @@
 
 #include "../BoardElement.h"
 
-namespace thoht {
+namespace tl {
 
 class AdaptiveTextElement;
 class LayoutList;
@@ -89,4 +89,4 @@ protected:
     QPen mListBorderPen;
 };
 
-} // namespace thoht
+} // namespace tl

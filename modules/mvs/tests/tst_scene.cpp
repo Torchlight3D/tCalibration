@@ -1,10 +1,10 @@
 #include <gtest/gtest.h>
 // #include <glog/logging.h>
 
-#include <AxCore/ContainerUtils>
-#include <AxMVS/Scene>
+#include <tCore/ContainerUtils>
+#include <tMvs/Scene>
 
-using namespace thoht;
+using namespace tl;
 
 namespace {
 const std::vector<std::string> kViewNames{"1", "2", "3"};

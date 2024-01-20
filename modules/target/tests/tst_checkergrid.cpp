@@ -3,9 +3,9 @@
 // #include <opencv2/core/mat.hpp>
 // #include <opencv2/imgproc.hpp>
 
-// #include <AxCalibTarget/CheckerGridBoard>
+// #include <tTarget/CheckerGridBoard>
 
-// using namespace thoht;
+// using namespace tl;
 
 // TEST(CheckerGridBoard, Overall)
 //{

@@ -6,7 +6,7 @@
 #include "feature_correspondence.h"
 #include "stereo_view_info.h"
 
-namespace thoht {
+namespace tl {
 
 struct ImagePairMatch
 {
@@ -23,4 +23,4 @@ public:
     std::vector<FeatureCorrespondence> correspondences;
 };
 
-} // namespace thoht
+} // namespace tl

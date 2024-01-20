@@ -13,7 +13,7 @@
 
 #include "gui/qstringutils.h"
 
-namespace thoht {
+namespace tl {
 
 namespace qstr {
 
@@ -570,7 +570,7 @@ QString StereoModuleCalibResultView::verifySummaryToReport(
     return CalibResultReportModel::toTextTable(ref, summary);
 }
 
-} // namespace thoht
+} // namespace tl
 
 #include "StereoModuleCalibResultView.moc"
 #include "moc_StereoModuleCalibResultView.cpp"

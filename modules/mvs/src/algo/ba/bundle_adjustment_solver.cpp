@@ -2,16 +2,16 @@
 
 #include <ceres/rotation.h>
 
-#include <AxCamera/CameraIntrinsics>
-#include <AxCamera/DoubleSphereCameraModel>
-#include <AxCamera/ExtendedUnifiedCameraModel>
-#include <AxCamera/OmnidirectionalCameraModel>
-#include <AxCamera/ReprojectionError>
-#include <AxCore/ContainerUtils>
+#include <tCamera/CameraIntrinsics>
+#include <tCamera/DoubleSphereCameraModel>
+#include <tCamera/ExtendedUnifiedCameraModel>
+#include <tCamera/OmnidirectionalCameraModel>
+#include <tCamera/ReprojectionError>
+#include <tCore/ContainerUtils>
 
 #include "../residuals/inversereprojectionerror.h"
 
-namespace thoht {
+namespace tl {
 
 namespace {
 
@@ -656,4 +656,4 @@ bool BundleAdjuster::calcCovarianceForViews(
     return true;
 }
 
-} // namespace thoht
+} // namespace tl

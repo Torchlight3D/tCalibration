@@ -9,7 +9,7 @@
 // Reference:
 // https://github.com/bfraboni/FastGaussianBlur/blob/main/fast_gaussian_blur_template.h
 
-namespace thoht {
+namespace tl {
 
 enum class EdgePolicy
 {
@@ -267,4 +267,4 @@ void fast_gaussian_blur(T*& in, T*& out, int w, int h, int channelCount,
 // https://stackoverflow.com/questions/21984405/relation-between-sigma-and-radius-on-the-gaussian-blur
 constexpr auto pixelToSigma = 2.329; // std::sqrt(2 * std::log(255)) - 1;
 
-} // namespace thoht
+} // namespace tl

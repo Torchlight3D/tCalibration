@@ -5,10 +5,10 @@
 
 #include <gtest/gtest.h>
 
-#include <AxCore/Bimap>
-#include <AxCore/AxGlobal>
+#include <tCore/Bimap>
+#include <tCore/tGlobal>
 
-using namespace thoht;
+using namespace tl;
 
 class MustNotCopy
 {

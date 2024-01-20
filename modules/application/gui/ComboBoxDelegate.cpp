@@ -9,7 +9,7 @@
 #include "stylestateutils.h"
 #include "TheStyle.h"
 
-namespace thoht {
+namespace tl {
 
 ComboBoxDelegate::ComboBoxDelegate(QWidget* widget, QlementineStyle& style)
     : QItemDelegate(widget), _widget(widget), _qlementineStyle(&style)
@@ -194,4 +194,4 @@ QSize ComboBoxDelegate::sizeHint(const QStyleOptionViewItem& opt,
     }
 }
 
-} // namespace thoht
+} // namespace tl

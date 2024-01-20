@@ -1,11 +1,11 @@
 #include <cmath>
 
 #include <gtest/gtest.h>
-#include <AxSolver/BrentSolver>
+#include <tSolver/BrentSolver>
 
 #include "test_utils.h"
 
-using namespace thoht;
+using namespace tl;
 
 namespace {
 constexpr double kDoubleTolerance{1e-5};

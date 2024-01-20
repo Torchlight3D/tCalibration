@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
 
-#include <AxMath/EigenUtils>
+#include <tMath/EigenUtils>
 
-using namespace thoht;
+using namespace tl;
 
 TEST(Eigen, QuaternionTo){
 

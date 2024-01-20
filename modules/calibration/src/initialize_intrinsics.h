@@ -5,7 +5,7 @@
 #include <Eigen/Core>
 #include <opencv2/core/types.hpp>
 
-namespace thoht {
+namespace tl {
 
 struct FeatureCorrespondence2D3D;
 struct SacParameters;
@@ -33,4 +33,4 @@ bool initializeDoubleSphereModel(
     SacSummary& ransacSummary, Eigen::Matrix3d& orientation,
     Eigen::Vector3d& translation, double& focalLength);
 
-} // namespace thoht
+} // namespace tl

@@ -6,7 +6,7 @@
 #include <json/json.hpp>
 #include <yaml-cpp/yaml.h>
 
-namespace thoht::io {
+namespace tl::io {
 
 namespace key {
 inline constexpr char kMatRows[]{"rows"};
@@ -66,7 +66,7 @@ bool fromCVYamlNode(const YAML::Node& node,
     return false;
 }
 
-} // namespace thoht::io
+} // namespace tl::io
 
 // For nlohmann::json
 namespace Eigen {
@@ -96,7 +96,7 @@ struct convert<Eigen::Matrix<Scalar, Rows, Cols>>
 
     static Node encode(const Matrix& matrix)
     {
-        namespace key = thoht::io::key;
+        namespace key = tl::io::key;
 
         Node node;
         node[key::kMatRows] = Rows;
@@ -124,7 +124,7 @@ struct convert<Eigen::Matrix<Scalar, Rows, Cols>>
 
     static bool decode(const Node& node, Matrix& matrix)
     {
-        namespace key = thoht::io::key;
+        namespace key = tl::io::key;
 
         // Assume all the keys exist.
         const int rows = node[key::kMatRows].as<int>();

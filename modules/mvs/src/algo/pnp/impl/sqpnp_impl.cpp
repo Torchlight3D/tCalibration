@@ -1,6 +1,6 @@
 ﻿#include "sqpnp_impl.h"
 
-namespace thoht {
+namespace tl {
 
 double AverageSquaredProjectionError(
     const SQPSolution& solution,
@@ -512,4 +512,4 @@ void RowAndNullSpace(
     N.block<9, 1>(0, 2) /= N.col(2).norm();
 }
 
-} // namespace thoht
+} // namespace tl

@@ -1,6 +1,6 @@
 ﻿#include "AxisRect.h"
 
-namespace thoht {
+namespace tl {
 
 AxisRect::AxisRect(QCustomPlot *parentPlot) : QCPAxisRect(parentPlot)
 {
@@ -76,4 +76,4 @@ void AxisRect::mousePressEvent(QMouseEvent *event, const QVariant &details)
     }
 }
 
-} // namespace thoht
+} // namespace tl

@@ -4,7 +4,7 @@
 #include <deque>
 #include <future>
 
-namespace thoht {
+namespace tl {
 
 namespace {
 
@@ -217,4 +217,4 @@ std::unique_ptr<Queue> Processor::createQueue()
     return std::unique_ptr<Queue>(new QueueImplementation);
 }
 
-} // namespace thoht
+} // namespace tl

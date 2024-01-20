@@ -10,7 +10,7 @@
 #include "TheStyle.h"
 #include "TheStyleOptions.h"
 
-namespace thoht {
+namespace tl {
 
 constexpr auto animationFactor = 1;
 
@@ -1134,4 +1134,4 @@ const QColor& AbstractItemListWidget::getItemBgColor(
         QPalette::Button);
 }
 
-} // namespace thoht
+} // namespace tl

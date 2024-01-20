@@ -3,9 +3,9 @@
 #include <glog/logging.h>
 #include <magic_enum/magic_enum.hpp>
 
-#include <AxCamera/CameraMatrixUtils>
+#include <tCamera/CameraMatrixUtils>
 
-namespace thoht {
+namespace tl {
 
 namespace {
 constexpr double kDefaultOmega{0.75};
@@ -92,4 +92,4 @@ void FOVCameraModel::print() const
     LOG(INFO) << toLogString() << "Radial distortion (omega): " << omega();
 }
 
-} // namespace thoht
+} // namespace tl

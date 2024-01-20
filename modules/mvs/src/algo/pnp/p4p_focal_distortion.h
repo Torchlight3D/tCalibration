@@ -1,8 +1,8 @@
 ﻿#pragma once
 
-#include <AxMath/EigenTypes>
+#include <tMath/EigenTypes>
 
-namespace thoht {
+namespace tl {
 
 // Brief:
 // Computes the absolute pose, focal length and one radial distortion parameter
@@ -58,4 +58,4 @@ bool FourPointsPoseFocalLengthRadialDistortion(
     Vector3dList* translations, std::vector<double>* radialDistortions,
     std::vector<double>* focalLengths);
 
-} // namespace thoht
+} // namespace tl

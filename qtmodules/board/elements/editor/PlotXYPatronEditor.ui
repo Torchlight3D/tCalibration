@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>thoht::CurvesXYPatronEditor</class>
- <widget class="QWidget" name="thoht::CurvesXYPatronEditor">
+ <class>tl::CurvesXYPatronEditor</class>
+ <widget class="QWidget" name="tl::CurvesXYPatronEditor">
   <property name="geometry">
    <rect>
     <x>0</x>

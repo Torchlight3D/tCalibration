@@ -1,8 +1,8 @@
 #include "lmed_quality_measurement.h"
 
-#include <AxCore/ContainerUtils>
+#include <tCore/ContainerUtils>
 
-namespace thoht {
+namespace tl {
 
 namespace {
 
@@ -53,4 +53,4 @@ double LmedQualityMeasurement::ComputeCost(const std::vector<double>& residuals,
     return median;
 }
 
-} // namespace thoht
+} // namespace tl

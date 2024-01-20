@@ -1,9 +1,9 @@
 #pragma once
 
 #include <opencv2/core/mat.hpp>
-#include <AxCore/Channel>
+#include <tCore/Channel>
 
-namespace thoht {
+namespace tl {
 
 struct StereoModuleInfo
 {
@@ -40,4 +40,4 @@ struct StereoImageData
 
 using StereoImageDataStream = std::array<Channel<StereoImageData>, 4>;
 
-} // namespace thoht
+} // namespace tl

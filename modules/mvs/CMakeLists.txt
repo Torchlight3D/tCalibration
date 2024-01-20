@@ -25,7 +25,7 @@ target_sources(${MVS_TARGET_NAME}
 )
 
 # fmt, now used by Sophus, explicitly enable before Cpp20
-set(fmt_DIR ${ACTIVE_DEPENDS_PREFIX}/fmt/10.1.1/lib/cmake/fmt)
+set(fmt_DIR ${ACTIVE_DEPENDS_PREFIX}/fmt/10.2.1/lib/cmake/fmt)
 find_package(fmt REQUIRED)
 
 # Sophus
@@ -47,7 +47,7 @@ target_link_libraries(${MVS_TARGET_NAME}
         ${NS_PREFIX}::Core
         ${NS_PREFIX}::Math
         ${NS_PREFIX}::Solver
-        ${NS_PREFIX}::Imgproc
+        ${NS_PREFIX}::Vision
     PRIVATE
         fmt::fmt
         magic_enum

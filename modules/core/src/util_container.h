@@ -3,9 +3,9 @@
 #include <algorithm>
 #include <vector>
 
-#include "ax_core_global.h"
+#include "tl_core_global.h"
 
-namespace thoht {
+namespace tl {
 
 namespace utils {
 
@@ -150,4 +150,4 @@ void ContainerIntersection(const Map_t& map1, const Map_t& map2, Map_t* out)
 
 } // namespace utils
 
-} // namespace thoht
+} // namespace tl

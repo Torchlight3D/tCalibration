@@ -11,7 +11,7 @@
 #include "TheStyle.h"
 #include "TheStyleOptions.h"
 
-namespace thoht {
+namespace tl {
 
 Switch::Switch(QWidget* parent) : QAbstractButton(parent)
 {
@@ -317,6 +317,6 @@ void Switch::leaveEvent(QEvent* e)
     startAnimation();
 }
 
-} // namespace thoht
+} // namespace tl
 
 #include "moc_Switch.cpp"

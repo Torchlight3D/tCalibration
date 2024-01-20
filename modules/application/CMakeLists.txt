@@ -29,7 +29,7 @@ find_package(Qt6 REQUIRED
 )
 
 # gRPC. FIXME: Some of the gRPC dependencies need to be explicitly provided.
-set(gRPC_LOCATION ${ACTIVE_DEPENDS_PREFIX}/grpc/1.57.0)
+set(gRPC_LOCATION ${ACTIVE_DEPENDS_PREFIX}/grpc/1.60.0)
 set(absl_DIR ${gRPC_LOCATION}/lib/cmake/absl)
 find_package(absl CONFIG REQUIRED)
 set(utf8_range_DIR ${gRPC_LOCATION}/lib/cmake/utf8_range)
@@ -240,7 +240,7 @@ target_link_libraries(CalibrationTool
         grpc_proto
         ${_REFLECTION}
         ${NS_PREFIX}::Calibration
-        ${NS_PREFIX}::Scene3D
+        ${NS_PREFIX}::Scene3d
         ${NS_PREFIX}::Device
 )
 

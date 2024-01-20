@@ -4,7 +4,7 @@
 
 #include "../BoardElement.h"
 
-namespace thoht {
+namespace tl {
 
 class ElementListWidget;
 
@@ -29,4 +29,4 @@ private:
     ElementListWidget *listWidget;
 };
 
-} // namespace thoht
+} // namespace tl

@@ -2,7 +2,7 @@
 
 #include <QTreeView>
 
-namespace thoht {
+namespace tl {
 
 /// Brief:
 /// QTreeView with some custom initializations
@@ -16,4 +16,4 @@ public:
     explicit TreeView(QWidget* parent = nullptr);
 };
 
-} // namespace thoht
+} // namespace tl

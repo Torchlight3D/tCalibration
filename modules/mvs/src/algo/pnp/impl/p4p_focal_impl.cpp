@@ -2,7 +2,7 @@
 
 #include <Eigen/Eigenvalues>
 
-namespace thoht {
+namespace tl {
 
 bool FourPointFocalLengthHelper(double glab, double glac, double glad,
                                 double glbc, double glbd, double glcd,
@@ -885,4 +885,4 @@ bool FourPointFocalLengthHelper(double glab, double glac, double glad,
     return true;
 }
 
-} // namespace thoht
+} // namespace tl

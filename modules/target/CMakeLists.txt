@@ -1,4 +1,4 @@
-set(CALIBTARGET_TARGET_NAME CalibTarget)
+set(CALIBTARGET_TARGET_NAME Target)
 
 add_library(${CALIBTARGET_TARGET_NAME})
 add_library(${NS_PREFIX}::${CALIBTARGET_TARGET_NAME} ALIAS ${CALIBTARGET_TARGET_NAME})
@@ -22,9 +22,9 @@ target_sources(${CALIBTARGET_TARGET_NAME}
 
 # OpenCV, apt default 4.2. TODO: Duplicated code.
 if(MSVC)
-    set(OpenCV_DIR ${ACTIVE_DEPENDS_PREFIX}/opencv/4.5.5x)
+    set(OpenCV_DIR ${ACTIVE_DEPENDS_PREFIX}/opencv/4.9.0x)
 elseif()
-    set(OpenCV_DIR ${ACTIVE_DEPENDS_PREFIX}/opencv/4.5.5x/lib/cmake/opencv4)
+    set(OpenCV_DIR ${ACTIVE_DEPENDS_PREFIX}/opencv/4.9.0x/lib/cmake/opencv4)
 endif()
 set(OpenCVModules
     calib3d

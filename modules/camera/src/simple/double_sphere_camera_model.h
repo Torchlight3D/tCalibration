@@ -3,7 +3,7 @@
 #include "camera_intrinsics.h"
 #include <ceres/ceres.h>
 
-namespace thoht {
+namespace tl {
 
 // Brief:
 //
@@ -215,4 +215,4 @@ bool DoubleSphereCameraModel::undistort(const T* intrinsics, const T* pt_d,
     return true;
 }
 
-} // namespace thoht
+} // namespace tl

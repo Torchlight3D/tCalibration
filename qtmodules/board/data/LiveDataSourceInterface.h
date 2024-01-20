@@ -6,7 +6,7 @@
 #include "DataManager.h"
 #include "TimeSeries.h"
 
-namespace thoht {
+namespace tl {
 
 class LiveDataSourceInterface : public DataSource
 {
@@ -124,8 +124,8 @@ protected:
     bool mIsTimeReference;
 };
 
-} // namespace thoht
+} // namespace tl
 
-#define LiveDataSourceInterface_iid "thoht.LiveDataSources"
+#define LiveDataSourceInterface_iid "tl.LiveDataSources"
 
-Q_DECLARE_INTERFACE(thoht::LiveDataSourceInterface, LiveDataSourceInterface_iid)
+Q_DECLARE_INTERFACE(tl::LiveDataSourceInterface, LiveDataSourceInterface_iid)

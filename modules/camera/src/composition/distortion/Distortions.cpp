@@ -2,7 +2,7 @@
 #include "FovDistortion.h"
 #include "RadialTangentialDistortion.h"
 
-namespace thoht {
+namespace tl {
 
 EquidistantDistortion::EquidistantDistortion() {}
 
@@ -146,4 +146,4 @@ int RadialTangentialDistortion::minimalDimensions() const
     return IntrinsicsDimension;
 }
 
-} // namespace thoht
+} // namespace tl

@@ -3,7 +3,7 @@
 #include <QList>
 #include <QString>
 
-namespace thoht {
+namespace tl {
 
 class Bitfield
 {
@@ -27,4 +27,4 @@ protected:
     bool mModified;
 };
 
-} // namespace thoht
+} // namespace tl

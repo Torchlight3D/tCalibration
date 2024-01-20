@@ -2,7 +2,7 @@
 
 #include <QSettings>
 
-namespace thoht {
+namespace tl {
 
 CurvePatron::CurvePatron(QObject *parent)
     : QObject(parent),
@@ -114,4 +114,4 @@ void CurvePatron::addPoint(double x, double y)
     mYValues.append(y);
 }
 
-} // namespace thoht
+} // namespace tl

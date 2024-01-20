@@ -4,7 +4,7 @@
 #include <QObject>
 #include <QWaitCondition>
 
-namespace thoht {
+namespace tl {
 
 class SuspendableWorker : public QObject
 {
@@ -28,4 +28,4 @@ private:
     QWaitCondition m_waitCondition;
 };
 
-} // namespace thoht
+} // namespace tl

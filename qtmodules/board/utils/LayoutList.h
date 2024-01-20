@@ -2,7 +2,7 @@
 
 #include <qcp/qcustomplot.h>
 
-namespace thoht {
+namespace tl {
 
 class LayoutList : public QCPLayout
 {
@@ -39,4 +39,4 @@ protected:
     friend class AlarmPanel;
 };
 
-} // namespace thoht
+} // namespace tl

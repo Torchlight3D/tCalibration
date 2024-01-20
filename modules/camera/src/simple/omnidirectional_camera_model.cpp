@@ -2,9 +2,9 @@
 
 #include <glog/logging.h>
 
-#include <AxCamera/CameraMatrixUtils>
+#include <tCamera/CameraMatrixUtils>
 
-namespace thoht {
+namespace tl {
 
 OmnidirectionalCameraModel::OmnidirectionalCameraModel() : CameraIntrinsics()
 {
@@ -148,4 +148,4 @@ void OmnidirectionalCameraModel::print() const
               << p1() << ", " << p2();
 }
 
-} // namespace thoht
+} // namespace tl

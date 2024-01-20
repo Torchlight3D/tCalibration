@@ -17,7 +17,7 @@ void qlementineResourceInitialization()
 #endif
 }
 
-namespace thoht {
+namespace tl {
 
 void initializeResources() { qlementineResourceInitialization(); }
 
@@ -35,4 +35,4 @@ void clearLayout(QLayout* layout, bool deleteWidgets)
     }
 }
 
-} // namespace thoht
+} // namespace tl

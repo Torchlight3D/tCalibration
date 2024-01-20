@@ -3,7 +3,7 @@
 
 #include <QDebug>
 
-namespace thoht {
+namespace tl {
 
 struct CornerRadius
 {
@@ -36,6 +36,6 @@ struct CornerRadius
 
 QDebug operator<<(QDebug debug, const CornerRadius& radiuses);
 
-} // namespace thoht
+} // namespace tl
 
-Q_DECLARE_METATYPE(thoht::CornerRadius);
+Q_DECLARE_METATYPE(tl::CornerRadius);

@@ -11,7 +11,7 @@
 #include "../data/DataManager.h"
 #include "../widgets/ElementPropertiesWidget.h"
 
-namespace thoht {
+namespace tl {
 
 ///------- NumericalDisplayEditor starts from here
 class NumericalDisplayEditor : public QDialog
@@ -581,6 +581,6 @@ NumericalDisplay::StatMode NumericalDisplay::statMode() const
 
 void NumericalDisplay::setStatMode(StatMode statMode) { mStatMode = statMode; }
 
-} // namespace thoht
+} // namespace tl
 
 #include "NumericalDisplay.moc"

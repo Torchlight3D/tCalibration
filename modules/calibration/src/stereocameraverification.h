@@ -3,12 +3,12 @@
 #include <Eigen/Geometry>
 #include <opencv2/core/types.hpp>
 
-#include <AxCore/axglobal.h>
-#include <AxCore/EnumUtils>
-#include <AxCamera/StereoCameraTypes>
-#include <AxCamera/coc/Camera>
+#include <tCore/tGlobal>
+#include <tCore/EnumUtils>
+#include <tCamera/StereoCameraTypes>
+#include <tCamera/coc/Camera>
 
-namespace thoht {
+namespace tl {
 
 class StereoCameraVerification
 {
@@ -130,4 +130,4 @@ private:
 
 MAKE_FLAGS(StereoCameraVerification::Summary::Error)
 
-} // namespace thoht
+} // namespace tl

@@ -2,11 +2,11 @@
 
 #include <sophus/se3.hpp>
 
-#include <AxImu/ImuData>
-#include <AxImu/ImuIntrinsics>
-#include <AxMVS/Scene>
+#include <tMotion/ImuData>
+#include <tMotion/ImuIntrinsics>
+#include <tMvs/Scene>
 
-namespace thoht {
+namespace tl {
 
 // TODO: Cleanup here, too messy!!!
 class CameraImuCalibration
@@ -79,4 +79,4 @@ private:
     friend class Impl;
 };
 
-} // namespace thoht
+} // namespace tl

@@ -2,7 +2,7 @@
 
 #include <Eigen/Core>
 
-namespace thoht {
+namespace tl {
 
 // Put these methods in a nested namespace so that they are not part of the
 // common public theia namespace.
@@ -30,4 +30,4 @@ Eigen::MatrixXd CreateMacaulayMatrix(const double f1_coeff[20],
                                      const double rand_term[4]);
 
 } // namespace internal
-} // namespace thoht
+} // namespace tl

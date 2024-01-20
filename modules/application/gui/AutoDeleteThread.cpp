@@ -1,6 +1,6 @@
 #include "AutoDeleteThread.h"
 
-namespace thoht {
+namespace tl {
 
 // Do nothing
 

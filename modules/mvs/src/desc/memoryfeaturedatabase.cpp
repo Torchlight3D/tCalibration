@@ -2,9 +2,9 @@
 
 #include <fstream>
 
-#include <AxCore/ContainerUtils>
+#include <tCore/ContainerUtils>
 
-namespace thoht {
+namespace tl {
 
 void InMemoryFeaturesAndMatchesDatabase::putCameraMetaData(
     const std::string& name, const CameraMetaData& meta)
@@ -123,4 +123,4 @@ bool InMemoryFeaturesAndMatchesDatabase::WriteToFile(
     return true;
 }
 
-} // namespace thoht
+} // namespace tl

@@ -2,14 +2,14 @@
 
 #include <ceres/rotation.h>
 
-#include <AxCamera/CameraIntrinsics>
-#include <AxCamera/CameraMatrixUtils>
-#include <AxMath/EigenTypes>
-#include <AxMath/RansacModelEstimator>
-#include <AxMVS/FeatureCorrespondence>
-#include <AxMVS/P4PFocalLength>
+#include <tCamera/CameraIntrinsics>
+#include <tCamera/CameraMatrixUtils>
+#include <tMath/EigenTypes>
+#include <tMath/RansacModelEstimator>
+#include <tMvs/FeatureCorrespondence>
+#include <tMvs/P4PFocalLength>
 
-namespace thoht {
+namespace tl {
 
 namespace {
 
@@ -83,4 +83,4 @@ bool EstimateUncalibratedAbsolutePose(
     return success;
 }
 
-} // namespace thoht
+} // namespace tl

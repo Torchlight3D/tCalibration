@@ -3,7 +3,7 @@
 #include "camera_intrinsics.h"
 #include <ceres/ceres.h>
 
-namespace thoht {
+namespace tl {
 
 // Brief:
 //
@@ -274,4 +274,4 @@ void OmnidirectionalCameraModel::calcDistortion(const T* intrinsics,
     dist[1] = y_u * rd + T(2) * p2 * xy + p1 * (rho2 + T(2) * yy);
 }
 
-} // namespace thoht
+} // namespace tl

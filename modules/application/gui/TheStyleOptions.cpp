@@ -1,5 +1,5 @@
 #include "TheStyleOptions.h"
 
-namespace thoht {
+namespace tl {
 
 }

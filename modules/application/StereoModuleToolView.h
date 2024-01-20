@@ -3,7 +3,7 @@
 #include <QWidget>
 #include "gui/guiutils.h"
 
-namespace thoht {
+namespace tl {
 
 class StereoModuleToolViewPrivate;
 class StereoModuleToolView : public QWidget
@@ -29,4 +29,4 @@ private:
     Q_DECLARE_PIMPL(StereoModuleToolView)
 };
 
-} // namespace thoht
+} // namespace tl

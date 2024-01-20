@@ -31,7 +31,7 @@ endfunction()
 #check_install_dir()
 
 # Common variables
-set(NS_PREFIX "Thoht")
+set(NS_PREFIX "tl")
 
 # External dependencies location
 set(WIN_DEPENDS_PREFIX "D:/Dependencies")
@@ -68,10 +68,10 @@ add_subdirectory(core)
 add_subdirectory(math)
 add_subdirectory(solver)
 add_subdirectory(camera)
+add_subdirectory(motion)
+add_subdirectory(vision)
+add_subdirectory(target)
 add_subdirectory(mvs)
-add_subdirectory(imu)
-add_subdirectory(imgproc)
-add_subdirectory(calibtarget)
 add_subdirectory(calibration)
 
 add_subdirectory(device)

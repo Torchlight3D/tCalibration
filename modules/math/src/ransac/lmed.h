@@ -4,7 +4,7 @@
 #include "random_sampler.h"
 #include "lmed_quality_measurement.h"
 
-namespace thoht {
+namespace tl {
 
 template <class ModelEstimator>
 class LMed : public SampleConsensusEstimator<ModelEstimator>
@@ -27,4 +27,4 @@ public:
     }
 };
 
-} // namespace thoht
+} // namespace tl

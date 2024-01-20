@@ -3,7 +3,7 @@
 #include <QDir>
 #include <QSettings>
 
-namespace thoht {
+namespace tl {
 
 Alarms::Alarms() { mModified = false; }
 
@@ -122,4 +122,4 @@ void Alarms::setModified(bool modified) { mModified = modified; }
 
 QString Alarms::saveFilePath() const { return mSaveFilePath; }
 
-} // namespace thoht
+} // namespace tl

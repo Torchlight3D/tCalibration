@@ -3,7 +3,7 @@
 #include <string_view>
 #include <Eigen/Dense>
 
-namespace thoht {
+namespace tl {
 
 template <class Derived>
 struct EvalOrReference
@@ -84,4 +84,4 @@ constexpr inline void checkUnprojectionDerivedTypes()
     }
 }
 
-} // namespace thoht
+} // namespace tl

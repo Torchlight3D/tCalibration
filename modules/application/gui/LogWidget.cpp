@@ -26,7 +26,7 @@
 
 #include "guiutils.h"
 
-namespace thoht {
+namespace tl {
 
 ///------- StdoutRedirector starts from here
 class StdoutRedirector : public QObject
@@ -307,7 +307,7 @@ void LogWidget::clear()
     d->m_msgBrowser->clear();
 }
 
-} // namespace thoht
+} // namespace tl
 
 #include "LogWidget.moc"
 #include "moc_LogWidget.cpp"

@@ -3,7 +3,7 @@
 #include <vector>
 #include <Eigen/Core>
 
-namespace thoht {
+namespace tl {
 
 using Matrix24d = Eigen::Matrix<double, 2, 4>;
 
@@ -15,4 +15,4 @@ bool FourPointFocalLengthHelper(double glab, double glac, double glad,
                                 std::vector<double>* f,
                                 std::vector<Eigen::Vector3d>* depths);
 
-} // namespace thoht
+} // namespace tl

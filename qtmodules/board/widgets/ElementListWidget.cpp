@@ -1,7 +1,7 @@
 ﻿#include "ElementListWidget.h"
 #include "../Board.h"
 
-namespace thoht {
+namespace tl {
 
 ElementListWidget::ElementListWidget(QWidget *parent) : QTreeWidget(parent)
 {
@@ -57,4 +57,4 @@ void ElementListWidget::startDrag(Qt::DropActions supportedActions)
         }
     }
 }
-} // namespace thoht
+} // namespace tl

@@ -3,9 +3,9 @@
 
 #include <QDialogButtonBox>
 
-#include <AxMath/MathBase>
+#include <tMath/MathBase>
 
-namespace thoht {
+namespace tl {
 
 ///------- StereoModuleCalibrationConfigWidgetPrivate starts from here
 class StereoModuleCalibrationConfigWidgetPrivate
@@ -149,6 +149,6 @@ StereoModuleCalibrationConfigDialog::widget() const
     return w;
 }
 
-} // namespace thoht
+} // namespace tl
 
 #include "moc_StereoModuleCalibrationConfigWidget.cpp"

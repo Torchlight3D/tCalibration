@@ -6,7 +6,7 @@ namespace ceres {
 class LossFunction;
 } // namespace ceres
 
-namespace thoht {
+namespace tl {
 
 // For bundle adjustment we can use a robust cost function to maintain
 // robustness to outliers. In particular, this function can help when feature
@@ -26,4 +26,4 @@ enum class LossFunctionType
 std::unique_ptr<ceres::LossFunction> createLossFunction(LossFunctionType type,
                                                         double scale);
 
-} // namespace thoht
+} // namespace tl

@@ -3,9 +3,9 @@
 #include <vector>
 #include <Eigen/Core>
 
-#include <AxMath/RansacCreator>
+#include <tMath/RansacCreator>
 
-namespace thoht {
+namespace tl {
 
 struct FeatureCorrespondence2D3D;
 struct RansacParameters;
@@ -28,4 +28,4 @@ bool EstimateUncalibratedAbsolutePose(
     const std::vector<FeatureCorrespondence2D3D>& normalized_correspondences,
     UncalibratedAbsolutePose* absolute_pose, SacSummary* ransac_summary);
 
-} // namespace thoht
+} // namespace tl

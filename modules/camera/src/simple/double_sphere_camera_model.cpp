@@ -3,9 +3,9 @@
 #include <glog/logging.h>
 #include <magic_enum/magic_enum.hpp>
 
-#include <AxCamera/CameraMatrixUtils>
+#include <tCamera/CameraMatrixUtils>
 
-namespace thoht {
+namespace tl {
 
 DoubleSphereCameraModel::DoubleSphereCameraModel() : CameraIntrinsics()
 {
@@ -101,4 +101,4 @@ void DoubleSphereCameraModel::print() const
               << alpha() << ", " << xi();
 }
 
-} // namespace thoht
+} // namespace tl

@@ -3,7 +3,7 @@
 #include "camera_intrinsics.h"
 #include <ceres/ceres.h>
 
-namespace thoht {
+namespace tl {
 
 // Brief:
 // FisheyeCameraModel
@@ -253,4 +253,4 @@ bool FisheyeCameraModel::calcDistortion(const T* intrinsics, const T* pt_u,
     return true;
 }
 
-} // namespace thoht
+} // namespace tl

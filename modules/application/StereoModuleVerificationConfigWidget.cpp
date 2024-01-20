@@ -4,9 +4,9 @@
 #include <QBoxLayout>
 #include <QDialogButtonBox>
 
-#include <AxMath/MathBase>
+#include <tMath/MathBase>
 
-namespace thoht {
+namespace tl {
 
 ///------- StereoModuleVerificationConfigWidgetPrivate starts from here
 class StereoModuleVerificationConfigWidgetPrivate
@@ -143,6 +143,6 @@ StereoModuleVerificationConfigDialog::widget() const
     return w;
 }
 
-} // namespace thoht
+} // namespace tl
 
 #include "moc_StereoModuleVerificationConfigWidget.cpp"

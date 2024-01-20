@@ -2,7 +2,7 @@
 
 #include <glog/logging.h>
 
-namespace thoht {
+namespace tl {
 
 ExhaustiveSampler::ExhaustiveSampler(
     const std::shared_ptr<RandomNumberGenerator>& rng, int min_num_samples)
@@ -40,4 +40,4 @@ bool ExhaustiveSampler::Sample(std::vector<int>* subset)
     return true;
 }
 
-} // namespace thoht
+} // namespace tl

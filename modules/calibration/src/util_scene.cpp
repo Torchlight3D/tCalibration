@@ -1,9 +1,9 @@
 #include "util_scene.h"
 
-#include <AxCore/TimeUtils>
-#include <AxCalibTarget/CalibBoardBase>
+#include <tCore/TimeUtils>
+#include <tTarget/CalibBoardBase>
 
-namespace thoht {
+namespace tl {
 
 namespace mvs {
 
@@ -45,4 +45,4 @@ std::string makeUniqueViewName(CameraId camId, double timestamp)
 
 } // namespace mvs
 
-} // namespace thoht
+} // namespace tl

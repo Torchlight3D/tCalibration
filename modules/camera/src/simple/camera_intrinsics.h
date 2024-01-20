@@ -2,12 +2,12 @@
 
 #include <memory>
 
-#include <AxCore/EnumUtils>
-#include <AxMath/EigenTypes>
+#include <tCore/EnumUtils>
+#include <tMath/EigenTypes>
 
 #include "camera_meta_data.h"
 
-namespace thoht {
+namespace tl {
 
 // Explanation:
 // The camera intrinsics parameters are defined by:
@@ -202,4 +202,4 @@ protected:
     std::vector<double> parameters_;
 };
 
-} // namespace thoht
+} // namespace tl

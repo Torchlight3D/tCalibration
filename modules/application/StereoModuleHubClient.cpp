@@ -8,9 +8,9 @@
 
 #include <QtConcurrent/QtConcurrent>
 
-#include <AxCore/ContainerUtils>
+#include <tCore/ContainerUtils>
 
-namespace thoht {
+namespace tl {
 
 namespace {
 const int stereoDataType = qRegisterMetaType<const StereoImageData&>();
@@ -1580,7 +1580,7 @@ void StereoModuleHubClient::callbackStopStreaming()
     }
 }
 
-} // namespace thoht
+} // namespace tl
 
 #include "StereoModuleHubClient.moc"
 #include "moc_StereoModuleHubClient.cpp"

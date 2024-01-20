@@ -3,7 +3,7 @@
 #include <numeric>
 #include <glog/logging.h>
 
-namespace thoht {
+namespace tl {
 
 bool RandomSampler::Initialize(int num_datapoints)
 {
@@ -26,4 +26,4 @@ bool RandomSampler::Sample(std::vector<int>* subset_indices)
     return true;
 }
 
-} // namespace thoht
+} // namespace tl

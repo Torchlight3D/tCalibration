@@ -3,15 +3,15 @@
 #include <glog/logging.h>
 #include <gtest/gtest.h>
 
-#include <AxCalib/CalibrationIO>
-#include <AxCalib/CameraIO>
-#include <AxCalib/EigenIO>
-#include <AxCalib/ImuIO>
-#include <AxCamera/Camera>
-#include <AxCamera/OmnidirectionalCameraModel>
-#include <AxImu/ImuNoise>
+#include <tCalibration/CalibrationIO>
+#include <tCalibration/CameraIO>
+#include <tCalibration/EigenIO>
+#include <tCalibration/ImuIO>
+#include <tCamera/Camera>
+#include <tCamera/OmnidirectionalCameraModel>
+#include <tMotion/ImuNoise>
 
-using namespace thoht;
+using namespace tl;
 
 using Eigen::Matrix3d;
 using Eigen::Matrix4d;

@@ -2,7 +2,7 @@
 
 #include <algorithm>
 
-namespace thoht {
+namespace tl {
 
 void TwoViewInfo::SwapCameras()
 {
@@ -20,4 +20,4 @@ void TwoViewInfo::SwapCameras()
     rotation *= -1.0;
 }
 
-} // namespace thoht
+} // namespace tl

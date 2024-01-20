@@ -4,11 +4,11 @@
 #include <ceres/covariance.h>
 
 #include "bundle_adjustment.h"
-#include <AxMVS/Landmark>
-#include <AxMVS/Scene>
-#include <AxMVS/View>
+#include <tMvs/Landmark>
+#include <tMvs/Scene>
+#include <tMvs/View>
 
-namespace thoht {
+namespace tl {
 
 class Camera;
 class Scene;
@@ -105,4 +105,4 @@ private:
     std::unordered_set<CameraId> m_potentialConstantCameraIds;
 };
 
-} // namespace thoht
+} // namespace tl

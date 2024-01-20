@@ -3,10 +3,10 @@
 #include <vector>
 #include <Eigen/Core>
 
-#include <AxMath/RansacCreator>
-#include <AxMVS/PnPTypes>
+#include <tMath/RansacCreator>
+#include <tMvs/PnPTypes>
 
-namespace thoht {
+namespace tl {
 
 struct CalibratedAbsolutePose
 {
@@ -30,4 +30,4 @@ bool EstimateCalibratedAbsolutePose(
     const std::vector<FeatureCorrespondence2D3D>& normalizedCorrespondences,
     CalibratedAbsolutePose* absolutePose, SacSummary* summary);
 
-} // namespace thoht
+} // namespace tl

@@ -10,7 +10,7 @@
 #include "../data/DataManager.h"
 #include "../widgets/ElementPropertiesWidget.h"
 
-namespace thoht {
+namespace tl {
 
 class GaugeHorizontalEditor : public QDialog
 {
@@ -782,6 +782,6 @@ int GaugeHorizontal::defaultHeight()
     return mBoard->dashboardLayout()->singleElementRowCount();
 }
 
-} // namespace thoht
+} // namespace tl
 
 #include "GaugeHorizontal.moc"

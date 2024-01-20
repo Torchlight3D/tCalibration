@@ -1,6 +1,6 @@
 ﻿#include "ImageMask.h"
 
-namespace thoht {
+namespace tl {
 
 ImageMask::ImageMask() : _mask(cv::Mat(0, 0, CV_8UC1)), _scale(1.0){};
 
@@ -57,4 +57,4 @@ Eigen::MatrixXi ImageMask::getMaskAsMatrix() const
     return rval;
 }
 
-} // namespace thoht
+} // namespace tl

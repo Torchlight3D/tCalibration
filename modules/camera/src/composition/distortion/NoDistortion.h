@@ -3,7 +3,7 @@
 #include "DistortionInterface.h"
 #include "../core/eigen_types.h"
 
-namespace thoht {
+namespace tl {
 
 class NoDistortion
 {
@@ -106,4 +106,4 @@ void NoDistortion::distortParameterJacobian(
     // outJd.setIdentity();
 }
 
-} // namespace thoht
+} // namespace tl

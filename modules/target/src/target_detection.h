@@ -5,7 +5,7 @@
 
 #include "target_types.h"
 
-namespace thoht {
+namespace tl {
 
 struct TargetDetection
 {
@@ -47,4 +47,4 @@ struct StampedTargetDetection
 
 using StampedTargetDetections = std::vector<StampedTargetDetection>;
 
-} // namespace thoht
+} // namespace tl

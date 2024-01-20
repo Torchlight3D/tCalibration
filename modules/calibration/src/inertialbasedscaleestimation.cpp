@@ -3,7 +3,7 @@
 #include <unsupported/Eigen/MatrixFunctions>
 #include <glog/logging.h>
 
-namespace thoht {
+namespace tl {
 
 using Eigen::ArrayXXd;
 using Eigen::Matrix3d;
@@ -889,4 +889,4 @@ double InertialBasedScaleEstimation::imuToCameraTimeOffset() const
     return d->_td;
 }
 
-} // namespace thoht
+} // namespace tl

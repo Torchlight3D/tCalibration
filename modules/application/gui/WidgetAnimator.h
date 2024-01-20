@@ -5,7 +5,7 @@
 
 #include "WidgetAnimation.h"
 
-namespace thoht {
+namespace tl {
 
 // The WidgetAnimator class can't be templated as it is used in a map.
 // Also, we won't use a map for properties, for performance reasons.
@@ -71,4 +71,4 @@ private:
     QWidget* _parentWidget;
 };
 
-} // namespace thoht
+} // namespace tl

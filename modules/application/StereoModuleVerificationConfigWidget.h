@@ -4,9 +4,9 @@
 #include <QWidget>
 
 #include "gui/guiutils.h"
-#include <AxCalib/StereoCameraVerification>
+#include <tCalibration/StereoCameraVerification>
 
-namespace thoht {
+namespace tl {
 
 class StereoModuleVerificationConfigWidgetPrivate;
 class StereoModuleVerificationConfigWidget : public QWidget
@@ -39,4 +39,4 @@ private:
     StereoModuleVerificationConfigWidget* const w;
 };
 
-} // namespace thoht
+} // namespace tl

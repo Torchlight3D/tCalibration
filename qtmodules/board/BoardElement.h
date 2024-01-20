@@ -5,7 +5,7 @@
 #include "Alarms.h"
 #include "settings/ParameterConfiguration.h"
 
-namespace thoht {
+namespace tl {
 
 class Alarms;
 class Board;
@@ -186,4 +186,4 @@ protected:
 Q_DECLARE_OPERATORS_FOR_FLAGS(BoardElement::TimeSeriesTypes)
 Q_DECLARE_OPERATORS_FOR_FLAGS(BoardElement::TimeSeriesSizes)
 
-} // namespace thoht
+} // namespace tl

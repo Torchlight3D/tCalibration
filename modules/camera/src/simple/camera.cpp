@@ -8,13 +8,13 @@
 #include <glog/logging.h>
 #include <magic_enum/magic_enum.hpp>
 
-#include <AxMath/EigenUtils>
-#include <AxMath/MathBase>
-#include <AxCamera/CameraMatrixUtils>
+#include <tMath/EigenUtils>
+#include <tMath/MathBase>
+#include <tCamera/CameraMatrixUtils>
 
 #include "pinhole_camera_model.h"
 
-namespace thoht {
+namespace tl {
 
 using Eigen::Map;
 using Eigen::Matrix3d;
@@ -317,4 +317,4 @@ void Camera::print() const
               << orientationAsEuler().transpose();
 }
 
-} // namespace thoht
+} // namespace tl

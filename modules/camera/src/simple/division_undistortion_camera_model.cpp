@@ -3,9 +3,9 @@
 #include <glog/logging.h>
 #include <magic_enum/magic_enum.hpp>
 
-#include <AxCamera/CameraMatrixUtils>
+#include <tCamera/CameraMatrixUtils>
 
-namespace thoht {
+namespace tl {
 
 namespace {
 constexpr double kDefaultRadialDistortion{0.};
@@ -85,4 +85,4 @@ void DivisionUndistortionCameraModel::print() const
     LOG(INFO) << toLogString() << "Radial distortion (k): " << k();
 }
 
-} // namespace thoht
+} // namespace tl

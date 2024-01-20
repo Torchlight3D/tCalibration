@@ -5,17 +5,17 @@
 #include <sophus/se3.hpp>
 #include <sophus/so3.hpp>
 
-#include <AxCamera/DivisionUndistortionCameraModel>
-#include <AxCamera/DoubleSphereCameraModel>
-#include <AxCamera/ExtendedUnifiedCameraModel>
-#include <AxCamera/FisheyeCameraModel>
-#include <AxCamera/FovCameraModel>
-#include <AxCamera/OmnidirectionalCameraModel>
-#include <AxCamera/OrthographicCameraModel>
-#include <AxCamera/PinholeCameraModel>
-#include <AxCamera/PinholeRadialTangentialCameraModel>
+#include <tCamera/DivisionUndistortionCameraModel>
+#include <tCamera/DoubleSphereCameraModel>
+#include <tCamera/ExtendedUnifiedCameraModel>
+#include <tCamera/FisheyeCameraModel>
+#include <tCamera/FovCameraModel>
+#include <tCamera/OmnidirectionalCameraModel>
+#include <tCamera/OrthographicCameraModel>
+#include <tCamera/PinholeCameraModel>
+#include <tCamera/PinholeRadialTangentialCameraModel>
 
-namespace thoht {
+namespace tl {
 
 template <class CameraModel>
 struct InvReprojectionPoseError
@@ -136,4 +136,4 @@ ceres::CostFunction* createInvReprojectionPoseErrorCostFunction(
     return nullptr;
 }
 
-} // namespace thoht
+} // namespace tl

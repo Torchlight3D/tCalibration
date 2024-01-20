@@ -1,7 +1,7 @@
 ﻿#include "LayoutList.h"
 #include "../BoardElement.h"
 
-namespace thoht {
+namespace tl {
 
 LayoutList::LayoutList() : QCPLayout(), mRowHeight(20), mRowSpacing(1)
 {
@@ -123,4 +123,4 @@ int LayoutList::rowSpacing() const { return mRowSpacing; }
 
 void LayoutList::setRowSpacing(int rowSpacing) { mRowSpacing = rowSpacing; }
 
-} // namespace thoht
+} // namespace tl

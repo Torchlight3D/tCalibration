@@ -1,6 +1,6 @@
 #include "util_math.h"
 
-namespace thoht {
+namespace tl {
 
 namespace math {
 
@@ -47,4 +47,4 @@ bool solveQuadraticEquation(double a, double b, double c, double& x1,
 
 } // namespace math
 
-} // namespace thoht
+} // namespace tl

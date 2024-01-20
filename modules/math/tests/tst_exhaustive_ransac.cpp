@@ -2,12 +2,12 @@
 
 #include <gtest/gtest.h>
 
-#include <AxMath/RandomGenerator>
-#include <AxMath/ExhaustiveRansac>
+#include <tMath/RandomGenerator>
+#include <tMath/ExhaustiveRansac>
 
 #include "test_utils.h"
 
-using namespace thoht;
+using namespace tl;
 
 TEST(ExhaustiveSampler, EnsureExhaustiveSample)
 {

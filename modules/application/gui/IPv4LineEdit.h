@@ -4,7 +4,7 @@
 
 class QLineEdit;
 
-namespace thoht {
+namespace tl {
 
 class IPv4AddressValidator;
 
@@ -34,4 +34,4 @@ private:
     QString m_ipv4Address;
 };
 
-} // namespace thoht
+} // namespace tl

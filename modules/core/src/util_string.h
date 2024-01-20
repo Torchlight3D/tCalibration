@@ -1,9 +1,9 @@
 ﻿#pragma once
 
 #include <string>
-#include "ax_core_global.h"
+#include "tl_core_global.h"
 
-namespace thoht {
+namespace tl {
 
 namespace str {
 
@@ -11,4 +11,4 @@ bool Contains(const std::string& str, const std::string& sub);
 
 }
 
-} // namespace thoht
+} // namespace tl

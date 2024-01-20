@@ -6,7 +6,7 @@ namespace apriltags {
 class TagDetector;
 }
 
-namespace thoht {
+namespace tl {
 
 class AprilTagBoard : public CalibBoardBase
 {
@@ -53,4 +53,4 @@ private:
     friend class Impl;
 };
 
-} // namespace thoht
+} // namespace tl

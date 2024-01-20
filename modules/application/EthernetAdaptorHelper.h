@@ -7,7 +7,7 @@ class QLabel;
 class QPushButton;
 QT_END_NAMESPACE
 
-namespace thoht {
+namespace tl {
 
 class EthernetAdaptorHelper : public QDialog
 {
@@ -20,4 +20,4 @@ private:
     QStringList m_lastInterfaces;
 };
 
-} // namespace thoht
+} // namespace tl

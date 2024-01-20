@@ -11,7 +11,7 @@
 #include "PlaybackDataSourceInterface.h"
 #include "TimeSeries.h"
 
-namespace thoht {
+namespace tl {
 
 DataManager::DataManager(QObject *parent)
     : QObject(parent),
@@ -820,4 +820,4 @@ DataManager::referenceTimeLiveDataSource() const
     return mReferenceTimeLiveDataSource;
 }
 
-} // namespace thoht
+} // namespace tl

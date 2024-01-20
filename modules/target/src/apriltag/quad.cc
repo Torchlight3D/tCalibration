@@ -2,11 +2,11 @@
 
 #include <Eigen/Dense>
 
-#include <AxMath/MathBase>
+#include <tMath/MathBase>
 #include "float_image.h"
 #include "line_2d.h"
 
-using namespace thoht;
+using namespace tl;
 
 namespace apriltags {
 

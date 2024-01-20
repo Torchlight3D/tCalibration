@@ -7,7 +7,7 @@
 #include <cxxabi.h>
 #endif
 
-namespace thoht {
+namespace tl {
 
 // NOTE: Refer to the answer from
 // [stackoverflow](https://stackoverflow.com/questions/281818/unmangling-the-result-of-stdtype-infoname)
@@ -36,4 +36,4 @@ std::string demangle(const char* name)
 #endif
 }
 
-} // namespace thoht
+} // namespace tl

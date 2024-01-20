@@ -4,7 +4,7 @@
 
 #include "../../../core/Duration.h"
 
-namespace thoht {
+namespace tl {
 
 class GlobalShutter
 {
@@ -41,4 +41,4 @@ public:
     Eigen::Vector2i parameterSize() const;
 };
 
-} // namespace thoht
+} // namespace tl

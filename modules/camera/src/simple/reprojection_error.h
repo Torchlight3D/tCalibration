@@ -5,7 +5,7 @@
 
 #include "camera.h"
 
-namespace thoht {
+namespace tl {
 
 template <class CameraIntrinsics>
 struct ReprojectionError
@@ -74,4 +74,4 @@ struct ReprojectionError
 ceres::CostFunction* createReprojectionErrorCostFunction(
     CameraIntrinsics::Type type, const Eigen::Vector2d& feature);
 
-} // namespace thoht
+} // namespace tl

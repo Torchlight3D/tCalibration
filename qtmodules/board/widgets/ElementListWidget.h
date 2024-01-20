@@ -3,7 +3,7 @@
 #include <QPixmap>
 #include <QTreeWidget>
 
-namespace thoht {
+namespace tl {
 
 class ElementListWidget : public QTreeWidget
 {
@@ -21,4 +21,4 @@ protected:
     QPixmap mDraggedPixmap;
 };
 
-} // namespace thoht
+} // namespace tl

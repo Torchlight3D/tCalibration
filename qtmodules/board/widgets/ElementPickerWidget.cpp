@@ -2,7 +2,7 @@
 #include "ElementListWidget.h"
 #include "../factory/element_factory_helper.h"
 
-namespace thoht {
+namespace tl {
 
 ElementPickerWidget::ElementPickerWidget(QWidget *parent,
                                          BoardElement::ElementType type,
@@ -97,4 +97,4 @@ QString ElementPickerWidget::selectedElement()
     return name;
 }
 
-} // namespace thoht
+} // namespace tl

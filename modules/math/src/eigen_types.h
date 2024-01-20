@@ -22,7 +22,7 @@
                              TYPE::RowsAtCompileTime == Eigen::Dynamic), \
                         THIS_METHOD_IS_ONLY_FOR_MATRICES_OF_A_SPECIFIC_SIZE)
 
-namespace thoht {
+namespace tl {
 
 template <typename Eigen_t>
 using eigen_vector = std::vector<Eigen_t, Eigen::aligned_allocator<Eigen_t>>;
@@ -48,4 +48,4 @@ using Matrix34d = Eigen::Matrix<double, 3, 4>;
 using Matrix34f = Eigen::Matrix<float, 3, 4>; // for 3D viz
 using ProjectionMatrix = Matrix34d;
 
-} // namespace thoht
+} // namespace tl

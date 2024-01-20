@@ -2,11 +2,11 @@
 
 #include <memory>
 
-#include <AxCalib/CameraIntrinsicsCalibration>
-#include <AxCalibTarget/CalibBoardBase>
-#include <AxMVS/Scene>
+#include <tCalibration/CameraIntrinsicsCalibration>
+#include <tTarget/CalibBoardBase>
+#include <tMvs/Scene>
 
-namespace thoht {
+namespace tl {
 
 class StereoCameraCalibration
 {
@@ -55,4 +55,4 @@ private:
     friend class Impl;
 };
 
-} // namespace thoht
+} // namespace tl

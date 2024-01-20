@@ -3,12 +3,12 @@
 #include <string>
 #include <vector>
 
-#include <AxCamera/CameraMetaData>
-#include <AxImgproc/Keypoint>
+#include <tCamera/CameraMetaData>
+#include <tVision/Keypoint>
 
 #include "imagepairmatch.h"
 
-namespace thoht {
+namespace tl {
 
 // An interface for retreiving feature and match related data. This data is
 // typically memory intensive so caches or database systems may be used to
@@ -46,4 +46,4 @@ public:
     virtual void removeAllMatches() = 0;
 };
 
-} // namespace thoht
+} // namespace tl

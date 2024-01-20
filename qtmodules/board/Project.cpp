@@ -7,7 +7,7 @@
 #include "Page.h"
 #include "settings/ParameterConfiguration.h"
 
-namespace thoht {
+namespace tl {
 
 Project::Project(QObject* parent) : QObject(parent), mPagesDirWrittable(true)
 {
@@ -608,4 +608,4 @@ bool Project::exportToCsv(const QString& filePath)
     return true;
 }
 
-} // namespace thoht
+} // namespace tl

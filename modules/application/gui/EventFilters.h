@@ -8,7 +8,7 @@ class QMenu;
 class QTabBar;
 class QToolButton;
 
-namespace thoht {
+namespace tl {
 
 class QlementineStyle;
 class WidgetAnimationManager;
@@ -95,4 +95,4 @@ private:
     QAbstractItemView* m_view{nullptr};
 };
 
-} // namespace thoht
+} // namespace tl

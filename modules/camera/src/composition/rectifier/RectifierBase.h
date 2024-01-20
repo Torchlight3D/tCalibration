@@ -3,7 +3,7 @@
 #include <memory>
 #include <opencv2/core/mat.hpp>
 
-namespace thoht {
+namespace tl {
 
 class RectifierBase
 {
@@ -20,4 +20,4 @@ public:
 protected:
 };
 
-} // namespace thoht
+} // namespace tl

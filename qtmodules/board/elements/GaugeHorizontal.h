@@ -2,7 +2,7 @@
 
 #include "GaugeVertical.h"
 
-namespace thoht {
+namespace tl {
 
 class GaugeHorizontal : public GaugeVertical
 {
@@ -43,4 +43,4 @@ protected:
     GaugeHPosition mGaugeHPosition;
 };
 
-} // namespace thoht
+} // namespace tl

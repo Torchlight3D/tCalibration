@@ -3,7 +3,7 @@
 class QFontMetrics;
 class QString;
 
-namespace thoht {
+namespace tl {
 
 inline static constexpr auto kDefaultDpi = 72.;
 
@@ -19,4 +19,4 @@ constexpr double pixelSizeToPointSize(double pixelSize, double dpi)
 
 int textWidth(const QFontMetrics& fm, const QString& text);
 
-} // namespace thoht
+} // namespace tl

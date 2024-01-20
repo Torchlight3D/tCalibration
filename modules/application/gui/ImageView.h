@@ -2,7 +2,7 @@
 
 #include <QGraphicsView>
 
-namespace thoht {
+namespace tl {
 
 class ImageViewPrivate;
 class ImageView : public QGraphicsView
@@ -57,4 +57,4 @@ private:
     const QScopedPointer<ImageViewPrivate> d_ptr;
 };
 
-} // namespace thoht
+} // namespace tl

@@ -5,7 +5,7 @@
 
 #include "spline_trajectory_estimator.h"
 
-namespace thoht {
+namespace tl {
 
 namespace {
 constexpr int kSplineOrder{6};
@@ -340,4 +340,4 @@ void CameraImuCalibration::imuToCameraTransform(Eigen::Quaterniond& quat,
     trans = d->m_trajectory.Tic().translation();
 }
 
-} // namespace thoht
+} // namespace tl

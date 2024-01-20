@@ -3,7 +3,7 @@
 #include <qcp/qcustomplot.h>
 #include "SelectionRect.h"
 
-namespace thoht {
+namespace tl {
 
 using ElementIdRect = std::tuple<int, int, int>;
 
@@ -173,4 +173,4 @@ protected:
     QAction *mCopyElementsAction;
     QAction *mPasteElementsAction;
 };
-} // namespace thoht
+} // namespace tl

@@ -2,16 +2,16 @@
 #include <Eigen/Geometry>
 #include <gtest/gtest.h>
 
-#include <AxCore/AxGlobal>
-#include <AxCore/ContainerUtils>
-#include <AxMath/MathBase>
-#include <AxMath/RandomGenerator>
-#include <AxMVS/SQPnP>
+#include <tCore/tGlobal>
+#include <tCore/ContainerUtils>
+#include <tMath/MathBase>
+#include <tMath/RandomGenerator>
+#include <tMvs/SQPnP>
 
 #include "test_utils.h"
 
-using namespace thoht;
-using namespace thoht::math;
+using namespace tl;
+using namespace tl::math;
 
 using Eigen::AngleAxisd;
 using Eigen::Map;

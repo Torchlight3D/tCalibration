@@ -4,7 +4,7 @@
 
 #include "../settings/ColorSettings.h"
 
-namespace thoht {
+namespace tl {
 
 class ColorLineEdit : public QLineEdit
 {
@@ -35,4 +35,4 @@ private:
     ColorSettings *mColorSettings;
 };
 
-} // namespace thoht
+} // namespace tl

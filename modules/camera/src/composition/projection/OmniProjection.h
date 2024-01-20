@@ -2,7 +2,7 @@
 
 #include "ProjectionBase.h"
 
-namespace thoht {
+namespace tl {
 
 template <typename Distortion_t>
 class OmniProjection : public ProjectionBase<Distortion_t>
@@ -1141,4 +1141,4 @@ bool OmniProjection<DISTORTION_T>::estimateTransformation(
     return true;
 }
 
-} // namespace thoht
+} // namespace tl

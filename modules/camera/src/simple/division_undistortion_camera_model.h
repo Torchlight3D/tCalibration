@@ -3,7 +3,7 @@
 #include "camera_intrinsics.h"
 #include <ceres/ceres.h>
 
-namespace thoht {
+namespace tl {
 
 // Brief:
 //
@@ -255,4 +255,4 @@ bool DivisionUndistortionCameraModel::DistortedPixelToUndistortedPixel(
     return true;
 }
 
-} // namespace thoht
+} // namespace tl

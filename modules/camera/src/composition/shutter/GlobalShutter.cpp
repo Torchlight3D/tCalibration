@@ -1,6 +1,6 @@
 #include "GlobalShutter.h"
 
-namespace thoht {
+namespace tl {
 
 GlobalShutter::GlobalShutter() {}
 
@@ -19,4 +19,4 @@ void GlobalShutter::setParameters(const Eigen::MatrixXd & /* params */) {}
 
 Eigen::Vector2i GlobalShutter::parameterSize() const { return {0, 0}; }
 
-} // namespace thoht
+} // namespace tl

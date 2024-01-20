@@ -1,5 +1,5 @@
 #include "splinetypes.h"
 
-namespace thoht {
+namespace tl {
 
 }

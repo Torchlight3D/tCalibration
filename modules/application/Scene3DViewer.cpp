@@ -6,13 +6,13 @@
 #include <QDebug>
 #include <QKeyEvent>
 
-#include <AxMVS/Scene>
-#include <AxScene3D/Camera>
-#include <AxScene3D/ManipulatedFrame>
+#include <tMvs/Scene>
+#include <tScene3d/Camera>
+#include <tScene3d/ManipulatedFrame>
 
 using namespace viewer;
 
-namespace thoht {
+namespace tl {
 
 namespace {
 constexpr int nbKeyFrames{4};
@@ -185,14 +185,14 @@ viz::Landmark::Landmark(qreal x, qreal y, qreal z)
 {
 }
 
-void ::thoht::viz::Landmark::setColor(const QColor &color)
+void ::tl::viz::Landmark::setColor(const QColor &color)
 {
     if (color.isValid()) {
         color_ = color;
     }
 }
 
-void ::thoht::viz::Landmark::draw()
+void ::tl::viz::Landmark::draw()
 {
     glColor3f(color_.redF(), color_.greenF(), color_.blueF());
     glVertex3fv(pos_);
@@ -406,6 +406,6 @@ void Scene3DViewer::draw()
     }
 }
 
-} // namespace thoht
+} // namespace tl
 
 #include "moc_Scene3DViewer.cpp"

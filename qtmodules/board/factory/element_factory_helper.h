@@ -5,7 +5,7 @@
 
 #include "../BoardElement.h"
 
-namespace thoht {
+namespace tl {
 
 class ElementFactory
 {
@@ -31,4 +31,4 @@ public:
 private:
 };
 
-} // namespace thoht
+} // namespace tl

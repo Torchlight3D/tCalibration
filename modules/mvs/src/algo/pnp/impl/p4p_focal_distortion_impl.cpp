@@ -2,7 +2,7 @@
 
 #include <Eigen/Eigenvalues>
 
-namespace thoht {
+namespace tl {
 
 // translate from Matlab
 void FourPointsPoseFocalLengthRadialDistortionSolver(
@@ -1410,4 +1410,4 @@ void FourPointsPoseFocalLengthRadialDistortionSolver(
     }
 }
 
-} // namespace thoht
+} // namespace tl

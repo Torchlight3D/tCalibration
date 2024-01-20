@@ -5,11 +5,11 @@
 #include <opencv2/ccalib/omnidir.hpp>
 #include <opencv2/imgproc.hpp>
 
-#include <AxCamera/FisheyeCameraModel>
-#include <AxCamera/OmnidirectionalCameraModel>
-#include <AxCamera/PinholeRadialTangentialCameraModel>
+#include <tCamera/FisheyeCameraModel>
+#include <tCamera/OmnidirectionalCameraModel>
+#include <tCamera/PinholeRadialTangentialCameraModel>
 
-namespace thoht {
+namespace tl {
 
 bool initUndistortRectifyMap(const Camera& left, const Camera& right,
                              const Eigen::Matrix3d& R, const Eigen::Vector3d& t,
@@ -206,4 +206,4 @@ void io::toLubaStereoUndistortRectifyMapString(cv::InputArray map1_left,
     right_str = mapXYToString(map1_right, map2_right);
 }
 
-} // namespace thoht
+} // namespace tl

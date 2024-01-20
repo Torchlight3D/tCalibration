@@ -2,7 +2,7 @@
 
 #include <opencv2/imgproc.hpp>
 
-namespace thoht {
+namespace tl {
 
 QImage cvMatToQImage(const cv::Mat &src, bool deepCopy)
 {
@@ -442,4 +442,4 @@ QImage mat2Image_shared(const cv::Mat &mat, QImage::Format formatHint)
     return img;
 }
 
-} // namespace thoht
+} // namespace tl

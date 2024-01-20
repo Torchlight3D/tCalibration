@@ -7,13 +7,13 @@
 #include <sophus/se3.hpp>
 #include <sophus/so3.hpp>
 
-#include <AxImu/ImuData>
-#include <AxImu/ImuIntrinsics>
-#include <AxMVS/View>
-#include <AxMVS/Scene>
-#include <AxMath/EigenUtils>
+#include <tMotion/ImuData>
+#include <tMotion/ImuIntrinsics>
+#include <tMvs/View>
+#include <tMvs/Scene>
+#include <tMath/EigenUtils>
 
-namespace thoht {
+namespace tl {
 
 using SO3dList = eigen_vector<Sophus::SO3d>;
 using SE3dList = eigen_vector<Sophus::SE3d>;
@@ -188,6 +188,6 @@ inline int GetPtrOffset(const double* knot_ptr,
     return 0;
 }
 
-} // namespace thoht
+} // namespace tl
 
 #include "spline_trajectory_estimator.impl.hpp"

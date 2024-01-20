@@ -20,9 +20,9 @@ target_sources(${DEVICE_TARGET_NAME}
 
 # OpenCV, apt default 4.2. TODO: Duplicated code.
 if(MSVC)
-    set(OpenCV_DIR ${ACTIVE_DEPENDS_PREFIX}/opencv/4.5.5x)
+    set(OpenCV_DIR ${ACTIVE_DEPENDS_PREFIX}/opencv/4.9.0x)
 elseif()
-    set(OpenCV_DIR ${ACTIVE_DEPENDS_PREFIX}/opencv/4.5.5x/lib/cmake/opencv4)
+    set(OpenCV_DIR ${ACTIVE_DEPENDS_PREFIX}/opencv/4.9.0x/lib/cmake/opencv4)
 endif()
 set(OpenCVModules
     core
@@ -50,7 +50,7 @@ target_include_directories(${DEVICE_TARGET_NAME}
 target_link_libraries(${DEVICE_TARGET_NAME}
     PUBLIC
         ${NS_PREFIX}::Core
-        ${NS_PREFIX}::Imu
+        ${NS_PREFIX}::Motion
     PRIVATE
         ${OpenCVLibs}
         csv-parser

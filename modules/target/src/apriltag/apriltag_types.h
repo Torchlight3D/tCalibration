@@ -4,7 +4,7 @@
 #include <vector>
 #include <opencv2/core/types.hpp>
 
-#include <AxMath/MathBase>
+#include <tMath/MathBase>
 
 namespace apriltags {
 

@@ -4,10 +4,10 @@
 #include <glog/logging.h>
 #include <json/json.hpp>
 
-#include <AxMath/MathBase>
-#include <AxImu/ImuIntegration>
+#include <tMath/MathBase>
+#include <tMotion/ImuIntegration>
 
-namespace thoht {
+namespace tl {
 
 struct AccSampleResidual
 {
@@ -483,4 +483,4 @@ void ImuIntrinsicsCalibration::toJsonString(std::string& json) const
     // TODO: toString???
 }
 
-} // namespace thoht
+} // namespace tl

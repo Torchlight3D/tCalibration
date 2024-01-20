@@ -3,7 +3,7 @@
 #include <chrono>
 #include <random>
 
-namespace thoht {
+namespace tl {
 
 namespace {
 std::mt19937 kRNG;
@@ -61,4 +61,4 @@ Eigen::Vector4d RandomNumberGenerator::RandVector4d(double min,
     return {Rand(min, max), Rand(min, max), Rand(min, max), Rand(min, max)};
 }
 
-} // namespace thoht
+} // namespace tl

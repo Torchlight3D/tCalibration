@@ -2,7 +2,7 @@
 
 #include <QWidget>
 
-namespace thoht {
+namespace tl {
 
 class Scene;
 
@@ -24,4 +24,4 @@ private:
     const QScopedPointer<TestStereoModuleWidgetPrivate> d_ptr;
 };
 
-} // namespace thoht
+} // namespace tl

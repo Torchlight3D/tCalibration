@@ -2,7 +2,7 @@
 
 #include "camera_intrinsics.h"
 
-namespace thoht {
+namespace tl {
 
 class Camera
 {
@@ -129,4 +129,4 @@ private:
     bool calibrated_;
 };
 
-} // namespace thoht
+} // namespace tl

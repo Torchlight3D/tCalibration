@@ -1,9 +1,9 @@
 // #include <gtest/gtest.h>
 // #include <opencv2/core/mat.hpp>
 
-// #include <AxCalibTarget/CircleGridBoard>
+// #include <tTarget/CircleGridBoard>
 
-// using namespace thoht;
+// using namespace tl;
 
 // TEST(CircleGridBoard, Overall)
 //{

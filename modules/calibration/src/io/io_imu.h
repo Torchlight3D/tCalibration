@@ -5,11 +5,11 @@
 #include <json/json.hpp>
 #include <yaml-cpp/yaml.h>
 
-#include <AxImu/ImuIntrinsics>
-#include <AxImu/ImuTypes>
+#include <tMotion/ImuIntrinsics>
+#include <tMotion/ImuTypes>
 
 // For nlohmann::json
-namespace thoht {
+namespace tl {
 
 class ImuNoise;
 
@@ -28,29 +28,29 @@ void from_json(const nlohmann::json& json, ImuIntrinsics_<T>& intrinsics)
     // TODO:
 }
 
-} // namespace thoht
+} // namespace tl
 
-namespace thoht::io {
+namespace tl::io {
 
 YAML::Node toYamlNode(const ImuIntrinsics& intrinsics, imu::Type type);
 YAML::Node toYamlNode(const ImuNoise& noise, imu::Type type);
 
-} // namespace thoht::io
+} // namespace tl::io
 
 // For yaml-cpp
 namespace YAML {
 
 template <>
-struct convert<thoht::ImuNoise>
+struct convert<tl::ImuNoise>
 {
-    static Node encode(const thoht::ImuNoise& noise);
-    static bool decode(const Node& node, thoht::ImuNoise& noise);
+    static Node encode(const tl::ImuNoise& noise);
+    static bool decode(const Node& node, tl::ImuNoise& noise);
 };
 
 template <typename T>
-struct convert<thoht::ImuIntrinsics_<T>>
+struct convert<tl::ImuIntrinsics_<T>>
 {
-    using _ImuIntrinsics = thoht::ImuIntrinsics_<T>;
+    using _ImuIntrinsics = tl::ImuIntrinsics_<T>;
 
     static Node encode(const _ImuIntrinsics& intrinsics)
     {

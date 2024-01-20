@@ -1,6 +1,6 @@
 ﻿#include "States.h"
 
-namespace thoht {
+namespace tl {
 
 States::States() : mModified(false) {}
 
@@ -76,4 +76,4 @@ void States::setModified(bool modified) { mModified = modified; }
 
 QMap<qlonglong, bool> States::statesActive() const { return mStatesActive; }
 
-} // namespace thoht
+} // namespace tl

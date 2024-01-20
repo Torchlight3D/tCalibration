@@ -1,9 +1,9 @@
 ﻿#pragma once
 
 #include <memory>
-#include <AxMath/EigenUtils>
+#include <tMath/EigenUtils>
 
-namespace thoht {
+namespace tl {
 
 class [[deprecated("This class is deprecated, use InertialBasedScaleEstimation "
                    "instead")]] CameraImuRotationCalibration
@@ -43,4 +43,4 @@ private:
     friend class Impl;
 };
 
-} // namespace thoht
+} // namespace tl

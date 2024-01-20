@@ -2,9 +2,9 @@
 
 #include <QWidget>
 #include "gui/guiutils.h"
-#include <AxCalib/StereoCameraVerification>
+#include <tCalibration/StereoCameraVerification>
 
-namespace thoht {
+namespace tl {
 
 class StereoModuleVerifyResultViewPrivate;
 class StereoModuleVerifyResultView : public QWidget
@@ -53,4 +53,4 @@ public:
 private:
     Q_DECLARE_PIMPL(StereoModuleVerifyResultView)
 };
-} // namespace thoht
+} // namespace tl

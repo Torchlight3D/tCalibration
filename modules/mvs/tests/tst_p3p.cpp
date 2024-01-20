@@ -5,13 +5,13 @@
 // #include <glog/logging.h>
 #include <gtest/gtest.h>
 
-#include <AxMath/MathBase>
-#include <AxMath/RandomGenerator>
-#include <AxMVS/P3P>
+#include <tMath/MathBase>
+#include <tMath/RandomGenerator>
+#include <tMvs/P3P>
 #include "test_utils.h"
 
-using namespace thoht;
-using namespace thoht::math;
+using namespace tl;
+using namespace tl::math;
 
 using Eigen::Map;
 using Eigen::Matrix3d;

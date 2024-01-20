@@ -2,7 +2,7 @@
 
 #include <utility>
 
-namespace thoht {
+namespace tl {
 
 namespace {
 
@@ -101,4 +101,4 @@ void ColorSettings::setLightColor(const QColor &color) { mLightColor = color; }
 
 void ColorSettings::setDarkColor(const QColor &color) { mDarkColor = color; }
 
-} // namespace thoht
+} // namespace tl

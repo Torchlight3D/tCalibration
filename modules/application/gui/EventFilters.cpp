@@ -15,7 +15,7 @@
 #include "TheStyle.h"
 #include "WidgetAnimationManager.h"
 
-namespace thoht {
+namespace tl {
 
 ///------- LineEditButtonEventFilter starts from here
 LineEditButtonEventFilter::LineEditButtonEventFilter(
@@ -361,6 +361,6 @@ bool ComboboxItemViewFilter::eventFilter(QObject* /*watched*/, QEvent* e)
     return false;
 }
 
-} // namespace thoht
+} // namespace tl
 
 #include "moc_EventFilters.cpp"

@@ -5,7 +5,7 @@
 
 class QAbstractButton;
 
-namespace thoht {
+namespace tl {
 
 class StereoModuleCalibrationViewPrivate;
 class StereoModuleCalibrationView : public QWidget
@@ -32,4 +32,4 @@ private:
     Q_DECLARE_PIMPL(StereoModuleCalibrationView)
 };
 
-} // namespace thoht
+} // namespace tl

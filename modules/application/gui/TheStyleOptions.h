@@ -4,7 +4,7 @@
 
 #include "CornerRadius.h"
 
-namespace thoht {
+namespace tl {
 
 /// Allows to customize the radius of the focus border.
 class QStyleOptionFocusRoundedRect : public QStyleOptionFocusRect
@@ -94,4 +94,4 @@ public:
     using QStyleOptionButton::QStyleOptionButton;
 };
 
-} // namespace thoht
+} // namespace tl

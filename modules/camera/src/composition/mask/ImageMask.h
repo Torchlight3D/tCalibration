@@ -3,7 +3,7 @@
 #include <Eigen/Core>
 #include <opencv2/core/mat.hpp>
 
-namespace thoht {
+namespace tl {
 
 class ImageMask
 {
@@ -38,4 +38,4 @@ private:
     double _scale;
 };
 
-} // namespace thoht
+} // namespace tl

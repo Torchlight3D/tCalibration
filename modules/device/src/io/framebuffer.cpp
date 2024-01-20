@@ -1,6 +1,6 @@
 #include "framebuffer.h"
 
-namespace thoht {
+namespace tl {
 
 namespace {
 constexpr size_t kDefaultCapacityInc{4};
@@ -50,4 +50,4 @@ bool FrameBuffer::increaseCapacity(int rows, int cols, int type)
     return true;
 }
 
-} // namespace thoht
+} // namespace tl

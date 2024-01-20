@@ -22,7 +22,7 @@ target_sources(${CALIBRATION_TARGET_NAME}
 
 # Duplicated code!!!
 # fmt, now used by Sophus, explicitly enable before Cpp20
-set(fmt_DIR ${ACTIVE_DEPENDS_PREFIX}/fmt/10.1.1/lib/cmake/fmt)
+set(fmt_DIR ${ACTIVE_DEPENDS_PREFIX}/fmt/10.2.1/lib/cmake/fmt)
 find_package(fmt REQUIRED)
 
 # Sophus
@@ -32,9 +32,9 @@ find_package(Sophus REQUIRED)
 
 # OpenCV, apt default 4.2. TODO: Duplicated code.
 if(MSVC)
-    set(OpenCV_DIR ${ACTIVE_DEPENDS_PREFIX}/opencv/4.5.5x)
+    set(OpenCV_DIR ${ACTIVE_DEPENDS_PREFIX}/opencv/4.9.0x)
 elseif()
-    set(OpenCV_DIR ${ACTIVE_DEPENDS_PREFIX}/opencv/4.5.5x/lib/cmake/opencv4)
+    set(OpenCV_DIR ${ACTIVE_DEPENDS_PREFIX}/opencv/4.9.0x/lib/cmake/opencv4)
 endif()
 set(OpenCVModules
     ccalib
@@ -63,11 +63,11 @@ target_include_directories(${CALIBRATION_TARGET_NAME}
 
 target_link_libraries(${CALIBRATION_TARGET_NAME}
     PUBLIC
-        ${NS_PREFIX}::CalibTarget # not public link
+        ${NS_PREFIX}::Target # not public link
         ${NS_PREFIX}::Camera
         ${NS_PREFIX}::Core
-        ${NS_PREFIX}::Imgproc
-        ${NS_PREFIX}::Imu
+        ${NS_PREFIX}::Vision
+        ${NS_PREFIX}::Motion
         ${NS_PREFIX}::Math
         ${NS_PREFIX}::Mvs
         ${NS_PREFIX}::Solver

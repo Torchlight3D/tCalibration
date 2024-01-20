@@ -53,7 +53,7 @@
 #include "TheTheme.h"
 #include "WidgetAnimationManager.h"
 
-namespace thoht {
+namespace tl {
 
 namespace {
 constexpr double QLEMENTINE_PI = 3.14159265358979323846;
@@ -7467,4 +7467,4 @@ Status QlementineStyle::widgetStatus(QWidget const* w) const
     return Status::Default;
 }
 
-} // namespace thoht
+} // namespace tl

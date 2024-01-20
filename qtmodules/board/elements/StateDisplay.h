@@ -2,7 +2,7 @@
 
 #include "NumericalDisplay.h"
 
-namespace thoht {
+namespace tl {
 
 class StateDisplay : public NumericalDisplay
 {
@@ -24,4 +24,4 @@ private:
     QPen mTextBorderPen;
 };
 
-} // namespace thoht
+} // namespace tl

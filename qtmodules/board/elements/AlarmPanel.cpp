@@ -10,7 +10,7 @@
 #include "../data/DataManager.h"
 #include "../Project.h"
 
-namespace thoht {
+namespace tl {
 
 AlarmPanel::AlarmPanel(Board *dashboard)
     : BoardElement(dashboard),
@@ -699,4 +699,4 @@ void AlarmPanel::draw(QCPPainter *painter)
     painter->drawRoundedRect(mListLayout->outerRect(), 4, 4);
 }
 
-} // namespace thoht
+} // namespace tl

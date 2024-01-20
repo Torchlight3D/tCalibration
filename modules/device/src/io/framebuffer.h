@@ -2,7 +2,7 @@
 
 #include <opencv2/core/mat.hpp>
 
-namespace thoht {
+namespace tl {
 
 // A buffer and custom allocation mechanism for OpenCV Mats.
 // 1. Lazy initialization to automatically determine the capacity
@@ -30,4 +30,4 @@ private:
     size_t counter_{0};
 };
 
-} // namespace thoht
+} // namespace tl

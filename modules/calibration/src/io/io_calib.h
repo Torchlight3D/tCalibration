@@ -4,9 +4,9 @@
 
 #include <Eigen/Core>
 
-#include <AxImu/ImuIntrinsics>
+#include <tMotion/ImuIntrinsics>
 
-namespace thoht {
+namespace tl {
 
 class Camera;
 class ImuNoise;
@@ -45,4 +45,4 @@ std::string taskDirName(const std::string& uuid);
 
 } // namespace io
 
-} // namespace thoht
+} // namespace tl

@@ -2,7 +2,7 @@
 
 #include <qcp/qcustomplot.h>
 
-namespace thoht {
+namespace tl {
 
 class Board;
 
@@ -70,4 +70,4 @@ protected:
     Board *mBoard;
 };
 
-} // namespace thoht
+} // namespace tl

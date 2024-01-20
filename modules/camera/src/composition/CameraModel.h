@@ -2,7 +2,7 @@
 
 #include "CameraModelBase.h"
 
-namespace thoht {
+namespace tl {
 
 template <typename PROJECTION_T, typename SHUTTER_T, typename MASK_T>
 class CameraModel : public CameraModelBase
@@ -1186,4 +1186,4 @@ void CameraModel<P, S, M>::temporalOffsetIntrinsicsJacobian(
             keypoint, outJi.block(0, col, 1, _shutter.minimalDimensions()));
     }
 }
-} // namespace thoht
+} // namespace tl

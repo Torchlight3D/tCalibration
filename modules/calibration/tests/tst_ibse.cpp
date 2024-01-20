@@ -7,9 +7,9 @@
 
 #include <gtest/gtest.h>
 
-#include <AxCalib/InertialBasedScaleEstimation>
+#include <tCalibration/InertialBasedScaleEstimation>
 
-using namespace thoht;
+using namespace tl;
 
 constexpr double kTimeScale = 1e-9;
 

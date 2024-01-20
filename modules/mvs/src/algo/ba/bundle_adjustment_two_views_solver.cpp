@@ -2,12 +2,12 @@
 
 #include <ceres/ceres.h>
 
-#include <AxCamera/Camera>
-#include <AxCamera/ReprojectionError>
-#include <AxMVS/FeatureCorrespondence>
-#include <AxMVS/StereoViewInfo>
+#include <tCamera/Camera>
+#include <tCamera/ReprojectionError>
+#include <tMvs/FeatureCorrespondence>
+#include <tMvs/StereoViewInfo>
 
-namespace thoht {
+namespace tl {
 
 namespace {
 
@@ -407,4 +407,4 @@ BundleAdjustmentSummary OptimizeFundamentalMatrix(
     return ba_summary;
 }
 
-} // namespace thoht
+} // namespace tl

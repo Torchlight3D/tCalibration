@@ -7,7 +7,7 @@
 #include "utils/AdaptiveTextElement.h"
 #include "utils/LayoutGrid.h"
 
-namespace thoht {
+namespace tl {
 ///------- TableValues Editor starts from here
 class TableValuesEditor : public QDialog
 {
@@ -415,6 +415,6 @@ void TableValues::setTitleVisible(bool titleVisible)
     mTitleVisible = titleVisible;
 }
 
-} // namespace thoht
+} // namespace tl
 
 #include "TableValues.moc"

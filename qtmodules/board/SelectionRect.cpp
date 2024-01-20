@@ -5,7 +5,7 @@
 #include <QMouseEvent>
 #include <QPainter>
 
-namespace thoht {
+namespace tl {
 
 SelectionRect::SelectionRect(QWidget *parent)
     : QWidget(parent),
@@ -181,4 +181,4 @@ void SelectionRect::setColor(const QColor &color)
     mBrush = QBrush(mBrushColor);
 }
 
-} // namespace thoht
+} // namespace tl

@@ -2,7 +2,7 @@
 #include "Board.h"
 #include "BoardElement.h"
 
-namespace thoht {
+namespace tl {
 
 BoardLayout::BoardLayout(Board *dashboard, int nbRows, int nbCols)
     : QCPLayout(),
@@ -733,4 +733,4 @@ void BoardLayout::setBackgroundScaledMode(Qt::AspectRatioMode mode)
     mBackgroundScaledMode = mode;
 }
 
-} // namespace thoht
+} // namespace tl

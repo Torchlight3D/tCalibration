@@ -3,20 +3,20 @@
 #include <ceres/ceres.h>
 #include <Eigen/Core>
 
-#include <AxCamera/DivisionUndistortionCameraModel>
-#include <AxCamera/DoubleSphereCameraModel>
-#include <AxCamera/ExtendedUnifiedCameraModel>
-#include <AxCamera/FisheyeCameraModel>
-#include <AxCamera/FovCameraModel>
-#include <AxCamera/OmnidirectionalCameraModel>
-#include <AxCamera/OrthographicCameraModel>
-#include <AxCamera/PinholeCameraModel>
-#include <AxCamera/PinholeRadialTangentialCameraModel>
-#include <AxCore/ContainerUtils>
-#include <AxMath/EigenUtils>
-#include <AxMath/MathBase>
+#include <tCamera/DivisionUndistortionCameraModel>
+#include <tCamera/DoubleSphereCameraModel>
+#include <tCamera/ExtendedUnifiedCameraModel>
+#include <tCamera/FisheyeCameraModel>
+#include <tCamera/FovCameraModel>
+#include <tCamera/OmnidirectionalCameraModel>
+#include <tCamera/OrthographicCameraModel>
+#include <tCamera/PinholeCameraModel>
+#include <tCamera/PinholeRadialTangentialCameraModel>
+#include <tCore/ContainerUtils>
+#include <tMath/EigenUtils>
+#include <tMath/MathBase>
 
-namespace thoht {
+namespace tl {
 
 using Eigen::Quaterniond;
 using Eigen::Vector2d;
@@ -610,4 +610,4 @@ void StereoCameraCalibration::toJsonString(std::string& json) const
     // TODO:
 }
 
-} // namespace thoht
+} // namespace tl

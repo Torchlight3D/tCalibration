@@ -5,7 +5,7 @@
 
 #include "qstringutils.h"
 
-namespace thoht {
+namespace tl {
 
 namespace {
 
@@ -194,4 +194,4 @@ QString toHexRGBA(const QColor& color)
         .arg(QString::number(color.alpha(), kHexBase), 2, '0');
 }
 
-} // namespace thoht
+} // namespace tl

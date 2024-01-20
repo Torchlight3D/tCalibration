@@ -2,7 +2,7 @@
 
 #include "BoardElement.h"
 
-namespace thoht {
+namespace tl {
 
 class BoardElementPrivate
 {
@@ -17,4 +17,4 @@ public:
 
 public:
 };
-} // namespace thoht
+} // namespace tl

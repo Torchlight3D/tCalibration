@@ -6,7 +6,7 @@
 #include "gui/guiutils.h"
 #include "gui/LedIndicator.h"
 
-namespace thoht {
+namespace tl {
 
 class LedIndicatorGridPrivate;
 class LedIndicatorGrid : public QWidget
@@ -33,4 +33,4 @@ private:
     Q_DECLARE_PIMPL(LedIndicatorGrid)
 };
 
-} // namespace thoht
+} // namespace tl

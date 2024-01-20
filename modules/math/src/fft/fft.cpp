@@ -2,7 +2,7 @@
 
 #include <fftw3.h>
 
-namespace thoht {
+namespace tl {
 
 static_assert(sizeof(size_t) == sizeof(uint64_t),
               "Uncompatible compiler: sizeof(size_t) != 8 !");
@@ -180,4 +180,4 @@ Eigen::VectorXd fftfreq(int len, double d)
     return res * val;
 }
 
-} // namespace thoht
+} // namespace tl

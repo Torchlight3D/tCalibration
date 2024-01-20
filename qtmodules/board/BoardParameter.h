@@ -7,7 +7,7 @@
 
 class QSettings;
 
-namespace thoht {
+namespace tl {
 
 enum ValueStringFormat
 {
@@ -106,4 +106,4 @@ protected:
         mParameterConfiguration;
 };
 
-} // namespace thoht
+} // namespace tl

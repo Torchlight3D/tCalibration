@@ -2,12 +2,12 @@
 
 #include <gtest/gtest.h>
 
-#include <AxMath/RandomGenerator>
-#include <AxMath/Lmed>
+#include <tMath/RandomGenerator>
+#include <tMath/Lmed>
 
 #include "test_utils.h"
 
-using namespace thoht;
+using namespace tl;
 
 namespace {
 RandomNumberGenerator kRNG{52u};

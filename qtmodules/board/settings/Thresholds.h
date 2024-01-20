@@ -4,7 +4,7 @@
 
 #include "ColorSettings.h"
 
-namespace thoht {
+namespace tl {
 
 class Thresholds
 {
@@ -48,4 +48,4 @@ protected:
     bool mModified;
 };
 
-} // namespace thoht
+} // namespace tl

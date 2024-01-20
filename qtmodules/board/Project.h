@@ -13,7 +13,7 @@
 #define PRO_SETTINGS_KEY_CREATIONDATE "CreationDate"
 #define PRO_SETTINGS_KEY_MODIFICATIONDATE "ModificationDate"
 
-namespace thoht {
+namespace tl {
 
 struct ElementDecl
 {
@@ -128,4 +128,4 @@ private:
     //    QFileSystemWatcher *mAlarmsWatcher;
 };
 
-} // namespace thoht
+} // namespace tl

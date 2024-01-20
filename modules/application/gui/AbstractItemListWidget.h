@@ -7,7 +7,7 @@
 
 #include "TheStyleTypes.h"
 
-namespace thoht {
+namespace tl {
 
 class QStyleOptionFocusRoundedRect;
 class RoundedFocusFrame;
@@ -182,4 +182,4 @@ private:
     bool _firstShow{false};
 };
 
-} // namespace thoht
+} // namespace tl

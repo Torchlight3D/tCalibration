@@ -4,7 +4,7 @@
 
 #include "gui/guiutils.h"
 
-namespace thoht {
+namespace tl {
 
 class WidgetGridWidgetPrivate;
 class WidgetGridWidget : public QWidget
@@ -42,4 +42,4 @@ private:
     Q_DECLARE_PIMPL(WidgetGridWidget)
 };
 
-} // namespace thoht
+} // namespace tl

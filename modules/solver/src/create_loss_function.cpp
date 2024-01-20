@@ -2,7 +2,7 @@
 
 #include <ceres/ceres.h>
 
-namespace thoht {
+namespace tl {
 
 std::unique_ptr<ceres::LossFunction> createLossFunction(LossFunctionType type,
                                                         double scale)
@@ -28,4 +28,4 @@ std::unique_ptr<ceres::LossFunction> createLossFunction(LossFunctionType type,
     return nullptr;
 }
 
-} // namespace thoht
+} // namespace tl

@@ -6,7 +6,7 @@
 
 class QSettings;
 
-namespace thoht {
+namespace tl {
 
 class CurvePatron : public QObject
 {
@@ -46,4 +46,4 @@ protected:
     QPen mPen;
     int mPenWidth;
 };
-} // namespace thoht
+} // namespace tl

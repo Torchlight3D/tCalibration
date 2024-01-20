@@ -4,7 +4,7 @@
 
 #include "feature.h"
 
-namespace thoht {
+namespace tl {
 
 struct FeatureCorrespondence
 {
@@ -36,4 +36,4 @@ struct FeatureCorrespondence2D3D
     }
 };
 
-} // namespace thoht
+} // namespace tl

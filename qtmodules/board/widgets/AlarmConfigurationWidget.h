@@ -5,7 +5,7 @@
 
 class QTableWidgetItem;
 
-namespace thoht {
+namespace tl {
 
 namespace Ui {
 class AlarmConfigurationWidget;
@@ -62,4 +62,4 @@ private:
     bool mModified;
 };
 
-} // namespace thoht
+} // namespace tl

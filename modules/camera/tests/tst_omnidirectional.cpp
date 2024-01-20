@@ -4,10 +4,10 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 
-#include <AxCamera/OmnidirectionalCameraModel>
-#include <AxCamera/coc/CataCamera>
+#include <tCamera/OmnidirectionalCameraModel>
+#include <tCamera/coc/CataCamera>
 
-using namespace thoht;
+using namespace tl;
 
 using Eigen::Vector2d;
 using Eigen::Vector3d;

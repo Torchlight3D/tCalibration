@@ -2,7 +2,7 @@
 
 #include "ProjectionBase.h"
 
-namespace thoht {
+namespace tl {
 
 template <typename Distortion_t>
 class ExtendedUnifiedProjection : public ProjectionBase<Distortion_t>
@@ -1095,4 +1095,4 @@ bool ExtendedUnifiedProjection<DISTORTION_T>::estimateTransformation(
     return true;
 }
 
-} // namespace thoht
+} // namespace tl

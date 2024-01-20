@@ -5,7 +5,7 @@
 
 #include "TheStyleTypes.h"
 
-namespace thoht {
+namespace tl {
 
 MouseState getMouseState(QStyle::State state);
 MouseState getMouseState(bool pressed, bool hovered, bool enabled);
@@ -34,4 +34,4 @@ QPalette::ColorGroup getPaletteColorGroup(MouseState mouse);
 
 QString printState(QStyle::State state);
 
-} // namespace thoht
+} // namespace tl

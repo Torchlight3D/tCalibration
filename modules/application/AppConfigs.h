@@ -2,7 +2,7 @@
 
 #include "StereoModuleToolView.h"
 
-namespace thoht {
+namespace tl {
 
 struct AppConfigs
 {
@@ -15,4 +15,4 @@ struct AppConfigs
     static bool load(const QJsonObject& jo, AppConfigs& configs);
 };
 
-} // namespace thoht
+} // namespace tl

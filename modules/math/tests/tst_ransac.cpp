@@ -1,10 +1,10 @@
 #include <gtest/gtest.h>
 
-#include <AxMath/RandomGenerator>
-#include <AxMath/Ransac>
+#include <tMath/RandomGenerator>
+#include <tMath/Ransac>
 #include "test_utils.h"
 
-using namespace thoht;
+using namespace tl;
 
 namespace {
 RandomNumberGenerator kRNG(46);
@@ -74,7 +74,7 @@ TEST(RansacTest, TerminationNumInliers)
         }
     }
 
-    thoht::SacParameters params;
+    tl::SacParameters params;
     params.rng = std::make_shared<RandomNumberGenerator>(kRNG);
     params.error_thresh = 0.5;
 

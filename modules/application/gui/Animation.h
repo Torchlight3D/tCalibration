@@ -2,7 +2,7 @@
 
 class QWidget;
 
-namespace thoht {
+namespace tl {
 
 class AbstractAnimator;
 class AnimationPrivate;
@@ -69,4 +69,4 @@ private:
     static AnimationPrivate* pimpl();
 };
 
-} // namespace thoht
+} // namespace tl

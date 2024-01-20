@@ -9,7 +9,7 @@
 
 #include "impl/polynomial.h"
 
-namespace thoht {
+namespace tl {
 
 using Eigen::Map;
 using Eigen::Matrix3d;
@@ -247,4 +247,4 @@ bool P3P(const Vector2dList& image_points, const Vector3dList& object_points,
     return num_solutions > 0;
 }
 
-} // namespace thoht
+} // namespace tl

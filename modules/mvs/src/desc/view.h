@@ -3,11 +3,11 @@
 #include <string>
 #include <Eigen/Core>
 
-#include <AxCamera/Camera>
+#include <tCamera/Camera>
 #include "feature.h"
 #include "mvs_types.h"
 
-namespace thoht {
+namespace tl {
 
 struct Feature;
 
@@ -76,4 +76,4 @@ private:
     bool m_hasPosPrior;
 };
 
-} // namespace thoht
+} // namespace tl

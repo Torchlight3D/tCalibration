@@ -5,11 +5,11 @@
 
 #include <ceres/solver.h>
 
-#include <AxCamera/CameraIntrinsics>
-#include <AxMVS/MvsTypes>
-#include <AxSolver/LossFunctionCreator>
+#include <tCamera/CameraIntrinsics>
+#include <tMvs/MvsTypes>
+#include <tSolver/LossFunctionCreator>
 
-namespace thoht {
+namespace tl {
 
 struct BundleAdjustmentOptions
 {
@@ -150,4 +150,4 @@ BundleAdjustmentSummary BundleAdjustTracks(
     const std::vector<TrackId>& trackIds, Scene* scene,
     std::map<TrackId, Eigen::Matrix3d>* covariances, double* variance);
 
-} // namespace thoht
+} // namespace tl

@@ -6,7 +6,7 @@
 #include <QVariantAnimation>
 #include <QWidget>
 
-namespace thoht {
+namespace tl {
 
 template <typename T>
 // This is just a wrapper around QVariantAnimation to get typed animated values.
@@ -157,4 +157,4 @@ private:
     T _finalValue{};
 };
 
-} // namespace thoht
+} // namespace tl

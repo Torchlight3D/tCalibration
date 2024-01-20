@@ -2,7 +2,7 @@
 
 #include <QWidget>
 
-namespace thoht {
+namespace tl {
 
 class StatusBadge : public QWidget
 {
@@ -44,4 +44,4 @@ private:
     Type m_type{Type::Info};
 };
 
-} // namespace thoht
+} // namespace tl

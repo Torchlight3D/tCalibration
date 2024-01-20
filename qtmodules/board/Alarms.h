@@ -5,7 +5,7 @@
 
 class QSettings;
 
-namespace thoht {
+namespace tl {
 
 class Alarms : public QSharedData
 {
@@ -62,4 +62,4 @@ protected:
     bool mModified;
 };
 
-} // namespace thoht
+} // namespace tl

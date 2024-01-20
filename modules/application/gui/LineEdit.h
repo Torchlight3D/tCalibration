@@ -5,7 +5,7 @@
 
 #include "TheStyleTypes.h"
 
-namespace thoht {
+namespace tl {
 
 /// A QLineEdit that draws a search icon
 class LineEdit : public QLineEdit
@@ -42,4 +42,4 @@ private:
     Status _status{Status::Default};
 };
 
-} // namespace thoht
+} // namespace tl

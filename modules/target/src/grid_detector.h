@@ -4,7 +4,7 @@
 // #include "../camera/simple/CameraBase.h"
 // #include "CalibBoardBase.h"
 
-// namespace thoht {
+// namespace tl {
 
 // class CalibObservation;
 
@@ -39,4 +39,4 @@
 //     GridDetector::Options _options;
 // };
 
-//} // namespace thoht
+//} // namespace tl

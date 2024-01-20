@@ -11,11 +11,11 @@
 // TEST:
 #include <opencv2/imgcodecs.hpp>
 #include <csv-parser/csv.hpp>
-#include <AxCore/TimeUtils>
+#include <tCore/TimeUtils>
 
-#include <AxCamera/OmnidirectionalCameraModel>
-// #include <AxDevice/StereoDataPlayer>
-#include <AxImgproc/BlurDetection>
+#include <tCamera/OmnidirectionalCameraModel>
+// #include <tDevice/StereoDataPlayer>
+#include <tVision/BlurDetection>
 
 #include "gui/QtOpenCV.h"
 #include "StereoModuleData.h"
@@ -23,7 +23,7 @@
 
 namespace fs = std::filesystem;
 
-namespace thoht {
+namespace tl {
 
 ///------- StereoDataPlayer starts from here
 namespace {
@@ -506,6 +506,6 @@ TestStereoModuleWidget::TestStereoModuleWidget(QWidget *parent)
 
 TestStereoModuleWidget::~TestStereoModuleWidget() = default;
 
-} // namespace thoht
+} // namespace tl
 
 #include "moc_TestStereoModuleWidget.cpp"

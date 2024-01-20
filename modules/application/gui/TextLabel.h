@@ -3,14 +3,14 @@
 #include <QLabel>
 #include "TheStyleTypes.h"
 
-namespace thoht {
+namespace tl {
 
 /// A QLabel that handles automatic styling for different text roles (titles,
 /// normal text, ect.) like h1,h2,p in HTML.
 class TextLabel : public QLabel
 {
     Q_OBJECT
-    Q_PROPERTY(thoht::TextRole role READ role WRITE setRole NOTIFY roleChanged)
+    Q_PROPERTY(tl::TextRole role READ role WRITE setRole NOTIFY roleChanged)
 
 public:
     explicit TextLabel(const QString& text, TextRole role = TextRole::Default,
@@ -33,4 +33,4 @@ private:
     bool m_changingPaletteFlag{false};
 };
 
-} // namespace thoht
+} // namespace tl

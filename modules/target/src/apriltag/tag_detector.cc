@@ -11,7 +11,7 @@
 #include <glog/logging.h>
 #include <opencv2/core/mat.hpp>
 
-#include <AxMath/MathBase>
+#include <tMath/MathBase>
 
 #include "apriltag_types.h"
 #include "float_image.h"
@@ -23,7 +23,7 @@
 #include "quad.h"
 #include "union_find_simple.h"
 
-using namespace thoht;
+using namespace tl;
 
 namespace apriltags {
 

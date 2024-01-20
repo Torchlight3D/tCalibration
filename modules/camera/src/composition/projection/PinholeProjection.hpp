@@ -2,7 +2,7 @@
 
 #include "../../../core/util_eigen.h"
 
-namespace thoht {
+namespace tl {
 
 template <typename Distortion_t>
 PinholeProjection<Distortion_t>::PinholeProjection()
@@ -146,4 +146,4 @@ bool PinholeProjection<Distortion_t>::keypointToHomogeneous(
 //    return isValid(keypoint) && point[2] > 0;
 //}
 
-} // namespace thoht
+} // namespace tl

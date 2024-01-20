@@ -7,7 +7,7 @@
 #include <stdexcept>
 #include <type_traits>
 
-namespace thoht {
+namespace tl {
 
 // An iterator used with Channel that blocks the current thread, waiting to
 // fetch elements from the Channel.
@@ -42,17 +42,17 @@ private:
     Channel& channel_;
 };
 
-} // namespace thoht
+} // namespace tl
 
 template <typename T>
-struct std::iterator_traits<thoht::blocking_iterator<T>>
+struct std::iterator_traits<tl::blocking_iterator<T>>
 {
-    using value_type = typename thoht::blocking_iterator<T>::value_type;
-    using reference = typename thoht::blocking_iterator<T>::reference;
+    using value_type = typename tl::blocking_iterator<T>::value_type;
+    using reference = typename tl::blocking_iterator<T>::reference;
     using iterator_category = std::output_iterator_tag;
 };
 
-namespace thoht {
+namespace tl {
 
 class ClosedChannelError : public std::runtime_error
 {
@@ -112,6 +112,6 @@ private:
     friend class blocking_iterator<Channel>;
 };
 
-} // namespace thoht
+} // namespace tl
 
 #include "channel.impl.hpp"

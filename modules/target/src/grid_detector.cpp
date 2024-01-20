@@ -8,7 +8,7 @@
 // #include "CalibBoardBase.h"
 // #include "CalibObservation.h"
 
-// namespace thoht {
+// namespace tl {
 
 // GridDetector::GridDetector(CameraModelBase::Ptr geometry,
 //                            CalibBoardBase::Ptr target, const Options
@@ -170,4 +170,4 @@
 //    return success;
 //}
 
-//} // namespace thoht
+//} // namespace tl

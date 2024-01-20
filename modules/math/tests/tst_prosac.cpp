@@ -1,10 +1,10 @@
 #include <random>
 #include <gtest/gtest.h>
 
-#include <AxMath/Prosac>
+#include <tMath/Prosac>
 #include "test_utils.h"
 
-using namespace thoht;
+using namespace tl;
 
 TEST(ProsacTest, LineFitting)
 {

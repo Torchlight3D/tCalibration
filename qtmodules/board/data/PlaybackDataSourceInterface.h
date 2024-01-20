@@ -4,7 +4,7 @@
 #include "DataManager.h"
 #include "TimeSeries.h"
 
-namespace thoht {
+namespace tl {
 
 class PlaybackDataSourceInterface : public DataSource
 {
@@ -90,9 +90,9 @@ protected:
     }
 };
 
-} // namespace thoht
+} // namespace tl
 
-#define PlaybackDataSourceInterface_iid "thoht.PlaybackDataSources"
+#define PlaybackDataSourceInterface_iid "tl.PlaybackDataSources"
 
-Q_DECLARE_INTERFACE(thoht::PlaybackDataSourceInterface,
+Q_DECLARE_INTERFACE(tl::PlaybackDataSourceInterface,
                     PlaybackDataSourceInterface_iid)

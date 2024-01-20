@@ -4,7 +4,7 @@
 
 class QWidget;
 
-namespace thoht {
+namespace tl {
 
 /// Hover events (enter/leave events) are disabled by default on widgets.
 /// However, some widgets need them.
@@ -34,4 +34,4 @@ std::tuple<int, int> getHPaddings(bool hasIcon, bool hasText, bool hasIndicator,
 /// Should the widget not receive wheel events when not focused.
 bool shouldNotHaveWheelEvents(const QWidget* w);
 
-} // namespace thoht
+} // namespace tl

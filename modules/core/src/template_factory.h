@@ -4,7 +4,7 @@
 #include <string>
 #include <unordered_map>
 
-namespace thoht {
+namespace tl {
 
 std::string demangle(const char* name);
 
@@ -76,4 +76,4 @@ template <class T>
 bool Factory<Base, Args...>::Registry<T>::registered =
     Factory<Base, Args...>::Registry<T>::registerType();
 
-} // namespace thoht
+} // namespace tl

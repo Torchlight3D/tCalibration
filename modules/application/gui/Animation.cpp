@@ -7,7 +7,7 @@
 #include <QTimeLine>
 #include <QWidget>
 
-namespace thoht {
+namespace tl {
 
 ///------- AbstractAnimator starts from here
 class AbstractAnimator : public QObject
@@ -841,6 +841,6 @@ AnimationPrivate* Animation::pimpl()
     return m_pimpl;
 }
 
-} // namespace thoht
+} // namespace tl
 
 #include "Animation.moc"

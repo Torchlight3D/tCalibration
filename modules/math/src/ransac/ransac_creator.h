@@ -5,7 +5,7 @@
 #include "prosac.h"
 #include "ransac.h"
 
-namespace thoht {
+namespace tl {
 
 enum class RansacType
 {
@@ -42,4 +42,4 @@ std::unique_ptr<SampleConsensusEstimator<Estimator>> createRansac(
     return sac;
 }
 
-} // namespace thoht
+} // namespace tl

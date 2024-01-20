@@ -15,7 +15,7 @@
 #include "factory/element_factory_helper.h"
 #include "widgets/ElementPickerWidget.h"
 
-namespace thoht {
+namespace tl {
 
 namespace {
 
@@ -2243,4 +2243,4 @@ void Board::addElement(BoardElement *el, QPointF pos)
     mDashboardLayout->addElement(el, true, indexCol, indexRow);
 }
 
-} // namespace thoht
+} // namespace tl

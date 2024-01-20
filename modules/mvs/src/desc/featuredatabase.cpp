@@ -1,6 +1,6 @@
 #include "featuredatabase.h"
 
-namespace thoht {
+namespace tl {
 
 // Do nothing
 

@@ -1,6 +1,6 @@
 #include "RoundedFocusFrame.h"
 
-namespace thoht {
+namespace tl {
 
 const CornerRadius& RoundedFocusFrame::radiuses() const { return _radiuses; }
 
@@ -13,6 +13,6 @@ void RoundedFocusFrame::setRadiuses(const CornerRadius& radiuses)
     }
 }
 
-} // namespace thoht
+} // namespace tl
 
 #include "moc_RoundedFocusFrame.cpp"

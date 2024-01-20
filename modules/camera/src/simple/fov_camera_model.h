@@ -3,7 +3,7 @@
 #include "camera_intrinsics.h"
 #include <ceres/ceres.h>
 
-namespace thoht {
+namespace tl {
 
 // Brief:
 //
@@ -228,4 +228,4 @@ bool FOVCameraModel::undistort(const T* intrinsics, const T* pt_d, T* pt_u)
     return true;
 }
 
-} // namespace thoht
+} // namespace tl

@@ -6,7 +6,7 @@
 #include <opencv2/calib3d.hpp>
 #include <opencv2/imgproc.hpp>
 
-namespace thoht {
+namespace tl {
 
 /// \brief A checkerboard example
 ///          *-------*-------*-------*
@@ -123,4 +123,4 @@ void CheckerBoard::createBoardPoints()
     std::iota(m_ids.begin(), m_ids.end(), 0);
 }
 
-} // namespace thoht
+} // namespace tl

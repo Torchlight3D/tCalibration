@@ -1,13 +1,13 @@
 ﻿#pragma once
 
 #include <QString>
-#include <AxMath/MathBase>
+#include <tMath/MathBase>
 
 using namespace Qt::Literals::StringLiterals;
 
 class QTextStream;
 
-namespace thoht {
+namespace tl {
 
 namespace qstr {
 
@@ -69,4 +69,4 @@ QTextStream& noPaddingNewline(QTextStream& s, int fieldWidth);
 
 } // namespace qstr
 
-} // namespace thoht
+} // namespace tl

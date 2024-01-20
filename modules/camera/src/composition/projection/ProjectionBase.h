@@ -2,7 +2,7 @@
 
 #include <Eigen/Core>
 
-namespace thoht {
+namespace tl {
 
 template <typename Distortion_t>
 class ProjectionBase
@@ -92,4 +92,4 @@ inline Eigen::Matrix3d ProjectionBase<Distortion_t>::cameraMatrix() const
     return K;
 }
 
-} // namespace thoht
+} // namespace tl

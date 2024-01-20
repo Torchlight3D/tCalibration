@@ -1,6 +1,6 @@
 #pragma once
 
-namespace thoht {
+namespace tl {
 
 class NoMask
 {
@@ -22,4 +22,4 @@ public:
     bool isSet() const { return false; }
 };
 
-} // namespace thoht
+} // namespace tl

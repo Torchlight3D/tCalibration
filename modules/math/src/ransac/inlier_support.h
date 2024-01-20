@@ -2,7 +2,7 @@
 
 #include "quality_measurement.h"
 
-namespace thoht {
+namespace tl {
 
 // Assess quality of data by whether each error residual is less than an error
 // threshold. If it is below the threshold, it is considered an inlier.
@@ -25,4 +25,4 @@ public:
     }
 };
 
-} // namespace thoht
+} // namespace tl

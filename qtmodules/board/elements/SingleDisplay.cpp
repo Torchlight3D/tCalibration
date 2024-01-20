@@ -5,7 +5,7 @@
 #include "../utils/AdaptiveTextElement.h"
 #include "../utils/LayoutGrid.h"
 
-namespace thoht {
+namespace tl {
 
 SingleDisplay::SingleDisplay(Board *dashboard)
     : BoardElement(dashboard),
@@ -184,4 +184,4 @@ void SingleDisplay::setValueVisible(bool valueVisible)
     }
 }
 
-} // namespace thoht
+} // namespace tl

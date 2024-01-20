@@ -5,7 +5,7 @@
 
 #include "bundle_adjustment.h"
 
-namespace thoht {
+namespace tl {
 
 struct TwoViewBundleAdjustmentOptions
 {
@@ -50,4 +50,4 @@ BundleAdjustmentSummary OptimizeFundamentalMatrix(
     const std::vector<FeatureCorrespondence>& correspondences,
     Eigen::Matrix3d* fundamentalMatrix);
 
-} // namespace thoht
+} // namespace tl

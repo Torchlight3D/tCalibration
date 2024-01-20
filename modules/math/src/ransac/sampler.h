@@ -3,9 +3,9 @@
 #include <memory>
 #include <vector>
 
-#include <AxMath/RandomGenerator>
+#include <tMath/RandomGenerator>
 
-namespace thoht {
+namespace tl {
 
 class Sampler
 {
@@ -39,4 +39,4 @@ inline Sampler::Sampler(const std::shared_ptr<RandomNumberGenerator>& rng,
     }
 }
 
-} // namespace thoht
+} // namespace tl

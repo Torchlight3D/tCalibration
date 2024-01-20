@@ -2,7 +2,7 @@
 
 #include <streambuf>
 
-namespace thoht {
+namespace tl {
 
 template <class _Char = char, class _Traits = std::char_traits<_Char>>
 class StdOStreamRedirector_ : public std::basic_streambuf<_Char, _Traits>
@@ -46,4 +46,4 @@ private:
 using StdOStreamRedirector =
     StdOStreamRedirector_<char, std::char_traits<char>>;
 
-} // namespace thoht
+} // namespace tl

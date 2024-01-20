@@ -3,7 +3,7 @@
 #include <functional>
 #include <memory>
 
-namespace thoht {
+namespace tl {
 
 // Allows implementing both syncrhonous and asynchronus operations conveniently
 // Smart pointer stuff is encapsulated here for convenience and avoiding the
@@ -52,4 +52,4 @@ struct Queue : Processor
     virtual void processAll() = 0;
 };
 
-} // namespace thoht
+} // namespace tl

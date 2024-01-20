@@ -4,7 +4,7 @@
 
 #include "../../../core/Duration.h"
 
-namespace thoht {
+namespace tl {
 
 class RollingShutter
 {
@@ -54,4 +54,4 @@ private:
     double _lineDelay;
 };
 
-} // namespace thoht
+} // namespace tl

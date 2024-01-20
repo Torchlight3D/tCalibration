@@ -1,6 +1,6 @@
 #include "imagepairmatch.h"
 
-namespace thoht {
+namespace tl {
 
 // Do nothing
 

@@ -2,7 +2,7 @@
 
 #include <QWidget>
 
-namespace thoht {
+namespace tl {
 
 QWidget* makeVerticalLine(QWidget* parentWidget, int maxHeight = -1);
 QWidget* makeHorizontalLine(QWidget* parentWidget, int maxWidth = -1);
@@ -32,4 +32,4 @@ T* findFirstParentOfType(QWidget* child)
     return nullptr;
 }
 
-} // namespace thoht
+} // namespace tl

@@ -3,7 +3,7 @@
 #include "camera_intrinsics.h"
 #include <ceres/ceres.h>
 
-namespace thoht {
+namespace tl {
 
 // Brief:
 // PinholeCameraModel
@@ -211,4 +211,4 @@ void PinholeCameraModel::calcDistortion(const T* intrinsics, const T* pt_u,
     *rd = T(1) + rr * (k1 + k2 * rr);
 }
 
-} // namespace thoht
+} // namespace tl

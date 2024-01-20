@@ -1,11 +1,11 @@
 #include <Eigen/Dense>
 #include <gtest/gtest.h>
 
-#include <AxMath/MathBase>
-#include <AxCamera/Camera>
-#include <AxCamera/DivisionUndistortionCameraModel>
+#include <tMath/MathBase>
+#include <tCamera/Camera>
+#include <tCamera/DivisionUndistortionCameraModel>
 
-using namespace thoht;
+using namespace tl;
 
 using Eigen::Vector2d;
 using Eigen::Vector3d;

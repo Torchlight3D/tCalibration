@@ -2,7 +2,7 @@
 
 #include "ProjectionBase.h"
 
-namespace thoht {
+namespace tl {
 
 template <typename Distortion_t>
 class DoubleSphereProjection : public ProjectionBase<Distortion_t>
@@ -1141,4 +1141,4 @@ bool DoubleSphereProjection<DISTORTION_T>::estimateTransformation(
     out_T_t_c.set(T_camera_model.inverse());
     return true;
 }
-} // namespace thoht
+} // namespace tl

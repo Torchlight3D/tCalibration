@@ -7,7 +7,7 @@
 
 class QAbstractItemView;
 
-namespace thoht {
+namespace tl {
 
 class CommandLinkButtonPaintEventFilter;
 class LineEditButtonEventFilter;
@@ -321,4 +321,4 @@ private:
     const QScopedPointer<QlementineStylePrivate> d_ptr;
 };
 
-} // namespace thoht
+} // namespace tl

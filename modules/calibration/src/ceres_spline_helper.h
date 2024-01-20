@@ -2,7 +2,7 @@
 
 #include <ceres/ceres.h>
 
-namespace thoht {
+namespace tl {
 
 // Brief:
 // Helper for implementing Lie group and Euclidean B-splines of order N by ceres
@@ -314,4 +314,4 @@ const typename CeresSplineHelper<T, _N>::MatN
     CeresSplineHelper<T, _N>::cumulative_blending_matrix_ =
         computeBlendingMatrix<_N, T, true>();
 
-} // namespace thoht
+} // namespace tl

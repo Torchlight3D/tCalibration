@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-namespace thoht {
+namespace tl {
 
 #define DISABLE_COPY(Class)       \
     Class(const Class&) = delete; \
@@ -13,4 +13,4 @@ namespace thoht {
 
 #define UNUSED(x) ((void)(x))
 
-} // namespace thoht
+} // namespace tl

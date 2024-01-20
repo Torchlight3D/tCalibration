@@ -14,7 +14,7 @@
 #include "pinhole_radial_tangential_camera_model.h"
 #include "../util_camera_matrix.h"
 
-namespace thoht {
+namespace tl {
 
 using Eigen::MatrixXf;
 using Eigen::Matrix3d;
@@ -273,4 +273,4 @@ std::string CameraIntrinsics::toLogString() const
     return oss.str();
 }
 
-} // namespace thoht
+} // namespace tl

@@ -10,7 +10,7 @@
 #include "apriltag/tag36h11.h"
 #include "apriltag/tag_detector.h"
 
-namespace thoht {
+namespace tl {
 
 using namespace apriltags;
 
@@ -244,4 +244,4 @@ void AprilTagBoard::createBoardPoints()
     std::iota(m_ids.begin(), m_ids.end(), 0);
 }
 
-} // namespace thoht
+} // namespace tl

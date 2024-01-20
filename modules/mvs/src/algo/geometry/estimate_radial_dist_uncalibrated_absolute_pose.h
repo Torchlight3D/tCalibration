@@ -3,9 +3,9 @@
 #include <vector>
 #include <Eigen/Core>
 
-#include <AxMath/RansacCreator>
+#include <tMath/RansacCreator>
 
-namespace thoht {
+namespace tl {
 
 struct RadialDistUncalibratedAbsolutePose
 {
@@ -41,4 +41,4 @@ bool EstimateRadialDistUncalibratedAbsolutePose(
     RadialDistUncalibratedAbsolutePose* absolute_pose,
     SacSummary* ransac_summary);
 
-} // namespace thoht
+} // namespace tl

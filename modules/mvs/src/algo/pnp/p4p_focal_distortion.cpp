@@ -3,9 +3,9 @@
 
 #include <glog/logging.h>
 
-#include <AxMath/RandomGenerator>
+#include <tMath/RandomGenerator>
 
-namespace thoht {
+namespace tl {
 
 namespace {
 
@@ -255,4 +255,4 @@ bool FourPointsPoseFocalLengthRadialDistortion(
     return !valid_solutions.empty();
 }
 
-} // namespace thoht
+} // namespace tl

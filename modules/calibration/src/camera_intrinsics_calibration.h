@@ -2,12 +2,12 @@
 
 #include <string>
 
-#include <AxCalibTarget/TargetDetection>
-#include <AxCamera/CameraIntrinsics>
-#include <AxMVS/MvsTypes>
-#include <AxMVS/Scene>
+#include <tTarget/TargetDetection>
+#include <tCamera/CameraIntrinsics>
+#include <tMvs/MvsTypes>
+#include <tMvs/Scene>
 
-namespace thoht {
+namespace tl {
 
 class CalibBoardBase;
 class Camera;
@@ -117,4 +117,4 @@ private:
     friend class Impl;
 };
 
-} // namespace thoht
+} // namespace tl

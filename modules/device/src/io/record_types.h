@@ -4,7 +4,7 @@ namespace cv {
 class Mat;
 } // namespace cv
 
-namespace thoht {
+namespace tl {
 
 struct Vector3d
 {
@@ -58,4 +58,4 @@ struct GyroscopeData
     double temperature = -1.0;
 };
 
-} // namespace thoht
+} // namespace tl

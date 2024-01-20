@@ -3,7 +3,7 @@
 #include <numeric>
 #include <opencv2/imgproc.hpp>
 
-namespace thoht {
+namespace tl {
 
 namespace {
 inline float normpdf(float x, float mu, float sigma)
@@ -1318,4 +1318,4 @@ void MultiCheckerBoardDetector::drawChessboards(
     }
 }
 
-} // namespace thoht
+} // namespace tl

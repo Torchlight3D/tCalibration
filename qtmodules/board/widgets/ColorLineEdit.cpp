@@ -3,7 +3,7 @@
 #include <QEvent>
 #include <QRegularExpression>
 
-namespace thoht {
+namespace tl {
 
 static QRegularExpression regex_qcolor(
     u"^(?:(?:#[[:xdigit:]]{3})|(?:#[[:xdigit:]]{6})|(?:[[:alpha:]]+))$"_qs);
@@ -95,4 +95,4 @@ bool ColorLineEdit::eventFilter(QObject *obj, QEvent *ev)
     return false;
 }
 
-} // namespace thoht
+} // namespace tl

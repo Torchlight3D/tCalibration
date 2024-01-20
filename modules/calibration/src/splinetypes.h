@@ -1,6 +1,6 @@
 #pragma once
 
-namespace thoht {
+namespace tl {
 
 enum SplineOptimizeType
 {

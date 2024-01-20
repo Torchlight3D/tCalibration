@@ -3,7 +3,7 @@
 #include "DistortionInterface.h"
 #include "../core/eigen_types.h"
 
-namespace thoht {
+namespace tl {
 
 class RadialTangentialDistortion
 {
@@ -225,4 +225,4 @@ void RadialTangentialDistortion::distortParameterJacobian(
     J(1, 3) = 2.0 * y0 * y1;
 }
 
-} // namespace thoht
+} // namespace tl

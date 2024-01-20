@@ -5,7 +5,7 @@
 #include "data.h"
 #include "TimeSeriesParameter.h"
 
-namespace thoht {
+namespace tl {
 
 class TimeSeries : public TimeSeriesParameter
 {
@@ -33,4 +33,4 @@ private:
     int mReadPos;
 };
 
-} // namespace thoht
+} // namespace tl

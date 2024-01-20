@@ -2,7 +2,7 @@
 
 #include <chrono>
 
-namespace thoht {
+namespace tl {
 
 // TODO: This timer is too naive, try better
 class Timer
@@ -24,4 +24,4 @@ private:
     std::chrono::time_point<std::chrono::system_clock> start_, end_;
 };
 
-} // namespace thoht
+} // namespace tl

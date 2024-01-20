@@ -13,7 +13,7 @@
 #include "view.h"
 #include "mvs_types.h"
 
-namespace thoht {
+namespace tl {
 
 struct Feature;
 
@@ -120,4 +120,4 @@ private:
     CameraId m_nextCamId;
 };
 
-} // namespace thoht
+} // namespace tl

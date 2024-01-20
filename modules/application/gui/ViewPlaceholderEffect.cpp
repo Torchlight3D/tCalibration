@@ -10,7 +10,7 @@
 #include <QTextDocument>
 #include <QAbstractTextDocumentLayout>
 
-namespace thoht {
+namespace tl {
 
 class ViewPlaceholderEffectPrivate
 {
@@ -244,6 +244,6 @@ void ViewPlaceholderEffect::timerEvent(QTimerEvent *event)
     update();
 }
 
-} // namespace thoht
+} // namespace tl
 
 #include "moc_ViewPlaceholderEffect.cpp"

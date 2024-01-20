@@ -1,13 +1,13 @@
 #include <Eigen/Dense>
 #include <gtest/gtest.h>
 
-#include <AxMath/EigenUtils>
-#include <AxMath/RandomGenerator>
-#include <AxCamera/Camera>
-#include <AxCamera/CameraMetaData>
-#include <AxCamera/PinholeCameraModel>
+#include <tMath/EigenUtils>
+#include <tMath/RandomGenerator>
+#include <tCamera/Camera>
+#include <tCamera/CameraMetaData>
+#include <tCamera/PinholeCameraModel>
 
-using namespace thoht;
+using namespace tl;
 
 using Eigen::Matrix3d;
 using Eigen::Vector2d;

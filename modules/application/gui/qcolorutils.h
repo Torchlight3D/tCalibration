@@ -4,7 +4,7 @@
 
 #include <QColor>
 
-namespace thoht {
+namespace tl {
 
 /// Gets the color the new alpha chanel (from 0 to 255).
 QColor colorWithAlpha(QColor const &color, int alpha);
@@ -27,4 +27,4 @@ QString toHexRGB(const QColor &color);
 /// Gives the color's hexadecimal RGBA string.
 QString toHexRGBA(const QColor &color);
 
-} // namespace thoht
+} // namespace tl

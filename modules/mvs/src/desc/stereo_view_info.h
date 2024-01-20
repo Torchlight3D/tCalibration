@@ -5,9 +5,9 @@
 #include <Eigen/Core>
 #include <glog/logging.h>
 
-#include <AxCamera/Camera>
+#include <tCamera/Camera>
 
-namespace thoht {
+namespace tl {
 
 // First camera is treated as reference camera.
 struct TwoViewInfo
@@ -77,4 +77,4 @@ void TwoViewInfoFromTwoCameras(const Camera& camera1, const Camera& camera2,
     }
 }
 
-} // namespace thoht
+} // namespace tl

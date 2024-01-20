@@ -2,7 +2,7 @@
 
 #include <string>
 
-namespace thoht {
+namespace tl {
 
 template <int Size_t>
 struct Elem
@@ -40,4 +40,4 @@ struct CameraMetaData
     Elem<1> altitude;  // meter
 };
 
-} // namespace thoht
+} // namespace tl

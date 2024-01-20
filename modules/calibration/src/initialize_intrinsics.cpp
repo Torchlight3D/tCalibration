@@ -6,20 +6,20 @@
 #include <glog/logging.h>
 #include <opencv2/calib3d.hpp>
 
-#include <AxCamera/Camera>
-#include <AxCamera/CameraIntrinsics>
-#include <AxCamera/DivisionUndistortionCameraModel>
-#include <AxCamera/DoubleSphereCameraModel>
-#include <AxImgproc/EigenCVUtils>
-#include <AxMath/EigenUtils>
-#include <AxMath/RansacCreator>
-#include <AxMath/SampleConsensusEstimator>
-#include <AxMVS/EstimateCalibratedAbsolutePose>
-#include <AxMVS/EstimateUncalibratedAbsolutePose>
-#include <AxMVS/EstimateRadialDistortionUncalibratedAbsolutePose>
-#include <AxMVS/FeatureCorrespondence>
+#include <tCamera/Camera>
+#include <tCamera/CameraIntrinsics>
+#include <tCamera/DivisionUndistortionCameraModel>
+#include <tCamera/DoubleSphereCameraModel>
+#include <tVision/EigenCVUtils>
+#include <tMath/EigenUtils>
+#include <tMath/RansacCreator>
+#include <tMath/SampleConsensusEstimator>
+#include <tMvs/EstimateCalibratedAbsolutePose>
+#include <tMvs/EstimateUncalibratedAbsolutePose>
+#include <tMvs/EstimateRadialDistortionUncalibratedAbsolutePose>
+#include <tMvs/FeatureCorrespondence>
 
-namespace thoht {
+namespace tl {
 
 using Eigen::Matrix3d;
 using Eigen::Vector2d;
@@ -291,4 +291,4 @@ bool initializeDoubleSphereModel(
     return success;
 }
 
-} // namespace thoht
+} // namespace tl

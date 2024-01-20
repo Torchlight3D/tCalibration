@@ -1,7 +1,7 @@
 #include "timer.h"
 
-namespace thoht {
+namespace tl {
 
 // Do nothing
 
-} // namespace thoht
+} // namespace tl

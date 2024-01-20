@@ -2,7 +2,7 @@
 
 #include <qcp/qcustomplot.h>
 
-namespace thoht {
+namespace tl {
 class AxisRect : public QCPAxisRect
 {
     Q_OBJECT
@@ -18,4 +18,4 @@ protected:
     void mousePressEvent(QMouseEvent *event, const QVariant &details) override;
 };
 
-} // namespace thoht
+} // namespace tl

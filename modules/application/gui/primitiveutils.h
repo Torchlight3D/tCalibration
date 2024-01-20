@@ -10,7 +10,7 @@
 #include "CornerRadius.h"
 #include "TheStyleTypes.h"
 
-namespace thoht {
+namespace tl {
 
 class QlementineStyle;
 class Theme;
@@ -302,4 +302,4 @@ void updateMessageBoxQuestionIcon(QIcon& icon, const QSize& size,
 void updateMessageBoxInformationIcon(QIcon& icon, const QSize& size,
                                      const Theme& theme);
 
-} // namespace thoht
+} // namespace tl

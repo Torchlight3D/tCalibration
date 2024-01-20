@@ -3,9 +3,9 @@
 #include <glog/logging.h>
 #include <magic_enum/magic_enum.hpp>
 
-#include <AxCamera/CameraMatrixUtils>
+#include <tCamera/CameraMatrixUtils>
 
-namespace thoht {
+namespace tl {
 
 OrthographicCameraModel::OrthographicCameraModel() : CameraIntrinsics()
 {
@@ -107,4 +107,4 @@ void OrthographicCameraModel::print() const
               << k1() << ", " << k2();
 }
 
-} // namespace thoht
+} // namespace tl

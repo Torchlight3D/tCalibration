@@ -5,21 +5,21 @@
 
 #include <json/json.hpp>
 
-#include <AxCalibTarget/CalibBoardBase>
-#include <AxCore/ContainerUtils>
-#include <AxCore/TimeUtils>
-#include <AxImgproc/EigenCVUtils>
-#include <AxMath/SampleConsensusEstimator>
-#include <AxMVS/BundleAdjustment>
-#include <AxMVS/EstimateCalibratedAbsolutePose>
-#include <AxMVS/FeatureCorrespondence>
-#include <AxMVS/Landmark>
-#include <AxMVS/View>
-#include <AxSolver/LossFunctionCreator>
+#include <tTarget/CalibBoardBase>
+#include <tCore/ContainerUtils>
+#include <tCore/TimeUtils>
+#include <tVision/EigenCVUtils>
+#include <tMath/SampleConsensusEstimator>
+#include <tMvs/BundleAdjustment>
+#include <tMvs/EstimateCalibratedAbsolutePose>
+#include <tMvs/FeatureCorrespondence>
+#include <tMvs/Landmark>
+#include <tMvs/View>
+#include <tSolver/LossFunctionCreator>
 
 #include "util_scene.h"
 
-namespace thoht {
+namespace tl {
 
 ///------- PoseEstimator::Impl implementation starts from here
 class CameraPoseCalibration::Impl
@@ -327,4 +327,4 @@ void CameraPoseCalibration::toJsonString(std::string& json) const
     //
 }
 
-} // namespace thoht
+} // namespace tl

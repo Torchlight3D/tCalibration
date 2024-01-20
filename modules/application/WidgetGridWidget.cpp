@@ -8,7 +8,7 @@
 
 #include "gui/ImageView.h"
 
-namespace thoht {
+namespace tl {
 
 ///------- VideoBox starts from here
 class VideoBox : public QObject
@@ -572,7 +572,7 @@ bool WidgetGridWidget::eventFilter(QObject *watched, QEvent *event)
     return QWidget::eventFilter(watched, event);
 }
 
-} // namespace thoht
+} // namespace tl
 
 #include "WidgetGridWidget.moc"
 #include "moc_WidgetGridWidget.cpp"

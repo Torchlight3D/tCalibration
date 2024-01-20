@@ -14,7 +14,7 @@
 #include <utility>
 #include <vector>
 
-namespace thoht {
+namespace tl {
 
 // Convenience type for std::thread::hardware_concurrency() return type.
 // Should evaluate to unsigned int under Linux
@@ -482,4 +482,4 @@ private:
     mutable std::mutex mtx_ = {};
 };
 
-} // namespace thoht
+} // namespace tl

@@ -584,7 +584,7 @@
     </message>
 </context>
 <context>
-    <name>thoht::CalibBoardConfigsWidget</name>
+    <name>tl::CalibBoardConfigsWidget</name>
     <message>
         <location filename="../CalibBoardConfigsWidget.ui" line="29"/>
         <source>Geometry Options</source>
@@ -642,7 +642,7 @@
     </message>
 </context>
 <context>
-    <name>thoht::CalibResultReportModel</name>
+    <name>tl::CalibResultReportModel</name>
     <message>
         <location filename="../StereoModuleCalibResultView.cpp" line="95"/>
         <source>Item</source>
@@ -675,7 +675,7 @@
     </message>
 </context>
 <context>
-    <name>thoht::EthernetAdaptorHelper</name>
+    <name>tl::EthernetAdaptorHelper</name>
     <message>
         <location filename="../EthernetAdaptorHelper.cpp" line="14"/>
         <source>Ethernet Adaptor Helper</source>
@@ -717,7 +717,7 @@ Corresponding IP address: %2</source>
     </message>
 </context>
 <context>
-    <name>thoht::LogWidget</name>
+    <name>tl::LogWidget</name>
     <message>
         <location filename="../gui/LogWidget.cpp" line="229"/>
         <source>Log</source>
@@ -730,7 +730,7 @@ Corresponding IP address: %2</source>
     </message>
 </context>
 <context>
-    <name>thoht::MainWindow</name>
+    <name>tl::MainWindow</name>
     <message>
         <source>Live View</source>
         <translation type="vanished">实时视图</translation>
@@ -765,7 +765,7 @@ Corresponding IP address: %2</source>
     </message>
 </context>
 <context>
-    <name>thoht::RemoteStatusModel</name>
+    <name>tl::RemoteStatusModel</name>
     <message>
         <source>Item</source>
         <translation type="obsolete">项目</translation>
@@ -828,7 +828,7 @@ Corresponding IP address: %2</source>
     </message>
 </context>
 <context>
-    <name>thoht::RobotConnectionWidget</name>
+    <name>tl::RobotConnectionWidget</name>
     <message>
         <source>Connection</source>
         <translation type="vanished">连接</translation>
@@ -967,7 +967,7 @@ Corresponding IP address: %2</source>
     </message>
 </context>
 <context>
-    <name>thoht::StereoModuleCalibResultView</name>
+    <name>tl::StereoModuleCalibResultView</name>
     <message>
         <source>Calibration result values verification report:</source>
         <translation type="vanished">标定结果数值验证报告：</translation>
@@ -1074,7 +1074,7 @@ Corresponding IP address: %2</source>
     </message>
 </context>
 <context>
-    <name>thoht::StereoModuleCalibrationConfigWidget</name>
+    <name>tl::StereoModuleCalibrationConfigWidget</name>
     <message>
         <location filename="../StereoModuleCalibrationConfigWidget.ui" line="14"/>
         <source>Stereo Module Calibration Settings</source>
@@ -1149,7 +1149,7 @@ Corresponding IP address: %2</source>
     </message>
 </context>
 <context>
-    <name>thoht::StereoModuleCalibrationView</name>
+    <name>tl::StereoModuleCalibrationView</name>
     <message>
         <location filename="../StereoModuleCalibrationView.ui" line="33"/>
         <source>Live View</source>
@@ -1499,7 +1499,7 @@ Start capturing calibration data when the calibration target can be clearly visu
     </message>
 </context>
 <context>
-    <name>thoht::StereoModuleImageQualityView</name>
+    <name>tl::StereoModuleImageQualityView</name>
     <message>
         <location filename="../StereoModuleImageQualityView.cpp" line="37"/>
         <source>Stereo Module Image Quality</source>
@@ -1507,7 +1507,7 @@ Start capturing calibration data when the calibration target can be clearly visu
     </message>
 </context>
 <context>
-    <name>thoht::StereoModuleListModel</name>
+    <name>tl::StereoModuleListModel</name>
     <message>
         <source>Connected</source>
         <translation type="vanished">已连接</translation>
@@ -1530,7 +1530,7 @@ Start capturing calibration data when the calibration target can be clearly visu
     </message>
 </context>
 <context>
-    <name>thoht::StereoModuleListWidget</name>
+    <name>tl::StereoModuleListWidget</name>
     <message>
         <source>Refresh available devices</source>
         <translation type="vanished">刷新可用设备</translation>
@@ -1673,7 +1673,7 @@ Start capturing calibration data when the calibration target can be clearly visu
     </message>
 </context>
 <context>
-    <name>thoht::StereoModuleToolView</name>
+    <name>tl::StereoModuleToolView</name>
     <message>
         <location filename="../StereoModuleToolView.cpp" line="118"/>
         <source>Menu</source>
@@ -1740,7 +1740,7 @@ Start capturing calibration data when the calibration target can be clearly visu
     </message>
 </context>
 <context>
-    <name>thoht::StereoModuleVerificationConfigWidget</name>
+    <name>tl::StereoModuleVerificationConfigWidget</name>
     <message>
         <location filename="../StereoModuleVerificationConfigWidget.ui" line="14"/>
         <source>Stereo Module Verification Settings</source>
@@ -1823,7 +1823,7 @@ Start capturing calibration data when the calibration target can be clearly visu
     </message>
 </context>
 <context>
-    <name>thoht::StereoModuleVerificationView</name>
+    <name>tl::StereoModuleVerificationView</name>
     <message>
         <source>验证</source>
         <translation type="vanished">验证</translation>
@@ -1992,7 +1992,7 @@ Start capturing calibration data when the calibration target can be clearly visu
     </message>
 </context>
 <context>
-    <name>thoht::StereoModuleVerifyResultView</name>
+    <name>tl::StereoModuleVerifyResultView</name>
     <message>
         <location filename="../StereoModuleVerifyResultView.cpp" line="270"/>
         <source>Waiting for verification results.</source>
@@ -2040,7 +2040,7 @@ Start capturing calibration data when the calibration target can be clearly visu
     </message>
 </context>
 <context>
-    <name>thoht::TestStereoModuleWidget</name>
+    <name>tl::TestStereoModuleWidget</name>
     <message>
         <location filename="../TestStereoModuleWidget.ui" line="73"/>
         <source>Calibration data directory...</source>
@@ -2063,7 +2063,7 @@ Start capturing calibration data when the calibration target can be clearly visu
     </message>
 </context>
 <context>
-    <name>thoht::VerifyResultReportModel</name>
+    <name>tl::VerifyResultReportModel</name>
     <message>
         <location filename="../StereoModuleVerifyResultView.cpp" line="60"/>
         <source>Item</source>

@@ -1,9 +1,9 @@
 #include <Eigen/Dense>
 #include <gtest/gtest.h>
 
-#include <AxCamera/DoubleSphereCameraModel>
+#include <tCamera/DoubleSphereCameraModel>
 
-using namespace thoht;
+using namespace tl;
 
 using Eigen::Vector2d;
 using Eigen::Vector3d;

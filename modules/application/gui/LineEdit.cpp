@@ -9,7 +9,7 @@
 #include "qimageutils.h"
 #include "TheStyle.h"
 
-namespace thoht {
+namespace tl {
 
 const QIcon& LineEdit::icon() const { return _icon; }
 
@@ -72,7 +72,7 @@ QPixmap LineEdit::getPixmap() const
     const auto autoColorize =
         theStyle && theStyle->isAutoIconColorEnabled(this);
     if (autoColorize) {
-        const auto pixmap = ::thoht::getPixmap(
+        const auto pixmap = ::tl::getPixmap(
             _icon, iconSize, MouseState::Normal, Qt::Unchecked);
         const auto colorGroup = isEnabled() ? QPalette::ColorGroup::Normal
                                             : QPalette::ColorGroup::Disabled;
@@ -85,7 +85,7 @@ QPixmap LineEdit::getPixmap() const
         const auto mouse =
             isEnabled() ? MouseState::Normal : MouseState::Disabled;
         const auto pixmap =
-            ::thoht::getPixmap(_icon, iconSize, mouse, Qt::Unchecked);
+            ::tl::getPixmap(_icon, iconSize, mouse, Qt::Unchecked);
         return pixmap;
     }
 }
@@ -128,6 +128,6 @@ void LineEdit::setStatus(Status status)
     }
 }
 
-} // namespace thoht
+} // namespace tl
 
 #include "moc_LineEdit.cpp"

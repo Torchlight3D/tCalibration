@@ -3,7 +3,7 @@
 #include <QAbstractButton>
 #include <QVariantAnimation>
 
-namespace thoht {
+namespace tl {
 
 class QStyleOptionFocusRoundedRect;
 class RoundedFocusFrame;
@@ -51,4 +51,4 @@ private:
     bool m_isMouseOver{false};
 };
 
-} // namespace thoht
+} // namespace tl

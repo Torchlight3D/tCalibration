@@ -3,12 +3,12 @@
 #include <mutex>
 #include <unordered_map>
 
-#include <AxCore/axglobal.h>
-#include <AxCore/HashUtils>
+#include <tCore/tGlobal>
+#include <tCore/HashUtils>
 
 #include "featuredatabase.h"
 
-namespace thoht {
+namespace tl {
 
 // A simple implementation for storing features and feature matches in memory.
 class InMemoryFeaturesAndMatchesDatabase : public FeaturesAndMatchesDatabase
@@ -56,4 +56,4 @@ private:
         m_nameToMatch;
 };
 
-} // namespace thoht
+} // namespace tl

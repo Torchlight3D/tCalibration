@@ -2,10 +2,10 @@
 
 // #include <glog/logging.h>
 #include <ceres/rotation.h>
-#include <AxMath/MathBase>
-#include <AxMath/RandomGenerator>
+#include <tMath/MathBase>
+#include <tMath/RandomGenerator>
 
-namespace thoht {
+namespace tl {
 
 using Eigen::Vector2d;
 
@@ -30,4 +30,4 @@ inline Eigen::Matrix3d RandomRotation(double max_degrees_from_identity,
     return rotation;
 }
 
-} // namespace thoht
+} // namespace tl

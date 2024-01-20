@@ -2,7 +2,7 @@
 
 #include <QBoxLayout>
 
-namespace thoht {
+namespace tl {
 
 class LedIndicatorGridPrivate
 {
@@ -141,6 +141,6 @@ QColor LedIndicatorGrid::ledOnColor() const
     return d->m_leds.front()->onColor();
 }
 
-} // namespace thoht
+} // namespace tl
 
 #include "moc_LedIndicatorGrid.cpp"

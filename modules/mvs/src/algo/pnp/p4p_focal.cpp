@@ -1,7 +1,7 @@
 ﻿#include "p4p_focal.h"
 #include "impl/p4p_focal_impl.h"
 
-namespace thoht {
+namespace tl {
 
 namespace {
 
@@ -126,4 +126,4 @@ int FourPointPoseAndFocalLength(const Vector2dList& image_points,
     return static_cast<int>(projection_matrices.size());
 }
 
-} // namespace thoht
+} // namespace tl

@@ -3,7 +3,7 @@
 #include <QItemDelegate>
 #include <QPointer>
 
-namespace thoht {
+namespace tl {
 
 class QlementineStyle;
 
@@ -23,4 +23,4 @@ private:
     const QPointer<QlementineStyle> _qlementineStyle;
 };
 
-} // namespace thoht
+} // namespace tl

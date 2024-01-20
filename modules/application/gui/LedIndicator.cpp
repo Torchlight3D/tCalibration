@@ -5,7 +5,7 @@
 #include <QPainterPath>
 #include <QTimer>
 
-namespace thoht {
+namespace tl {
 
 // In case there's more states
 namespace State {
@@ -256,6 +256,6 @@ void LedIndicator::mousePressEvent(QMouseEvent *event)
     }
 }
 
-} // namespace thoht
+} // namespace tl
 
 #include "moc_LedIndicator.cpp"

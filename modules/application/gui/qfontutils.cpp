@@ -2,7 +2,7 @@
 
 #include <QFontMetrics>
 
-namespace thoht {
+namespace tl {
 
 int textWidth(const QFontMetrics& fm, const QString& text)
 {
@@ -14,4 +14,4 @@ int textWidth(const QFontMetrics& fm, const QString& text)
     return fm.boundingRect({}, Qt::AlignCenter, text, 0, nullptr).width();
 }
 
-} // namespace thoht
+} // namespace tl

@@ -1,9 +1,9 @@
 #include <Eigen/Dense>
 #include <gtest/gtest.h>
 
-#include <AxCamera/PinholeCameraModel>
+#include <tCamera/PinholeCameraModel>
 
-using namespace thoht;
+using namespace tl;
 
 using Eigen::Vector2d;
 using Eigen::Vector3d;
@@ -273,7 +273,7 @@ TEST(PinholeCameraModel, ReprojectionTwoDistortion)
     ReprojectionTest(camera);
 }
 
-#include <AxCamera/PinholeRadialTangentialCameraModel>
+#include <tCamera/PinholeRadialTangentialCameraModel>
 
 TEST(PinholeRadialTangentialCameraModel, InternalParameterGettersAndSetters)
 {

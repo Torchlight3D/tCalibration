@@ -5,7 +5,7 @@
 #include "../../../core/util_eigen.h"
 #include "ProjectionBase.h"
 
-namespace thoht {
+namespace tl {
 
 class CalibObservation;
 
@@ -644,4 +644,4 @@ void DepthProjection<DISTORTION_T>::setParameters(const Eigen::MatrixXd &P)
     _recip_fv = 1.0 / _fv;
     _fu_over_fv = _fu / _fv;
 }
-} // namespace thoht
+} // namespace tl

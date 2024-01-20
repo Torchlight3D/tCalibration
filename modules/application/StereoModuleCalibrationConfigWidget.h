@@ -6,7 +6,7 @@
 #include "gui/guiutils.h"
 #include "StereoModuleTask.h"
 
-namespace thoht {
+namespace tl {
 
 class StereoModuleCalibrationConfigWidgetPrivate;
 class StereoModuleCalibrationConfigWidget : public QWidget
@@ -41,4 +41,4 @@ private:
     StereoModuleCalibrationConfigWidget* const w;
 };
 
-} // namespace thoht
+} // namespace tl

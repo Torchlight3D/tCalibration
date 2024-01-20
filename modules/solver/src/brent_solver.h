@@ -2,7 +2,7 @@
 
 #include <functional>
 
-namespace thoht {
+namespace tl {
 
 class BrentSolver
 {
@@ -17,4 +17,4 @@ public:
 
 // TODO: add helper
 
-} // namespace thoht
+} // namespace tl

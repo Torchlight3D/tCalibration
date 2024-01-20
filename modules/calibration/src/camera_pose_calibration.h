@@ -3,11 +3,11 @@
 #include <Eigen/Geometry>
 #include <opencv2/core/types.hpp>
 
-#include <AxCalibTarget/TargetDetection>
-#include <AxCamera/Camera>
-#include <AxMVS/Scene>
+#include <tTarget/TargetDetection>
+#include <tCamera/Camera>
+#include <tMvs/Scene>
 
-namespace thoht {
+namespace tl {
 
 class CalibBoardBase;
 struct Observation;
@@ -62,4 +62,4 @@ private:
     friend class Impl;
 };
 
-} // namespace thoht
+} // namespace tl

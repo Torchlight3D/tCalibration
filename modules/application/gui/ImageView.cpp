@@ -4,7 +4,7 @@
 #include <QGraphicsRectItem>
 #include <QWheelEvent>
 
-namespace thoht {
+namespace tl {
 
 namespace {
 
@@ -265,6 +265,6 @@ void ImageView::resizeEvent(QResizeEvent *event)
     }
 }
 
-} // namespace thoht
+} // namespace tl
 
 #include "moc_ImageView.cpp"

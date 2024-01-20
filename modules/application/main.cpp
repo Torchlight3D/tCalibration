@@ -47,7 +47,7 @@ void setupLanguage(QApplication &app)
 
 void setupStyle(QApplication &app)
 {
-    auto *const style = new thoht::QlementineStyle(&app);
+    auto *const style = new tl::QlementineStyle(&app);
     style->setAnimationsEnabled(true);
     style->setUseMenuForComboBoxPopup(false);
     style->setAutoIconColorEnabled(true);
@@ -84,9 +84,9 @@ int main(int argc, char *argv[])
 
     constexpr char kConfigsPath[]{"configs.ax"};
 
-    thoht::AppConfigs configs;
+    tl::AppConfigs configs;
     [[maybe_unused]] const bool configsLoaded =
-        thoht::AppConfigs::load(kConfigsPath, configs);
+        tl::AppConfigs::load(kConfigsPath, configs);
 
     QApplication app{argc, argv};
 
@@ -107,7 +107,7 @@ int main(int argc, char *argv[])
         QThreadPool::globalInstance()->waitForDone(2000);
     });
 
-    thoht::StereoModuleToolView w;
+    tl::StereoModuleToolView w;
     w.resize(1000, 600);
     w.setHomePage(configs.homePage);
     w.show();

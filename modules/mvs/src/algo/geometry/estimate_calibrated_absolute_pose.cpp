@@ -1,17 +1,17 @@
 ﻿#include "estimate_calibrated_absolute_pose.h"
 
-#include <AxCamera/CameraIntrinsics>
-#include <AxMath/RansacModelEstimator>
-#include <AxMVS/DlsPnP>
-#include <AxMVS/P3P>
-#include <AxMVS/SQPnP>
-#include <AxMVS/BundleAdjustment>
-#include <AxMVS/FeatureCorrespondence>
-#include <AxMVS/Scene>
-#include <AxMVS/Landmark>
-#include <AxMVS/View>
+#include <tCamera/CameraIntrinsics>
+#include <tMath/RansacModelEstimator>
+#include <tMvs/DlsPnP>
+#include <tMvs/P3P>
+#include <tMvs/SQPnP>
+#include <tMvs/BundleAdjustment>
+#include <tMvs/FeatureCorrespondence>
+#include <tMvs/Scene>
+#include <tMvs/Landmark>
+#include <tMvs/View>
 
-namespace thoht {
+namespace tl {
 namespace {
 
 // An estimator for computing the absolute pose from 3 feature
@@ -148,4 +148,4 @@ bool EstimateCalibratedAbsolutePose(
                             ransac_summary);
 }
 
-} // namespace thoht
+} // namespace tl

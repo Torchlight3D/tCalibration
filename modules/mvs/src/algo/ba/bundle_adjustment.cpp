@@ -1,9 +1,9 @@
 ﻿#include "bundle_adjustment.h"
 #include "bundle_adjustment_solver.h"
 
-#include <AxMVS/Scene>
+#include <tMvs/Scene>
 
-namespace thoht {
+namespace tl {
 
 BundleAdjustmentSummary BundleAdjustScene(
     const BundleAdjustmentOptions& options, Scene* scene)
@@ -262,4 +262,4 @@ BundleAdjustmentSummary BundleAdjustTracks(
     return ba_summary;
 }
 
-} // namespace thoht
+} // namespace tl

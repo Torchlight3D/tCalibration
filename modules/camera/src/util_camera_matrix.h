@@ -1,8 +1,8 @@
 #pragma once
 
-#include <AxMath/EigenTypes>
+#include <tMath/EigenTypes>
 
-namespace thoht {
+namespace tl {
 
 void intrinsicsToCalibrationMatrix(double fx, double skew, double y_x,
                                    double cx, double cy,
@@ -24,4 +24,4 @@ bool composeProjectionMatrix(const Eigen::Matrix3d& K,
 // rotation matrix is R = UV'.
 Eigen::Matrix3d projectToRotationMatrix(const Eigen::Matrix3d& matrix);
 
-} // namespace thoht
+} // namespace tl

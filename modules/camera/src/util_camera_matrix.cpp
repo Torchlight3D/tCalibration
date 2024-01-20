@@ -1,9 +1,9 @@
 #include "util_camera_matrix.h"
 
 #include <glog/logging.h>
-#include <AxMath/EigenUtils>
+#include <tMath/EigenUtils>
 
-namespace thoht {
+namespace tl {
 
 void intrinsicsToCalibrationMatrix(double fx, double skew, double y_x,
                                    double cx, double cy, Eigen::Matrix3d& K)
@@ -107,4 +107,4 @@ Eigen::Matrix3d projectToRotationMatrix(const Eigen::Matrix3d& matrix)
     return rmat;
 }
 
-} // namespace thoht
+} // namespace tl

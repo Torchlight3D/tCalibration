@@ -4,7 +4,7 @@
 
 #include "sampler.h"
 
-namespace thoht {
+namespace tl {
 
 // This is guaranteed to generate a unique sample by
 // performing a Fisher-Yates sampling.
@@ -23,4 +23,4 @@ private:
     std::vector<int> sample_indices_;
 };
 
-} // namespace thoht
+} // namespace tl

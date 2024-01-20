@@ -8,7 +8,7 @@
 #include "BoardLayout.h"
 #include "factory/element_factory_helper.h"
 
-namespace thoht {
+namespace tl {
 
 Page::Page(const QString &pageName, const QString &pageDirectory)
     : mPageDirectory(pageDirectory),
@@ -171,4 +171,4 @@ void Page::setPageDirectory(const QString &pageDirectory)
     mPageDirectory = pageDirectory;
 }
 
-} // namespace thoht
+} // namespace tl

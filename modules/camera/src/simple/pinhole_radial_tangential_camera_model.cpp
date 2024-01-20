@@ -3,9 +3,9 @@
 #include <glog/logging.h>
 #include <magic_enum/magic_enum.hpp>
 
-#include <AxCamera/CameraMatrixUtils>
+#include <tCamera/CameraMatrixUtils>
 
-namespace thoht {
+namespace tl {
 
 PinholeRadialTangentialCameraModel::PinholeRadialTangentialCameraModel()
     : CameraIntrinsics()
@@ -167,4 +167,4 @@ void PinholeRadialTangentialCameraModel::print() const
               << t1() << ", " << t2();
 }
 
-} // namespace thoht
+} // namespace tl

@@ -3,7 +3,7 @@
 #include <numeric>
 #include <opencv2/calib3d.hpp>
 
-namespace thoht {
+namespace tl {
 
 //------- CircleGridBoard starts from here
 CircleGridBoard::CircleGridBoard(int rows, int cols, double spacing,
@@ -81,4 +81,4 @@ void CircleGridBoard::createBoardPoints()
     std::iota(m_ids.begin(), m_ids.end(), 0);
 }
 
-} // namespace thoht
+} // namespace tl

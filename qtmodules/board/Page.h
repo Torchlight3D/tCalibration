@@ -2,7 +2,7 @@
 
 #include <QSharedData>
 
-namespace thoht {
+namespace tl {
 
 class Board;
 
@@ -54,4 +54,4 @@ private:
     int mSingleElementRowCount;
 };
 
-} // namespace thoht
+} // namespace tl

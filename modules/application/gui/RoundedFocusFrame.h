@@ -4,7 +4,7 @@
 
 #include "CornerRadius.h"
 
-namespace thoht {
+namespace tl {
 
 class RoundedFocusFrame : public QFocusFrame
 {
@@ -23,4 +23,4 @@ private:
     CornerRadius _radiuses;
 };
 
-} // namespace thoht
+} // namespace tl

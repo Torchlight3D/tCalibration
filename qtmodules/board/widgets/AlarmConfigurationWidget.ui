@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>thoht::AlarmConfigurationWidget</class>
- <widget class="QWidget" name="thoht::AlarmConfigurationWidget">
+ <class>tl::AlarmConfigurationWidget</class>
+ <widget class="QWidget" name="tl::AlarmConfigurationWidget">
   <property name="geometry">
    <rect>
     <x>0</x>

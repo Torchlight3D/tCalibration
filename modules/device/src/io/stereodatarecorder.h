@@ -7,7 +7,7 @@
 
 #include "record_types.h"
 
-namespace thoht {
+namespace tl {
 
 struct ImuData;
 
@@ -56,4 +56,4 @@ private:
     friend class Impl;
 };
 
-} // namespace thoht
+} // namespace tl

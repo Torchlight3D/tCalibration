@@ -5,7 +5,7 @@
 #include <QHostAddress>
 #include <QValidator>
 
-namespace thoht {
+namespace tl {
 
 class IPv4AddressValidator : public QValidator
 {
@@ -143,7 +143,7 @@ void IPv4Edit::updateIpv4Address()
     }
 }
 
-} // namespace thoht
+} // namespace tl
 
 #include "IPv4LineEdit.moc"
 #include "moc_IPv4LineEdit.cpp"

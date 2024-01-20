@@ -2,7 +2,7 @@
 
 #include <QTextStream>
 
-namespace thoht {
+namespace tl {
 namespace qstr {
 
 QTextStream& noPaddingNewline(QTextStream& s, int fieldWidth)
@@ -12,4 +12,4 @@ QTextStream& noPaddingNewline(QTextStream& s, int fieldWidth)
 }
 
 } // namespace qstr
-} // namespace thoht
+} // namespace tl

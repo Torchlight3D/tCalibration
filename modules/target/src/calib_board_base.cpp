@@ -1,6 +1,6 @@
 ﻿#include "calib_board_base.h"
 
-namespace thoht {
+namespace tl {
 
 CalibBoardBase::CalibBoardBase(int rows, int cols) : m_rows(rows), m_cols(cols)
 {
@@ -32,4 +32,4 @@ cv::Point CalibBoardBase::posOf(int i) const
 
 int CalibBoardBase::indexOf(int r, int c) const { return cols() * r + c; }
 
-} // namespace thoht
+} // namespace tl

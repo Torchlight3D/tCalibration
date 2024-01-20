@@ -8,7 +8,7 @@
 #include "target_types.h"
 #include "target_detection.h"
 
-namespace thoht {
+namespace tl {
 
 class CalibBoardBase
 {
@@ -55,4 +55,4 @@ protected:
     int m_rows, m_cols;
 };
 
-} // namespace thoht
+} // namespace tl

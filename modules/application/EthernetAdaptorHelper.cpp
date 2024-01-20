@@ -7,7 +7,7 @@
 
 #include "gui/qstringutils.h"
 
-namespace thoht {
+namespace tl {
 
 EthernetAdaptorHelper::EthernetAdaptorHelper(QWidget* parent) : QDialog(parent)
 {
@@ -84,6 +84,6 @@ EthernetAdaptorHelper::EthernetAdaptorHelper(QWidget* parent) : QDialog(parent)
     });
 }
 
-} // namespace thoht
+} // namespace tl
 
 #include "moc_EthernetAdaptorHelper.cpp"

@@ -2,7 +2,7 @@
 
 #include "quality_measurement.h"
 
-namespace thoht {
+namespace tl {
 
 class MLEQualityMeasurement : public QualityMeasurement
 {
@@ -27,4 +27,4 @@ public:
     }
 };
 
-} // namespace thoht
+} // namespace tl

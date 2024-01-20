@@ -7,7 +7,7 @@
 class QAbstractItemModel;
 class QAbstractItemView;
 
-namespace thoht {
+namespace tl {
 
 class ViewPlaceholderEffectPrivate;
 class ViewPlaceholderEffect : public QGraphicsEffect
@@ -50,4 +50,4 @@ private:
     Q_DECLARE_PIMPL(ViewPlaceholderEffect)
 };
 
-} // namespace thoht
+} // namespace tl

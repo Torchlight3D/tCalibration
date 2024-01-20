@@ -3,7 +3,7 @@
 #include <QObject>
 #include <QPixmap>
 
-namespace thoht {
+namespace tl {
 
 class BoardElement;
 
@@ -16,8 +16,8 @@ public:
     virtual BoardElement* createElement() = 0;
 };
 
-} // namespace thoht
+} // namespace tl
 
 #define ElementInterfaceIid "board.elementPlugin"
 
-Q_DECLARE_INTERFACE(thoht::ElementInterface, ElementInterfaceIid)
+Q_DECLARE_INTERFACE(tl::ElementInterface, ElementInterfaceIid)

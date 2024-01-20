@@ -25,7 +25,7 @@
 
 class QLayout;
 
-namespace thoht {
+namespace tl {
 
 void initializeResources();
 
@@ -33,4 +33,4 @@ void clearLayout(QLayout* layout, bool deleteWidget = true);
 
 // TODO: Add a QDialog wrapper template
 
-} // namespace thoht
+} // namespace tl

@@ -5,9 +5,9 @@
 #include <ceres/rotation.h>
 
 #include "eigen_types.h"
-#include "ax_math_global.h"
+#include "tl_math_global.h"
 
-namespace thoht {
+namespace tl {
 
 namespace math {
 
@@ -465,4 +465,4 @@ RQDecomposition<MatrixType>::RQDecomposition(const MatrixType& matrix)
 
 } // namespace math
 
-} // namespace thoht
+} // namespace tl

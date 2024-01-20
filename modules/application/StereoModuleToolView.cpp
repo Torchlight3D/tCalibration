@@ -17,7 +17,7 @@
 #include "StereoModuleImageQualityView.h"
 #include "StereoModuleVerificationView.h"
 
-namespace thoht {
+namespace tl {
 
 namespace prop {
 constexpr char kMenu[]{"menu"};
@@ -192,7 +192,7 @@ void StereoModuleToolViewPrivate::init()
         const auto password = authPassword->text();
 
         constexpr char kUserName[]{"dev"};
-        constexpr char kPassword[]{"thoht43"};
+        constexpr char kPassword[]{"tl43"};
         if (userName != kUserName || password != kPassword) {
             qDebug() << "Invalid username or password";
             return;
@@ -316,6 +316,6 @@ bool StereoModuleToolView::isDevMode() const
     return d->m_devMode;
 }
 
-} // namespace thoht
+} // namespace tl
 
 #include "moc_StereoModuleToolView.cpp"

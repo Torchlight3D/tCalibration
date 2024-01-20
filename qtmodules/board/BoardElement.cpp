@@ -6,7 +6,7 @@
 #include "BoardParameter.h"
 #include "data/DataManager.h"
 
-namespace thoht {
+namespace tl {
 
 BoardElement::BoardElement(Board *dashboard)
     : QCPLayoutElement(dashboard),
@@ -604,4 +604,4 @@ double BoardElement::selectTest(const QPointF &pos, bool onlySelectable,
     return -1.;
 }
 
-} // namespace thoht
+} // namespace tl

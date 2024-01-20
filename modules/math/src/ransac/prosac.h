@@ -3,7 +3,7 @@
 #include "sac_estimator.h"
 #include "prosac_sampler.h"
 
-namespace thoht {
+namespace tl {
 
 // Estimate a model using PROSAC. The Estimate method is inherited, but for
 // PROSAC requires the data to be in sorted order by quality (with highest
@@ -25,4 +25,4 @@ public:
     }
 };
 
-} // namespace thoht
+} // namespace tl

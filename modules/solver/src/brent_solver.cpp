@@ -2,7 +2,7 @@
 
 #include <cmath>
 
-namespace thoht {
+namespace tl {
 
 namespace {
 constexpr double kDoubleEps = std::numeric_limits<double>::epsilon();
@@ -111,4 +111,4 @@ double BrentSolver::solve(Function func, double a, double b)
     return b1;
 }
 
-} // namespace thoht
+} // namespace tl

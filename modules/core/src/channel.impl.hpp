@@ -2,7 +2,7 @@
 
 #include "channel.h"
 
-namespace thoht {
+namespace tl {
 
 template <typename T>
 constexpr Channel<T>::Channel(size_type capacity) : capacity_{capacity}
@@ -111,4 +111,4 @@ void Channel<T>::waitBeforeWrite(std::unique_lock<std::mutex>& lock)
     }
 }
 
-} // namespace thoht
+} // namespace tl

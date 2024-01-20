@@ -9,7 +9,7 @@
 
 #define TEMPO_MS_PARAM_UPDATE 200
 
-namespace thoht {
+namespace tl {
 
 class DataSource;
 class LiveDataSourceInterface;
@@ -140,4 +140,4 @@ private:
     QMap<QString, QString> mProfilesWorkingDirectory;
 };
 
-} // namespace thoht
+} // namespace tl

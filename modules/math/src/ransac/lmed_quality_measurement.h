@@ -5,7 +5,7 @@
 
 #include "quality_measurement.h"
 
-namespace thoht {
+namespace tl {
 
 // The idea of Least Median of Squares Regression (LMed) is to find a hypothesis
 // that minimizes the median of the squared residuals.
@@ -27,4 +27,4 @@ private:
     const int min_sample_size_;
 };
 
-} // namespace thoht
+} // namespace tl

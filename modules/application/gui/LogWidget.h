@@ -3,7 +3,7 @@
 #include <QWidget>
 #include "guiutils.h"
 
-namespace thoht {
+namespace tl {
 
 // For Standard output stream display.
 // TODO: Not very good performance, freeze if log keeps coming in.
@@ -28,4 +28,4 @@ private:
     Q_DECLARE_PIMPL(LogWidget)
 };
 
-} // namespace thoht
+} // namespace tl

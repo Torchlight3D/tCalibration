@@ -1,6 +1,6 @@
 #include "hashutils.h"
 
-namespace thoht {
+namespace tl {
 
 // Do nothing
 

@@ -9,11 +9,11 @@
 #include <QtConcurrent/QtConcurrent>
 #include <QUuid>
 
-#include <AxCalib/CalibrationIO>
-#include <AxCamera/StereoCameraTypes>
-#include <AxCore/Channel>
-#include <AxCore/ThreadPool>
-#include <AxDevice/StereoDataRecorder>
+#include <tCalibration/CalibrationIO>
+#include <tCamera/StereoCameraTypes>
+#include <tCore/Channel>
+#include <tCore/ThreadPool>
+#include <tDevice/StereoDataRecorder>
 
 #include "gui/AutoDeleteThread.h"
 #include "gui/QtOpenCV.h"
@@ -22,7 +22,7 @@
 #include "StereoModuleHubClient.h"
 #include "StereoModuleTask.h"
 
-namespace thoht {
+namespace tl {
 
 namespace fs = std::filesystem;
 
@@ -1391,7 +1391,7 @@ void StereoModuleCalibrationView::setDevMode(bool on)
     d->updateUiByDevMode(on);
 }
 
-} // namespace thoht
+} // namespace tl
 
 #include "StereoModuleCalibrationView.moc"
 #include "moc_StereoModuleCalibrationView.cpp"

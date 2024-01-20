@@ -3,7 +3,7 @@
 #include <numeric>
 #include <glog/logging.h>
 
-namespace thoht {
+namespace tl {
 
 /// \brief Construct an Aprilgrid calibration target
 ///        tagRows:    number of tags in y-dir (gridRows = 2*tagRows)
@@ -269,4 +269,4 @@ void KalibrAprilTagBoard::drawDetection(const TargetDetection &detection,
     }
 }
 
-} // namespace thoht
+} // namespace tl

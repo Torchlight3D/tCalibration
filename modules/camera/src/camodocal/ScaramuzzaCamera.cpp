@@ -553,8 +553,8 @@ void OCAMCamera::estimateIntrinsics(
         for (int i = 1; i < poly_coeff.size() - 1; ++i) {
             poly_coeff[i + 1] = x(i);
         }
-        assert(x.size() == static_cast<unsigned int>(SCARAMUZZA_POLY_SIZE - 1 +
-                                                     TList.size()));
+        assert(x.size() ==
+               static_cast<unsigned int>(kPolySize - 1 + TList.size()));
     }
 
     Parameters params = getParameters();

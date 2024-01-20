@@ -1,18 +1,18 @@
 #include <gtest/gtest.h>
 
 #include <Eigen/Dense>
-#include <AxMath/MathBase>
-#include <AxMath/EigenUtils>
-#include <AxMath/RandomGenerator>
-#include <AxMath/RansacCreator>
-#include <AxMVS/FeatureCorrespondence>
-#include <AxMVS/EstimateRadialDistortionUncalibratedAbsolutePose>
-#include <AxCamera/DivisionUndistortionCameraModel>
+#include <tMath/MathBase>
+#include <tMath/EigenUtils>
+#include <tMath/RandomGenerator>
+#include <tMath/RansacCreator>
+#include <tMvs/FeatureCorrespondence>
+#include <tMvs/EstimateRadialDistortionUncalibratedAbsolutePose>
+#include <tCamera/DivisionUndistortionCameraModel>
 
 #include "test_utils.h"
 
-using namespace thoht;
-using namespace thoht::math;
+using namespace tl;
+using namespace tl::math;
 
 using Eigen::AngleAxisd;
 using Eigen::Matrix3d;

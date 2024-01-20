@@ -2,10 +2,10 @@
 
 #include <memory>
 
-#include <AxImu/ImuData>
-#include <AxImu/ImuIntrinsics>
+#include <tMotion/ImuData>
+#include <tMotion/ImuIntrinsics>
 
-namespace thoht {
+namespace tl {
 
 // Brief:
 // Imu intrinsics (misalignment, scale factors, and biases) calibration by
@@ -81,4 +81,4 @@ private:
     friend class Impl;
 };
 
-} // namespace thoht
+} // namespace tl

@@ -3,7 +3,7 @@
 #include <QWidget>
 #include "guiutils.h"
 
-namespace thoht {
+namespace tl {
 
 class LedIndicatorPrivate;
 class LedIndicator : public QWidget
@@ -65,4 +65,4 @@ private:
     Q_DECLARE_PIMPL(LedIndicator)
 };
 
-} // namespace thoht
+} // namespace tl

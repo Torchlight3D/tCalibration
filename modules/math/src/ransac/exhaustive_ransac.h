@@ -3,7 +3,7 @@
 #include "exhaustive_sampler.h"
 #include "sac_estimator.h"
 
-namespace thoht {
+namespace tl {
 
 template <class ModelEstimator>
 class ExhaustiveRansac : public SampleConsensusEstimator<ModelEstimator>
@@ -22,4 +22,4 @@ public:
     }
 };
 
-} // namespace thoht
+} // namespace tl

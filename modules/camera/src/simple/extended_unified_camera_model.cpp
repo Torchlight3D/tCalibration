@@ -3,9 +3,9 @@
 #include <glog/logging.h>
 #include <magic_enum/magic_enum.hpp>
 
-#include <AxCamera/CameraMatrixUtils>
+#include <tCamera/CameraMatrixUtils>
 
-namespace thoht {
+namespace tl {
 
 ExtendedUnifiedCameraModel::ExtendedUnifiedCameraModel() : CameraIntrinsics()
 {
@@ -104,4 +104,4 @@ void ExtendedUnifiedCameraModel::print() const
               << alpha() << ", " << beta();
 }
 
-} // namespace thoht
+} // namespace tl

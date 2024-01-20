@@ -7,7 +7,7 @@
 #include "utils/AdaptiveTextElement.h"
 #include "utils/LayoutGrid.h"
 
-namespace thoht {
+namespace tl {
 
 ///------- TextLabel Editor starts from here
 class TextLabelEditor : public QDialog
@@ -203,6 +203,6 @@ void TextLabel::setText(const QString &text) { mText = text; }
 
 ColorSettings &TextLabel::colorSettingsRef() { return mColorSettings; }
 
-} // namespace thoht
+} // namespace tl
 
 #include "TextLabel.moc"

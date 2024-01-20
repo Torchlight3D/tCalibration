@@ -15,7 +15,7 @@
 #include "utils/LayoutGrid.h"
 #include "widgets/ElementPropertiesWidget.h"
 
-namespace thoht {
+namespace tl {
 
 class CurvesXYPatronEditor : public QWidget
 {
@@ -2264,6 +2264,6 @@ int PlotXY::defaultHeight()
     return 3 * mBoard->dashboardLayout()->singleElementRowCount();
 }
 
-} // namespace thoht
+} // namespace tl
 
 #include "PlotXY.moc"

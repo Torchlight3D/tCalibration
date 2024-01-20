@@ -1,6 +1,6 @@
 #include "util_string.h"
 
-namespace thoht {
+namespace tl {
 
 bool str::Contains(const std::string& str, const std::string& sub)
 {

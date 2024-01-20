@@ -1,7 +1,7 @@
 ﻿#include "AdaptiveTextElement.h"
 #include "../Board.h"
 
-namespace thoht {
+namespace tl {
 
 bool andFunc(bool a, bool b) { return a && b; };
 bool orFunc(bool a, bool b) { return a || b; };
@@ -296,4 +296,4 @@ void AdaptiveTextElement::setBorderPen(const QPen &borderPen)
     mBorderPen = borderPen;
 }
 
-} // namespace thoht
+} // namespace tl

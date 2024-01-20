@@ -3,7 +3,7 @@
 #include "../../ui/qpluginfactory.h"
 #include "ElementInterface.h"
 
-namespace thoht {
+namespace tl {
 
 Q_GLOBAL_PLUGIN_FACTORY(ElementInterface, "element", _loader)
 
@@ -97,4 +97,4 @@ bool ElementFactory::valid(const QString &name)
 
 QStringList ElementFactory::pluginslist() const { return _loader->allKeys(); }
 
-} // namespace thoht
+} // namespace tl

@@ -2,7 +2,7 @@
 
 #include <Eigen/Core>
 
-namespace thoht {
+namespace tl {
 
 // A wrapper around the std random generator. Default engine mt19937
 class RandomNumberGenerator
@@ -51,4 +51,4 @@ public:
     }
 };
 
-} // namespace thoht
+} // namespace tl

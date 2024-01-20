@@ -18,9 +18,9 @@
 #include <numeric>
 #include <stdexcept>
 
-#include "ax_math_global.h"
+#include "tl_math_global.h"
 
-namespace thoht {
+namespace tl {
 
 namespace math {
 
@@ -152,4 +152,4 @@ bool solveQuadraticEquation(double a, double b, double c, double& x1,
 
 } // namespace math
 
-} // namespace thoht
+} // namespace tl

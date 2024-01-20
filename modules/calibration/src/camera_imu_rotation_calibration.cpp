@@ -3,11 +3,11 @@
 #include <glog/logging.h>
 #include <json/json.hpp>
 
-#include <AxMath/MathBase>
-#include <AxMath/EigenUtils>
-#include <AxImu/ImuData>
+#include <tMath/MathBase>
+#include <tMath/EigenUtils>
+#include <tMotion/ImuData>
 
-namespace thoht {
+namespace tl {
 
 namespace {
 
@@ -385,4 +385,4 @@ CameraImuRotationCalibration::smoothedVisualAngularVelocities() const
     return d->smoothedVisAngVels_;
 }
 
-} // namespace thoht
+} // namespace tl

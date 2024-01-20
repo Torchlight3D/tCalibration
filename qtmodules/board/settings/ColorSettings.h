@@ -3,7 +3,7 @@
 #include <QBrush>
 #include <QColor>
 
-namespace thoht {
+namespace tl {
 
 class ColorSettings
 {
@@ -48,4 +48,4 @@ protected:
     bool mModified;
 };
 
-} // namespace thoht
+} // namespace tl

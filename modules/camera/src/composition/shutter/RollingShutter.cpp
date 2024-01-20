@@ -1,6 +1,6 @@
 #include "RollingShutter.h"
 
-namespace thoht {
+namespace tl {
 
 RollingShutter::RollingShutter() : _lineDelay(0.0) {}
 
@@ -26,4 +26,4 @@ void RollingShutter::getParameters(Eigen::MatrixXd& params) const
 
 Eigen::Vector2i RollingShutter::parameterSize() const { return {1, 1}; }
 
-} // namespace thoht
+} // namespace tl

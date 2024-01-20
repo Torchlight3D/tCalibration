@@ -1,6 +1,6 @@
 ﻿#include "landmark.h"
 
-namespace thoht {
+namespace tl {
 
 Track::Track() : m_invDepth(0.), m_refViewId(kInvalidViewId), m_estimated(false)
 {
@@ -82,4 +82,4 @@ void Track::setError(double err) { m_error = err; }
 
 double Track::error() const { return m_error; }
 
-} // namespace thoht
+} // namespace tl

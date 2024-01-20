@@ -3,7 +3,7 @@
 #include <QWidget>
 #include "../settings/ParameterConfiguration.h"
 
-namespace thoht {
+namespace tl {
 
 class Project;
 
@@ -85,4 +85,4 @@ private:
     ParameterConfiguration::Ptr mCurrentSettings;
 };
 
-} // namespace thoht
+} // namespace tl

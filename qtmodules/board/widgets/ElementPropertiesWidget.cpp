@@ -3,7 +3,7 @@
 
 #include "../Project.h"
 
-namespace thoht {
+namespace tl {
 
 ElementPropertiesWidget::ElementPropertiesWidget(QWidget *parent)
     : QWidget(parent),
@@ -1689,4 +1689,4 @@ ParameterConfiguration::Ptr ElementPropertiesWidget::currentSettings() const
     return mCurrentSettings;
 }
 
-} // namespace thoht
+} // namespace tl

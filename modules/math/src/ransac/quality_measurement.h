@@ -2,7 +2,7 @@
 
 #include <vector>
 
-namespace thoht {
+namespace tl {
 
 class QualityMeasurement
 {
@@ -26,4 +26,4 @@ protected:
     double error_thresh_;
 };
 
-} // namespace thoht
+} // namespace tl

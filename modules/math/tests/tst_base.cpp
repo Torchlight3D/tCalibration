@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
 
-#include <AxMath/RandomGenerator>
+#include <tMath/RandomGenerator>
 
-using namespace thoht;
+using namespace tl;
 
 TEST(BaseTest, RandomGenerator) {
     

@@ -2,7 +2,7 @@
 
 #include <qcp/qcustomplot.h>
 
-namespace thoht {
+namespace tl {
 
 class Board;
 
@@ -142,4 +142,4 @@ private:
     Q_DISABLE_COPY(BoardLayout)
 };
 
-} // namespace thoht
+} // namespace tl

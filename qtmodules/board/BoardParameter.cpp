@@ -4,7 +4,7 @@
 #include "Project.h"
 #include "data/DataManager.h"
 
-namespace thoht {
+namespace tl {
 
 BoardParameter::BoardParameter(Board *board)
     : mBoard(board),
@@ -426,4 +426,4 @@ BoardParameter::parameterConfiguration() const
     return mParameterConfiguration;
 }
 
-} // namespace thoht
+} // namespace tl

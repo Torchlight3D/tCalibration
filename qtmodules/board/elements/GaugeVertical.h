@@ -2,7 +2,7 @@
 
 #include "NumericalDisplay.h"
 
-namespace thoht {
+namespace tl {
 
 class AxisRect;
 class GaugeVertical : public NumericalDisplay
@@ -87,4 +87,4 @@ protected:
     GaugeVPosition mGaugeVPosition;
 };
 
-} // namespace thoht
+} // namespace tl

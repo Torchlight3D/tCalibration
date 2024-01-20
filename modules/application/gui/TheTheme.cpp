@@ -9,7 +9,7 @@
 #include "qfontutils.h"
 #include "qstringutils.h"
 
-namespace thoht {
+namespace tl {
 
 namespace {
 
@@ -737,4 +737,4 @@ bool Theme::operator==(const Theme& other) const
 
 bool Theme::operator!=(const Theme& other) const { return !(*this == other); }
 
-} // namespace thoht
+} // namespace tl

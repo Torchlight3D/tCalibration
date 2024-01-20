@@ -8,12 +8,12 @@
 #include <csv-parser/csv.hpp>
 #include <json/json.hpp>
 
-#include <AxImu/ImuData>
+#include <tMotion/ImuData>
 
 #include "framebuffer.h"
 #include "future.h"
 
-namespace thoht {
+namespace tl {
 
 namespace fs = std::filesystem;
 
@@ -370,4 +370,4 @@ bool StereoDataRecorder::addFrameGroup(double t,
 
 void StereoDataRecorder::closeOutputFile() { d->m_motionFileOutput.close(); }
 
-} // namespace thoht
+} // namespace tl

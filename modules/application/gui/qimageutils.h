@@ -10,7 +10,7 @@
 
 #include "CornerRadius.h"
 
-namespace thoht {
+namespace tl {
 namespace qimg {
 
 // Converts an integer to its std::string hex form.
@@ -153,4 +153,4 @@ inline auto vconcat(const QImage& src1, const QImage& src2)
 }
 
 } // namespace qimg
-} // namespace thoht
+} // namespace tl

@@ -1,8 +1,8 @@
 ﻿#pragma once
 
-#include <AxMath/EigenTypes>
+#include <tMath/EigenTypes>
 
-namespace thoht {
+namespace tl {
 
 // Brief:
 // Computes the absolute pose and focal length of a camera from 4 pairs of 2D-3D
@@ -29,4 +29,4 @@ int FourPointPoseAndFocalLength(const Vector2dList& imagePoints,
                                 const Vector3dList& worldPoints,
                                 std::vector<Matrix34d>& projectionMatrices);
 
-} // namespace thoht
+} // namespace tl

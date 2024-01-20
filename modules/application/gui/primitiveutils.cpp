@@ -20,7 +20,7 @@
 static constexpr auto QLEMENTINE_PI = 3.14159265358979323846;
 static constexpr auto QLEMENTINE_PI_4 = 3.14159265358979323846 / 4.;
 
-namespace thoht {
+namespace tl {
 
 namespace {
 
@@ -2012,4 +2012,4 @@ void updateMessageBoxInformationIcon(QIcon& icon, const QSize& size,
         icon.addPixmap(disbledPixmap, QIcon::Mode::Disabled, QIcon::State::On);
     }
 }
-} // namespace thoht
+} // namespace tl

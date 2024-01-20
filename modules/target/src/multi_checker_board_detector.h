@@ -3,7 +3,7 @@
 #include <memory>
 #include <opencv2/core/mat.hpp>
 
-namespace thoht {
+namespace tl {
 
 class MultiCheckerBoardDetector
 {
@@ -46,4 +46,4 @@ private:
     friend Impl;
 };
 
-} // namespace thoht
+} // namespace tl

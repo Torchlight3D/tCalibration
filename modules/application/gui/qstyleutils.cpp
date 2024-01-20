@@ -16,7 +16,7 @@
 #include <QTabBar>
 #include <QToolButton>
 
-namespace thoht {
+namespace tl {
 
 bool shouldHaveHoverEvents(const QWidget* w)
 {
@@ -97,4 +97,4 @@ bool shouldNotHaveWheelEvents(const QWidget* w)
            qobject_cast<const QAbstractSpinBox*>(w);
 }
 
-} // namespace thoht
+} // namespace tl

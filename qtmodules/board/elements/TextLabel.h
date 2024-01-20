@@ -2,7 +2,7 @@
 
 #include "../BoardElement.h"
 
-namespace thoht {
+namespace tl {
 
 class AdaptiveTextElement;
 class LayoutGrid;
@@ -40,4 +40,4 @@ protected:
     LayoutGrid *mMainLayout{};
 };
 
-} // namespace thoht
+} // namespace tl

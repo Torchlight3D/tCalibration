@@ -3,7 +3,7 @@
 #define _USE_MATH_DEFINES
 #include "DistortionInterface.h"
 
-namespace thoht {
+namespace tl {
 
 class FovDistortion
 {
@@ -246,4 +246,4 @@ void FovDistortion::distortParameterJacobian(
     }
 }
 
-} // namespace thoht
+} // namespace tl

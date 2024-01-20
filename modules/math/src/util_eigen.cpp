@@ -1,7 +1,7 @@
 ﻿#include "util_eigen.h"
 #include "util_math.h"
 
-namespace thoht {
+namespace tl {
 
 namespace math {
 
@@ -83,4 +83,4 @@ void InterpolateQuaternions(const std::vector<double>& ts_old,
 
 } // namespace math
 
-} // namespace thoht
+} // namespace tl

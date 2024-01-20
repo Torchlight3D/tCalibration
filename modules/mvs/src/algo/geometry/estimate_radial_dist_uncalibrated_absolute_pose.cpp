@@ -2,11 +2,11 @@
 
 #include <Eigen/Dense>
 
-#include <AxMath/RansacModelEstimator>
-#include <AxMVS/P4PFocalLengthDistortion>
-#include <AxMVS/FeatureCorrespondence>
+#include <tMath/RansacModelEstimator>
+#include <tMvs/P4PFocalLengthDistortion>
+#include <tMvs/FeatureCorrespondence>
 
-namespace thoht {
+namespace tl {
 
 using Eigen::Matrix3d;
 using Eigen::Vector2d;
@@ -133,4 +133,4 @@ bool EstimateRadialDistUncalibratedAbsolutePose(
     return success;
 }
 
-} // namespace thoht
+} // namespace tl

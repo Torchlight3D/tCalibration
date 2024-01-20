@@ -4,7 +4,7 @@
 
 #include "TheStyleTypes.h"
 
-namespace thoht {
+namespace tl {
 
 class ColorButton : public QAbstractButton
 {
@@ -42,4 +42,4 @@ private:
     ColorMode _colorMode{ColorMode::RGBA};
 };
 
-} // namespace thoht
+} // namespace tl

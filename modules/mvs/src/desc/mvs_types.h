@@ -3,7 +3,7 @@
 #include <limits>
 #include <numeric>
 
-namespace thoht {
+namespace tl {
 
 using TrackId = int;
 inline constexpr TrackId kInvalidTrackId = std::numeric_limits<TrackId>::max();
@@ -15,4 +15,4 @@ using CameraId = int;
 inline constexpr CameraId kInvalidCameraId =
     std::numeric_limits<CameraId>::max();
 
-} // namespace thoht
+} // namespace tl

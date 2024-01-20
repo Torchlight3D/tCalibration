@@ -1,8 +1,8 @@
 #pragma once
 
-#include <AxMVS/Scene>
+#include <tMvs/Scene>
 
-namespace thoht {
+namespace tl {
 
 class CalibBoardBase;
 
@@ -14,4 +14,4 @@ std::string makeUniqueViewName(CameraId id, double timestamp);
 
 } // namespace mvs
 
-} // namespace thoht
+} // namespace tl

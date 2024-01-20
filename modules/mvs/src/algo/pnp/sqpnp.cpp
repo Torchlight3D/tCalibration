@@ -2,9 +2,9 @@
 #include "impl/sqpnp_impl.h"
 
 #include <iostream>
-#include <AxMath/MathBase>
+#include <tMath/MathBase>
 
-namespace thoht {
+namespace tl {
 
 namespace {
 
@@ -334,4 +334,4 @@ bool SQPnP(const Vector2dList& image_points, const Vector3dList& world_points,
     return !rotations.empty();
 }
 
-} // namespace thoht
+} // namespace tl

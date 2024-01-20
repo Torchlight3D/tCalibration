@@ -15,7 +15,7 @@
 #include "../data/DataManager.h"
 #include "../widgets/ElementPropertiesWidget.h"
 
-namespace thoht {
+namespace tl {
 
 class PlotTimeTracer : public QObject
 {
@@ -2535,6 +2535,6 @@ int PlotTime::defaultHeight()
     return 3 * mBoard->dashboardLayout()->singleElementRowCount();
 }
 
-} // namespace thoht
+} // namespace tl
 
 #include "PlotTime.moc"

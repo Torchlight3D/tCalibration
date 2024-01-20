@@ -7,7 +7,7 @@
 
 #include "TheStyle.h"
 
-namespace thoht {
+namespace tl {
 
 QWidget* makeHorizontalLine(QWidget* parent, int maxWidth)
 {
@@ -117,4 +117,4 @@ void clearLayout(QLayout* layout)
     }
 }
 
-} // namespace thoht
+} // namespace tl

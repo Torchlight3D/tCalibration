@@ -1,9 +1,9 @@
 #pragma once
 
 #include <cmath>
-#include <AxMath/ModelEstimator>
+#include <tMath/ModelEstimator>
 
-namespace thoht {
+namespace tl {
 
 struct Point
 {
@@ -53,4 +53,4 @@ public:
     }
 };
 
-} // namespace thoht
+} // namespace tl

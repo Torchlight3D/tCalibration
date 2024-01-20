@@ -1,13 +1,13 @@
 #include <gtest/gtest.h>
 #include <Eigen/Core>
 
-#include <AxCamera/Camera>
-#include <AxMath/RandomGenerator>
-#include <AxMVS/BundleAdjustment>
-#include <AxMVS/Scene>
+#include <tCamera/Camera>
+#include <tMath/RandomGenerator>
+#include <tMvs/BundleAdjustment>
+#include <tMvs/Scene>
 #include "test_utils.h"
 
-using namespace thoht;
+using namespace tl;
 
 namespace {
 RandomNumberGenerator rng(52);

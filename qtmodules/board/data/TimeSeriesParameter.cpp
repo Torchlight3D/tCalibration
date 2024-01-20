@@ -1,6 +1,6 @@
 ﻿#include "TimeSeriesParameter.h"
 
-namespace thoht {
+namespace tl {
 
 TimeSeriesParameter::TimeSeriesParameter()
     : mParameterId(0),
@@ -70,4 +70,4 @@ void TimeSeriesParameter::setIndexOffset(double indexOffset)
     mIndexOffset = indexOffset;
 }
 
-} // namespace thoht
+} // namespace tl

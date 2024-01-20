@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package thoht.pb;
+package tl.pb;
 
 message DeviceInfo {
   string name = 1;

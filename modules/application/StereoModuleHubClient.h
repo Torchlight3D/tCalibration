@@ -5,13 +5,13 @@
 
 #include <QObject>
 
-#include <AxImu/ImuData>
+#include <tMotion/ImuData>
 #include "StereoModuleData.h"
 
 #include <grpcpp/completion_queue.h>
 #include "luba_vision_router.grpc.pb.h"
 
-namespace thoht {
+namespace tl {
 
 class StereoModuleHubClientPrivate;
 class StereoModuleHubClient : public QObject
@@ -111,4 +111,4 @@ private:
     friend class StopStreamStereoImageRequest;
 };
 
-} // namespace thoht
+} // namespace tl

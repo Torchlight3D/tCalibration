@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 
-namespace thoht {
+namespace tl {
 
 class Polynome
 {
@@ -51,4 +51,4 @@ inline double Polynome::operator()(double x)
     return value;
 }
 
-} // namespace thoht
+} // namespace tl

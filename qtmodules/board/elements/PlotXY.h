@@ -2,7 +2,7 @@
 
 #include "../BoardElement.h"
 
-namespace thoht {
+namespace tl {
 
 class AdaptiveTextElement;
 class AxisRect;
@@ -203,4 +203,4 @@ protected:
     NumericalDisplay *mXDisplay;
 };
 
-} // namespace thoht
+} // namespace tl

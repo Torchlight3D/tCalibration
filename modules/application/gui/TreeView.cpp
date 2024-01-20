@@ -3,7 +3,7 @@
 #include <QHeaderView>
 #include <QMenu>
 
-namespace thoht {
+namespace tl {
 
 TreeView::TreeView(QWidget* parent) : QTreeView(parent)
 {
@@ -39,6 +39,6 @@ TreeView::TreeView(QWidget* parent) : QTreeView(parent)
     });
 }
 
-} // namespace thoht
+} // namespace tl
 
 #include "moc_TreeView.cpp"

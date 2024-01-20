@@ -11,7 +11,7 @@
 #include "../data/DataManager.h"
 #include "../widgets/ElementPropertiesWidget.h"
 
-namespace thoht {
+namespace tl {
 
 ///------- GaugeRadial Components starts from here
 class CircularAxis : public QCPLayoutElement
@@ -1482,6 +1482,6 @@ int GaugeRadial::defaultHeight()
     return 4 * mBoard->dashboardLayout()->singleElementRowCount();
 }
 
-} // namespace thoht
+} // namespace tl
 
 #include "GaugeRadial.moc"

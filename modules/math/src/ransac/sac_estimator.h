@@ -6,7 +6,7 @@
 #include "mle_quality_measurement.h"
 #include "sampler.h"
 
-namespace thoht {
+namespace tl {
 
 struct SacParameters
 {
@@ -343,4 +343,4 @@ void SampleConsensusEstimator<ModelEstimator>::GetInlierDatum(
     }
 }
 
-} // namespace thoht
+} // namespace tl

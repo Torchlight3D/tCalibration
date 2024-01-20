@@ -3,7 +3,7 @@
 #include "ProjectionBase.h"
 #include "../../../core/eigen_types.h"
 
-namespace thoht {
+namespace tl {
 
 template <typename Distortion_t>
 class PinholeProjection : public ProjectionBase<Distortion_t>
@@ -823,4 +823,4 @@ bool PinholeProjection<DISTORTION_T>::estimateTransformation(
     return true;
 }
 
-} // namespace thoht
+} // namespace tl

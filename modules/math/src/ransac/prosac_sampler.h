@@ -2,7 +2,7 @@
 
 #include "sampler.h"
 
-namespace thoht {
+namespace tl {
 
 class ProsacSampler : public Sampler
 {
@@ -28,4 +28,4 @@ private:
     int kth_sample_number_;
 };
 
-} // namespace thoht
+} // namespace tl

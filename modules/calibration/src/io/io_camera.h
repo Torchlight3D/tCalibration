@@ -5,7 +5,7 @@
 #include <json/json.hpp>
 #include <yaml-cpp/yaml.h>
 
-namespace thoht {
+namespace tl {
 
 class Camera;
 
@@ -13,25 +13,25 @@ class Camera;
 void to_json(nlohmann::json& json, const Camera& camera);
 void from_json(const nlohmann::json& json, Camera& camera);
 
-} // namespace thoht
+} // namespace tl
 
-namespace thoht::io {
+namespace tl::io {
 
 // For Luba Vio module
 YAML::Node toCamOdoCalYamlNode(const Camera& camera,
                                const std::string& name = "camera");
 bool fromCamOdoCalYamlNode(const YAML::Node& node, Camera& camera);
 
-} // namespace thoht::io
+} // namespace tl::io
 
 // For yaml-cpp
 namespace YAML {
 
 template <>
-struct convert<thoht::Camera>
+struct convert<tl::Camera>
 {
-    static Node encode(const thoht::Camera& camera);
-    static bool decode(const Node& node, thoht::Camera& camera);
+    static Node encode(const tl::Camera& camera);
+    static bool decode(const Node& node, tl::Camera& camera);
 };
 
 } // namespace YAML

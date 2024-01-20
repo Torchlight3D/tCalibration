@@ -10,14 +10,14 @@
 #include <QDateTime>
 #include <QtConcurrent/QtConcurrent>
 
-#include <AxCalib/CalibrationIO>
+#include <tCalibration/CalibrationIO>
 
 #include "gui/QtOpenCV.h"
 #include "gui/qimageutils.h"
 #include "StereoModuleHubClient.h"
 #include "StereoModuleVerificationConfigWidget.h"
 
-namespace thoht {
+namespace tl {
 
 namespace fs = std::filesystem;
 
@@ -373,6 +373,6 @@ void StereoModuleVerificationView::startVerify()
                       .then(verifyImpl);
 }
 
-} // namespace thoht
+} // namespace tl
 
 #include "moc_StereoModuleVerificationView.cpp"

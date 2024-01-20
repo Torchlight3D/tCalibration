@@ -4,9 +4,9 @@
 
 #include <gtest/gtest.h>
 
-#include <AxMVS/View>
+#include <tMvs/View>
 
-using namespace thoht;
+using namespace tl;
 
 TEST(View, Name)
 {

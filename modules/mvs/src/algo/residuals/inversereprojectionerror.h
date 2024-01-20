@@ -2,14 +2,14 @@
 
 #include <Eigen/Core>
 
-#include <AxCamera/Camera>
-#include <AxMVS/Feature>
+#include <tCamera/Camera>
+#include <tMvs/Feature>
 
 namespace ceres {
 class CostFunction;
 }
 
-namespace thoht {
+namespace tl {
 
 ceres::CostFunction* createInvReprojectionPoseErrorCostFunction(
     CameraIntrinsics::Type type, const Feature& feature,

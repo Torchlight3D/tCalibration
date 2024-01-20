@@ -1,6 +1,6 @@
 #include "StereoModuleImageQualityView.h"
 
-namespace thoht {
+namespace tl {
 
 ///------- StereoModuleImageQualityViewPrivate starts from here
 class StereoModuleImageQualityViewPrivate
@@ -58,6 +58,6 @@ void StereoModuleImageQualityView::setDevMode(bool on)
     // TODO
 }
 
-} // namespace thoht
+} // namespace tl
 
 #include "moc_StereoModuleImageQualityView.cpp"

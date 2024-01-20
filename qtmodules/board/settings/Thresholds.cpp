@@ -1,6 +1,6 @@
 ﻿#include "Thresholds.h"
 
-namespace thoht {
+namespace tl {
 
 Thresholds::Thresholds() : mCheckOrder(coLowThresholdsFirst), mModified(false)
 {
@@ -140,4 +140,4 @@ bool Thresholds::modified() const { return mModified; }
 
 void Thresholds::setModified(bool modified) { mModified = modified; }
 
-} // namespace thoht
+} // namespace tl

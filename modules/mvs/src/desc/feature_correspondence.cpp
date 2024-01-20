@@ -1,6 +1,6 @@
 #include "feature_correspondence.h"
 
-namespace thoht {
+namespace tl {
 
 // Do nothing
 

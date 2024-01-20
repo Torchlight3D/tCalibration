@@ -2,7 +2,7 @@
 
 #include <Eigen/Dense>
 
-namespace thoht {
+namespace tl {
 
 ///------- Complex to complex
 Eigen::VectorXcd fft_1d(const Eigen::VectorXcd& vec);
@@ -28,4 +28,4 @@ Eigen::MatrixXd irfft_2d(Eigen::MatrixXcd mat);
 ///------- Utils
 Eigen::VectorXd fftfreq(int length, double spacing = 1.);
 
-} // namespace thoht
+} // namespace tl

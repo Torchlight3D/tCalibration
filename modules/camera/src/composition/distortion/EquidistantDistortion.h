@@ -2,7 +2,7 @@
 
 #include "../../../core/eigen_types.h"
 
-namespace thoht {
+namespace tl {
 
 class EquidistantDistortion
 {
@@ -345,4 +345,4 @@ void EquidistantDistortion::distortParameterJacobian(
     */
 }
 
-} // namespace thoht
+} // namespace tl

@@ -62,7 +62,7 @@ void grayscale(const QImage& image, QImage& dest, const QRect& rect = {})
 }
 } // namespace qtprivate
 
-namespace thoht {
+namespace tl {
 namespace qimg {
 
 QImage colorizeImage(const QPixmap& input, const QColor& color)
@@ -440,4 +440,4 @@ QImage mergeImages(const QImage& src1, const QImage& src2,
 }
 
 } // namespace qimg
-} // namespace thoht
+} // namespace tl

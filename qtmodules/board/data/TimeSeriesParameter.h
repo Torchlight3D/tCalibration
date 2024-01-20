@@ -2,7 +2,7 @@
 
 #include <QString>
 
-namespace thoht {
+namespace tl {
 
 class TimeSeriesParameter
 {
@@ -55,4 +55,4 @@ protected:
     double mIndexOffset;
 };
 
-} // namespace thoht
+} // namespace tl

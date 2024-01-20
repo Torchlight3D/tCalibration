@@ -2,7 +2,7 @@
 
 #include "sampler.h"
 
-namespace thoht {
+namespace tl {
 
 // This class exhaustively generates all possible combinations for the data
 // input. We limit this sampler to only enumerate combinations with sample sizes
@@ -33,4 +33,4 @@ private:
     int i_, j_;
 };
 
-} // namespace thoht
+} // namespace tl

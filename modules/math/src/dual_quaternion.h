@@ -6,7 +6,7 @@
 #include "util_eigen.h"
 #include "ax_math_global.h"
 
-namespace thoht {
+namespace tl {
 
 template <typename T>
 class DualQuaternion;
@@ -352,4 +352,4 @@ std::pair<Eigen::Quaternion<T>, Eigen::Quaternion<T>> logDQ(
 using DualQuaternionf = DualQuaternion<float>;
 using DualQuaterniond = DualQuaternion<double>;
 
-} // namespace thoht
+} // namespace tl

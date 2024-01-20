@@ -3,7 +3,7 @@
 #include <opencv2/core/mat.hpp>
 #include <QImage>
 
-namespace thoht {
+namespace tl {
 
 // This is a simple implementation
 QImage cvMatToQImage(const cv::Mat &src, bool deepCopy = false);
@@ -71,4 +71,4 @@ cv::Mat image2Mat_shared(const QImage &img, MatColorOrder &order);
 QImage mat2Image_shared(const cv::Mat &mat,
                         QImage::Format formatHint = QImage::Format_Invalid);
 
-} // namespace thoht
+} // namespace tl

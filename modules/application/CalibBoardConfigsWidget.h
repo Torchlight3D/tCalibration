@@ -5,7 +5,7 @@
 
 #include "gui/guiutils.h"
 
-namespace thoht {
+namespace tl {
 
 class CalibBoardConfigsWidgetPrivate;
 class CalibBoardConfigsWidget : public QWidget
@@ -37,4 +37,4 @@ private:
     CalibBoardConfigsWidget* const w;
 };
 
-} // namespace thoht
+} // namespace tl

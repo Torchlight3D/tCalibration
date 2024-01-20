@@ -9,7 +9,7 @@
 #include "../data/DataManager.h"
 #include "../widgets/ElementPropertiesWidget.h"
 
-namespace thoht {
+namespace tl {
 
 ///------- StateDisplay Editor starts from here
 class StateDisplayEditor : public QDialog
@@ -313,6 +313,6 @@ void StateDisplay::displayData()
     }
 }
 
-} // namespace thoht
+} // namespace tl
 
 #include "StateDisplay.moc"

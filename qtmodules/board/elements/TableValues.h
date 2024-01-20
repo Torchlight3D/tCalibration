@@ -3,7 +3,7 @@
 #include "../BoardElement.h"
 #include "../BoardParameter.h"
 
-namespace thoht {
+namespace tl {
 
 class AdaptiveTextElement;
 class LayoutGrid;
@@ -77,4 +77,4 @@ protected:
     QCPLayoutElement *mEmptyElementBottom{};
 };
 
-} // namespace thoht
+} // namespace tl

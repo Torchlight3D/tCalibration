@@ -2,9 +2,9 @@
 
 #include <opencv2/core/mat.hpp>
 
-#include <AxCamera/Camera>
+#include <tCamera/Camera>
 
-namespace thoht {
+namespace tl {
 
 class OmnidirectionalCameraModel;
 
@@ -25,4 +25,4 @@ void toLubaStereoUndistortRectifyMapString(cv::InputArray map1_left,
                                            std::string& right_str);
 }
 
-} // namespace thoht
+} // namespace tl

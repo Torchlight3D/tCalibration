@@ -1,6 +1,6 @@
 ﻿#include "ParameterConfiguration.h"
 
-namespace thoht {
+namespace tl {
 
 ParameterConfiguration::ParameterConfiguration()
     : mSaveFilePath(),
@@ -704,4 +704,4 @@ void ParameterConfiguration::setCurveLineStyle(QCPCurve::LineStyle style)
     }
 }
 
-} // namespace thoht
+} // namespace tl

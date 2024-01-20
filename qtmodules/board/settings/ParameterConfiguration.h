@@ -10,7 +10,7 @@
 
 class QSettings;
 
-namespace thoht {
+namespace tl {
 
 class ParameterConfiguration : public QSharedData
 {
@@ -164,4 +164,4 @@ protected:
 
     bool mModified;
 };
-} // namespace thoht
+} // namespace tl

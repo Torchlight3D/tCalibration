@@ -2,9 +2,9 @@
 
 #include <ostream>
 
-#include <AxDevice/StereoDataRecorder>
+#include <tDevice/StereoDataRecorder>
 
-using namespace thoht;
+using namespace tl;
 
 TEST(Recorder, RecordData)
 {

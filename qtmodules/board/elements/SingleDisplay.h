@@ -6,7 +6,7 @@
 #define UNIT_HEIGHT_RATIO 0.25
 #define VALUE_HEIGHT_RATIO 0.45
 
-namespace thoht {
+namespace tl {
 
 class AdaptiveTextElement;
 class LayoutGrid;
@@ -61,4 +61,4 @@ protected:
     bool mValueVisible;
 };
 
-} // namespace thoht
+} // namespace tl

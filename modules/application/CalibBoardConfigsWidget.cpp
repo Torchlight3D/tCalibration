@@ -3,7 +3,7 @@
 
 #include <QDialogButtonBox>
 
-namespace thoht {
+namespace tl {
 
 ///------- CalibBoardConfigsWidgetPrivate starts from here
 class CalibBoardConfigsWidgetPrivate
@@ -79,6 +79,6 @@ CalibBoardConfigsWidget* const CalibBoardConfigsDialog::widget() const
     return w;
 }
 
-} // namespace thoht
+} // namespace tl
 
 #include "moc_CalibBoardConfigsWidget.cpp"

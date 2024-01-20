@@ -11,7 +11,7 @@
 
 #include "ColorLineEdit.h"
 
-namespace thoht {
+namespace tl {
 
 AlarmConfigurationWidget::AlarmConfigurationWidget(QWidget *parent)
     : QWidget(parent), ui(new Ui::AlarmConfigurationWidget)
@@ -672,4 +672,4 @@ void AlarmConfigurationWidget::resizeColumns()
     }
 }
 
-} // namespace thoht
+} // namespace tl

@@ -3,7 +3,7 @@
 #include <QWidget>
 #include "gui/guiutils.h"
 
-namespace thoht {
+namespace tl {
 
 class StereoModuleImageQualityViewPrivate;
 class StereoModuleImageQualityView : public QWidget
@@ -20,4 +20,4 @@ private:
     Q_DECLARE_PIMPL(StereoModuleImageQualityView)
 };
 
-} // namespace thoht
+} // namespace tl

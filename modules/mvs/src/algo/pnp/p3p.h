@@ -1,10 +1,10 @@
 ﻿#pragma once
 
-#include <AxMath/EigenTypes>
+#include <tMath/EigenTypes>
 
-namespace thoht {
+namespace tl {
 
 bool P3P(const Vector2dList& imagePoints, const Vector3dList& worldPoints,
          Matrix3dList& rotations, Vector3dList& translations);
 
-} // namespace thoht
+} // namespace tl

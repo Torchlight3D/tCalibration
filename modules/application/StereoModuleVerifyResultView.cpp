@@ -11,7 +11,7 @@
 
 #include "gui/qstringutils.h"
 
-namespace thoht {
+namespace tl {
 
 ///------- VerifyResultReportModel starts from here
 class VerifyResultReportModel : public QAbstractTableModel
@@ -440,7 +440,7 @@ QString StereoModuleVerifyResultView::verifySummaryToReport(
     return VerifyResultReportModel::toTextTable(ref, summary);
 }
 
-} // namespace thoht
+} // namespace tl
 
 #include "StereoModuleVerifyResultView.moc"
 #include "moc_StereoModuleVerifyResultView.cpp"

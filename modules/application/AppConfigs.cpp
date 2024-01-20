@@ -4,7 +4,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 
-namespace thoht {
+namespace tl {
 
 namespace key {
 constexpr char kAppConfigs[]{"app"};
@@ -58,4 +58,4 @@ bool AppConfigs::load(const QJsonObject& jo, AppConfigs& configs)
     return true;
 }
 
-} // namespace thoht
+} // namespace tl

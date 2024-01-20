@@ -2,7 +2,7 @@
 
 #include "calib_board_base.h"
 
-namespace thoht {
+namespace tl {
 
 class CheckerBoard : public CalibBoardBase
 {
@@ -47,4 +47,4 @@ private:
     double m_colSpacing; // meter
 };
 
-} // namespace thoht
+} // namespace tl

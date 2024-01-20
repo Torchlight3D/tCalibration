@@ -1,6 +1,6 @@
 ﻿#include "LayoutGrid.h"
 
-namespace thoht {
+namespace tl {
 
 LayoutGrid::LayoutGrid() : mNeedUpdate(false) {}
 
@@ -17,4 +17,4 @@ void LayoutGrid::needUpdate(bool needUpdate) { mNeedUpdate = needUpdate; }
 
 bool LayoutGrid::needUpdate() const { return mNeedUpdate; }
 
-} // namespace thoht
+} // namespace tl

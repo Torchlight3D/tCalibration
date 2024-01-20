@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>thoht::TableValuesEditor</class>
- <widget class="QDialog" name="thoht::TableValuesEditor">
+ <class>tl::TableValuesEditor</class>
+ <widget class="QDialog" name="tl::TableValuesEditor">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -487,7 +487,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>accepted()</signal>
-   <receiver>thoht::TableValuesEditor</receiver>
+   <receiver>tl::TableValuesEditor</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -503,7 +503,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>rejected()</signal>
-   <receiver>thoht::TableValuesEditor</receiver>
+   <receiver>tl::TableValuesEditor</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">

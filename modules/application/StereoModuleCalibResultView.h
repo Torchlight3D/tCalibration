@@ -2,11 +2,11 @@
 
 #include <QWidget>
 
-#include <AxCore/EnumUtils>
+#include <tCore/EnumUtils>
 #include "gui/guiutils.h"
 #include "StereoModuleTask.h"
 
-namespace thoht {
+namespace tl {
 
 class StereoModuleCalibResultViewPrivate;
 class StereoModuleCalibResultView : public QWidget
@@ -64,4 +64,4 @@ private:
     Q_DECLARE_PIMPL(StereoModuleCalibResultView)
 };
 
-} // namespace thoht
+} // namespace tl

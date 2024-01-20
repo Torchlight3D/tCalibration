@@ -2,10 +2,10 @@
 
 #include <memory>
 
-#include <AxCore/EnumUtils>
-#include <AxImu/ImuData>
+#include <tCore/EnumUtils>
+#include <tMotion/ImuData>
 
-namespace thoht {
+namespace tl {
 
 struct StereoImageData;
 struct StereoModuleInfo;
@@ -202,4 +202,4 @@ private:
 
 MAKE_FLAGS(StereoModuleTask::ResultSummary::Error)
 
-} // namespace thoht
+} // namespace tl

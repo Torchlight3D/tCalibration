@@ -6,7 +6,7 @@ QT_BEGIN_NAMESPACE
 struct QMetaObject;
 QT_END_NAMESPACE
 
-namespace thoht {
+namespace tl {
 
 Q_NAMESPACE
 
@@ -98,9 +98,9 @@ Q_ENUM_NS(FocusState)
 Q_ENUM_NS(MouseState)
 Q_ENUM_NS(SelectionState)
 
-} // namespace thoht
+} // namespace tl
 
 #include <QMetaType>
 
-Q_DECLARE_METATYPE(thoht::Status);
-Q_DECLARE_METATYPE(thoht::ColorMode);
+Q_DECLARE_METATYPE(tl::Status);
+Q_DECLARE_METATYPE(tl::ColorMode);

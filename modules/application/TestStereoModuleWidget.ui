@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>thoht::TestStereoModuleWidget</class>
- <widget class="QWidget" name="thoht::TestStereoModuleWidget">
+ <class>tl::TestStereoModuleWidget</class>
+ <widget class="QWidget" name="tl::TestStereoModuleWidget">
   <property name="geometry">
    <rect>
     <x>0</x>

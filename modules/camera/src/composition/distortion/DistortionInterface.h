@@ -2,7 +2,7 @@
 
 #include <Eigen/Core>
 
-namespace thoht {
+namespace tl {
 
 class DistortionInterface
 {
@@ -19,4 +19,4 @@ public:
                            Eigen::Matrix2d& jacobian) const = 0;
 };
 
-} // namespace thoht
+} // namespace tl

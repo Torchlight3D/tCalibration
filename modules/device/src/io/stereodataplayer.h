@@ -4,9 +4,9 @@
 
 #include <opencv2/core/mat.hpp>
 
-#include <AxImu/ImuData>
+#include <tMotion/ImuData>
 
-namespace thoht {
+namespace tl {
 
 // TODO:
 // 1. Keep consistent with StereoDataRecorder
@@ -48,4 +48,4 @@ private:
     int step_;
 };
 
-} // namespace thoht
+} // namespace tl

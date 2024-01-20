@@ -1,6 +1,6 @@
 #include "CornerRadius.h"
 
-namespace thoht {
+namespace tl {
 
 CornerRadius::CornerRadius(int radius)
     : CornerRadius(static_cast<double>(radius))
@@ -120,4 +120,4 @@ bool CornerRadius::operator!=(const CornerRadius& rhs) const
     return !(*this == rhs);
 }
 
-} // namespace thoht
+} // namespace tl

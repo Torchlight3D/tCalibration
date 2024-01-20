@@ -4,7 +4,7 @@
 
 #include "SuspendableWorker.h"
 
-namespace thoht {
+namespace tl {
 
 template <typename Worker_t>
 class AutoDeleteThread : public QThread
@@ -52,4 +52,4 @@ private:
     Worker_t* m_worker; // Own
 };
 
-} // namespace thoht
+} // namespace tl

@@ -2,7 +2,7 @@
 
 #include <QObject>
 
-namespace thoht {
+namespace tl {
 
 class DataManager;
 class TimeSeries;
@@ -64,4 +64,4 @@ protected:
     friend class SettingsDialog;
 };
 
-} // namespace thoht
+} // namespace tl

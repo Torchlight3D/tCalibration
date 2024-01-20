@@ -2,7 +2,7 @@
 
 #include "NumericalDisplay.h"
 
-namespace thoht {
+namespace tl {
 
 class GaugeRect;
 
@@ -76,4 +76,4 @@ protected:
     int mAngleStart;
 };
 
-} // namespace thoht
+} // namespace tl

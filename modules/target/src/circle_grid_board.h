@@ -2,7 +2,7 @@
 
 #include "calib_board_base.h"
 
-namespace thoht {
+namespace tl {
 
 class CircleGridBoard : public CalibBoardBase
 {
@@ -40,4 +40,4 @@ private:
     double m_spacing; // meter
 };
 
-} // namespace thoht
+} // namespace tl

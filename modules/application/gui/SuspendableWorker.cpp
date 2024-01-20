@@ -1,6 +1,6 @@
 #include "SuspendableWorker.h"
 
-namespace thoht {
+namespace tl {
 
 SuspendableWorker::SuspendableWorker(QObject* parent) : QObject(parent)
 {
@@ -24,4 +24,4 @@ void SuspendableWorker::resume() { m_waitCondition.wakeAll(); }
 
 void SuspendableWorker::suspendImpl() { m_waitCondition.wait(&m_waitMutex); }
 
-} // namespace thoht
+} // namespace tl

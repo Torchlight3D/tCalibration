@@ -2,18 +2,18 @@
 
 #include <QVector3D>
 
-#include <AxCamera/Camera>
-#include <AxMath/EigenTypes>
-#include <AxMVS/MvsTypes>
-#include <AxScene3D/KeyFrameInterpolator>
-#include <AxScene3D/Scene3DViewer>
-#include <AxScene3D/Vec>
+#include <tCamera/Camera>
+#include <tMath/EigenTypes>
+#include <tMvs/MvsTypes>
+#include <tScene3d/KeyFrameInterpolator>
+#include <tScene3d/Scene3DViewer>
+#include <tScene3d/Vec>
 
 namespace viewer {
 class ManipulatedFrame;
 }
 
-namespace thoht {
+namespace tl {
 
 class Scene;
 class Spiral;
@@ -129,4 +129,4 @@ private:
     std::vector<viz::Landmark> landmarks_;
 };
 
-} // namespace thoht
+} // namespace tl

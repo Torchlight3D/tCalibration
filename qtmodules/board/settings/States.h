@@ -5,7 +5,7 @@
 
 #include "ColorSettings.h"
 
-namespace thoht {
+namespace tl {
 
 class States
 {
@@ -36,4 +36,4 @@ protected:
     bool mModified;
 };
 
-} // namespace thoht
+} // namespace tl

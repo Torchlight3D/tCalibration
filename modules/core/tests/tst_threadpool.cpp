@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
 
-#include <AxCore/ThreadPool>
+#include <tCore/ThreadPool>
 
-using namespace thoht;
+using namespace tl;

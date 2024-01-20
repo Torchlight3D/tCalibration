@@ -3,7 +3,7 @@
 #include <type_traits>
 #include <Eigen/Core>
 
-namespace thoht {
+namespace tl {
 
 struct Feature
 {
@@ -62,12 +62,12 @@ struct Feature
     }
 };
 
-} // namespace thoht
+} // namespace tl
 
 template <>
-struct std::hash<thoht::Feature>
+struct std::hash<tl::Feature>
 {
-    size_t operator()(const thoht::Feature &k) const
+    size_t operator()(const tl::Feature &k) const
     {
         // Compute individual hash values for two data members and combine them
         // using XOR and bit shifting

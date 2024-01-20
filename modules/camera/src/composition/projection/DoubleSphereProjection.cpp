@@ -1,5 +1,5 @@
 #include "DoubleSphereProjection.h"
 
-namespace thoht {
+namespace tl {
 
 }

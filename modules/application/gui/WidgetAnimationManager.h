@@ -6,7 +6,7 @@
 
 #include "WidgetAnimator.h"
 
-namespace thoht {
+namespace tl {
 
 #define DECLARE_ANIMATE(NAME, TYPE, easing)                                \
     TYPE animate##NAME(const QWidget* w, const TYPE& target, int duration, \
@@ -76,4 +76,4 @@ private:
     std::unordered_map<const QWidget*, WidgetAnimator*> _map;
 };
 
-} // namespace thoht
+} // namespace tl

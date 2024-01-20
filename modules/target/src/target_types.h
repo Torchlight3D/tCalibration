@@ -2,7 +2,7 @@
 
 #include <limits>
 
-namespace thoht {
+namespace tl {
 
 using CornerId = int;
 inline constexpr CornerId kInvalidCornerId =
@@ -18,4 +18,4 @@ enum class CalibBoardType
     Caltag
 };
 
-} // namespace thoht
+} // namespace tl

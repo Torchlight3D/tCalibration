@@ -2,7 +2,7 @@
 
 #include <glog/logging.h>
 
-namespace thoht {
+namespace tl {
 
 using Eigen::Matrix;
 using Eigen::MatrixXd;
@@ -725,4 +725,4 @@ Eigen::MatrixXd CreateMacaulayMatrix(const double a[20], const double b[20],
 }
 
 } // namespace internal
-} // namespace thoht
+} // namespace tl

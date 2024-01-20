@@ -6,7 +6,7 @@
 #include "primitiveutils.h"
 #include "TheStyle.h"
 
-namespace thoht {
+namespace tl {
 
 ColorButton::ColorButton(QWidget* parent) : QAbstractButton(parent) { setup(); }
 
@@ -106,6 +106,6 @@ void ColorButton::paintEvent(QPaintEvent*)
     }
 }
 
-} // namespace thoht
+} // namespace tl
 
 #include "moc_ColorButton.cpp"

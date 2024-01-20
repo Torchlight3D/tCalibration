@@ -12,7 +12,7 @@
 // #include "apriltag_mit/Tag36h9.h"
 #include "apriltag_mit/Tag36h11.h"
 
-namespace thoht {
+namespace tl {
 
 // Brief:
 // AprilTagBoard from Kalibr, for comparison purpose. DONT change any important
@@ -91,4 +91,4 @@ private:
     mutable std::vector<AprilTags::TagDetection> _lastDetections;
 };
 
-} // namespace thoht
+} // namespace tl

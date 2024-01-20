@@ -4,7 +4,7 @@
 
 #include "TheStyle.h"
 
-namespace thoht {
+namespace tl {
 
 TextLabel::TextLabel(const QString& text, TextRole role, QWidget* parent)
     : QLabel(text, parent), m_role(role)
@@ -58,6 +58,6 @@ void TextLabel::updatePaletteFromTheme()
     }
 }
 
-} // namespace thoht
+} // namespace tl
 
 #include "moc_TextLabel.cpp"

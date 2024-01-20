@@ -1,6 +1,6 @@
 #include "blurutils.h"
 
-namespace thoht {
+namespace tl {
 
 // Do nothing
 

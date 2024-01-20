@@ -1,6 +1,6 @@
 ﻿#include "calib_observation.h"
 
-namespace thoht {
+namespace tl {
 
 //// CameraObservation starts from here
 // CameraObservation::CameraObservation(CalibBoardBase::Ptr target,
@@ -189,4 +189,4 @@ namespace thoht {
 
 // CalibData::CalibData() {}
 
-} // namespace thoht
+} // namespace tl

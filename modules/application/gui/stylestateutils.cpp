@@ -2,7 +2,7 @@
 
 #include <QMetaEnum>
 
-namespace thoht {
+namespace tl {
 
 MouseState getMouseState(QStyle::State state)
 {
@@ -263,4 +263,4 @@ QString printState(QStyle::State state)
 
     return result;
 }
-} // namespace thoht
+} // namespace tl

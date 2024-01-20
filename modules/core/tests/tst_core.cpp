@@ -1,12 +1,12 @@
 #include <glog/logging.h>
 #include <gtest/gtest.h>
 
-#include <AxCore/ContainerUtils>
-#include <AxCore/EnumUtils>
-#include <AxCore/StringUtils>
-#include <AxCore/TemplateFactory>
+#include <tCore/ContainerUtils>
+#include <tCore/EnumUtils>
+#include <tCore/StringUtils>
+#include <tCore/TemplateFactory>
 
-using namespace thoht;
+using namespace tl;
 
 TEST(StringTest, StringContain)
 {
@@ -17,7 +17,7 @@ TEST(StringTest, StringContain)
     EXPECT_FALSE(str::Contains(str, sub2));
 }
 
-namespace thoht {
+namespace tl {
 
 class _Device : public Factory<_Device>
 {
@@ -34,16 +34,16 @@ public:
 
     bool capture() override
     {
-        LOG(INFO) << "thoht::_IMU is capturing.";
+        LOG(INFO) << "tl::_IMU is capturing.";
         return true;
     }
 };
 
-} // namespace thoht
+} // namespace tl
 
 namespace {
 
-class _MonoCamera : public thoht::_Device::Registry<_MonoCamera>
+class _MonoCamera : public tl::_Device::Registry<_MonoCamera>
 {
 public:
     _MonoCamera() {}
@@ -59,7 +59,7 @@ public:
 
 TEST(TemplateFactory, Creator)
 {
-    auto imu = _Device::create("thoht::_IMU");
+    auto imu = _Device::create("tl::_IMU");
     auto camera = _Device::create("_MonoCamera");
     EXPECT_TRUE(imu && imu->capture());
     // The correct class name should be (annoynomous namespace)::MonoCamera

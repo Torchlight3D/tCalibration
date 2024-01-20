@@ -5,7 +5,7 @@
 #include <omp.h>
 #endif
 
-namespace thoht {
+namespace tl {
 
 // Templated class for estimating a model for RANSAC. This class is purely a
 // virtual class and should be implemented for the specific task that RANSAC is
@@ -93,4 +93,4 @@ public:
     virtual bool ValidModel(const Model& model) const { return true; }
 };
 
-} // namespace thoht
+} // namespace tl

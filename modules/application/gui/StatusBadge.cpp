@@ -7,7 +7,7 @@
 #include "TheStyle.h"
 #include "TheTheme.h"
 
-namespace thoht {
+namespace tl {
 
 namespace {
 
@@ -490,6 +490,6 @@ void StatusBadge::paintEvent(QPaintEvent* /*e*/)
     drawStatusBadge(&p, rect(), m_type, m_size, theme);
 }
 
-} // namespace thoht
+} // namespace tl
 
 #include "moc_StatusBadge.cpp"

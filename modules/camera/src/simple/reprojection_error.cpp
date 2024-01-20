@@ -10,7 +10,7 @@
 #include "omnidirectional_camera_model.h"
 #include "orthographic_camera_model.h"
 
-namespace thoht {
+namespace tl {
 
 ceres::CostFunction* createReprojectionErrorCostFunction(
     CameraIntrinsics::Type type, const Eigen::Vector2d& feature)
@@ -46,4 +46,4 @@ ceres::CostFunction* createReprojectionErrorCostFunction(
     return nullptr;
 }
 
-} // namespace thoht
+} // namespace tl

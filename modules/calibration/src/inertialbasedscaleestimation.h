@@ -5,9 +5,9 @@
 
 #include <Eigen/Geometry>
 
-#include <AxMath/EigenTypes>
+#include <tMath/EigenTypes>
 
-namespace thoht {
+namespace tl {
 
 class InertialBasedScaleEstimation
 {
@@ -69,4 +69,4 @@ private:
     friend class Impl;
 };
 
-} // namespace thoht
+} // namespace tl

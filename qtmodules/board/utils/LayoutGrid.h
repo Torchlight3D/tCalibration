@@ -2,7 +2,7 @@
 
 #include <qcp/qcustomplot.h>
 
-namespace thoht {
+namespace tl {
 
 class LayoutGrid : public QCPLayoutGrid
 {
@@ -33,4 +33,4 @@ protected:
     friend class TextLabel;
 };
 
-} // namespace thoht
+} // namespace tl

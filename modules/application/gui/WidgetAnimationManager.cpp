@@ -1,6 +1,6 @@
 #include "WidgetAnimationManager.h"
 
-namespace thoht {
+namespace tl {
 
 WidgetAnimationManager::WidgetAnimationManager() { initializeEasingCurves(); }
 
@@ -98,4 +98,4 @@ const QEasingCurve& WidgetAnimationManager::defaultEasingCurve() const
     return _defaultEasingCurve;
 }
 
-} // namespace thoht
+} // namespace tl

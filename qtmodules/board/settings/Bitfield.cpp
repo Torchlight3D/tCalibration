@@ -2,7 +2,7 @@
 
 #include <utility>
 
-namespace thoht {
+namespace tl {
 
 Bitfield::Bitfield() : mModified(false)
 {
@@ -43,4 +43,4 @@ QList<bool> &Bitfield::bitLogics() { return mBitLogics; }
 
 QStringList &Bitfield::bitDescriptions() { return mBitDescriptions; }
 
-} // namespace thoht
+} // namespace tl

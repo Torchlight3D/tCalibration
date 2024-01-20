@@ -5,7 +5,7 @@
 #include <QJsonDocument>
 #include <QPalette>
 
-namespace thoht {
+namespace tl {
 
 struct ThemeMeta
 {
@@ -190,4 +190,4 @@ private:
     void initializeFromJson(const QJsonDocument& doc);
 };
 
-} // namespace thoht
+} // namespace tl

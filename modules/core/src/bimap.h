@@ -9,7 +9,7 @@
 #define REQUIRES_THAT(TYPENAME, EXPRESSION) \
     typename _T_ = TYPENAME, typename = std::void_t<decltype(EXPRESSION)>
 
-namespace thoht::impl {
+namespace tl::impl {
 
 namespace traits {
 template <typename T, typename = std::void_t<>>
@@ -210,9 +210,9 @@ private:
     T *data;
 };
 
-} // namespace thoht::impl
+} // namespace tl::impl
 
-namespace thoht {
+namespace tl {
 
 template <typename ForwardKey, typename InverseKey,
           template <typename...> typename ForwardMapType = std::unordered_map,
@@ -592,4 +592,4 @@ void swap(bimap<ForwardKey, InverseKey, ForwardMapType, InverseMapType> &lhs,
     lhs.swap(rhs);
 }
 
-} // namespace thoht
+} // namespace tl
