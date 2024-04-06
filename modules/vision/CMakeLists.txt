@@ -5,9 +5,11 @@ add_library(${NS_PREFIX}::${IMGPROC_TARGET_NAME} ALIAS ${IMGPROC_TARGET_NAME})
 
 file(GLOB CALIBTARGET_INTERNAL_HEADERS
     src/*.h
+    src/mtf/*.h
 )
 file(GLOB CALIBTARGET_SOURCES
     src/*.cpp
+    src/mtf/*.cc
 )
 
 target_sources(${IMGPROC_TARGET_NAME}
