@@ -1,6 +1,7 @@
 # Folder
 *build
 *bin
+/ref
 
 # VS Code
 /.vscode

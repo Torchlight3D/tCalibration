@@ -1,11 +1,25 @@
 CalibKit
 ===
 
-## Introduction
+## Motivation
+
+## Goals
+
++ Modern
+
++ Modular
+
++ Well-tested
+
++ Portable
+
++ Cross-platform
 
 ## Build
 
 ### Dependencies
+
+A complete 3rd-party library list can be found [here](dependencies.md).
 
 Most of the dependencies are the same on both Windows and Linux.
 
