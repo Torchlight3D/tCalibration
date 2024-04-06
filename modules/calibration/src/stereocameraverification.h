@@ -26,7 +26,6 @@ public:
         Eigen::Vector3d t_c1c0;
         double focal_length;
 
-        // NOTE: Keep updated with Luba VIO module
         // TODO: Move to CalibrationIO, share common keys with save functions
         static bool loadFromFile(const std::string &filename, VerifyData &data,
                                  std::string &uuid);

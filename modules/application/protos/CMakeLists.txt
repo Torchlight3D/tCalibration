@@ -1,7 +1,7 @@
 include(common.cmake)
 
 # Proto file
-set(proto_filename "luba_vision_router")
+set(proto_filename "device_router")
 get_filename_component(proto "../protos/${proto_filename}.proto" ABSOLUTE)
 get_filename_component(proto_path "${proto}" PATH)
 

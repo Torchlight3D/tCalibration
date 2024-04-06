@@ -9,7 +9,7 @@
 #include "StereoModuleData.h"
 
 #include <grpcpp/completion_queue.h>
-#include "luba_vision_router.grpc.pb.h"
+#include "device_router.grpc.pb.h"
 
 namespace tl {
 

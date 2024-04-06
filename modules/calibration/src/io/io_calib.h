@@ -13,7 +13,7 @@ class ImuNoise;
 
 namespace io {
 
-inline constexpr char kLubaCalibParameterFilename[]{"cam_parameters.yaml"};
+inline constexpr char kCalibParameterFilename[]{"cam_parameters.yaml"};
 inline constexpr char kSaveDataDir[]{"SavedData"};
 
 struct CalibMetaData
@@ -24,8 +24,6 @@ struct CalibMetaData
     std::string deviceSN{};
 };
 
-// Export Luba VIO module compatible yaml serialization
-// NOTE: Dont spend too much time on improving this function
 std::string toVioYamlString(const Camera& left, const Camera& right,
                             const Eigen::Matrix4d& leftCameraToImu,
                             const Eigen::Matrix4d& rightCameraToImu,

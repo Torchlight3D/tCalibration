@@ -18,7 +18,7 @@ using Eigen::Matrix4d;
 using Eigen::Vector3d;
 
 namespace {
-constexpr char kTestLubaVioFile[]{"calib_parameters_sample.yaml"};
+constexpr char kTestVioConfigFile[]{"calib_parameters_sample.yaml"};
 }
 
 TEST(IoTest, EigenWrite)
@@ -78,7 +78,7 @@ TEST(IoTest, ImuRead)
     // TODO
 }
 
-TEST(IoTest, LubaVioWriteCompatiblity)
+TEST(IoTest, VioWriteCompatiblity)
 {
     GTEST_SKIP();
 
@@ -97,13 +97,13 @@ TEST(IoTest, LubaVioWriteCompatiblity)
     const auto vio_yaml =
         io::toVioYamlString(left, right, i_T_left, i_T_right, meta);
 
-    std::ofstream fout{kTestLubaVioFile};
+    std::ofstream fout{kTestVioConfigFile};
     fout << vio_yaml;
 
     EXPECT_TRUE(true);
 }
 
-TEST(IoTest, LubaVioReadCompatibility)
+TEST(IoTest, VioReadCompatibility)
 {
     Camera left;
     Camera right;
@@ -112,7 +112,7 @@ TEST(IoTest, LubaVioReadCompatibility)
     double focalLength;
 
     const bool success =
-        io::loadFromVioYamlFile(kTestLubaVioFile, left, right, focalLength,
+        io::loadFromVioYamlFile(kTestVioConfigFile, left, right, focalLength,
                                 leftCameraToImu, rightCameraToImu);
 
     left.print();

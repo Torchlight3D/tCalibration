@@ -77,7 +77,6 @@ public:
         double maxRPE = 0.3; // pixel
 
         /// Sensors
-        // 308 is calculated based on Luba camera sensor specs
         double expectedFocalLength = 308.; // pixel
         double focalLengthTolerance = 10.;
         double expectedPrincipalPointX = 320.; // pixel
@@ -190,8 +189,8 @@ public:
     bool readyToVerify() const;
     bool readyToUpload() const;
 
-    std::string toLubaVioResult() const;
-    std::tuple<std::string, std::string> toLubaStereoResult() const;
+    std::string toVioConfigFile() const;
+    std::tuple<std::string, std::string> toStereoMaps() const;
 
 private:
     class Impl;

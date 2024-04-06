@@ -708,7 +708,7 @@ bool StereoModuleTask::readyToUpload() const
     return d->m_state >= TaskState::Verified;
 }
 
-std::string StereoModuleTask::toLubaVioResult() const
+std::string StereoModuleTask::toVioConfigFile() const
 {
     io::CalibMetaData meta;
     meta.uuid = d->m_uuid;
@@ -739,8 +739,7 @@ std::string StereoModuleTask::toLubaVioResult() const
     return io::toVioYamlString(left, right, i_T_left, i_T_right, meta);
 }
 
-std::tuple<std::string, std::string> StereoModuleTask::toLubaStereoResult()
-    const
+std::tuple<std::string, std::string> StereoModuleTask::toStereoMaps() const
 {
     const auto& left = d->m_stereo[kCameraLeftId];
     const auto& right = d->m_stereo[kCameraRightId];
@@ -765,8 +764,8 @@ std::tuple<std::string, std::string> StereoModuleTask::toLubaStereoResult()
     }
 
     std::string left_str, right_str;
-    io::toLubaStereoUndistortRectifyMapString(map1_left, map2_left, map1_right,
-                                              map2_right, left_str, right_str);
+    io::toStereoUndistortRectifyMapString(map1_left, map2_left, map1_right,
+                                          map2_right, left_str, right_str);
 
     return std::make_tuple(left_str, right_str);
 }

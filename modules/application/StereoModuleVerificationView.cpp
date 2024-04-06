@@ -317,9 +317,8 @@ void StereoModuleVerificationView::startVerify()
             };
 
             {
-                std::ofstream fout{
-                    taskDir /
-                    makeLocalCalibFilename(io::kLubaCalibParameterFilename)};
+                std::ofstream fout{taskDir / makeLocalCalibFilename(
+                                                 io::kCalibParameterFilename)};
                 fout << params;
             }
 

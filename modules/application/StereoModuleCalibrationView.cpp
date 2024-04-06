@@ -965,7 +965,7 @@ void StereoModuleCalibrationViewPrivate::uploadResults()
         auto &status = remoteStatusus[index];
 
         /// Calibration results
-        const auto calibResult = task->toLubaVioResult();
+        const auto calibResult = task->toVioConfigFile();
 
         // Save results to task folder
         const auto &uuid = task->uuid();
@@ -978,8 +978,8 @@ void StereoModuleCalibrationViewPrivate::uploadResults()
         };
 
         {
-            std::ofstream fout{taskDir / makeLocalCalibFilename(
-                                             io::kLubaCalibParameterFilename)};
+            std::ofstream fout{
+                taskDir / makeLocalCalibFilename(io::kCalibParameterFilename)};
             fout << calibResult;
         }
 
@@ -1001,7 +1001,7 @@ void StereoModuleCalibrationViewPrivate::uploadResults()
                           .arg(QString::number(displayIndex)));
 
         /// Undistortion map
-        const auto [map1, map2] = task->toLubaStereoResult();
+        const auto [map1, map2] = task->toStereoMaps();
 
         appendMessage(StereoModuleCalibrationView::tr(
                           "Sending undistort rectify map to device %1.")

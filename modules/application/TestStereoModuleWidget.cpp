@@ -329,7 +329,7 @@ void TestStereoModuleWidgetPrivate::testCalibration()
     const auto _ =
         QtConcurrent::run([this]() {
             m_task->startCalculation();
-            std::string calib_res = m_task->toLubaVioResult();
+            std::string calib_res = m_task->toVioConfigFile();
             {
                 std::ofstream fout("./calib_parameters.yaml", std::ios::out);
                 fout << calib_res;

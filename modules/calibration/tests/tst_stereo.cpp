@@ -41,7 +41,7 @@ TEST(Stereo, VerifyVioDataIo)
         << "SavedData directory doesn't exist.";
 
     const auto verifyFilename =
-        fmt::format("{0}-{1}", "verification", io::kLubaCalibParameterFilename);
+        fmt::format("{0}-{1}", "verification", io::kCalibParameterFilename);
     for (const auto& dataDir : fs::directory_iterator(savedDataDir)) {
         const auto filename = (dataDir.path() / verifyFilename).string();
 
@@ -78,7 +78,7 @@ TEST(Stereo, VioVerificationGood)
     const char leftName[]{"verify_left-0.png"};
     const char rightName[]{"verify_right-0.png"};
     const auto verifyFilename =
-        fmt::format("{0}-{1}", "verification", io::kLubaCalibParameterFilename);
+        fmt::format("{0}-{1}", "verification", io::kCalibParameterFilename);
     for (const auto& dataDir : fs::directory_iterator(savedDataDir)) {
         const auto filename = (dataDir.path() / verifyFilename).string();
         const auto leftFilename = (dataDir.path() / leftName).string();

@@ -160,12 +160,12 @@ bool initUndistortRectifyMap(const Camera& left, const Camera& right,
     return false;
 }
 
-void io::toLubaStereoUndistortRectifyMapString(cv::InputArray map1_left,
-                                               cv::InputArray map2_left,
-                                               cv::InputArray map1_right,
-                                               cv::InputArray map2_right,
-                                               std::string& left_str,
-                                               std::string& right_str)
+void io::toStereoUndistortRectifyMapString(cv::InputArray map1_left,
+                                           cv::InputArray map2_left,
+                                           cv::InputArray map1_right,
+                                           cv::InputArray map2_right,
+                                           std::string& left_str,
+                                           std::string& right_str)
 {
     // NOTE: Take from stereo_calib_for_x3.cpp
     auto mapXYToString = [](cv::InputArray map1,

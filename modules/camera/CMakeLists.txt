@@ -1,4 +1,4 @@
-option(USE_CAMODOCAL "Use Luba VIO module's camodocal library as algorithm reference." ON)
+option(USE_CAMODOCAL "Use VINS' camodocal library as algorithm reference." ON)
 
 set(CAMERA_TARGET_NAME Camera)
 

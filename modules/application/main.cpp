@@ -82,7 +82,7 @@ int main(int argc, char *argv[])
         Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
 #endif
 
-    constexpr char kConfigsPath[]{"configs.ax"};
+    constexpr char kConfigsPath[]{"configs.tt"};
 
     tl::AppConfigs configs;
     [[maybe_unused]] const bool configsLoaded =

@@ -17,7 +17,6 @@ void from_json(const nlohmann::json& json, Camera& camera);
 
 namespace tl::io {
 
-// For Luba Vio module
 YAML::Node toCamOdoCalYamlNode(const Camera& camera,
                                const std::string& name = "camera");
 bool fromCamOdoCalYamlNode(const YAML::Node& node, Camera& camera);
