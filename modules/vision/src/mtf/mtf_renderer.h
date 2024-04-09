@@ -5,11 +5,11 @@
 class Mtf_renderer
 {
 public:
-    Mtf_renderer(const std::string& img_filename = {})
-        : img_filename(img_filename)
+    explicit Mtf_renderer(const std::string& filename = {})
+        : img_filename(filename)
     {
     }
-    virtual ~Mtf_renderer() {}
+    virtual ~Mtf_renderer() = default;
 
     virtual void render(const std::vector<Block>& blocks) = 0;
 

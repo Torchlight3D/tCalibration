@@ -6,11 +6,6 @@
 #include "common_types.h"
 #include "logger.h"
 
-#include "config.h"
-#if mtfmapper_ZLIB_FOUND == 1
-#include <zlib.h>
-#endif
-
 Tiffsniff::Tiffsniff(const std::string& fname, bool is_8bit)
 {
     fin = std::shared_ptr<std::iostream>(

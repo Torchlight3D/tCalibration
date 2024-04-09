@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 
-#include <opencv2/imgcodecs/imgcodecs.hpp>
+#include <opencv2/imgcodecs.hpp>
 
 #include "logger.h"
 #include "threadpool.h"
