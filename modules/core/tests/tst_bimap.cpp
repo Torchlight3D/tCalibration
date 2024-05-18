@@ -6,7 +6,7 @@
 #include <gtest/gtest.h>
 
 #include <tCore/Bimap>
-#include <tCore/tGlobal>
+#include <tCore/Global>
 
 using namespace tl;
 

@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <vector>
 
-#include <tCore/tGlobal>
+#include <tCore/Global>
 
 namespace apriltags {
 

@@ -4,7 +4,7 @@
 
 #include <tTarget/TargetDetection>
 #include <tCamera/CameraIntrinsics>
-#include <tMvs/MvsTypes>
+#include <tMvs/Types>
 #include <tMvs/Scene>
 
 namespace tl {

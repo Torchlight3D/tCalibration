@@ -4,7 +4,7 @@
 #include <Eigen/Core>
 
 #include <tMath/RansacCreator>
-#include <tMvs/PnPTypes>
+#include <tMvs/Types>
 
 namespace tl {
 

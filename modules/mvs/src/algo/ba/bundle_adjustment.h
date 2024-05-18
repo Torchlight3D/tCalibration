@@ -6,7 +6,7 @@
 #include <ceres/solver.h>
 
 #include <tCamera/CameraIntrinsics>
-#include <tMvs/MvsTypes>
+#include <tMvs/Types>
 #include <tSolver/LossFunctionCreator>
 
 namespace tl {

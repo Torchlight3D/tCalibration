@@ -1,7 +1,6 @@
 ﻿#pragma once
 
 #include <limits>
-#include <numeric>
 
 namespace tl {
 
@@ -14,5 +13,12 @@ inline constexpr ViewId kInvalidViewId = std::numeric_limits<ViewId>::max();
 using CameraId = int;
 inline constexpr CameraId kInvalidCameraId =
     std::numeric_limits<CameraId>::max();
+
+enum class PnPType
+{
+    KNEIP,
+    SQPnP,
+    DLS
+};
 
 } // namespace tl

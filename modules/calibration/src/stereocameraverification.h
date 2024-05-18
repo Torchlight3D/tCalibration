@@ -3,7 +3,7 @@
 #include <Eigen/Geometry>
 #include <opencv2/core/types.hpp>
 
-#include <tCore/tGlobal>
+#include <tCore/Global>
 #include <tCore/EnumUtils>
 #include <tCamera/StereoCameraTypes>
 #include <tCamera/coc/Camera>

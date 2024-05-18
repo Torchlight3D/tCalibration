@@ -3,7 +3,7 @@
 #include <mutex>
 #include <unordered_map>
 
-#include <tCore/tGlobal>
+#include <tCore/Global>
 #include <tCore/HashUtils>
 
 #include "featuredatabase.h"

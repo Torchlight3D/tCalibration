@@ -1,6 +1,5 @@
 ﻿#pragma once
 
-#include <type_traits>
 #include <Eigen/Core>
 
 namespace tl {

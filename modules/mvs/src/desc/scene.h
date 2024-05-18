@@ -1,17 +1,11 @@
 ﻿#pragma once
 
-#include <memory>
 #include <set>
-#include <string>
-#include <unordered_map>
-#include <unordered_set>
-#include <vector>
 
-#include <Eigen/Core>
+#include <tMvs/Types>
 
 #include "landmark.h"
 #include "view.h"
-#include "mvs_types.h"
 
 namespace tl {
 

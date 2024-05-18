@@ -4,7 +4,7 @@
 
 #include <tCamera/Camera>
 #include <tMath/EigenTypes>
-#include <tMvs/MvsTypes>
+#include <tMvs/Types>
 #include <tScene3d/KeyFrameInterpolator>
 #include <tScene3d/Scene3DViewer>
 #include <tScene3d/Vec>

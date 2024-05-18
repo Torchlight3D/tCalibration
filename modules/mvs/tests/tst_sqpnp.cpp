@@ -2,8 +2,8 @@
 #include <Eigen/Geometry>
 #include <gtest/gtest.h>
 
-#include <tCore/tGlobal>
 #include <tCore/ContainerUtils>
+#include <tCore/Global>
 #include <tMath/MathBase>
 #include <tMath/RandomGenerator>
 #include <tMvs/SQPnP>

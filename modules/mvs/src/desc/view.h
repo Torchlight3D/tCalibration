@@ -1,11 +1,9 @@
 ﻿#pragma once
 
-#include <string>
-#include <Eigen/Core>
-
 #include <tCamera/Camera>
+#include <tMvs/Types>
+
 #include "feature.h"
-#include "mvs_types.h"
 
 namespace tl {
 
