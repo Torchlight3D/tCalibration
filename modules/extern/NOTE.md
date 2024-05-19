@@ -5,9 +5,12 @@ External Libraries
 If you really have to revise certain libraries to archive new features or fix bugs, create
 git and log the changes.
 
-|    Name    |                          Git                          |    Version(commit)    | Descriptions                           | Notes |
-| :--------: | :---------------------------------------------------: | :-------------------: | :------------------------------------- | :---- |
-|  argparse  |     [Github](https://github.com/p-ranav/argparse)     | v2.9.0</br>(997da92)  | Argument Parser for Modern C++         | -     |
-| csv_parser | [Github](https://github.com/vincentlaucsb/csv-parser) | v2.1.3</br>(ea547fd)  | A CSV parser                           | -     |
-| magic_enum |    [Github](https://github.com/Neargye/magic_enum)    | v0.9.3</br>(e1ea11a)  | Convert enum to string, and vice versa | -     |
-|    json    |      [Github](https://github.com/nlohmann/json)       | v3.11.2</br>(bc889af) | A modern C++ JSON parser               | -     |
+|    Name    |                          Git                          |    Version(commit)    | Descriptions                                                         | Notes |
+| :--------: | :---------------------------------------------------: | :-------------------: | :------------------------------------------------------------------- | :---- |
+|  argparse  |     [Github](https://github.com/p-ranav/argparse)     | v3.0.0</br>(af442b4)  | Argument Parser for Modern C++                                       | -     |
+| csv_parser | [Github](https://github.com/vincentlaucsb/csv-parser) | v2.2.0</br>(fdcafe3)  | A CSV parser                                                         | -     |
+|   graaf    |     [Github](https://github.com/bobluppes/graaf)      | v1.1.0</br>(c9d87aa)  | A lightweight C++ graph library                                      | -     |
+|    json    |      [Github](https://github.com/nlohmann/json)       | v3.11.3</br>(9cca280) | A modern C++ JSON parser                                             | -     |
+| magic_enum |    [Github](https://github.com/Neargye/magic_enum)    | v0.9.5</br>(e55b9b5)  | Convert enum to string, and vice versa                               | -     |
+| nanoflann  |   [Github](https://github.com/jlblancoc/nanoflann)    | v1.5.4</br>(419c26c)  | a header-only library for Nearest Neighbor (NN) search with KD-trees | -     |
+|  tabulate  |     [Github](https://github.com/p-ranav/tabulate)     | v1.5.0</br>(b35db4c)  | Table Maker for Modern C++                                           | -     |
