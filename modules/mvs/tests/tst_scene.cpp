@@ -213,7 +213,7 @@ TEST(Reconstruction, addFeatureValid)
     // Ensure that the observation adds the correct information to the track.
     const auto track = scene.track(trackId);
     EXPECT_EQ(track->viewCount(), 1);
-    EXPECT_TRUE(utils::ContainsKey(track->viewIds(), viewId1));
+    EXPECT_TRUE(track->viewIds().contains(viewId1));
 }
 
 TEST(Reconstruction, addFeatureInvalid)
@@ -356,7 +356,7 @@ TEST(Reconstruction, GetSubReconstruction)
         // Verify that all views in the subset are in the main scene and
         // in the input views for the subset.
         for (const auto& viewId : viewIdsInSubScene) {
-            EXPECT_TRUE(utils::ContainsKey(subViewIds, viewId));
+            EXPECT_TRUE(subViewIds.contains(viewId));
 
             // Ensure equality of the view objects.
             const auto viewInMain = scene.view(viewId);
@@ -395,7 +395,7 @@ TEST(Reconstruction, GetSubReconstruction)
             // in the subset.
             const auto& viewIdsObservingTrackInSub = trackInSub->viewIds();
             for (const auto& viewId : viewIdsObservingTrackInSub) {
-                EXPECT_TRUE(utils::ContainsKey(subViewIds, viewId));
+                EXPECT_TRUE(subViewIds.contains(viewId));
             }
         }
 

@@ -213,7 +213,7 @@ void BundleAdjuster::setCameraIntrinsicsParameterization()
     // Set camera intrinsics to be constant if no cameras in the intrinsics
     // group are being optimized.
     for (const auto& camId : m_potentialConstantCameraIds) {
-        if (utils::ContainsKey(m_optimizedCameraIds, camId)) {
+        if (m_optimizedCameraIds.contains(camId)) {
             continue;
         }
 
@@ -416,7 +416,7 @@ BundleAdjuster::BundleAdjuster(const BundleAdjustmentOptions& options,
 void BundleAdjuster::addView(ViewId viewId)
 {
     auto* view = CHECK_NOTNULL(scene_->rView(viewId));
-    if (!view->estimated() || utils::ContainsKey(m_optimizedViewIds, viewId)) {
+    if (!view->estimated() || m_optimizedViewIds.contains(viewId)) {
         return;
     }
 
@@ -457,8 +457,7 @@ void BundleAdjuster::addView(ViewId viewId)
 void BundleAdjuster::addTrack(TrackId trackId)
 {
     auto* track = CHECK_NOTNULL(scene_->rTrack(trackId));
-    if (!track->estimated() ||
-        utils::ContainsKey(m_optimizedTrackIds, trackId)) {
+    if (!track->estimated() || m_optimizedTrackIds.contains(trackId)) {
         return;
     }
 
@@ -468,8 +467,7 @@ void BundleAdjuster::addTrack(TrackId trackId)
     const auto& observedViewIds = track->viewIds();
     for (const auto& viewId : observedViewIds) {
         auto* view = CHECK_NOTNULL(scene_->rView(viewId));
-        if (utils::ContainsKey(m_optimizedViewIds, viewId) ||
-            !view->estimated()) {
+        if (m_optimizedViewIds.contains(viewId) || !view->estimated()) {
             continue;
         }
 

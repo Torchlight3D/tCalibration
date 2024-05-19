@@ -53,12 +53,12 @@ size_t View::trackCount() const { return m_trackIdToFeature.size(); }
 
 const Feature* View::featureOf(int id) const
 {
-    return utils::FindOrNull(m_trackIdToFeature, id);
+    return con::FindOrNull(m_trackIdToFeature, id);
 }
 
 int View::trackIdOf(const Feature& feature) const
 {
-    if (const auto id = utils::FindOrNull(m_featureToTrackId, feature)) {
+    if (const auto id = con::FindOrNull(m_featureToTrackId, feature)) {
         return *id;
     }
     return kInvalidTrackId;
@@ -72,7 +72,7 @@ void View::addFeature(TrackId trackId, const Feature& feature)
 
 bool View::removeFeature(TrackId trackId)
 {
-    if (const auto feature = utils::FindOrNull(m_trackIdToFeature, trackId)) {
+    if (const auto feature = con::FindOrNull(m_trackIdToFeature, trackId)) {
         return m_trackIdToFeature.erase(trackId) > 0 &&
                m_featureToTrackId.erase(*feature) > 0;
     }
@@ -106,7 +106,7 @@ bool View::hasPositionPrior() const { return m_hasPosPrior; }
 
 void View::setTrackError(TrackId id, double error)
 {
-    if (const auto found = utils::FindOrNull(m_trackIdToFeature, id)) {
+    if (const auto found = con::FindOrNull(m_trackIdToFeature, id)) {
         // Replace or create
         m_trackIdToError[id] = error;
     }
@@ -114,7 +114,7 @@ void View::setTrackError(TrackId id, double error)
 
 bool View::trackError(TrackId id, double& error) const
 {
-    if (const auto found = utils::FindOrNull(m_trackIdToError, id)) {
+    if (const auto found = con::FindOrNull(m_trackIdToError, id)) {
         error = *found;
         return true;
     }
@@ -133,7 +133,7 @@ double View::averageError() const
 
 void View::setTrackOffset(TrackId id, const Vector2d& offset)
 {
-    if (const auto found = utils::FindOrNull(m_trackIdToFeature, id)) {
+    if (const auto found = con::FindOrNull(m_trackIdToFeature, id)) {
         // Replace or create
         m_trackIdToOffset[id] = offset;
     }
@@ -141,7 +141,7 @@ void View::setTrackOffset(TrackId id, const Vector2d& offset)
 
 bool View::trackOffset(TrackId id, Vector2d& offset) const
 {
-    if (const auto found = utils::FindOrNull(m_trackIdToOffset, id)) {
+    if (const auto found = con::FindOrNull(m_trackIdToOffset, id)) {
         offset = *found;
         return true;
     }

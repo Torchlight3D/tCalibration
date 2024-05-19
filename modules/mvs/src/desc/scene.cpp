@@ -58,7 +58,7 @@ ViewId Scene::addView(const std::string& name, CameraId camId, double timestamp)
         return kInvalidViewId;
     }
 
-    if (utils::ContainsKey(m_nameToViewId, name)) {
+    if (m_nameToViewId.contains(name)) {
         LOG(WARNING) << "Failed to add view to scene: View name(" << name
                      << ") already exists.";
         return kInvalidViewId;
@@ -80,7 +80,7 @@ ViewId Scene::addView(const std::string& name, CameraId camId, double timestamp)
     if (!sharedViewIds.empty()) {
         // Any view is fine, they share the same intrinsics.
         const auto viewId = *sharedViewIds.begin();
-        const auto& camera = utils::FindOrDie(m_viewIdToView, viewId).camera();
+        const auto& camera = con::FindOrDie(m_viewIdToView, viewId).camera();
         view.rCamera().setCameraIntrinsics(camera.cameraIntrinsics());
     }
 
@@ -100,7 +100,7 @@ ViewId Scene::addView(const std::string& name, CameraId camId, double timestamp)
 
 bool Scene::removeView(ViewId viewId)
 {
-    auto* view = utils::FindOrNull(m_viewIdToView, viewId);
+    auto* view = con::FindOrNull(m_viewIdToView, viewId);
     if (!view) {
         LOG(WARNING) << "Failed to remove the view from the scene: "
                         "The view does not exist.";
@@ -137,7 +137,7 @@ bool Scene::removeView(ViewId viewId)
     // Remove the view from the camera groups.
     const auto camId = cameraId(viewId);
     m_viewIdToCamId.erase(viewId);
-    auto& sharedCameraViewIds = utils::FindOrDie(m_camIdToViewIds, camId);
+    auto& sharedCameraViewIds = con::FindOrDie(m_camIdToViewIds, camId);
     sharedCameraViewIds.erase(viewId);
     if (sharedCameraViewIds.empty()) {
         m_camIdToViewIds.erase(camId);
@@ -161,10 +161,10 @@ void Scene::removeViews(CameraId camId)
 
 const View* Scene::view(ViewId id) const
 {
-    return utils::FindOrNull(m_viewIdToView, id);
+    return con::FindOrNull(m_viewIdToView, id);
 }
 
-View* Scene::rView(ViewId id) { return utils::FindOrNull(m_viewIdToView, id); }
+View* Scene::rView(ViewId id) { return con::FindOrNull(m_viewIdToView, id); }
 
 int Scene::viewCount() const { return static_cast<int>(m_viewIdToView.size()); }
 
@@ -176,12 +176,12 @@ int Scene::viewCount(CameraId id) const
 
 ViewId Scene::viewIdFromName(const std::string& name) const
 {
-    return utils::FindWithDefault(m_nameToViewId, name, kInvalidViewId);
+    return con::FindWithDefault(m_nameToViewId, name, kInvalidViewId);
 }
 
 std::set<ViewId> Scene::viewIdsAtTime(double t) const
 {
-    return utils::FindWithDefault(m_timestampToViewIds, t, std::set<ViewId>{});
+    return con::FindWithDefault(m_timestampToViewIds, t, std::set<ViewId>{});
 }
 
 std::vector<ViewId> Scene::viewIds() const
@@ -196,7 +196,7 @@ std::vector<ViewId> Scene::viewIds() const
 
 CameraId Scene::cameraId(ViewId id) const
 {
-    return utils::FindWithDefault(m_viewIdToCamId, id, kInvalidCameraId);
+    return con::FindWithDefault(m_viewIdToCamId, id, kInvalidCameraId);
 }
 
 const Camera* Scene::camera(CameraId camId) const
@@ -222,7 +222,7 @@ std::vector<CameraId> Scene::cameraIds() const
 std::vector<ViewId> Scene::sharedCameraViewIds(CameraId id) const
 {
     const auto viewIds =
-        utils::FindWithDefault(m_camIdToViewIds, id, std::set<ViewId>());
+        con::FindWithDefault(m_camIdToViewIds, id, std::set<ViewId>());
     if (viewIds.empty()) {
         return {};
     }
@@ -242,13 +242,13 @@ void Scene::pairCamera(CameraId leftCamId, CameraId rightCamId)
 
 CameraId Scene::pairCameraIdOf(CameraId id) const
 {
-    return utils::FindWithDefault(m_cameraPairs, id, kInvalidCameraId);
+    return con::FindWithDefault(m_cameraPairs, id, kInvalidCameraId);
 }
 
 TrackId Scene::addTrack()
 {
     const auto trackId = m_nextTrackId;
-    CHECK(!utils::ContainsKey(m_trackIdToTrack, trackId))
+    CHECK(!m_trackIdToTrack.contains(trackId))
         << "Track already exists: Id " << trackId;
 
     Track track;
@@ -259,8 +259,7 @@ TrackId Scene::addTrack()
 
 void Scene::addTrack(TrackId id)
 {
-    CHECK(!utils::ContainsKey(m_trackIdToTrack, id))
-        << "Track already exists: Id " << id;
+    CHECK(!m_trackIdToTrack.contains(id)) << "Track already exists: Id " << id;
 
     Track track;
     m_trackIdToTrack.emplace(id, track);
@@ -268,15 +267,15 @@ void Scene::addTrack(TrackId id)
 
 bool Scene::addFeature(ViewId viewId, TrackId trackId, const Feature& feature)
 {
-    CHECK(utils::ContainsKey(m_viewIdToView, viewId))
+    CHECK(m_viewIdToView.contains(viewId))
         << "View does not exist. AddObservation may only be used to add "
            "observations to an existing view.";
-    CHECK(utils::ContainsKey(m_trackIdToTrack, trackId))
+    CHECK(m_trackIdToTrack.contains(trackId))
         << "Track does not exist. AddObservation may only be used to add "
            "observations to an existing track.";
 
-    auto* view = utils::FindOrNull(m_viewIdToView, viewId);
-    auto* track = utils::FindOrNull(m_trackIdToTrack, trackId);
+    auto* view = con::FindOrNull(m_viewIdToView, viewId);
+    auto* track = con::FindOrNull(m_trackIdToTrack, trackId);
     if (view->featureOf(trackId)) {
         LOG(WARNING) << "Cannot add a new observation of track " << trackId
                      << " because the view already contains an observation of "
@@ -285,7 +284,7 @@ bool Scene::addFeature(ViewId viewId, TrackId trackId, const Feature& feature)
     }
 
     const std::unordered_set<int>& views_observing_track = track->viewIds();
-    if (utils::ContainsKey(views_observing_track, viewId)) {
+    if (views_observing_track.contains(viewId)) {
         LOG(WARNING) << "Cannot add a new observation of track " << trackId
                      << " because the track is already observed by view "
                      << viewId;
@@ -315,13 +314,13 @@ int Scene::addTrack(
     }
 
     const auto trackId = m_nextTrackId;
-    CHECK(!utils::ContainsKey(m_trackIdToTrack, trackId))
+    CHECK(!m_trackIdToTrack.contains(trackId))
         << "The reconstruction already contains a track with id: " << trackId;
 
     Track track;
     for (const auto& [viewId, feature] : viewIdToFeature) {
         // Make sure the view exists in the model.
-        CHECK(utils::ContainsKey(m_viewIdToView, viewId))
+        CHECK(m_viewIdToView.contains(viewId))
             << "Cannot add a track with containing an observation in view id "
             << viewId << " because the view does not exist.";
 
@@ -340,7 +339,7 @@ int Scene::addTrack(
 
 bool Scene::removeTrack(TrackId trackId)
 {
-    auto* track = utils::FindOrNull(m_trackIdToTrack, trackId);
+    auto* track = con::FindOrNull(m_trackIdToTrack, trackId);
     if (!track) {
         LOG(WARNING) << "Failed to remove track: TrackId " << trackId
                      << " does not exist.";
@@ -348,7 +347,7 @@ bool Scene::removeTrack(TrackId trackId)
     }
 
     for (const auto& viewId : track->viewIds()) {
-        auto* view = utils::FindOrNull(m_viewIdToView, viewId);
+        auto* view = con::FindOrNull(m_viewIdToView, viewId);
         if (!view) {
             LOG(WARNING) << "Failed to remove view: ViewId " << viewId
                          << " does not exist.";
@@ -368,12 +367,12 @@ bool Scene::removeTrack(TrackId trackId)
 
 const Track* Scene::track(TrackId id) const
 {
-    return utils::FindOrNull(m_trackIdToTrack, id);
+    return con::FindOrNull(m_trackIdToTrack, id);
 }
 
 Track* Scene::rTrack(TrackId id)
 {
-    return utils::FindOrNull(m_trackIdToTrack, id);
+    return con::FindOrNull(m_trackIdToTrack, id);
 }
 
 int Scene::trackCount() const
@@ -416,9 +415,9 @@ void Scene::normalize()
         camera_positions[1].push_back(point[1]);
         camera_positions[2].push_back(point[2]);
     }
-    median_camera_position(0) = utils::FindMedian(camera_positions[0]);
-    median_camera_position(1) = utils::FindMedian(camera_positions[1]);
-    median_camera_position(2) = utils::FindMedian(camera_positions[2]);
+    median_camera_position(0) = con::FindMedian(camera_positions[0]);
+    median_camera_position(1) = con::FindMedian(camera_positions[1]);
+    median_camera_position(2) = con::FindMedian(camera_positions[2]);
     transform(Eigen::Matrix3d::Identity(), -median_camera_position, 1.0);
 
     // Get the estimated track ids.
@@ -447,9 +446,9 @@ void Scene::normalize()
         points[1].push_back(point[1]);
         points[2].push_back(point[2]);
     }
-    median(0) = utils::FindMedian(points[0]);
-    median(1) = utils::FindMedian(points[1]);
-    median(2) = utils::FindMedian(points[2]);
+    median(0) = con::FindMedian(points[0]);
+    median(1) = con::FindMedian(points[1]);
+    median(2) = con::FindMedian(points[2]);
 
     // Find the median absolute deviation of the points from the median.
     std::vector<double> distance_to_median;
@@ -462,7 +461,7 @@ void Scene::normalize()
 
     // This will scale the reconstruction so that the median absolute deviation
     // of the points is 100.
-    const double scale = 100.0 / utils::FindMedian(distance_to_median);
+    const double scale = 100.0 / con::FindMedian(distance_to_median);
     transform(Eigen::Matrix3d::Identity(), Eigen::Vector3d::Zero(), scale);
 
     // Most images are taken relatively upright with the x-direction of the
@@ -513,7 +512,7 @@ void Scene::extractSubScene(const std::unordered_set<ViewId>& subViewIds,
     //    subScene->m_timestampToViewId.reserve(subViewIds.size());
     std::unordered_set<TrackId> allTrackIds;
     for (const auto& viewId : subViewIds) {
-        const auto* view = utils::FindOrNull(m_viewIdToView, viewId);
+        const auto* view = con::FindOrNull(m_viewIdToView, viewId);
         if (!view) {
             continue;
         }
@@ -523,7 +522,7 @@ void Scene::extractSubScene(const std::unordered_set<ViewId>& subViewIds,
         subScene->m_nameToViewId[view->name()] = viewId;
         subScene->m_timestampToViewIds[view->timestamp()].insert(viewId);
         // Set the intrinsics group id information.
-        const auto& camId = utils::FindOrDie(m_viewIdToCamId, viewId);
+        const auto& camId = con::FindOrDie(m_viewIdToCamId, viewId);
         subScene->m_viewIdToCamId[viewId] = camId;
         subScene->m_camIdToViewIds[camId].emplace(viewId);
 
@@ -535,7 +534,7 @@ void Scene::extractSubScene(const std::unordered_set<ViewId>& subViewIds,
     // Copy the tracks.
     subScene->m_trackIdToTrack.reserve(allTrackIds.size());
     for (const auto& trackId : allTrackIds) {
-        const auto* track = utils::FindOrNull(m_trackIdToTrack, trackId);
+        const auto* track = con::FindOrNull(m_trackIdToTrack, trackId);
         if (!track) {
             continue;
         }
@@ -548,9 +547,8 @@ void Scene::extractSubScene(const std::unordered_set<ViewId>& subViewIds,
         // The new track should only contain observations from views in the
         // subreconstruction. We perform a set intersection to find these views.
         const auto& observingViewIds = track->viewIds();
-        std::unordered_set<ViewId> commonViewIds;
-        utils::ContainerIntersection(subViewIds, observingViewIds,
-                                     &commonViewIds);
+        const auto commonViewIds =
+            con::ContainerIntersection(subViewIds, observingViewIds);
 
         // Add the common views to the new track.
         for (const auto& viewId : commonViewIds) {

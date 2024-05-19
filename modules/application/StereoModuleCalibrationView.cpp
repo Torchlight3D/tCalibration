@@ -149,6 +149,7 @@ class CalibTaskManager : public QObject
 public:
     using Tasks = std::vector<StereoModuleTask::Ptr>;
     using Recorders = std::vector<StereoDataRecorder::Ptr>;
+    using ThreadPools = std::array<BS::thread_pool, 4>;
 
     explicit CalibTaskManager(QObject *parent = nullptr);
 
@@ -183,11 +184,16 @@ private:
 private:
     Tasks m_tasks;
     Recorders m_recorders;
-    ThreadPool m_threadpool{kPreprocessThreadCount};
+    ThreadPools m_threadpool;
     bool m_saveData{true};
 };
 
-CalibTaskManager::CalibTaskManager(QObject *parent) : QObject(parent) {}
+CalibTaskManager::CalibTaskManager(QObject *parent) : QObject(parent)
+{
+    for (auto &tp : m_threadpool) {
+        tp.reset(1);
+    }
+}
 
 const CalibTaskManager::Tasks &CalibTaskManager::tasks() const
 {
@@ -234,13 +240,6 @@ void CalibTaskManager::prepareTask(const std::vector<StereoModuleInfo> &infos)
             std::move(StereoDataRecorder::create(taskDir.string())));
     }
 
-    // FIXME: We can't use too many threads for preprocessing here, as
-    // preprocessing will add detection into Task, which may lead to race
-    // condition.
-    // To workaround, we use one less than total task count as thread count.
-    // Better solutions are welcomed.
-    m_threadpool.reset(std::max(size_t(1), count - 1));
-
     m_saveData = gigabytesAvailable(".") > kMinReservedSpaceInGB;
 
     emit prepareTaskFinished();
@@ -285,7 +284,11 @@ void CalibTaskManager::processMotionDataList(const ImuDataList &data, int pos)
 
 void CalibTaskManager::stopPreprocessing()
 {
-    m_threadpool.waitForDone();
+    for (auto &tp : m_threadpool) {
+        tp.wait();
+    }
+    // m_threadpool.wait();
+
     emit preprocessingFinished();
 }
 
@@ -299,17 +302,13 @@ void CalibTaskManager::startCalibration()
     // }
 
     // Method: Paralleled for-loop
-    m_threadpool.reset(m_tasks.size());
-    m_threadpool
-        .parallelize_loop(m_tasks.size(),
-                          [this](size_t a, size_t b) {
-                              for (auto i{a}; i < b; ++i) {
-                                  if (m_tasks[i]->readyToCalculate()) {
-                                      m_tasks[i]->startCalculation();
-                                  }
-                              }
-                          })
-        .wait();
+    BS::thread_pool tp{static_cast<BS::concurrency_t>(m_tasks.size())};
+    tp.detach_loop<size_t>(size_t{0}, m_tasks.size(), [this](size_t i) {
+        if (m_tasks[i]->readyToCalculate()) {
+            m_tasks[i]->startCalculation();
+        }
+    });
+    tp.wait();
 
     emit allCalibrationFinished();
 }
@@ -323,12 +322,10 @@ void CalibTaskManager::stopCalibration()
 void CalibTaskManager::addStereoDataToTask(const StereoImageData &data, int pos)
 {
     // Method: Thread pool processing
-    // QUEST: Dont use std::ref(cref) here, why?
-    m_threadpool.push_task(
-        [this, pos](const StereoImageData &data) {
-            m_tasks[pos]->addStereoData(data);
-        },
-        data);
+    m_threadpool[pos].detach_task(
+        [this, pos, data]() { m_tasks[pos]->addStereoData(data); });
+    // m_threadpool.detach_task(
+    //     [this, pos, data]() { m_tasks[pos]->addStereoData(data); });
 
     // Method: Serial processsing
     // m_tasks[pos]->addStereoData(data);

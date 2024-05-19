@@ -1,485 +1,707 @@
 ﻿#pragma once
 
+#ifndef __cpp_exceptions
+#define THREAD_POOL_DISABLE_EXCEPTION_HANDLING
+#undef THREAD_POOL_ENABLE_WAIT_DEADLOCK_CHECK
+#endif
+
 #include <chrono>
 #include <condition_variable>
+#include <cstddef>
+#ifdef THREAD_POOL_ENABLE_PRIORITY
+#include <cstdint>
+#endif
+#ifndef THREAD_POOL_DISABLE_EXCEPTION_HANDLING
 #include <exception>
+#endif
 #include <functional>
 #include <future>
-#include <iostream>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <queue>
+#ifdef THREAD_POOL_ENABLE_WAIT_DEADLOCK_CHECK
+#include <stdexcept>
+#endif
 #include <thread>
 #include <type_traits>
 #include <utility>
 #include <vector>
 
-namespace tl {
+namespace BS {
 
-// Convenience type for std::thread::hardware_concurrency() return type.
-// Should evaluate to unsigned int under Linux
+class thread_pool;
+
+using size_t = std::size_t;
+
 using concurrency_t =
     std::invoke_result_t<decltype(std::thread::hardware_concurrency)>;
 
-// A wrapper for future list
+#ifdef THREAD_POOL_ENABLE_PRIORITY
+
+using priority_t = std::int_least16_t;
+
+namespace pr {
+constexpr priority_t highest = 32767;
+constexpr priority_t high = 16383;
+constexpr priority_t normal = 0;
+constexpr priority_t low = -16384;
+constexpr priority_t lowest = -32768;
+} // namespace pr
+
+// Macros used internally to enable or disable the priority arguments in the
+// relevant functions.
+#define THREAD_POOL_PRIORITY_INPUT , const priority_t priority = 0
+#define THREAD_POOL_PRIORITY_OUTPUT , priority
+#else
+#define THREAD_POOL_PRIORITY_INPUT
+#define THREAD_POOL_PRIORITY_OUTPUT
+#endif
+
+namespace this_thread {
+
+using optional_index = std::optional<size_t>;
+
+using optional_pool = std::optional<thread_pool*>;
+
+class [[nodiscard]] thread_info_index
+{
+    friend class BS::thread_pool;
+
+public:
+    [[nodiscard]] optional_index operator()() const { return index; }
+
+private:
+    optional_index index = std::nullopt;
+};
+
+class [[nodiscard]] thread_info_pool
+{
+    friend class BS::thread_pool;
+
+public:
+    [[nodiscard]] optional_pool operator()() const { return pool; }
+
+private:
+    optional_pool pool = std::nullopt;
+};
+
+inline thread_local thread_info_index get_index;
+
+inline thread_local thread_info_pool get_pool;
+} // namespace this_thread
+
 template <typename T>
-class [[nodiscard]] FutureList
+class [[nodiscard]] multi_future : public std::vector<std::future<T>>
 {
 public:
-    explicit FutureList(size_t count = 0) : futures_(count) {}
+    using std::vector<std::future<T>>::vector;
+
+    multi_future(const multi_future&) = delete;
+    multi_future& operator=(const multi_future&) = delete;
+    multi_future(multi_future&&) = default;
+    multi_future& operator=(multi_future&&) = default;
 
     [[nodiscard]] std::conditional_t<std::is_void_v<T>, void, std::vector<T>>
     get()
     {
         if constexpr (std::is_void_v<T>) {
-            for (auto& future : futures_) {
+            for (auto& future : *this) {
                 future.get();
             }
             return;
         }
 
-        std::vector<T> results(futures_.size());
-        for (size_t i{0}; i < futures_.size(); ++i) {
-            results[i] = futures_[i].get();
+        std::vector<T> results;
+        results.reserve(this->size());
+        for (auto& future : *this) {
+            results.push_back(future.get());
         }
         return results;
     }
 
-    [[nodiscard]] std::future<T>& operator[](size_t i) { return futures_[i]; }
-
-    void push_back(std::future<T> future)
+    [[nodiscard]] size_t ready_count() const
     {
-        futures_.push_back(std::move(future));
+        return std::count_if(
+            this->cbegin(), this->cend(), [](const auto& future) {
+                return future.wait_for(std::chrono::duration<double>::zero()) ==
+                       std::future_status::ready;
+            });
     }
 
-    [[nodiscard]] size_t size() const { return futures_.size(); }
+    [[nodiscard]] bool valid() const
+    {
+        return std::all_of(this->cbegin(), this->cend(),
+                           [](const auto& future) { return future.valid(); });
+    }
 
     void wait() const
     {
-        for (const auto& future : futures_) {
+        for (const auto& future : *this) {
             future.wait();
         }
     }
 
-private:
-    std::vector<std::future<T>> futures_;
-};
-
-// A helper class to divide a range into blocks.
-// T1 and T2 should be signed or unsigned integer type. We use two template
-// parameters to adapt mixup input.
-template <typename T1, typename T2, typename T = std::common_type_t<T1, T2>>
-class [[nodiscard]] Blocks
-{
-public:
-    Blocks(T1 begin, T2 end, size_t blockCount)
-        : begin_(static_cast<T>(begin)),
-          end_(static_cast<T>(end)),
-          block_count_(blockCount)
+    template <typename R, typename P>
+    bool wait_for(const std::chrono::duration<R, P>& duration) const
     {
-        static_assert(std::is_integral_v<T>);
-
-        if (end_ < begin_) {
-            std::swap(end_, begin_);
-        }
-
-        size_ = static_cast<size_t>(end_ - begin_);
-        block_size_ = static_cast<size_t>(size_ / block_count_);
-        if (block_size_ == 0) {
-            block_size_ = 1;
-            block_count_ = (size_ > 1) ? size_ : 1;
-        }
-    }
-
-    [[nodiscard]] T start(size_t i) const
-    {
-        return static_cast<T>(i * block_size_) + begin_;
-    }
-
-    [[nodiscard]] T end(size_t i) const
-    {
-        return (i == block_count_ - 1)
-                   ? end_
-                   : (static_cast<T>((i + 1) * block_size_) + begin_);
-    }
-
-    [[nodiscard]] size_t blockCount() const { return block_count_; }
-    [[nodiscard]] size_t size() const { return size_; }
-
-private:
-    T begin_{0}, end_{0};
-    size_t block_size_ = 0;
-    size_t block_count_ = 0;
-    size_t size_ = 0;
-};
-
-class [[nodiscard]] ThreadPool
-{
-public:
-    // ThreadPool uses total number of hardware threads available by default,
-    // which is usually determined by the number of cores in the CPU. If a core
-    // is hyperthreaded, it will count as two threads.
-    explicit ThreadPool(concurrency_t threadCount = 0)
-        : thread_count_(idealThreadCount(threadCount)),
-          threads_(std::make_unique<std::thread[]>(thread_count_))
-    {
-        createThreads();
-    }
-
-    ~ThreadPool()
-    {
-        waitForDone();
-        destroyThreads();
-    }
-
-    [[nodiscard]] size_t waitingTaskCount() const
-    {
-        const std::scoped_lock locker(tasks_mutex_);
-        return waiting_tasks_.size();
-    }
-
-    [[nodiscard]] size_t runningTaskCount() const
-    {
-        const std::scoped_lock locker(tasks_mutex_);
-        return running_task_count_;
-    }
-
-    [[nodiscard]] size_t totalTaskCount() const
-    {
-        const std::scoped_lock locker(tasks_mutex_);
-        return running_task_count_ + waiting_tasks_.size();
-    }
-
-    [[nodiscard]] concurrency_t threadCount() const { return thread_count_; }
-
-    // Parallelize a loop by automatically splitting it into blocks and
-    // submitting each block separately to the queue. Returns a FutureList that
-    // contains the futures for all of the blocks.
-    // NOTE:
-    // 1. The loop will iterate in range of [begin, end)
-    // 2. The loop function should take EXACTLY TWO arguments, which are begin
-    // and end.
-    template <
-        typename Func, typename T1, typename T2,
-        typename T = std::common_type_t<T1, T2>,
-        typename Return_t = std::invoke_result_t<std::decay_t<Func>, T, T>>
-    [[nodiscard]] FutureList<Return_t> parallelize_loop(T1 begin, T2 end,
-                                                        Func&& loop,
-                                                        size_t blockCount = 0)
-    {
-        Blocks blocks{begin, end, blockCount ? blockCount : thread_count_};
-        if (blocks.size() > 0) {
-            FutureList<Return_t> futures(blocks.blockCount());
-            for (size_t i{0}; i < blocks.blockCount(); ++i) {
-                futures[i] = submit(std::forward<Func>(loop), blocks.start(i),
-                                    blocks.end(i));
+        const auto start_time = std::chrono::steady_clock::now();
+        for (const auto& future : *this) {
+            future.wait_for(duration -
+                            (std::chrono::steady_clock::now() - start_time));
+            if (duration < std::chrono::steady_clock::now() - start_time) {
+                return false;
             }
-            return futures;
         }
-
-        return FutureList<Return_t>();
+        return true;
     }
 
-    template <
-        typename Func, typename T,
-        typename Return_t = std::invoke_result_t<std::decay_t<Func>, T, T>>
-    [[nodiscard]] inline auto parallelize_loop(T end, Func&& loop,
-                                               size_t blockCount = 0)
+    template <typename C, typename D>
+    bool wait_until(const std::chrono::time_point<C, D>& timeout_time) const
     {
-        return parallelize_loop(0, end, std::forward<Func>(loop), blockCount);
+        for (const auto& future : *this) {
+            future.wait_until(timeout_time);
+            if (timeout_time < std::chrono::steady_clock::now()) {
+                return false;
+            }
+        }
+        return true;
     }
+};
 
-    // Worker will stop receiving new tasks, while if there are running tasks
-    // exist, it will keep running until they finish.
-    void pause()
+class [[nodiscard]] thread_pool
+{
+public:
+    inline thread_pool() : thread_pool(0, [] {}) {}
+    inline explicit thread_pool(const concurrency_t num_threads)
+        : thread_pool(num_threads, [] {})
     {
-        const std::scoped_lock locker(tasks_mutex_);
-        paused_ = true;
+    }
+    inline explicit thread_pool(const std::function<void()>& init_task)
+        : thread_pool(0, init_task)
+    {
+    }
+    thread_pool(const concurrency_t num_threads,
+                const std::function<void()>& init_task)
+        : thread_count(determine_thread_count(num_threads)),
+          threads(std::make_unique<std::thread[]>(
+              determine_thread_count(num_threads)))
+    {
+        create_threads(init_task);
     }
 
+    thread_pool(const thread_pool&) = delete;
+    thread_pool(thread_pool&&) = delete;
+    thread_pool& operator=(const thread_pool&) = delete;
+    thread_pool& operator=(thread_pool&&) = delete;
+
+    ~thread_pool()
+    {
+        wait();
+        destroy_threads();
+    }
+
+#ifdef THREAD_POOL_ENABLE_NATIVE_HANDLES
+    [[nodiscard]] std::vector<std::thread::native_handle_type>
+    get_native_handles() const
+    {
+        std::vector<std::thread::native_handle_type> native_handles(
+            thread_count);
+        for (concurrency_t i = 0; i < thread_count; ++i) {
+            native_handles[i] = threads[i].native_handle();
+        }
+        return native_handles;
+    }
+#endif
+
+    [[nodiscard]] size_t get_tasks_queued() const
+    {
+        const std::scoped_lock tasks_lock{tasks_mutex};
+        return tasks.size();
+    }
+
+    [[nodiscard]] size_t get_tasks_running() const
+    {
+        const std::scoped_lock tasks_lock{tasks_mutex};
+        return tasks_running;
+    }
+
+    [[nodiscard]] size_t get_tasks_total() const
+    {
+        const std::scoped_lock tasks_lock{tasks_mutex};
+        return tasks_running + tasks.size();
+    }
+
+    [[nodiscard]] concurrency_t get_thread_count() const
+    {
+        return thread_count;
+    }
+
+    [[nodiscard]] std::vector<std::thread::id> get_thread_ids() const
+    {
+        std::vector<std::thread::id> thread_ids(thread_count);
+        for (concurrency_t i = 0; i < thread_count; ++i) {
+            thread_ids[i] = threads[i].get_id();
+        }
+        return thread_ids;
+    }
+
+#ifdef THREAD_POOL_ENABLE_PAUSE
     [[nodiscard]] bool is_paused() const
     {
-        const std::scoped_lock locker(tasks_mutex_);
-        return paused_;
+        const std::scoped_lock tasks_lock{tasks_mutex};
+        return paused;
     }
 
-    void resume()
+    void pause()
     {
-        const std::scoped_lock locker(tasks_mutex_);
-        paused_ = false;
+        const std::scoped_lock tasks_lock{tasks_mutex};
+        paused = true;
     }
+#endif
 
-    // Remove all the waiting tasks. Tasks that are currently running will not
-    // be affected.
     void purge()
     {
-        const std::scoped_lock tasks_lock(tasks_mutex_);
-        while (!waiting_tasks_.empty()) {
-            waiting_tasks_.pop();
+        const std::scoped_lock tasks_lock{tasks_mutex};
+        while (!tasks.empty()) {
+            tasks.pop();
         }
     }
 
-    // Parallelize a loop by automatically splitting it into blocks and
-    // submitting each block separately to the queue. Different from
-    // parallelize_loop(), this method does not return a FutureList, so the user
-    // must use waitForDone() or some other alternatives to ensure that the loop
-    // finishes executing, otherwise bad things will happen.
-    // NOTE:
-    // 1. The loop will iterate in range of [begin, end)
-    // 2. The loop function should take EXACTLY TWO arguments, which are begin
-    // and end.
-    template <typename Func, typename T1, typename T2,
-              typename T = std::common_type_t<T1, T2>>
-    void push_loop(T1 begin, T2 end, Func&& loop, size_t blockCount = 0)
+    template <typename F>
+    void detach_task(F&& task THREAD_POOL_PRIORITY_INPUT)
     {
-        Blocks blocks{begin, end, blockCount ? blockCount : thread_count_};
-        if (blocks.size() > 0) {
-            for (size_t i{0}; i < blocks.blockCount(); ++i) {
-                push_task(std::forward<Func>(loop), blocks.start(i),
-                          blocks.end(i));
+        {
+            const std::scoped_lock tasks_lock{tasks_mutex};
+            tasks.emplace(std::forward<F>(task) THREAD_POOL_PRIORITY_OUTPUT);
+        }
+        task_available_cv.notify_one();
+    }
+
+    template <typename T, typename F>
+    void detach_blocks(const T first_index, const T index_after_last, F&& block,
+                       const size_t num_blocks = 0 THREAD_POOL_PRIORITY_INPUT)
+    {
+        if (index_after_last > first_index) {
+            const blocks blks{first_index, index_after_last,
+                              num_blocks ? num_blocks : thread_count};
+            for (size_t blk = 0; blk < blks.get_num_blocks(); ++blk) {
+                detach_task([block = std::forward<F>(block),
+                             start = blks.start(blk), end = blks.end(blk)] {
+                    block(start, end);
+                } THREAD_POOL_PRIORITY_OUTPUT);
             }
         }
     }
 
-    template <typename Func, typename T>
-    inline void push_loop(T end, Func&& loop, size_t blockCount = 0)
+    template <typename T, typename F>
+    void detach_loop(const T first_index, const T index_after_last, F&& loop,
+                     const size_t num_blocks = 0 THREAD_POOL_PRIORITY_INPUT)
     {
-        push_loop(0, end, std::forward<Func>(loop), blockCount);
-    }
-
-    // Push a function with zero or more arguments into the task queue. This
-    // method doesn't return a future, so the user must use waitForDone() or
-    // some other alternatives to ensure that the tasks finish executing,
-    // otherwise bad things will happen.
-    template <typename Func, typename... Args>
-    void push_task(Func&& task, Args&&... args)
-    {
-        {
-            const std::scoped_lock tasks_lock(tasks_mutex_);
-            waiting_tasks_.push(std::bind(std::forward<Func>(task),
-                                          std::forward<Args>(args)...));
+        if (index_after_last > first_index) {
+            const blocks blks{first_index, index_after_last,
+                              num_blocks ? num_blocks : thread_count};
+            for (size_t blk = 0; blk < blks.get_num_blocks(); ++blk) {
+                detach_task([loop = std::forward<F>(loop),
+                             start = blks.start(blk), end = blks.end(blk)] {
+                    for (T i = start; i < end; ++i) {
+                        loop(i);
+                    }
+                } THREAD_POOL_PRIORITY_OUTPUT);
+            }
         }
-        task_available_.notify_one();
     }
 
-    // Reset the number of threads in the pool.
-    // Waits for all currently running tasks to be completed, then destroys all
-    // threads in the pool, and creates a new thread pool with the new number of
-    // threads. Any tasks that were waiting in the queue before the pool was
-    // reset will be executed by the NEW threads. If the pool was paused before
-    // resetting it, the new pool will be paused as well.
-    void reset(concurrency_t threadCount = 0)
+    template <typename T, typename F>
+    void detach_sequence(const T first_index, const T index_after_last,
+                         F&& sequence THREAD_POOL_PRIORITY_INPUT)
     {
-        std::unique_lock locker(tasks_mutex_);
-        const bool was_paused = paused_;
-        paused_ = true;
-        locker.unlock();
-
-        waitForDone();
-        destroyThreads();
-        thread_count_ = idealThreadCount(threadCount);
-        threads_ = std::make_unique<std::thread[]>(thread_count_);
-        paused_ = was_paused;
-        createThreads();
+        for (T i = first_index; i < index_after_last; ++i) {
+            detach_task([sequence = std::forward<F>(sequence), i] {
+                sequence(i);
+            } THREAD_POOL_PRIORITY_OUTPUT);
+        }
     }
 
-    // Submit a function with zero or more arguments into the task queue.
-    // Return the future of the return value (if not, then void) of input
-    // function, which can be used to wait until the task finishes.
-    template <typename Func, typename... Args,
-              typename Return_t = std::invoke_result_t<std::decay_t<Func>,
-                                                       std::decay_t<Args>...>>
-    [[nodiscard]] std::future<Return_t> submit(Func&& func, Args&&... args)
+    void reset(const concurrency_t num_threads,
+               const std::function<void()>& init_task)
     {
-        auto promise = std::make_shared<std::promise<Return_t>>();
-        push_task([task = std::bind(std::forward<Func>(func),
-                                    std::forward<Args>(args)...),
-                   promise] {
+#ifdef THREAD_POOL_ENABLE_PAUSE
+        std::unique_lock tasks_lock{tasks_mutex};
+        const bool was_paused = paused;
+        paused = true;
+        tasks_lock.unlock();
+#endif
+        wait();
+        destroy_threads();
+        thread_count = determine_thread_count(num_threads);
+        threads = std::make_unique<std::thread[]>(thread_count);
+        create_threads(init_task);
+#ifdef THREAD_POOL_ENABLE_PAUSE
+        tasks_lock.lock();
+        paused = was_paused;
+#endif
+    }
+    inline void reset(const std::function<void()>& init_task)
+    {
+        reset(0, init_task);
+    }
+    inline void reset()
+    {
+        reset(0, [] {});
+    }
+    inline void reset(const concurrency_t num_threads)
+    {
+        reset(num_threads, [] {});
+    }
+
+    template <typename F, typename R = std::invoke_result_t<std::decay_t<F>>>
+    [[nodiscard]] std::future<R> submit_task(
+        F&& task THREAD_POOL_PRIORITY_INPUT)
+    {
+        const auto task_promise = std::make_shared<std::promise<R>>();
+        detach_task([task = std::forward<F>(task), task_promise] {
+#ifndef THREAD_POOL_DISABLE_EXCEPTION_HANDLING
             try {
-                if constexpr (std::is_void_v<Return_t>) {
-                    std::invoke(task);
-                    promise->set_value();
+#endif
+                if constexpr (std::is_void_v<R>) {
+                    task();
+                    task_promise->set_value();
                 }
                 else {
-                    promise->set_value(std::invoke(task));
+                    task_promise->set_value(task());
                 }
+#ifndef THREAD_POOL_DISABLE_EXCEPTION_HANDLING
             }
             catch (...) {
                 try {
-                    promise->set_exception(std::current_exception());
+                    task_promise->set_exception(std::current_exception());
                 }
                 catch (...) {
                 }
             }
-        });
-        return promise->get_future();
+#endif
+        } THREAD_POOL_PRIORITY_OUTPUT);
+        return task_promise->get_future();
     }
 
-    // Wait for tasks to be completed. Normally, this method waits for all tasks
-    // (both running and waiting tasks). However, if the pool is paused, this
-    // function only waits for the currently running tasks, otherwise it would
-    // wait forever.
-    // NOTE: To wait for just one specific task, use submit() instead, and call
-    // the wait() member function of the generated future.
-    void waitForDone()
+    template <typename T, typename F,
+              typename R = std::invoke_result_t<std::decay_t<F>, T, T>>
+    [[nodiscard]] multi_future<R> submit_blocks(
+        const T first_index, const T index_after_last, F&& block,
+        const size_t num_blocks = 0 THREAD_POOL_PRIORITY_INPUT)
     {
-        std::unique_lock locker(tasks_mutex_);
-        waiting_ = true;
-        tasks_done_.wait(locker, [this] {
-            return !running_task_count_ && (paused_ || waiting_tasks_.empty());
-        });
-        waiting_ = false;
+        if (index_after_last > first_index) {
+            const blocks blks{first_index, index_after_last,
+                              num_blocks ? num_blocks : thread_count};
+            multi_future<R> future;
+            future.reserve(blks.get_num_blocks());
+            for (size_t blk = 0; blk < blks.get_num_blocks(); ++blk) {
+                future.push_back(
+                    submit_task([block = std::forward<F>(block),
+                                 start = blks.start(blk), end = blks.end(blk)] {
+                        return block(start, end);
+                    } THREAD_POOL_PRIORITY_OUTPUT));
+            }
+            return future;
+        }
+        return {};
     }
 
-    // Wait for tasks to be completed, but stop waiting after the specified
-    // duration has passed. Return true if all tasks finished running, false if
-    // the duration expired but some tasks are still running.
-    template <typename Rep_t, typename Period_t>
-    bool waitForDoneFor(const std::chrono::duration<Rep_t, Period_t>& duration)
+    template <typename T, typename F>
+    [[nodiscard]] multi_future<void> submit_loop(
+        const T first_index, const T index_after_last, F&& loop,
+        const size_t num_blocks = 0 THREAD_POOL_PRIORITY_INPUT)
     {
-        std::unique_lock locker(tasks_mutex_);
-        waiting_ = true;
-        const bool status = tasks_done_.wait_for(locker, duration, [this] {
-            return !running_task_count_ && (paused_ || waiting_tasks_.empty());
+        if (index_after_last > first_index) {
+            const blocks blks(first_index, index_after_last,
+                              num_blocks ? num_blocks : thread_count);
+            multi_future<void> future;
+            future.reserve(blks.get_num_blocks());
+            for (size_t blk = 0; blk < blks.get_num_blocks(); ++blk) {
+                future.push_back(
+                    submit_task([loop = std::forward<F>(loop),
+                                 start = blks.start(blk), end = blks.end(blk)] {
+                        for (T i = start; i < end; ++i) {
+                            loop(i);
+                        }
+                    } THREAD_POOL_PRIORITY_OUTPUT));
+            }
+            return future;
+        }
+        return {};
+    }
+
+    template <typename T, typename F,
+              typename R = std::invoke_result_t<std::decay_t<F>, T>>
+    [[nodiscard]] multi_future<R> submit_sequence(
+        const T first_index, const T index_after_last,
+        F&& sequence THREAD_POOL_PRIORITY_INPUT)
+    {
+        if (index_after_last > first_index) {
+            multi_future<R> future;
+            future.reserve(static_cast<size_t>(index_after_last - first_index));
+            for (T i = first_index; i < index_after_last; ++i) {
+                future.push_back(
+                    submit_task([sequence = std::forward<F>(sequence), i] {
+                        return sequence(i);
+                    } THREAD_POOL_PRIORITY_OUTPUT));
+            }
+            return future;
+        }
+        return {};
+    }
+
+#ifdef THREAD_POOL_ENABLE_PAUSE
+    void unpause()
+    {
+        {
+            const std::scoped_lock tasks_lock{tasks_mutex};
+            paused = false;
+        }
+        task_available_cv.notify_all();
+    }
+#endif
+
+#ifdef THREAD_POOL_ENABLE_PAUSE
+#define THREAD_POOL_PAUSED_OR_EMPTY (paused || tasks.empty())
+#else
+#define THREAD_POOL_PAUSED_OR_EMPTY tasks.empty()
+#endif
+
+    void wait()
+    {
+#ifdef THREAD_POOL_ENABLE_WAIT_DEADLOCK_CHECK
+        if (this_thread::get_pool() == this) {
+            throw wait_deadlock();
+        }
+#endif
+        std::unique_lock tasks_lock{tasks_mutex};
+        waiting = true;
+        tasks_done_cv.wait(tasks_lock, [this] {
+            return (tasks_running == 0) && THREAD_POOL_PAUSED_OR_EMPTY;
         });
-        waiting_ = false;
+        waiting = false;
+    }
+
+    template <typename R, typename P>
+    bool wait_for(const std::chrono::duration<R, P>& duration)
+    {
+#ifdef THREAD_POOL_ENABLE_WAIT_DEADLOCK_CHECK
+        if (this_thread::get_pool() == this) {
+            throw wait_deadlock();
+        }
+#endif
+        std::unique_lock tasks_lock{tasks_mutex};
+        waiting = true;
+        const bool status =
+            tasks_done_cv.wait_for(tasks_lock, duration, [this] {
+                return (tasks_running == 0) && THREAD_POOL_PAUSED_OR_EMPTY;
+            });
+        waiting = false;
         return status;
     }
 
-    // Wait for tasks to be completed, but stop waiting after the specified time
-    // point has been reached. Return true if all tasks finished running, false
-    // if the time point was reached but some tasks are still running.
-    template <typename Clock_t, typename Duration_t>
-    bool waitForDoneUntil(
-        const std::chrono::time_point<Clock_t, Duration_t>& timeout)
+    template <typename C, typename D>
+    bool wait_until(const std::chrono::time_point<C, D>& timeout_time)
     {
-        std::unique_lock locker(tasks_mutex_);
-        waiting_ = true;
-        const bool status = tasks_done_.wait_until(locker, timeout, [this] {
-            return !running_task_count_ && (paused_ || waiting_tasks_.empty());
-        });
-        waiting_ = false;
+#ifdef THREAD_POOL_ENABLE_WAIT_DEADLOCK_CHECK
+        if (this_thread::get_pool() == this) {
+            throw wait_deadlock();
+        }
+#endif
+        std::unique_lock tasks_lock{tasks_mutex};
+        waiting = true;
+        const bool status =
+            tasks_done_cv.wait_until(tasks_lock, timeout_time, [this] {
+                return (tasks_running == 0) && THREAD_POOL_PAUSED_OR_EMPTY;
+            });
+        waiting = false;
         return status;
     }
+
+#ifdef THREAD_POOL_ENABLE_WAIT_DEADLOCK_CHECK
+    struct wait_deadlock : public std::runtime_error
+    {
+        wait_deadlock()
+            : std::runtime_error("agilex::thread_pool::wait_deadlock"){};
+    };
+#endif
 
 private:
-    void createThreads()
+    void create_threads(const std::function<void()>& init_task)
     {
         {
-            const std::scoped_lock locker(tasks_mutex_);
-            workers_running_ = true;
+            const std::scoped_lock tasks_lock{tasks_mutex};
+            tasks_running = thread_count;
+            workers_running = true;
         }
 
-        for (concurrency_t i = 0; i < thread_count_; ++i) {
-            threads_[i] = std::thread(&ThreadPool::worker, this);
+        for (concurrency_t i = 0; i < thread_count; ++i) {
+            threads[i] = std::thread(&thread_pool::worker, this, i, init_task);
         }
     }
 
-    void destroyThreads()
+    void destroy_threads()
     {
         {
-            const std::scoped_lock locker(tasks_mutex_);
-            workers_running_ = false;
+            const std::scoped_lock tasks_lock{tasks_mutex};
+            workers_running = false;
         }
-
-        task_available_.notify_all();
-        for (concurrency_t i = 0; i < thread_count_; ++i) {
-            threads_[i].join();
+        task_available_cv.notify_all();
+        for (concurrency_t i = 0; i < thread_count; ++i) {
+            threads[i].join();
         }
     }
 
-    [[nodiscard]] static concurrency_t idealThreadCount(concurrency_t count)
+    [[nodiscard]] static concurrency_t determine_thread_count(
+        const concurrency_t num_threads)
     {
-        if (count > 0) {
-            return count;
+        if (num_threads > 0) {
+            return num_threads;
         }
-
         if (std::thread::hardware_concurrency() > 0) {
             return std::thread::hardware_concurrency();
         }
-
         return 1;
     }
 
-    // The worker function to be assigned to each thread in the pool. Waits
-    // until it is notified by push_task() that a task is available, and then
-    // retrieves the task from the queue and executes it. Once the task
-    // finishes, the worker notifies waitForDone() in case it is waiting.
-    void worker()
+    void worker(const concurrency_t idx, const std::function<void()>& init_task)
     {
-        std::function<void()> task;
+        this_thread::get_index.index = idx;
+        this_thread::get_pool.pool = this;
+        init_task();
+        std::unique_lock tasks_lock(tasks_mutex);
         while (true) {
-            std::unique_lock locker(tasks_mutex_);
-            task_available_.wait(locker, [this] {
-                return !waiting_tasks_.empty() || !workers_running_;
+            --tasks_running;
+            tasks_lock.unlock();
+            if (waiting && (tasks_running == 0) &&
+                THREAD_POOL_PAUSED_OR_EMPTY) {
+                tasks_done_cv.notify_all();
+            }
+            tasks_lock.lock();
+            task_available_cv.wait(tasks_lock, [this] {
+                return !THREAD_POOL_PAUSED_OR_EMPTY || !workers_running;
             });
-
-            if (!workers_running_) {
+            if (!workers_running) {
                 break;
             }
-            if (paused_) {
-                continue;
+            {
+#ifdef THREAD_POOL_ENABLE_PRIORITY
+                const std::function<void()> task =
+                    std::move(std::remove_const_t<pr_task&>(tasks.top()).task);
+                tasks.pop();
+#else
+                const std::function<void()> task = std::move(tasks.front());
+                tasks.pop();
+#endif
+                ++tasks_running;
+                tasks_lock.unlock();
+                task();
             }
+            tasks_lock.lock();
+        }
+        this_thread::get_index.index = std::nullopt;
+        this_thread::get_pool.pool = std::nullopt;
+    }
 
-            task = std::move(waiting_tasks_.front());
-            waiting_tasks_.pop();
-            ++running_task_count_;
-            locker.unlock();
-            task();
-            locker.lock();
-            --running_task_count_;
-            if (waiting_ && !running_task_count_ &&
-                (paused_ || waiting_tasks_.empty())) {
-                tasks_done_.notify_all();
+    template <typename T>
+    class [[nodiscard]] blocks
+    {
+    public:
+        blocks(const T first_index_, const T index_after_last_,
+               const size_t num_blocks_)
+            : first_index(first_index_),
+              index_after_last(index_after_last_),
+              num_blocks(num_blocks_)
+        {
+            if (index_after_last > first_index) {
+                const auto total_size =
+                    static_cast<size_t>(index_after_last - first_index);
+                if (num_blocks > total_size) {
+                    num_blocks = total_size;
+                }
+                block_size = total_size / num_blocks;
+                remainder = total_size % num_blocks;
+                if (block_size == 0) {
+                    block_size = 1;
+                    num_blocks = (total_size > 1) ? total_size : 1;
+                }
+            }
+            else {
+                num_blocks = 0;
             }
         }
-    }
 
-private:
-    std::condition_variable task_available_ = {};
-    std::condition_variable tasks_done_ = {};
-    std::queue<std::function<void()>> waiting_tasks_ = {};
-    concurrency_t thread_count_ = 0;
-    std::unique_ptr<std::thread[]> threads_ = nullptr;
-    mutable std::mutex tasks_mutex_ = {};
-    size_t running_task_count_ = 0;
-    bool paused_ = false;
-    bool waiting_ = false;
-    bool workers_running_ = false;
-};
+        [[nodiscard]] T start(const size_t block) const
+        {
+            return first_index + static_cast<T>(block * block_size) +
+                   static_cast<T>(block < remainder ? block : remainder);
+        }
 
-// A helper class to synchronize printing to an output stream by different
-// threads.
-class [[nodiscard]] SyncedStream
-{
-public:
-    explicit SyncedStream(std::ostream& stream = std::cout) : oss_(stream) {}
+        [[nodiscard]] T end(const size_t block) const
+        {
+            return (block == num_blocks - 1) ? index_after_last
+                                             : start(block + 1);
+        }
 
-    // Thread safe print
-    template <typename... T>
-    void print(T&&... items)
+        [[nodiscard]] size_t get_num_blocks() const { return num_blocks; }
+
+    private:
+        size_t block_size = 0;
+        size_t num_blocks = 0;
+        size_t remainder = 0;
+        T first_index = 0;
+        T index_after_last = 0;
+    };
+
+#ifdef THREAD_POOL_ENABLE_PRIORITY
+    class [[nodiscard]] pr_task
     {
-        const std::scoped_lock lock{mtx_};
-        (oss_ << ... << std::forward<T>(items));
-    }
+        friend class thread_pool;
 
-    template <typename... T>
-    inline void println(T&&... items)
-    {
-        print(std::forward<T>(items)..., '\n');
-    }
+    public:
+        explicit pr_task(const std::function<void()>& task_,
+                         const priority_t priority_ = 0)
+            : task(task_), priority(priority_)
+        {
+        }
+        explicit pr_task(std::function<void()>&& task_,
+                         const priority_t priority_ = 0)
+            : task(std::move(task_)), priority(priority_)
+        {
+        }
 
-    // endl to use with SyncedStream
-    inline static std::ostream& (&endl)(std::ostream&) =
-        static_cast<std::ostream& (&)(std::ostream&)>(std::endl);
+        [[nodiscard]] friend bool operator<(const pr_task& lhs,
+                                            const pr_task& rhs)
+        {
+            return lhs.priority < rhs.priority;
+        }
 
-    // flush to use with SyncedStream
-    inline static std::ostream& (&flush)(std::ostream&) =
-        static_cast<std::ostream& (&)(std::ostream&)>(std::flush);
+    private:
+        std::function<void()> task = {};
+        priority_t priority = 0;
+    };
+#endif
 
-private:
-    std::ostream& oss_;
-    mutable std::mutex mtx_ = {};
+#ifdef THREAD_POOL_ENABLE_PAUSE
+    bool paused = false;
+#endif
+
+    std::condition_variable task_available_cv = {};
+    std::condition_variable tasks_done_cv = {};
+
+#ifdef THREAD_POOL_ENABLE_PRIORITY
+    std::priority_queue<pr_task> tasks = {};
+#else
+    std::queue<std::function<void()>> tasks = {};
+#endif
+
+    size_t tasks_running = 0;
+    mutable std::mutex tasks_mutex = {};
+    concurrency_t thread_count = 0;
+    std::unique_ptr<std::thread[]> threads = nullptr;
+    bool waiting = false;
+    bool workers_running = false;
 };
-
-} // namespace tl
+} // namespace BS

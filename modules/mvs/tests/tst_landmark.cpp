@@ -58,7 +58,7 @@ TEST(Landmark, ViewIds)
     std::unordered_set<ViewId> viewIdsInTrack = track.viewIds();
     EXPECT_EQ(viewIdsInTrack.size(), 3);
     for (size_t i{0}; i < viewIds.size(); i++) {
-        EXPECT_TRUE(utils::ContainsKey(viewIdsInTrack, viewIds[i]));
+        EXPECT_TRUE(viewIdsInTrack.contains(viewIds[i]));
     }
 }
 

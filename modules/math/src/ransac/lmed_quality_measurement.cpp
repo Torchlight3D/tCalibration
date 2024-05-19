@@ -14,7 +14,7 @@ double calcMedianOfSquaredResiduals(const std::vector<double>& residuals)
                    squared_residuals.begin(),
                    [](const auto& residual) { return residual * residual; });
 
-    return utils::FindMedian(squared_residuals);
+    return con::FindMedian(squared_residuals);
 }
 
 void calcInliers(const std::vector<double>& residuals, double median,

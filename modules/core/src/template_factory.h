@@ -40,19 +40,20 @@ public:
     template <class... T>
     static std::unique_ptr<Base> create(const std::string& name, T&&... args)
     {
-        auto& creators = creatrorsMap();
-        if (creators.find(name) == creators.end()) {
+        const auto& creators = creatrorsMap();
+        if (const auto found = creators.find(name); found == creators.cend()) {
             return nullptr;
         }
-
-        return creatrorsMap().at(name)(std::forward<T>(args)...);
+        else {
+            return found->second(std::forward<T>(args)...);
+        }
     }
 
     friend Base;
 
 private:
-    // Use PassKey pattern to prevent any class
-    // from directly inheriting the Base class
+    // Use PassKey pattern to prevent any class from directly inheriting the
+    // Base class
     class Key
     {
         Key() {}

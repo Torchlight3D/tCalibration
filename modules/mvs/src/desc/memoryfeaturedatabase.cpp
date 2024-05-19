@@ -1,7 +1,5 @@
 #include "memoryfeaturedatabase.h"
 
-#include <fstream>
-
 #include <tCore/ContainerUtils>
 
 namespace tl {
@@ -15,13 +13,13 @@ void InMemoryFeaturesAndMatchesDatabase::putCameraMetaData(
 CameraMetaData InMemoryFeaturesAndMatchesDatabase::cameraMetaData(
     const std::string& name) const
 {
-    return utils::FindOrDie(m_nameToMeta, name);
+    return con::FindOrDie(m_nameToMeta, name);
 }
 
 bool InMemoryFeaturesAndMatchesDatabase::hasCameraMetaData(
     const std::string& name) const
 {
-    return utils::ContainsKey(m_nameToMeta, name);
+    return m_nameToMeta.contains(name);
 }
 
 std::vector<std::string>
@@ -49,13 +47,13 @@ void InMemoryFeaturesAndMatchesDatabase::putFeatures(
 KeypointsAndDescriptors InMemoryFeaturesAndMatchesDatabase::features(
     const std::string& name) const
 {
-    return utils::FindOrDie(m_nameToFeature, name);
+    return con::FindOrDie(m_nameToFeature, name);
 }
 
 bool InMemoryFeaturesAndMatchesDatabase::hasFeatures(
     const std::string& name) const
 {
-    return utils::ContainsKey(m_nameToFeature, name);
+    return m_nameToFeature.contains(name);
 }
 
 std::vector<std::string>
@@ -85,7 +83,7 @@ void InMemoryFeaturesAndMatchesDatabase::putImagePairMatch(
 ImagePairMatch InMemoryFeaturesAndMatchesDatabase::imagePairMatch(
     const std::string& name1, const std::string& name2) const
 {
-    return utils::FindOrDieNoPrint(m_nameToMatch, std::make_pair(name1, name2));
+    return con::FindOrDieNoPrint(m_nameToMatch, std::make_pair(name1, name2));
 }
 
 std::vector<std::pair<std::string, std::string>>

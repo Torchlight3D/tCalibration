@@ -296,8 +296,8 @@ public:
         }
 
         constexpr iterator operator++(int) noexcept(
-            std::is_nothrow_copy_constructible_v<iterator> && noexcept(
-                ++std::declval<iterator>()))
+            std::is_nothrow_copy_constructible_v<iterator> &&
+            noexcept(++std::declval<iterator>()))
         {
             auto tmp = *this;
             ++*this;
@@ -317,8 +317,8 @@ public:
         template <bool IsBidirectional =
                       impl::traits::is_bidirectional_v<IteratorType>>
         constexpr auto operator--(int) noexcept(
-            std::is_nothrow_copy_constructible_v<iterator> && noexcept(
-                --std::declval<iterator>()))
+            std::is_nothrow_copy_constructible_v<iterator> &&
+            noexcept(--std::declval<iterator>()))
             -> std::enable_if_t<IsBidirectional, iterator>
         {
             auto tmp = *this;
@@ -383,9 +383,8 @@ public:
         }
     }
 
-    void swap(bimap &other) noexcept(
-        std::is_nothrow_swappable_v<ForwardMap>
-            &&std::is_nothrow_swappable_v<InverseMap>)
+    void swap(bimap &other) noexcept(std::is_nothrow_swappable_v<ForwardMap> &&
+                                     std::is_nothrow_swappable_v<InverseMap>)
     {
         std::swap(this->map, other.map);
         std::swap(this->inverseAccess->map, other.inverseAccess->map);
@@ -539,8 +538,8 @@ public:
     }
 
     bool operator==(const bimap &other) const
-        noexcept(impl::traits::nothrow_comparable<ForwardMap>
-                     &&impl::traits::nothrow_comparable<InverseMap>)
+        noexcept(impl::traits::nothrow_comparable<ForwardMap> &&
+                 impl::traits::nothrow_comparable<InverseMap>)
     {
         return map == other.map &&
                inverseAccess->map == other.inverseAccess->map;
@@ -551,16 +550,16 @@ public:
         return !(*this == other);
     }
 
-    void clear() noexcept(noexcept(std::declval<ForwardMap>().clear())
-                              && noexcept(std::declval<InverseMap>().clear()))
+    void clear() noexcept(noexcept(std::declval<ForwardMap>().clear()) &&
+                          noexcept(std::declval<InverseMap>().clear()))
     {
         map.clear();
         inverseAccess->map.clear();
     }
 
     bool contains(const ForwardKey &key) const
-        noexcept(noexcept(std::declval<bimap>().find(key)) && noexcept(
-            std::declval<iterator>() != std::declval<iterator>()))
+        noexcept(noexcept(std::declval<bimap>().find(key)) &&
+                 noexcept(std::declval<iterator>() != std::declval<iterator>()))
     {
         return find(key) != end();
     }

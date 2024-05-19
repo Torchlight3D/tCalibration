@@ -1,21 +1,9 @@
 #include <glog/logging.h>
 #include <gtest/gtest.h>
 
-#include <tCore/ContainerUtils>
-#include <tCore/EnumUtils>
-#include <tCore/StringUtils>
 #include <tCore/TemplateFactory>
 
 using namespace tl;
-
-TEST(StringTest, StringContain)
-{
-    std::string str{"HelloWorld"};
-    std::string sub1{"ello"};
-    std::string sub2{"low"};
-    EXPECT_TRUE(str::Contains(str, sub1));
-    EXPECT_FALSE(str::Contains(str, sub2));
-}
 
 namespace tl {
 
@@ -57,7 +45,7 @@ public:
 
 } // namespace
 
-TEST(TemplateFactory, Creator)
+TEST(TemplateFactory, CreateFromName)
 {
     auto imu = _Device::create("tl::_IMU");
     auto camera = _Device::create("_MonoCamera");

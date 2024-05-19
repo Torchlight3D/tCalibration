@@ -300,7 +300,7 @@ void CameraPoseCalibration::filterBadPoses()
     }
 
     // Get median distance to board
-    double median_z = utils::FindMedian(z_values);
+    double median_z = con::FindMedian(z_values);
     for (const auto& viewId : d->m_scene->viewIds()) {
         const auto pos = d->m_scene->view(viewId)->camera().position();
         double diff = pos[2] - median_z;

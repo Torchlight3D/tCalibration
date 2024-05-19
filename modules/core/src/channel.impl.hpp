@@ -69,6 +69,10 @@ template <typename T>
 void Channel<T>::close() noexcept
 {
     closed_.store(true);
+    {
+        std::unique_lock<std::mutex> lock{mtx_};
+        closed_.store(true);
+    }
     condition_.notify_all();
 }
 

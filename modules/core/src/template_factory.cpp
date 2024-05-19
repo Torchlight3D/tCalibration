@@ -23,7 +23,9 @@ std::string demangle(const char* name)
         ::UnDecorateSymbolName(name, realname, 1024, 0);
     }
 
-    std::string res{realname && realname[0] ? realname : ""};
+    const auto res =
+        std::string{realname && realname[0] ? realname : ""}.substr(
+            std::string{"class "}.size());
     free(realname);
     return res;
 #else

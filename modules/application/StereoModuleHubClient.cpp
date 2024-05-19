@@ -887,7 +887,7 @@ const pb::DeviceInfo& StereoModuleHubClientPrivate::device(int index) const
 
 bool StereoModuleHubClientPrivate::deviceAvailable(int index) const
 {
-    if (!utils::Contains(m_validDeviceIndices, index)) {
+    if (!con::Contains(m_validDeviceIndices, index)) {
         LOG(WARNING) << "No device at dock  " << index;
         return false;
     }
@@ -1016,7 +1016,7 @@ int StereoModuleHubClient::devicePosOf(int index, bool update)
         d->updateCurrentDevices();
     }
 
-    return utils::FindPos(d->m_validDeviceIndices, index);
+    return con::FindPos(d->m_validDeviceIndices, index);
 }
 
 int StereoModuleHubClient::deviceIndexAt(int pos, bool update)

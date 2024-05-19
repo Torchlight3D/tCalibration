@@ -2,12 +2,9 @@
 
 #include <algorithm>
 #include <vector>
+#include <ranges>
 
-#include "tl_core_global.h"
-
-namespace tl {
-
-namespace utils {
+namespace tl::con {
 
 template <typename T, size_t N>
 inline constexpr size_t ArraySize(T (&arr)[N])
@@ -42,8 +39,7 @@ T FindMedian(std::vector<T>& vec)
 template <typename T>
 inline bool Contains(const std::vector<T>& vec, const T& val)
 {
-    return std::any_of(vec.cbegin(), vec.cend(),
-                       [&val](const T& v) { return v == val; });
+    return std::find(vec.cbegin(), vec.cend(), val) != vec.cend();
 }
 
 template <typename T>
@@ -127,27 +123,18 @@ const MapValue<Map_t>& FindWithDefault(const Map_t& map,
     return it->second;
 }
 
-// NOTE: hide after Cpp20
-template <class Map_t, class Key_t>
-bool ContainsKey(const Map_t& map, const Key_t& key)
+// For ordered containers, we can use std::set_intersection() as well
+template <typename Set_t>
+Set_t ContainerIntersection(const Set_t& set1, const Set_t& set2)
 {
-    return map.find(key) != map.end();
-}
-
-template <typename Map_t>
-void ContainerIntersection(const Map_t& map1, const Map_t& map2, Map_t* out)
-{
-    if (map2.size() < map1.size()) {
-        return ContainerIntersection(map2, map1, out);
+    if (set2.size() < set1.size()) {
+        return ContainerIntersection(set2, set1);
     }
 
-    for (const auto& entry : map1) {
-        if (ContainsKey(map2, entry)) {
-            out->insert(entry);
-        }
-    }
+    auto view = set1 | std::views::filter(
+                           [&set2](const auto& e) { return set2.contains(e); });
+
+    return Set_t{view.begin(), view.end()};
 }
 
-} // namespace utils
-
-} // namespace tl
+} // namespace tl::con

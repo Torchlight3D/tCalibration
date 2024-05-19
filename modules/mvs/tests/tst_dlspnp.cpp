@@ -147,7 +147,7 @@ TEST(DlsPnp, ManyPoints)
                                   Vector3d(0.0, 1.0, 1.0).normalized(),
                                   Vector3d(1.0, 1.0, 1.0).normalized()};
 
-    static const double kRotationAngles[utils::ArraySize(kAxes)] = {
+    static const double kRotationAngles[con::ArraySize(kAxes)] = {
         degToRad(7.0),  degToRad(12.0), degToRad(15.0),
         degToRad(20.0), degToRad(11.0),
         degToRad(0.0), // Tests no rotation.
@@ -155,7 +155,7 @@ TEST(DlsPnp, ManyPoints)
         degToRad(0.0) // Tests no rotation and no translation.
     };
 
-    static const Vector3d kTranslations[utils::ArraySize(kAxes)] = {
+    static const Vector3d kTranslations[con::ArraySize(kAxes)] = {
         Vector3d(1.0, 1.0, 1.0),  Vector3d(3.0, 2.0, 13.0),
         Vector3d(4.0, 5.0, 11.0), Vector3d(1.0, 2.0, 15.0),
         Vector3d(3.0, 1.5, 18.0), Vector3d(1.0, 7.0, 11.0),
@@ -169,10 +169,10 @@ TEST(DlsPnp, ManyPoints)
     constexpr double kMaxAllowedRotationDifference = degToRad(0.3);
     constexpr double kMaxAllowedTranslationDifference{5e-3};
 
-    for (size_t i{0}; i < utils::ArraySize(kAxes); i++) {
+    for (size_t i{0}; i < con::ArraySize(kAxes); i++) {
         const Quaterniond soln_rotation(
             AngleAxisd(kRotationAngles[i], kAxes[i]));
-        for (size_t j{0}; j < utils::ArraySize(num_points); j++) {
+        for (size_t j{0}; j < con::ArraySize(num_points); j++) {
             Vector3dList points_3d;
             points_3d.reserve(num_points[j]);
             for (int k = 0; k < num_points[j]; k++) {

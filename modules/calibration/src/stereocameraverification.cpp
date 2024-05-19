@@ -415,7 +415,7 @@ double StereoCameraVerification::Impl::calcRelativeSizeErrMedian()
             fabs(triangulated_chess_dis_[i] / real_chess_dis_[i] - 1.));
     }
 
-    return utils::FindMedian(errors);
+    return con::FindMedian(errors);
 }
 
 double StereoCameraVerification::Impl::calcRelativePtsPosErrMedian()
@@ -428,7 +428,7 @@ double StereoCameraVerification::Impl::calcRelativePtsPosErrMedian()
         errors.emplace_back(error);
     }
 
-    return utils::FindMedian(errors);
+    return con::FindMedian(errors);
 }
 
 // QUEST: First point must be at tl, and last one must be at br. Why???

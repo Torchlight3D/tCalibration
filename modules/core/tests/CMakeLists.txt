@@ -5,7 +5,12 @@ add_executable(${CORE_TEST_TARGET})
 target_sources(${CORE_TEST_TARGET}
     PRIVATE
         tst_bimap.cpp
-        tst_core.cpp
+        tst_channel.cpp
+        tst_container.cpp
+        tst_string.cpp
+        tst_templatefactory.cpp
+        tst_threadpool.cpp
+        # main.cpp
 )
 
 set(GTest_DIR ${ACTIVE_DEPENDS_PREFIX}/googletest/1.14.0/lib/cmake/GTest)
