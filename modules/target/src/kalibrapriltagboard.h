@@ -1,94 +1,90 @@
 #pragma once
 
-#include <memory>
+#include "calibboardbase.h"
 
-#include "calib_board_base.h"
-
-// April tags detector and various tag families
-#include "apriltag_mit/TagDetector.h"
-// #include "apriltag_mit/Tag16h5.h"
-// #include "apriltag_mit/Tag25h7.h"
-// #include "apriltag_mit/Tag25h9.h"
-// #include "apriltag_mit/Tag36h9.h"
-#include "apriltag_mit/Tag36h11.h"
+#include <json/json.hpp>
 
 namespace tl {
 
 // Brief:
-// AprilTagBoard from Kalibr, for comparison purpose. DONT change any important
-// logic or strategy.
-class KalibrAprilTagBoard : public CalibBoardBase
+// AprilTagBoard used by Kalibr
+class KalibrAprilTagBoard final : public CalibBoardBase
 {
 public:
     using Ptr = std::shared_ptr<KalibrAprilTagBoard>;
     using ConstPtr = std::shared_ptr<const KalibrAprilTagBoard>;
 
-    // target extraction options
-    struct AprilgridOptions
+    struct Options
     {
-        AprilgridOptions()
-            : doSubpixRefinement(true),
-              maxSubpixDisplacement2(1.5),
-              showExtractionVideo(false),
-              minTagsForValidObs(4),
-              minBorderDistance(4.0),
-              blackTagBorder(2)
-        {
-        }
+        // Number of tags in row, which makes row corner count 2*tagRows
+        int tagRows = 6;
 
-        // options
-        /// \brief subpixel refinement of extracted corners
-        bool doSubpixRefinement;
+        // Number of tags in column, which makes col corner count 2*tagCols
+        int tagCols = 6;
 
-        /// \brief max. displacement squarred in subpixel refinement  [px^2]
-        double maxSubpixDisplacement2;
+        // Tag size in meter
+        double tagSize = 0.105;
 
-        /// \brief show video during extraction
-        bool showExtractionVideo;
+        // Tag spacing as the ratio to tag size
+        double tagSpacingRatio = 0.3;
 
-        /// \brief min. number of tags for a valid observation
-        unsigned int minTagsForValidObs;
+        // Black margin around the code pattern
+        // NOTE: When AprilTag v3 is enable, this border will be ignored.
+        int blackBorder = 2;
 
-        /// \brief min. distance form image border for valid points [px]
-        double minBorderDistance;
+        int startId = 0;
 
-        /// \brief size of black border around the tag code bits (in pixels)
-        unsigned int blackTagBorder;
+        Options() {}
     };
 
-    // NOTE: tagSpacing is a ratio!!!
-    /// \brief initialize based on checkerboard geometry
-    KalibrAprilTagBoard(size_t tagRows, size_t tagCols, double tagSize,
-                        double tagSpacing,
-                        const AprilgridOptions &options = AprilgridOptions());
+    struct DetectOptions
+    {
+        // Subpixel refinement of extracted corners
+        bool doSubpixRefinement = true;
+
+        // Max displacement squarred in subpixel refinement
+        double maxSubpixDisplacement = 1.224745;
+
+        // Min number of tags for a valid observation
+        int minDetectTagCount = 4;
+
+        // Min detected rate of corners for a valid observation
+        double minDetectRate = 0.05;
+
+        // Min. distance form image border for valid points [px]
+        float minBorderDistance = 4.f;
+
+        DetectOptions() {}
+    };
+
+    explicit KalibrAprilTagBoard(const Options& opts = {},
+                                 const DetectOptions& detectOpts = {});
+    ~KalibrAprilTagBoard();
+
+    inline static constexpr char kType[20]{"KalibrAprilTagBoard"};
 
     double tagDistance() const override;
     double tagSize() const override;
 
-    /// \brief extract the calibration target points from an image and write to
-    /// an observation
-    TargetDetection computeObservation(cv::InputArray image) const override;
-
-    void drawDetection(const TargetDetection &detection,
-                       cv::Mat &imgResult) const override;
+    TargetDetection computeObservation(
+        cv::InputArray image,
+        cv::OutputArray viz = cv::noArray()) const override;
 
 private:
-    /// \brief initialize the grid with the points
     void createBoardPoints() override;
 
-    /// \brief size of a tag [m]
-    double _tagSize;
-
-    /// \brief space between tags (tagSpacing [m] = tagSize * tagSpacing)
-    double _tagSpacing;
-
-    /// \brief target extraction options
-    AprilgridOptions _options;
-
-    // create a detector instance
-    AprilTags::TagCodes _tagCodes;
-    std::shared_ptr<AprilTags::TagDetector> _tagDetector;
-    mutable std::vector<AprilTags::TagDetection> _lastDetections;
+private:
+    class Impl;
+    const std::unique_ptr<Impl> d;
 };
+
+// nlohmann::json interface
+void to_json(nlohmann::json& json, const KalibrAprilTagBoard::Options& opts);
+void from_json(const nlohmann::json& json, KalibrAprilTagBoard::Options& opts);
+
+void to_json(nlohmann::json& json,
+             const KalibrAprilTagBoard::DetectOptions& opts);
+void from_json(const nlohmann::json& json,
+               KalibrAprilTagBoard::DetectOptions& opts);
 
 } // namespace tl

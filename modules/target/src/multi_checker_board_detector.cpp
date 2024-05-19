@@ -1,6 +1,7 @@
 ﻿#include "multi_checker_board_detector.h"
 
 #include <numeric>
+
 #include <opencv2/imgproc.hpp>
 
 namespace tl {
@@ -1019,7 +1020,8 @@ void MultiCheckerBoardDetector::Impl::assignClosestCorners(
         bool doBreak{false};
         for (int row{0}; row < dist_mat.rows; row++) {
             for (int col{0}; col < dist_mat.cols; col++) {
-                if (fabs(dist_mat.at<float>(row, col) - min_dist) < 10e-10) {
+                if (std::abs(dist_mat.at<float>(row, col) - min_dist) <
+                    10e-10) {
                     indexes[col] = row;
                     for (int c{0}; c < dist_mat.cols; c++) {
                         dist_mat.at<float>(row, c) = FLT_MAX;
@@ -1033,8 +1035,9 @@ void MultiCheckerBoardDetector::Impl::assignClosestCorners(
                 }
             }
 
-            if (doBreak)
+            if (doBreak) {
                 break;
+            }
         }
 
         min_dist = FLT_MAX;
@@ -1254,7 +1257,7 @@ void MultiCheckerBoardDetector::chessboardsFromCorners(
                 std::vector<bool> flagerase(overlap.rows, false);
                 float ce = d->chessboardEnergy(d->m_chessboard, corners);
                 for (int i1 = 0; i1 < overlap.rows; i1++) {
-                    if (fabs(overlap.at<float>(i1, 0)) > 0.0001) {
+                    if (std::abs(overlap.at<float>(i1, 0)) > 0.0001) {
                         bool isb1 = overlap.at<float>(i1, 1) > ce;
 
                         int a = int(overlap.at<float>(i1, 1) * 1000);

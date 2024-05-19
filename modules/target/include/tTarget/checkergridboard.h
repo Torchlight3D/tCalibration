@@ -1,1 +1,0 @@
-#include "../../src/checker_grid_board.h"

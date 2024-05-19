@@ -1,48 +1,49 @@
 #include <filesystem>
 
-#include <glog/logging.h>
 #include <gtest/gtest.h>
-#include <opencv2/core/mat.hpp>
 #include <opencv2/imgcodecs.hpp>
 
-#include <tTarget/AprilTagBoard>
+#include <tTarget/KalibrAprilTagBoard>
 
 namespace fs = std::filesystem;
+
 using namespace tl;
 
-TEST(AprilTag, Dataset)
+TEST(AprilTagBoard, Kaess)
 {
-    const std::string dataset_path{"/home/bobblelaw/Data/OneFive_trial1"};
+    const fs::path root{"apriltag"};
 
-    const fs::path root{dataset_path};
-    const auto leftpath = root / "left";
-    const auto rightpath = root / "right";
-
-    const AprilTagBoard board{6, 6, 0.14, 0.042};
-
-    constexpr int kCount = 20;
-    int count{0};
-    for (const auto& entry : fs::directory_iterator{leftpath}) {
-        if (!entry.is_regular_file() || entry.path().extension() != ".png") {
-            continue;
-        }
-
-        const auto image = cv::imread(entry.path().string());
-        const auto detections = board.computeObservation(image);
-
-        std::ostringstream oss;
-        oss << "Ids: ";
-        for (const auto& id : detections.cornerIds) {
-            oss << id << ", ";
-        }
-        oss << ".";
-        LOG(INFO) << oss.str();
-
-        count++;
-        if (count == kCount) {
-            break;
-        }
+    /// Sample 1: 36h11, 6x14, 3 boards, starts from 0, 90, 180
+    const auto img1Path = root / "36h11_6x14_0-90-180.png";
+    if (!fs::exists(img1Path)) {
+        FAIL() << "Sample image 1 doesnt exist: " << img1Path;
     }
 
-    EXPECT_TRUE(true);
+    const auto img1 = cv::imread(img1Path.string());
+    if (img1.empty()) {
+        FAIL() << "Sample image 1 is invalid: " << img1Path;
+    }
+
+    KalibrAprilTagBoard::Options opts;
+    opts.tagRows = 6;
+    opts.tagCols = 14;
+    opts.tagSize = 0.046;
+    opts.tagSpacingRatio = 0.3;
+    opts.startId = 0;
+    KalibrAprilTagBoard::DetectOptions detectOpts;
+
+    const KalibrAprilTagBoard board{opts, detectOpts};
+
+    cv::Mat viz1;
+    const auto detection = board.computeObservation(img1, viz1);
+
+    cv::imwrite("apriltag_detection1.png", viz1);
+
+    EXPECT_TRUE(detection.valid()) << "Failed to detect target.";
+}
+
+TEST(AprilTagBoard, AprilTag3)
+{
+    GTEST_SKIP() << "Not implemented.";
+    // ...
 }

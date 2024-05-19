@@ -1,6 +1,8 @@
 ﻿#pragma once
 
-#include "calib_board_base.h"
+#include "calibboardbase.h"
+
+#include <json/json.hpp>
 
 namespace tl {
 
@@ -12,7 +14,10 @@ public:
 
     struct Options
     {
-        bool asymmetricGrid{false};
+        int rows = 11;
+        int cols = 8;
+        double spacing = 0.045;
+        bool asymmetricGrid = false;
 
         Options() {}
     };
@@ -20,17 +25,17 @@ public:
     // FIXME: A circular board should be defined by
     // 1. Symetric, center spacing and circle diameter
     // 2. Asymetric, diagonal center spacing and circle diameter
-    CircleGridBoard(int rows, int cols, double spacing,
-                    const Options& options = {});
+    explicit CircleGridBoard(const Options& opts = {});
     virtual ~CircleGridBoard() = default;
+
+    inline static constexpr char kType[16]{"CircleGridBoard"};
 
     double tagDistance() const override;
     double tagSize() const override;
 
-    TargetDetection computeObservation(cv::InputArray image) const override;
-
-    void drawDetection(const TargetDetection& detection,
-                       cv::Mat& imgResult) const override;
+    TargetDetection computeObservation(
+        cv::InputArray image,
+        cv::OutputArray viz = cv::noArray()) const override;
 
 protected:
     void createBoardPoints() override;
@@ -39,5 +44,8 @@ private:
     CircleGridBoard::Options m_options;
     double m_spacing; // meter
 };
+
+void to_json(nlohmann::json& json, const CircleGridBoard::Options& opts);
+void from_json(const nlohmann::json& json, CircleGridBoard::Options& opts);
 
 } // namespace tl

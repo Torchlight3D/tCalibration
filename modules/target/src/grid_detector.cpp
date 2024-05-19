@@ -85,7 +85,7 @@
 //            std += temp * temp;
 //        }
 //        std /= (double)numCorners;
-//        std = sqrt(std);
+//        std = std::sqrt(std);
 //    };
 
 //    // remove corners with a reprojection error above a threshold

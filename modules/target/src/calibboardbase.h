@@ -3,9 +3,9 @@
 #include <memory>
 
 #include <opencv2/core/mat.hpp>
-#include <opencv2/core/types.hpp>
 
-#include "target_types.h"
+#include <tTarget/Types>
+
 #include "target_detection.h"
 
 namespace tl {
@@ -18,6 +18,9 @@ public:
 
     CalibBoardBase(int rows, int cols);
     virtual ~CalibBoardBase() = default;
+
+    // Creator
+    static Ptr fromJson(const std::string& json);
 
     /// Properties
     // TODO: 1. consider add setter
@@ -41,10 +44,8 @@ public:
     virtual double tagSize() const = 0;
 
     /// Actions
-    virtual TargetDetection computeObservation(cv::InputArray image) const = 0;
-
-    virtual void drawDetection(const TargetDetection& detection,
-                               cv::Mat& imgResult) const = 0;
+    virtual TargetDetection computeObservation(
+        cv::InputArray image, cv::OutputArray viz = cv::noArray()) const = 0;
 
 protected:
     virtual void createBoardPoints() = 0;

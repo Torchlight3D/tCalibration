@@ -1,14 +1,16 @@
-﻿#include "circle_grid_board.h"
+﻿#include "circlegridboard.h"
 
 #include <numeric>
+
 #include <opencv2/calib3d.hpp>
 
 namespace tl {
 
 //------- CircleGridBoard starts from here
-CircleGridBoard::CircleGridBoard(int rows, int cols, double spacing,
-                                 const Options &options)
-    : CalibBoardBase(rows, cols), m_options(options), m_spacing(spacing)
+CircleGridBoard::CircleGridBoard(const Options &opts)
+    : CalibBoardBase(opts.rows, opts.cols),
+      m_options(opts),
+      m_spacing(opts.spacing)
 {
     // FIXME:
     // 1. Check spacing is positive
@@ -20,7 +22,8 @@ double CircleGridBoard::tagDistance() const { return m_spacing; }
 
 double CircleGridBoard::tagSize() const { return m_spacing; }
 
-TargetDetection CircleGridBoard::computeObservation(cv::InputArray image) const
+TargetDetection CircleGridBoard::computeObservation(cv::InputArray _img,
+                                                    cv::OutputArray _viz) const
 {
     const int flags = [this]() {
         int flags{0};
@@ -36,26 +39,27 @@ TargetDetection CircleGridBoard::computeObservation(cv::InputArray image) const
 
     std::vector<cv::Point2f> centers_f;
     const bool found =
-        cv::findCirclesGrid(image, patternSize(), centers_f, flags);
+        cv::findCirclesGrid(_img, patternSize(), centers_f, flags);
+
+    if (!found) {
+        return {};
+    }
+
+    if (_viz.needed()) {
+        _img.copyTo(_viz);
+        cv::drawChessboardCorners(_viz.getMat(), patternSize(), centers_f,
+                                  true);
+    }
 
     std::vector<cv::Point2d> centers;
     std::transform(centers_f.begin(), centers_f.end(),
                    std::back_inserter(centers),
                    [](const auto &pt) { return cv::Point2d(pt); });
 
-    if (found) {
-        return {.cornerIds = cornerIds(), .corners = centers, .valid = found};
-    }
-
-    return {};
-}
-
-void CircleGridBoard::drawDetection(const TargetDetection &detection,
-                                    cv::Mat &imgResult) const
-{
-    // FIXME: corners should be cv::Point3f
-    cv::drawChessboardCorners(imgResult, patternSize(), detection.corners,
-                              detection.valid);
+    return {.corners = centers,
+            .cornerIds = cornerIds(),
+            .detected = std::vector<uchar>(cornerCount(), 1),
+            .count = cornerCount()};
 }
 
 void CircleGridBoard::createBoardPoints()
@@ -79,6 +83,30 @@ void CircleGridBoard::createBoardPoints()
     }
 
     std::iota(m_ids.begin(), m_ids.end(), 0);
+}
+
+namespace key {
+constexpr char kRows[]{"rows"};
+constexpr char kCols[]{"cols"};
+constexpr char kSpacing[]{"spacing"};
+// CircleGridBoard
+constexpr char kAsymetricGrid[]{"asymetric_grid"};
+} // namespace key
+
+void to_json(nlohmann::json &j, const CircleGridBoard::Options &opts)
+{
+    j[key::kRows] = opts.rows;
+    j[key::kCols] = opts.cols;
+    j[key::kSpacing] = opts.spacing;
+    j[key::kAsymetricGrid] = opts.asymmetricGrid;
+}
+
+void from_json(const nlohmann::json &j, CircleGridBoard::Options &opts)
+{
+    j.at(key::kRows).get_to(opts.rows);
+    j.at(key::kCols).get_to(opts.cols);
+    j.at(key::kSpacing).get_to(opts.spacing);
+    j.at(key::kAsymetricGrid).get_to(opts.asymmetricGrid);
 }
 
 } // namespace tl

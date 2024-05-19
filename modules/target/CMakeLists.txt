@@ -5,12 +5,10 @@ add_library(${NS_PREFIX}::${CALIBTARGET_TARGET_NAME} ALIAS ${CALIBTARGET_TARGET_
 
 file(GLOB CALIBTARGET_INTERNAL_HEADERS
     src/*.h
-    src/apriltag/*.h
     src/apriltag_mit/*.h
 )
 file(GLOB CALIBTARGET_SOURCES
     src/*.cpp
-    src/apriltag/*.cc
     src/apriltag_mit/*.cc
 )
 
@@ -65,6 +63,7 @@ target_link_libraries(${CALIBTARGET_TARGET_NAME}
         ${OpenCVLibs}
         ${NS_PREFIX}::Core
         ${NS_PREFIX}::Math
+        json
 )
 
 install(

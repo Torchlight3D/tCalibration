@@ -1,25 +1,34 @@
 #pragma once
 
 #include <vector>
+
 #include <opencv2/core/types.hpp>
 
-#include "target_types.h"
+#include <tTarget/Types>
 
 namespace tl {
 
 struct TargetDetection
 {
-    // Detected corners Ids.
-    std::vector<CornerId> cornerIds;
-
-    // Detected corners
+    // Corners
     std::vector<cv::Point2d> corners;
 
-    // Most of the time, we skip invalid Detections. But they can be useful in
-    // error analysis.
-    bool valid = false;
+    // Corners Ids
+    std::vector<CornerId> cornerIds;
 
-    inline int cornerCount() const { return static_cast<int>(corners.size()); }
+    // If corners are detected
+    std::vector<uchar> detected;
+
+    // Because all the possible points, no matter detected or not, are saved.
+    // An extra flag is needed to indentify if this detection is valid.
+    int count = 0;
+
+    inline bool valid() const { return count > 0; }
+    inline bool complete() const
+    {
+        return valid() && count == static_cast<int>(cornerIds.size());
+    }
+    inline size_t total() const { return corners.size(); }
 };
 
 using TargetDetections = std::vector<TargetDetection>;
@@ -29,10 +38,9 @@ struct StampedTargetDetection
     // Detection
     TargetDetection detection;
 
-    // Timestamp, in second.
+    // Timestamp, in second
     double t = 0.;
 
-    // TODO: Add move semantic ctor
     StampedTargetDetection(const TargetDetection &detection, double t)
         : detection(detection), t(t)
     {
@@ -41,8 +49,11 @@ struct StampedTargetDetection
     // for convenience
     const auto &cornerIds() const { return detection.cornerIds; }
     const auto &corners() const { return detection.corners; }
-    const auto &valid() const { return detection.valid; }
-    auto cornerCount() const { return detection.cornerCount(); }
+    const auto &detected() const { return detection.detected; }
+    const auto &cornerCount() const { return detection.count; }
+    auto valid() const { return detection.valid(); }
+    auto complete() const { return detection.complete(); }
+    auto total() const { return detection.total(); }
 };
 
 using StampedTargetDetections = std::vector<StampedTargetDetection>;

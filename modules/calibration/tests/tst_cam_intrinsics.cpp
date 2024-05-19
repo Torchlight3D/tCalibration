@@ -3,7 +3,6 @@
 #include <glog/logging.h>
 #include <gtest/gtest.h>
 #include <opencv2/calib3d.hpp>
-#include <opencv2/core/mat.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 
@@ -11,8 +10,8 @@
 #include <tCore/Timer>
 #include <tCalibration/CameraIntrinsicsCalibration>
 #include <tCalibration/StereoCameraCalibration>
-#include <tTarget/AprilTagBoard>
-#include <tTarget/CheckerGridBoard>
+#include <tTarget/KalibrAprilTagBoard>
+#include <tTarget/Chessboard>
 
 namespace fs = std::filesystem;
 using namespace tl;
@@ -22,9 +21,15 @@ TEST(CameraIntrinsics, Dataset1)
     GTEST_SKIP() << "Skip dataset test case.";
 
     // 1. Create board
-    //    const AprilGridBoard board_{6, 6, 0.14, 0.042};
-    auto board_ = std::make_shared<CheckerBoard>(9, 14, 0.016, 0.016);
-    //    const CheckerBoard board_{8, 10, 0.09, 0.09};
+    // const KalibrAprilTagBoard board_{6, 6, 0.14, 0.042};
+
+    Chessboard::Options opts;
+    opts.rows = 9;
+    opts.cols = 14;
+    opts.rowSpacing = 0.16;
+    opts.colSpacing = 0.16;
+    auto board_ = std::make_shared<Chessboard>(opts);
+    // const Chessboard board_{8, 10, 0.09, 0.09};
 
     // 3. Create player
     // FIXME: Avoid hardcode
@@ -49,13 +54,12 @@ TEST(CameraIntrinsics, Dataset1)
             }
 
             const auto filename = entry.path().stem();
-            //            const auto t_s =
-            //            time::nsToS(std::stoul(filename.string()));
+            // const auto t_s = time::nsToS(std::stoul(filename.string()));
             const auto t_s = std::stod(filename.string());
 
             const auto image = cv::imread(entry.path().string());
             const auto detection = board_->computeObservation(image);
-            LOG(INFO) << detection.cornerCount();
+            LOG(INFO) << detection.count;
             detections1_.push_back({detection, t_s});
 
             count++;
@@ -76,13 +80,12 @@ TEST(CameraIntrinsics, Dataset1)
             }
 
             const auto filename = entry.path().stem();
-            //            const auto t_s =
-            //            time::nsToS(std::stoul(filename.string()));
+            // const auto t_s = time::nsToS(std::stoul(filename.string()));
             const auto t_s = std::stod(filename.string());
 
             const auto image = cv::imread(entry.path().string());
             const auto detection = board_->computeObservation(image);
-            LOG(INFO) << detection.cornerCount();
+            LOG(INFO) << detection.count;
             detections2_.push_back({detection, t_s});
 
             count++;
@@ -104,8 +107,8 @@ TEST(CameraIntrinsics, Dataset1)
     calib.calibrate(detections2_, CameraId{1});
     return;
 
-    //    scene_->pairCamera(CameraId{0}, CameraId{1});
-    //    LOG(INFO) << "Stereo pair count: " << scene_->stereoViewCount();
+    // scene_->pairCamera(CameraId{0}, CameraId{1});
+    // LOG(INFO) << "Stereo pair count: " << scene_->stereoViewCount();
 
     // Mono Result
     auto camera = calib.camera();
@@ -118,7 +121,7 @@ TEST(CameraIntrinsics, Dataset1)
 
     // StereoCalibration
     StereoCameraCalibration stereoCalib;
-    //    stereoCalib.setScene(scene_);
+    // stereoCalib.setScene(scene_);
     stereoCalib.calibrate();
 
     EXPECT_TRUE(true);
@@ -214,12 +217,12 @@ TEST(CameraIntrinsics, OpenCV)
         cv::TermCriteria{cv::TermCriteria::COUNT + cv::TermCriteria::EPS, 30,
                          1e-6});
 
-    //    cv::Mat E, F;
-    //    const auto rpe = cv::stereoCalibrate(objectPointsList,
-    //    left_imagePointsList,
-    //                                         right_imagePointsList, k1, dist2,
-    //                                         k2, dist2, cv::Size{640, 480}, R,
-    //                                         t, E, F);
+    // cv::Mat E, F;
+    // const auto rpe = cv::stereoCalibrate(objectPointsList,
+    // left_imagePointsList,
+    //                                      right_imagePointsList, k1, dist2,
+    //                                      k2, dist2, cv::Size{640, 480}, R, t,
+    //                                      E, F);
 
     constexpr double kBalance{0.};
     constexpr double kFovScale{1.1};

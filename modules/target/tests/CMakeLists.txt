@@ -9,6 +9,7 @@ target_sources(${CALIBTARGET_TEST_TARGET}
         tst_checkergrid.cpp
         tst_circlegrid.cpp
         tst_multiboard.cpp
+        # main.cpp
 )
 
 set(GTest_DIR ${ACTIVE_DEPENDS_PREFIX}/googletest/1.14.0/lib/cmake/GTest)

@@ -18,7 +18,7 @@
 #include <tMotion/ImuIntrinsics>
 #include <tMotion/ImuNoise>
 #include <tMotion/SplineErrorWeighting>
-#include <tTarget/CheckerGridBoard>
+#include <tTarget/ChessBoard>
 #include <tTarget/KalibrAprilTagBoard>
 #include <tVision/BlurDetection>
 
@@ -92,7 +92,7 @@ bool StereoModuleTask::Impl::detectCorners(const StereoImageData& stereo,
     const auto leftDetection = m_board->computeObservation(stereo.left);
     const auto rightDetection = m_board->computeObservation(stereo.right);
 
-    if (!leftDetection.valid || !rightDetection.valid) {
+    if (!leftDetection.valid() || !rightDetection.valid()) {
         LOG(INFO) << "Skip view "
                      "("
                   << timestamp
@@ -101,8 +101,8 @@ bool StereoModuleTask::Impl::detectCorners(const StereoImageData& stereo,
         return false;
     }
 
-    LOG(INFO) << "Detected left/right corners: " << leftDetection.cornerCount()
-              << "/" << rightDetection.cornerCount();
+    LOG(INFO) << "Detected left/right corners: " << leftDetection.count << "/"
+              << rightDetection.count;
 
     m_leftDetections.emplace_back(leftDetection, timestamp);
     m_rightDetections.emplace_back(rightDetection, timestamp);
@@ -471,7 +471,8 @@ void StereoModuleTask::prepare()
     // 1. Create board
     // d->m_board.reset(new KalibrAprilTagBoard(6, 6, 0.14, 0.3)); // 1.2m foam
     // d->m_board.reset(new KalibrAprilTagBoard(6, 6, 0.0352, 0.3)); // small
-    d->m_board.reset(new KalibrAprilTagBoard(6, 6, 0.105, 0.3)); // 1m flim
+    // FIXME: Use default parameters to pass build
+    d->m_board.reset(new KalibrAprilTagBoard()); // 1m flim
     // d->m_board.reset(new CheckerBoard(8, 11, 0.03, 0.03)); // glass
 
     // 2. Create Calibration interface

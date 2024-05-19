@@ -1,9 +1,49 @@
 #include "kalibrapriltagboard.h"
 
 #include <numeric>
+
 #include <glog/logging.h>
+#include <opencv2/imgproc.hpp>
+
+#include "apriltag_mit/TagDetector.h"
+// #include "apriltag_mit/Tag16h5.h"
+// #include "apriltag_mit/Tag25h7.h"
+// #include "apriltag_mit/Tag25h9.h"
+// #include "apriltag_mit/Tag36h9.h"
+#include "apriltag_mit/Tag36h11.h"
 
 namespace tl {
+
+class KalibrAprilTagBoard::Impl
+{
+public:
+    Impl();
+
+    void init(const Options &opts, const DetectOptions &detectOpts);
+
+public:
+    Options _opts;
+    DetectOptions _detectOpts;
+
+    // Apriltag
+    AprilTags::TagCodes _tagCodes = AprilTags::tagCodes36h11;
+    std::unique_ptr<AprilTags::TagDetector> _tagDetector;
+};
+
+KalibrAprilTagBoard::Impl::Impl() {}
+
+void KalibrAprilTagBoard::Impl::init(const Options &opts,
+                                     const DetectOptions &detectOpts)
+{
+    // Board
+    _opts = opts;
+    _tagCodes = AprilTags::tagCodes36h11;
+
+    // Detector
+    _detectOpts = detectOpts;
+    _tagDetector =
+        std::make_unique<AprilTags::TagDetector>(_tagCodes, opts.blackBorder);
+}
 
 /// \brief Construct an Aprilgrid calibration target
 ///        tagRows:    number of tags in y-dir (gridRows = 2*tagRows)
@@ -20,157 +60,124 @@ namespace tl {
 ///    y     | TAG 1 |  | TAG 2 |
 ///   ^      0-------1  2-------3
 ///   |-->x
-KalibrAprilTagBoard::KalibrAprilTagBoard(size_t tagRows, size_t tagCols,
-                                         double tagSize, double tagSpacing,
-                                         const AprilgridOptions &options)
-    : CalibBoardBase(2 * tagRows, 2 * tagCols), // 4 points per tag
-      _tagSize(tagSize),
-      _tagSpacing(tagSpacing),
-      _options(options),
-      _tagCodes(AprilTags::tagCodes36h11)
+KalibrAprilTagBoard::KalibrAprilTagBoard(const Options &opts,
+                                         const DetectOptions &detectOpts)
+    : CalibBoardBase(2 * opts.tagRows, 2 * opts.tagCols),
+      d(std::make_unique<Impl>())
 {
-    // initialize a normal grid (checkerboard and circlegrids)
-    createBoardPoints();
+    d->init(opts, detectOpts);
 
-    // create the tag detector
-    _tagDetector = std::make_shared<AprilTags::TagDetector>(
-        _tagCodes, _options.blackTagBorder);
+    createBoardPoints();
 }
 
-/// \brief initialize an april grid
-///   point ordering: (e.g. 2x2 grid)
-///          12-----13  14-----15
-///          | TAG 3 |  | TAG 4 |
-///          8-------9  10-----11
-///          4-------5  6-------7
-///    y     | TAG 1 |  | TAG 2 |
-///   ^      0-------1  2-------3
-///   |-->x
+KalibrAprilTagBoard::~KalibrAprilTagBoard() = default;
+
 void KalibrAprilTagBoard::createBoardPoints()
 {
-    // each tag has 4 corners
-    // unsigned int numTags = size()/4;
-    // unsigned int colsTags = _cols/2;
+    m_boardPoints.clear();
 
-    for (unsigned r = 0; r < m_rows; r++) {
-        for (unsigned c = 0; c < m_cols; c++) {
+    const auto tagWithSpace = (1 + d->_opts.tagSpacingRatio) * d->_opts.tagSize;
+    for (int r{0}; r < m_rows; r++) {
+        for (int c{0}; c < m_cols; c++) {
             m_boardPoints.emplace_back(
-                (int)(c / 2) * (1 + _tagSpacing) * _tagSize +
-                    (c % 2) * _tagSize,
-                (int)(r / 2) * (1 + _tagSpacing) * _tagSize +
-                    (r % 2) * _tagSize,
-                0.);
+                (c / 2) * tagWithSpace + (c % 2) * d->_opts.tagSize,
+                (r / 2) * tagWithSpace + (r % 2) * d->_opts.tagSize, 0.);
         }
     }
 
     std::iota(m_ids.begin(), m_ids.end(), 0);
 }
 
-double KalibrAprilTagBoard::tagDistance() const { return _tagSpacing; }
-
-double KalibrAprilTagBoard::tagSize() const { return _tagSize; }
-
-/// \brief extract the calibration target points from an image and write to an
-/// observation
-TargetDetection KalibrAprilTagBoard::computeObservation(
-    cv::InputArray image) const
+double KalibrAprilTagBoard::tagDistance() const
 {
-    const auto type = image.type();
+    return d->_opts.tagSpacingRatio * d->_opts.tagSize;
+}
+
+double KalibrAprilTagBoard::tagSize() const { return d->_opts.tagSize; }
+
+TargetDetection KalibrAprilTagBoard::computeObservation(
+    cv::InputArray _img, cv::OutputArray _viz) const
+{
+    const auto type = _img.type();
     const auto depth = CV_MAT_DEPTH(type);
     const auto channel = CV_MAT_CN(type);
     CV_CheckType(type, depth == CV_8U && (channel == 1 || channel == 3),
                  "Only 8-bit grayscale or color images are supported");
 
     cv::Mat img;
-    if (image.channels() != 1) {
-        cv::cvtColor(image, img, cv::COLOR_BGR2GRAY);
+    if (_img.channels() != 1) {
+        cv::cvtColor(_img, img, cv::COLOR_BGR2GRAY);
     }
     else {
-        img = image.getMat();
+        img = _img.getMat();
     }
 
-    bool success = true;
-
-    // Detect the tags
-    _lastDetections = _tagDetector->extractTags(img);
-    if (_lastDetections.empty()) {
+    // 1. Detect the tags
+    auto detections = d->_tagDetector->extractTags(img);
+    if (detections.empty()) {
         return {};
     }
 
-    /* handle the case in which a tag is identified but not all tag
-     * corners are in the image (all data bits in image but border
-     * outside). tagCorners should still be okay as apriltag-lib
-     * extrapolates them, only the subpix refinement will fail
-     */
-
-    // min. distance [px] of tag corners from image border (tag is not used if
-    // violated)
-    for (auto it = _lastDetections.begin(); it != _lastDetections.end();) {
-        // check all four corners for violation
+    // 2. Postprocessing
+    // Rule.1
+    // Tag is identified but not all the corners are in the image. This
+    // situation also includes any encoded pattern (data bits) is in the view,
+    // but not its border. These corners may still be fine, as apriltag lib will
+    // extrapolate them, but it could fail the following subpix refinement.
+    const cv::Vec2f border{d->_detectOpts.minBorderDistance,
+                           d->_detectOpts.minBorderDistance};
+    const cv::Rect2f inBorderROI{
+        cv::Point2f{border}, cv::Size2f(img.size()) - cv::Size2f(border * 2)};
+    for (auto it = detections.begin(); it != detections.end();) {
         bool remove = false;
 
-        for (int j = 0; j < 4; j++) {
-            remove |= it->p[j].first < _options.minBorderDistance;
-            remove |= it->p[j].first >
-                      (float)(img.cols) - _options.minBorderDistance; // width
-            remove |= it->p[j].second < _options.minBorderDistance;
-            remove |= it->p[j].second >
-                      (float)(img.rows) - _options.minBorderDistance; // height
+        // Check if all four corners in image
+        for (const auto &corner : it->p) {
+            remove |= (!inBorderROI.contains(
+                cv::Point2f{corner.first, corner.second}));
         }
 
-        // also remove tags that are flagged as bad
-        if (it->good != 1)
-            remove |= true;
+        // Check if the tag is flagged as bad
+        remove |= (!it->good);
 
-        // also remove if the tag ID is out-of-range for this grid (faulty
-        // detection)
-        if (it->id >= cornerCount() / 4)
-            remove |= true;
+        // Check if the tag ID belongs to this board
+        remove |= (it->id < d->_opts.startId) ||
+                  (it->id >= cornerCount() / 4 + d->_opts.startId);
 
-        // delete flagged tags
         if (remove) {
-            LOG(INFO)
-                << "Tag with ID " << it->id
-                << " is only partially in image (corners outside) and will be "
-                   "removed from the TargetObservation.";
-
-            // delete the tag and advance in list
-            it = _lastDetections.erase(it);
+            LOG(INFO) << "Tag " << it->id << " is removed: "
+                      << "It is partially seen, "
+                         "or it doesn't belong to this board.";
+            it = detections.erase(it);
         }
         else {
-            // advance in list
             ++it;
         }
     }
 
-    // did we find enough tags?
-    if (_lastDetections.size() < _options.minTagsForValidObs) {
-        success = false;
+    // Optional: Check if enough valid tags are detected.
+    if (detections.size() < d->_detectOpts.minDetectTagCount) {
+        return {};
+    }
 
-        // immediate exit if we dont need to show video for debugging...
-        // if video is shown, exit after drawing video...
-        if (!_options.showExtractionVideo) {
+    std::sort(detections.begin(), detections.end(),
+              AprilTags::TagDetection::sortByIdCompare);
+
+    // Check if there are duplicated tags exist.
+    if (detections.size() > 1) {
+        if (const auto found =
+                std::adjacent_find(detections.cbegin(), detections.cend(),
+                                   [](const auto &curr, const auto &next) {
+                                       return curr.id == next.id;
+                                   });
+            found != detections.cend()) {
+            LOG(ERROR) << "Detection failed: "
+                          "Found duplicated tag.";
             return {};
         }
     }
 
-    // sort detections by tagId
-    std::sort(_lastDetections.begin(), _lastDetections.end(),
-              AprilTags::TagDetection::sortByIdCompare);
-
-    // check for duplicate tagIds (--> if found: wild Apriltags in image not
-    // belonging to calibration target) (only if we have more than 1 tag...)
-    if (_lastDetections.size() > 1) {
-        for (size_t i = 0; i < _lastDetections.size() - 1; i++)
-            if (_lastDetections[i].id == _lastDetections[i + 1].id) {
-                // and exit
-                LOG(ERROR) << "Found apriltag not belonging to calibration "
-                              "board. Check the image for the tag and hide it.";
-                return {};
-            }
-    }
-
-    // convert corners to cv::Mat (4 consecutive corners form one tag)
+    // Convert corners to cv::Mat (4 consecutive corners form one tag)
     /// point ordering here
     ///          11-----10  15-----14
     ///          | TAG 2 |  | TAG 3 |
@@ -179,28 +186,25 @@ TargetDetection KalibrAprilTagBoard::computeObservation(
     ///    y     | TAG 0 |  | TAG 1 |
     ///   ^      0-------1  4-------5
     ///   |-->x
-    cv::Mat tagCorners(4 * _lastDetections.size(), 2, CV_32F);
-
-    for (size_t i = 0; i < _lastDetections.size(); i++) {
-        for (int j = 0; j < 4; j++) {
-            const int row = 4 * i + j;
-            tagCorners.at<float>(row, 0) = _lastDetections[i].p[j].first;
-            tagCorners.at<float>(row, 1) = _lastDetections[i].p[j].second;
+    std::vector<cv::Point2f> tagCorners;
+    tagCorners.reserve(4 * detections.size());
+    for (const auto &detection : detections) {
+        for (const auto &pt : detection.p) {
+            tagCorners.emplace_back(pt.first, pt.second);
         }
     }
 
-    // store a copy of the corner list before subpix refinement
-    cv::Mat tagCornersRaw = tagCorners.clone();
-
-    // optional subpixel refinement on all tag corners (four corners each tag)
-    if (_options.doSubpixRefinement && success) {
-        cv::cornerSubPix(img, tagCorners, cv::Size(2, 2), cv::Size(-1, -1),
-                         cv::TermCriteria(cv::TermCriteria::Type::EPS +
+    // Optional: Subpixel refinement on all tag corners (four corners each tag)
+    auto tagCornersRefined = tagCorners;
+    if (d->_detectOpts.doSubpixRefinement) {
+        cv::cornerSubPix(img, tagCornersRefined, cv::Size{2, 2},
+                         cv::Size{-1, -1},
+                         cv::TermCriteria{cv::TermCriteria::Type::EPS +
                                               cv::TermCriteria::Type::MAX_ITER,
-                                          30, 0.1));
+                                          30, 0.1});
     }
 
-    // insert the observed points into the correct location of the grid point
+    // Insert the observed points into the correct location of the grid point
     // array
     /// point ordering
     ///          12-----13  14-----15
@@ -210,63 +214,131 @@ TargetDetection KalibrAprilTagBoard::computeObservation(
     ///    y     | TAG 0 |  | TAG 1 |
     ///   ^      0-------1  2-------3
     ///   |-->x
+    std::vector<CornerId> cornerIds(cornerCount(), -1);
+    std::vector<cv::Point2d> corners(cornerCount(), cv::Point2d{});
+    std::vector<uchar> detected(cornerCount(), 0);
+    auto count{0};
+    for (size_t i{0}; i < detections.size(); i++) {
+        unsigned int tagId = detections[i].id - d->_opts.startId;
+        unsigned int tagblCornerId = (int)(tagId / (cols() / 2)) * cols() * 2 +
+                                     (tagId % (cols() / 2)) * 2;
+        unsigned int tagCornerIds[] = {tagblCornerId, tagblCornerId + 1,
+                                       tagblCornerId + (unsigned int)cols() + 1,
+                                       tagblCornerId + (unsigned int)cols()};
 
-    std::vector<CornerId> cornerIds;
-    cornerIds.reserve(cornerCount());
-    std::vector<cv::Point2d> corners;
-    corners.reserve(cornerCount());
+        // Per tag
+        for (size_t j{0}; j < 4; j++) {
+            const auto idx = 4 * i + j;
+            const auto &thisCornerId = tagCornerIds[j];
 
-    for (size_t i = 0; i < _lastDetections.size(); i++) {
-        unsigned int tagId = _lastDetections[i].id;
+            const auto &corner = tagCorners[idx];
+            const auto &cornerRefined = tagCornersRefined[idx];
+            const auto diff = cv::norm(cornerRefined - corner);
 
-        // calculate the grid idx for all four tag corners given the tagId and
-        // cols
-        unsigned int baseId = (int)(tagId / (cols() / 2)) * cols() * 2 +
-                              (tagId % (cols() / 2)) * 2;
-        unsigned int pIdx[] = {baseId, baseId + 1,
-                               baseId + (unsigned int)cols() + 1,
-                               baseId + (unsigned int)cols()};
-
-        // add four points per tag
-        for (int j = 0; j < 4; j++) {
-            const int row = 4 * i + j;
-
-            auto refinedCorner_x = tagCorners.at<float>(row, 0);
-            auto refinedCorner_y = tagCorners.at<float>(row, 1);
-            auto rawCorner_x = tagCornersRaw.at<float>(row, 0);
-            auto rawCorner_y = tagCornersRaw.at<float>(row, 1);
-
-            // only add point if the displacement in the subpixel refinement is
-            // below a given threshold
-            double refineDisplacement = (refinedCorner_x - rawCorner_x) *
-                                            (refinedCorner_x - rawCorner_x) +
-                                        (refinedCorner_y - rawCorner_y) *
-                                            (refinedCorner_y - rawCorner_y);
-
-            // add all points, but only set active if the point has not moved to
-            // far in the subpix refinement
-            // NOTE: No, that's not what happens
-            if (refineDisplacement <= _options.maxSubpixDisplacement2) {
-                cornerIds.emplace_back(pIdx[j]);
-                corners.emplace_back(refinedCorner_x, refinedCorner_y);
+            cornerIds[thisCornerId] = thisCornerId;
+            corners[thisCornerId] = cornerRefined;
+            if (diff <= d->_detectOpts.maxSubpixDisplacement) {
+                detected[thisCornerId] = 1;
+                ++count;
             }
             else {
-                LOG(INFO) << "Subpix refinement failed for point " << pIdx[j]
-                          << " with displacement: " << sqrt(refineDisplacement)
+                LOG(INFO) << "Subpix refinement failed for point "
+                          << thisCornerId << " with displacement: " << diff
                           << "(point removed)";
+                detected[thisCornerId] = 0;
             }
         }
     }
 
-    return {.cornerIds = cornerIds, .corners = corners, .valid = true};
+    // Optional: Check overall detect rate
+    if (const int minDetectCount = d->_detectOpts.minDetectRate * cornerCount();
+        count < minDetectCount) {
+        return {};
+    }
+
+    if (_viz.needed()) {
+        _img.copyTo(_viz);
+        cv::Mat viz;
+        if (channel == 1) {
+            cv::cvtColor(_viz, viz, cv::COLOR_GRAY2BGR);
+        }
+        else {
+            viz = _viz.getMat();
+        }
+
+        for (const auto &detection : detections) {
+            detection.draw(viz);
+        }
+    }
+
+    return {.corners = corners,
+            .cornerIds = cornerIds,
+            .detected = detected,
+            .count = count};
 }
 
-void KalibrAprilTagBoard::drawDetection(const TargetDetection &detection,
-                                        cv::Mat &imgResult) const
+namespace key {
+constexpr char kTagRows[]{"tag_rows"};
+constexpr char kTagCols[]{"tag_cols"};
+constexpr char kTagSize[]{"tag_size"};
+constexpr char kTagSpacingRatio[]{"tag_spacing_ratio"};
+constexpr char kBlackBorder[]{"black_border"};
+constexpr char kStartId[]{"start_id"};
+// ApriltagBoard
+constexpr char kMaxSubPixDiff[]{"max_subpix_diff"};
+constexpr char kMinDetectTagCount[]{"min_detect_tag_count"};
+constexpr char kMinDetectRate[]{"min_detect_rate"};
+constexpr char kMinBorderDistance[]{"min_border_distance"};
+
+} // namespace key
+
+void to_json(nlohmann::json &j, const KalibrAprilTagBoard::Options &opts)
 {
-    for (const auto &detection : _lastDetections) {
-        detection.draw(imgResult);
+    j[key::kTagRows] = opts.tagRows;
+    j[key::kTagCols] = opts.tagCols;
+    j[key::kTagSize] = opts.tagSize;
+    j[key::kTagSpacingRatio] = opts.tagSpacingRatio;
+    j[key::kBlackBorder] = opts.blackBorder;
+    j[key::kStartId] = opts.startId;
+}
+
+void from_json(const nlohmann::json &j, KalibrAprilTagBoard::Options &opts)
+{
+    j.at(key::kTagRows).get_to(opts.tagRows);
+    j.at(key::kTagCols).get_to(opts.tagCols);
+    j.at(key::kTagSize).get_to(opts.tagSize);
+    j.at(key::kTagSpacingRatio).get_to(opts.tagSpacingRatio);
+    j.at(key::kBlackBorder).get_to(opts.blackBorder);
+    j.at(key::kStartId).get_to(opts.startId);
+}
+
+void to_json(nlohmann::json &j, const KalibrAprilTagBoard::DetectOptions &opts)
+{
+    if (opts.doSubpixRefinement) {
+        j[key::kMaxSubPixDiff] = opts.maxSubpixDisplacement;
     }
+    else {
+        j[key::kMaxSubPixDiff] = nullptr;
+    }
+    j[key::kMinDetectTagCount] = opts.minDetectTagCount;
+    j[key::kMinDetectRate] = opts.minDetectRate;
+    j[key::kMinBorderDistance] = opts.minBorderDistance;
+}
+
+void from_json(const nlohmann::json &j,
+               KalibrAprilTagBoard::DetectOptions &opts)
+{
+    if (const auto val = j.at(key::kMaxSubPixDiff); val.is_null()) {
+        opts.doSubpixRefinement = false;
+        opts.maxSubpixDisplacement = std::numeric_limits<double>::max();
+    }
+    else {
+        opts.doSubpixRefinement = true;
+        j.at(key::kMaxSubPixDiff).get_to(opts.maxSubpixDisplacement);
+    }
+    j.at(key::kMinDetectTagCount).get_to(opts.minDetectTagCount);
+    j.at(key::kMinDetectRate).get_to(opts.minDetectRate);
+    j.at(key::kMinBorderDistance).get_to(opts.minBorderDistance);
 }
 
 } // namespace tl
