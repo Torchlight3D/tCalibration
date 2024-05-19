@@ -8,11 +8,9 @@
 
 namespace camodocal {
 
-/**
- * J. Kannala, and S. Brandt, A Generic Camera Model and Calibration Method
- * for Conventional, Wide-Angle, and Fish-Eye Lenses, PAMI 2006
- */
-
+// Reference:
+// J. Kannala, and S. Brandt, A Generic Camera Model and Calibration Method for
+// Conventional, Wide-Angle, and Fish-Eye Lenses, PAMI 2006
 class EquidistantCamera final : public Camera
 {
 public:
@@ -56,16 +54,9 @@ public:
                                         const Parameters &params);
 
     private:
-        // projection
-        double m_k2;
-        double m_k3;
-        double m_k4;
-        double m_k5;
-
-        double m_mu;
-        double m_mv;
-        double m_u0;
-        double m_v0;
+        double m_k2, m_k3, m_k4, m_k5;
+        double m_mu, m_mv;
+        double m_u0, m_v0;
     };
 
     using Ptr = std::shared_ptr<EquidistantCamera>;
@@ -73,9 +64,14 @@ public:
 
     EquidistantCamera();
     explicit EquidistantCamera(const Parameters &params);
-    EquidistantCamera(const std::string &cameraName, int imageWidth,
-                      int imageHeight, double k2, double k3, double k4,
-                      double k5, double mu, double mv, double u0, double v0);
+    inline EquidistantCamera(const std::string &cameraName, int imageWidth,
+                             int imageHeight, double k2, double k3, double k4,
+                             double k5, double mu, double mv, double u0,
+                             double v0)
+        : EquidistantCamera(Parameters{cameraName, imageWidth, imageHeight, k2,
+                                       k3, k4, k5, mu, mv, u0, v0})
+    {
+    }
 
     Camera::ModelType modelType() const override;
     const std::string &cameraName() const override;
@@ -94,10 +90,15 @@ public:
     // Lift points from the image plane to the projective space
     void liftProjective(const Eigen::Vector2d &p,
                         Eigen::Vector3d &P) const override;
+    void liftProjectiveByIteration1(const Eigen::Vector2d &px,
+                                    Eigen::Vector3d &ray) const;
+    void liftProjectiveByIteration2(const Eigen::Vector2d &px,
+                                    Eigen::Vector3d &ray) const;
 
     // Projects 3D points to the image plane (Pi function)
     void spaceToPlane(const Eigen::Vector3d &P,
                       Eigen::Vector2d &p) const override;
+    void spaceToPlane2(const Eigen::Vector3d &P, Eigen::Vector2d &p) const;
 
     // Projects 3D points to the image plane (Pi function)
     // and calculates jacobian
@@ -150,11 +151,13 @@ template <typename T>
 constexpr T EquidistantCamera::r(T k2, T k3, T k4, T k5, T theta)
 {
     // k1 = 1
-    return theta + k2 * theta * theta * theta +
-           k3 * theta * theta * theta * theta * theta +
-           k4 * theta * theta * theta * theta * theta * theta * theta +
-           k5 * theta * theta * theta * theta * theta * theta * theta * theta *
-               theta;
+    // clang-format off
+    return theta
+           + k2 * theta * theta * theta
+           + k3 * theta * theta * theta * theta * theta
+           + k4 * theta * theta * theta * theta * theta * theta * theta
+           + k5 * theta * theta * theta * theta * theta * theta * theta * theta * theta;
+    // clang-format on
 }
 
 template <typename T>

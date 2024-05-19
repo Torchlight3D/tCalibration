@@ -1,6 +1,10 @@
-﻿#include <Eigen/Dense>
+﻿#include <Eigen/Core>
 #include <gtest/gtest.h>
 
+#include <opencv2/imgcodecs.hpp>
+#include <opencv2/imgproc.hpp>
+
+#include <tCamera/coc/EquidistantCamera>
 #include <tCamera/FisheyeCameraModel>
 
 using namespace tl;
@@ -8,299 +12,441 @@ using namespace tl;
 using Eigen::Vector2d;
 using Eigen::Vector3d;
 
-TEST(FisheyeCameraModel, InternalParameterGettersAndSetters)
+TEST(FisheyeCameraModel, ParametersSetterAndGetter)
 {
     FisheyeCameraModel camera;
-
+    // Check type
     EXPECT_EQ(camera.type(), CameraIntrinsics::Type::Fisheye);
 
-    // Check that default values are set
-    EXPECT_EQ(camera.focalLength(), 1.0);
-    EXPECT_EQ(camera.aspectRatio(), 1.0);
-    EXPECT_EQ(camera.skew(), 0.0);
-    EXPECT_EQ(camera.principalPointX(), 0.0);
-    EXPECT_EQ(camera.principalPointY(), 0.0);
-    EXPECT_EQ(camera.radialDistortion1(), 0.0);
-    EXPECT_EQ(camera.radialDistortion2(), 0.0);
-    EXPECT_EQ(camera.radialDistortion3(), 0.0);
-    EXPECT_EQ(camera.radialDistortion4(), 0.0);
+    // Check all default values are set
+    EXPECT_EQ(camera.focalLength(), 1.);
+    EXPECT_EQ(camera.aspectRatio(), 1.);
+    EXPECT_EQ(camera.skew(), 0.);
+    EXPECT_EQ(camera.cx(), 0.);
+    EXPECT_EQ(camera.cy(), 0.);
+    EXPECT_EQ(camera.k1(), 0.);
+    EXPECT_EQ(camera.k2(), 0.);
+    EXPECT_EQ(camera.k3(), 0.);
+    EXPECT_EQ(camera.k4(), 0.);
 
-    // Set parameters to different values.
-    camera.setFocalLength(600.0);
-    camera.setAspectRatio(0.9);
-    camera.setSkew(0.01);
-    camera.setPrincipalPoint(300.0, 400.0);
-    camera.setRadialDistortion(0.01, 0.001, 0.002, 0.003);
+    constexpr double kFocalLength{600.};
+    constexpr double kAspectRatio{0.9};
+    constexpr double kSkew{0.01};
+    constexpr double kPrincipalPointX{300.};
+    constexpr double kPrincipalPointY{400.};
+    constexpr double kK1{0.01};
+    constexpr double kK2{0.001};
+    constexpr double kK3{0.002};
+    constexpr double kK4{0.003};
 
-    // Check that the values were updated.
-    EXPECT_EQ(camera.focalLength(), 600.0);
-    EXPECT_EQ(camera.aspectRatio(), 0.9);
-    EXPECT_EQ(camera.skew(), 0.01);
-    EXPECT_EQ(camera.principalPointX(), 300.0);
-    EXPECT_EQ(camera.principalPointY(), 400.0);
-    EXPECT_EQ(camera.radialDistortion1(), 0.01);
-    EXPECT_EQ(camera.radialDistortion2(), 0.001);
-    EXPECT_EQ(camera.radialDistortion3(), 0.002);
-    EXPECT_EQ(camera.radialDistortion4(), 0.003);
+    // Set parameters to different values, and check that they were updated.
+    camera.setFocalLength(kFocalLength);
+    camera.setAspectRatio(kAspectRatio);
+    camera.setSkew(kSkew);
+    camera.setPrincipalPoint(kPrincipalPointX, kPrincipalPointY);
+    camera.setRadialDistortion(kK1, kK2, kK3, kK4);
+
+    EXPECT_EQ(camera.focalLength(), kFocalLength);
+    EXPECT_EQ(camera.aspectRatio(), kAspectRatio);
+    EXPECT_EQ(camera.skew(), kSkew);
+    EXPECT_EQ(camera.cx(), kPrincipalPointX);
+    EXPECT_EQ(camera.cy(), kPrincipalPointY);
+    EXPECT_EQ(camera.k1(), kK1);
+    EXPECT_EQ(camera.k2(), kK2);
+    EXPECT_EQ(camera.k3(), kK3);
+    EXPECT_EQ(camera.k4(), kK4);
 }
 
-// Test to ensure that the camera intrinsics are being set appropriately.
-inline void TestSetFromCameraintrinsicsPrior(const CameraMetaData& prior)
+TEST(FisheyeCameraModel, SetFromCameraMetaData)
 {
-    const FisheyeCameraModel default_camera;
+    // Test to ensure that the camera intrinsics are being set appropriately.
+    auto TestCameraSetFromMeta = [](const CameraMetaData& meta) {
+        const FisheyeCameraModel default_camera;
+
+        FisheyeCameraModel camera;
+        camera.setFromMetaData(meta);
+
+        if (meta.focal_length.is_set) {
+            EXPECT_EQ(camera.focalLength(), meta.focal_length.value[0]);
+        }
+        else {
+            EXPECT_EQ(camera.focalLength(), default_camera.focalLength());
+        }
+
+        if (meta.principal_point.is_set) {
+            EXPECT_EQ(camera.cx(), meta.principal_point.value[0]);
+            EXPECT_EQ(camera.cy(), meta.principal_point.value[1]);
+        }
+        else {
+            EXPECT_EQ(camera.cx(), default_camera.cx());
+            EXPECT_EQ(camera.cy(), default_camera.cy());
+        }
+
+        if (meta.aspect_ratio.is_set) {
+            EXPECT_EQ(camera.aspectRatio(), meta.aspect_ratio.value[0]);
+        }
+        else {
+            EXPECT_EQ(camera.aspectRatio(), default_camera.aspectRatio());
+        }
+
+        if (meta.skew.is_set) {
+            EXPECT_EQ(camera.skew(), meta.skew.value[0]);
+        }
+        else {
+            EXPECT_EQ(camera.skew(), default_camera.skew());
+        }
+
+        if (meta.radial_distortion.is_set) {
+            EXPECT_EQ(camera.k1(), meta.radial_distortion.value[0]);
+            EXPECT_EQ(camera.k2(), meta.radial_distortion.value[1]);
+            EXPECT_EQ(camera.k3(), meta.radial_distortion.value[2]);
+            EXPECT_EQ(camera.k4(), meta.radial_distortion.value[3]);
+        }
+        else {
+            EXPECT_EQ(camera.k1(), default_camera.k1());
+            EXPECT_EQ(camera.k2(), default_camera.k2());
+            EXPECT_EQ(camera.k3(), default_camera.k3());
+            EXPECT_EQ(camera.k4(), default_camera.k4());
+        }
+    };
+
+    CameraMetaData meta;
+    meta.focal_length.value[0] = 1000.0;
+    meta.principal_point.value[0] = 400.0;
+    meta.principal_point.value[1] = 300.0;
+    meta.aspect_ratio.value[0] = 1.01;
+    meta.skew.value[0] = 0.01;
+    meta.radial_distortion.value[0] = 0.01;
+    meta.radial_distortion.value[1] = 0.001;
+    meta.radial_distortion.value[2] = 0.001;
+    meta.radial_distortion.value[3] = 0.001;
+
+    TestCameraSetFromMeta(meta);
+
+    meta.focal_length.is_set = true;
+    TestCameraSetFromMeta(meta);
+
+    meta.principal_point.is_set = true;
+    TestCameraSetFromMeta(meta);
+
+    meta.aspect_ratio.is_set = true;
+    TestCameraSetFromMeta(meta);
+
+    meta.skew.is_set = true;
+    TestCameraSetFromMeta(meta);
+
+    meta.radial_distortion.is_set = true;
+    TestCameraSetFromMeta(meta);
+}
+
+TEST(FisheyeCameraModel, ConstantParameterIndices)
+{
+    using _Type = OptimizeIntrinsicsType;
+
     FisheyeCameraModel camera;
-    camera.setFromMetaData(prior);
+    std::vector<int> indices;
 
-    if (prior.focal_length.is_set) {
-        EXPECT_EQ(camera.focalLength(), prior.focal_length.value[0]);
-    }
-    else {
-        EXPECT_EQ(camera.focalLength(), default_camera.focalLength());
-    }
+    indices = camera.constantParameterIndices(_Type::None);
+    EXPECT_EQ(indices.size(), camera.numParameters());
 
-    if (prior.principal_point.is_set) {
-        EXPECT_EQ(camera.principalPointX(), prior.principal_point.value[0]);
-        EXPECT_EQ(camera.principalPointY(), prior.principal_point.value[1]);
-    }
-    else {
-        EXPECT_EQ(camera.principalPointX(), default_camera.principalPointX());
-        EXPECT_EQ(camera.principalPointY(), default_camera.principalPointY());
+    // Focal length
+    indices = camera.constantParameterIndices(_Type::FocalLength);
+    EXPECT_EQ(indices.size(), camera.numParameters() - 1);
+    for (const auto& index : indices) {
+        EXPECT_NE(index, FisheyeCameraModel::Fx);
     }
 
-    if (prior.aspect_ratio.is_set) {
-        EXPECT_EQ(camera.aspectRatio(), prior.aspect_ratio.value[0]);
-    }
-    else {
-        EXPECT_EQ(camera.aspectRatio(), default_camera.aspectRatio());
-    }
-
-    if (prior.skew.is_set) {
-        EXPECT_EQ(camera.skew(), prior.skew.value[0]);
-    }
-    else {
-        EXPECT_EQ(camera.skew(), default_camera.skew());
+    // Aspect ratio
+    indices = camera.constantParameterIndices(_Type::AspectRatio);
+    EXPECT_EQ(indices.size(), camera.numParameters() - 1);
+    for (const auto& index : indices) {
+        EXPECT_NE(index, FisheyeCameraModel::YX);
     }
 
-    if (prior.radial_distortion.is_set) {
-        EXPECT_EQ(camera.radialDistortion1(), prior.radial_distortion.value[0]);
-        EXPECT_EQ(camera.radialDistortion2(), prior.radial_distortion.value[1]);
-        EXPECT_EQ(camera.radialDistortion3(), prior.radial_distortion.value[2]);
-        EXPECT_EQ(camera.radialDistortion4(), prior.radial_distortion.value[3]);
+    // Principal points
+    indices = camera.constantParameterIndices(_Type::PrincipalPoint);
+    EXPECT_EQ(indices.size(), camera.numParameters() - 2);
+    for (const auto& index : indices) {
+        EXPECT_NE(index, FisheyeCameraModel::Cx);
+        EXPECT_NE(index, FisheyeCameraModel::Cy);
     }
-    else {
-        EXPECT_EQ(camera.radialDistortion1(),
-                  default_camera.radialDistortion1());
-        EXPECT_EQ(camera.radialDistortion2(),
-                  default_camera.radialDistortion2());
-        EXPECT_EQ(camera.radialDistortion3(),
-                  default_camera.radialDistortion3());
-        EXPECT_EQ(camera.radialDistortion4(),
-                  default_camera.radialDistortion4());
+
+    // Skew works
+    indices = camera.constantParameterIndices(_Type::Skew);
+    EXPECT_EQ(indices.size(), camera.numParameters() - 1);
+    for (const auto& index : indices) {
+        EXPECT_NE(index, FisheyeCameraModel::Skew);
     }
+
+    // Radial distortion
+    indices = camera.constantParameterIndices(_Type::RadialDistortion);
+    EXPECT_EQ(indices.size(), camera.numParameters() - 4);
+    for (const auto& index : indices) {
+        EXPECT_NE(index, FisheyeCameraModel::K1);
+        EXPECT_NE(index, FisheyeCameraModel::K2);
+        EXPECT_NE(index, FisheyeCameraModel::K3);
+        EXPECT_NE(index, FisheyeCameraModel::K4);
+    }
+
+    // Tangential distortion
+    indices = camera.constantParameterIndices(_Type::TangentialDistortion);
+    EXPECT_EQ(indices.size(), camera.numParameters());
 }
 
-// Gradually add one prior at a time and ensure that the method still works. We
-// test before and after setting the "is_set" member variable to true to ensure
-// that setting the value of priors when is_set=false is handled properly.
-TEST(FisheyeCameraModel, SetFromCameraIntrinsicsPriors)
+class FisheyeCameraFixture : public ::testing::Test
 {
-    CameraMetaData prior;
-    prior.focal_length.value[0] = 1000.0;
-    prior.principal_point.value[0] = 400.0;
-    prior.principal_point.value[1] = 300.0;
-    prior.aspect_ratio.value[0] = 1.01;
-    prior.skew.value[0] = 0.01;
-    prior.radial_distortion.value[0] = 0.01;
-    prior.radial_distortion.value[1] = 0.001;
-    prior.radial_distortion.value[2] = 0.001;
-    prior.radial_distortion.value[3] = 0.001;
+protected:
+    void SetUp() override
+    {
+        constexpr double kPrincipalPoint[2] = {600., 400.};
+        constexpr double kFocalLength = 1200.;
 
-    TestSetFromCameraintrinsicsPrior(prior);
-
-    prior.focal_length.is_set = true;
-    TestSetFromCameraintrinsicsPrior(prior);
-
-    prior.principal_point.is_set = true;
-    TestSetFromCameraintrinsicsPrior(prior);
-
-    prior.aspect_ratio.is_set = true;
-    TestSetFromCameraintrinsicsPrior(prior);
-
-    prior.skew.is_set = true;
-    TestSetFromCameraintrinsicsPrior(prior);
-
-    prior.radial_distortion.is_set = true;
-    TestSetFromCameraintrinsicsPrior(prior);
-}
-
-TEST(FisheyeCameraModel, constantParameterIndices)
-{
-    FisheyeCameraModel camera;
-    std::vector<int> constant_subset;
-
-    constant_subset =
-        camera.constantParameterIndices(OptimizeIntrinsicsType::None);
-    EXPECT_EQ(constant_subset.size(), camera.numParameters());
-
-    // Test that optimizing for focal length works correctly.
-    constant_subset =
-        camera.constantParameterIndices(OptimizeIntrinsicsType::FocalLength);
-    EXPECT_EQ(constant_subset.size(), camera.numParameters() - 1);
-    for (int i = 0; i < constant_subset.size(); i++) {
-        EXPECT_NE(constant_subset[i], FisheyeCameraModel::Fx);
+        _camera.setFocalLength(kFocalLength);
+        _camera.setPrincipalPoint(kPrincipalPoint[0], kPrincipalPoint[1]);
     }
 
-    // Test that optimizing for principal_points works correctly.
-    constant_subset =
-        camera.constantParameterIndices(OptimizeIntrinsicsType::PrincipalPoint);
-    EXPECT_EQ(constant_subset.size(), camera.numParameters() - 2);
-    for (int i = 0; i < constant_subset.size(); i++) {
-        EXPECT_NE(constant_subset[i], FisheyeCameraModel::Cx);
-        EXPECT_NE(constant_subset[i], FisheyeCameraModel::Cy);
-    }
+    void TestReprojection() const
+    {
+        constexpr double kTolerance = 1e-5;
+        const double kNormalizedTolerance = kTolerance / _camera.focalLength();
+        constexpr int kImageWidth = 1200;
+        constexpr int kImageHeight = 980;
+        constexpr double kMinDepth = 2.;
+        constexpr double kMaxDepth = 25.;
 
-    // Test that optimizing for aspect ratio works correctly.
-    constant_subset =
-        camera.constantParameterIndices(OptimizeIntrinsicsType::AspectRatio);
-    EXPECT_EQ(constant_subset.size(), camera.numParameters() - 1);
-    for (int i = 0; i < constant_subset.size(); i++) {
-        EXPECT_NE(constant_subset[i], FisheyeCameraModel::YX);
-    }
+        // Ensure the image -> camera -> image transformation works.
+        for (double x = 0.0; x < kImageWidth; x += 10.0) {
+            for (double y = 0.0; y < kImageHeight; y += 10.0) {
+                const Vector2d pixel{x, y};
+                const Vector3d ray = _camera.imageToSpace(pixel);
 
-    // Test that optimizing for skew works correctly.
-    constant_subset =
-        camera.constantParameterIndices(OptimizeIntrinsicsType::Skew);
-    EXPECT_EQ(constant_subset.size(), camera.numParameters() - 1);
-    for (int i = 0; i < constant_subset.size(); i++) {
-        EXPECT_NE(constant_subset[i], FisheyeCameraModel::Skew);
-    }
+                // Test the reprojection at several depths.
+                for (double depth = kMinDepth; depth < kMaxDepth; depth += 1.) {
+                    const Vector3d point = ray * depth;
+                    const Vector2d reprojected_pixel =
+                        _camera.spaceToImage(point);
 
-    // Test that optimizing for radial distortion works correctly.
-    constant_subset = camera.constantParameterIndices(
-        OptimizeIntrinsicsType::RadialDistortion);
-    EXPECT_EQ(constant_subset.size(), camera.numParameters() - 4);
-    for (int i = 0; i < constant_subset.size(); i++) {
-        EXPECT_NE(constant_subset[i], FisheyeCameraModel::K1);
-        EXPECT_NE(constant_subset[i], FisheyeCameraModel::K2);
-        EXPECT_NE(constant_subset[i], FisheyeCameraModel::K3);
-        EXPECT_NE(constant_subset[i], FisheyeCameraModel::K4);
-    }
+                    EXPECT_LT((pixel - reprojected_pixel).norm(), kTolerance)
+                        << "GT pixel: " << pixel.transpose()
+                        << "\n"
+                           "Reprojected pixel: "
+                        << reprojected_pixel.transpose();
+                }
+            }
+        }
 
-    // Test that optimizing for tangential distortion does not optimize any
-    // parameters.
-    constant_subset = camera.constantParameterIndices(
-        OptimizeIntrinsicsType::TangentialDistortion);
-    EXPECT_EQ(constant_subset.size(), camera.numParameters());
-}
+        // Ensure the camera -> image -> camera transformation works.
+        for (double x = -0.8; x < 0.8; x += 0.1) {
+            for (double y = -0.8; y < 0.8; y += 0.1) {
+                for (double depth = kMinDepth; depth < kMaxDepth; depth += 1.) {
+                    const Vector3d point{x, y, depth};
+                    const Vector2d pixel = _camera.spaceToImage(point);
+                    const Vector3d ray = _camera.imageToSpace(pixel);
+                    const Vector3d reprojected_point = ray * depth;
 
-inline void ReprojectionTest(const FisheyeCameraModel& camera)
-{
-    constexpr double kTolerance = 1e-5;
-    const double kNormalizedTolerance = kTolerance / camera.focalLength();
-    constexpr int kImageWidth = 1200;
-    constexpr int kImageHeight = 980;
-    constexpr double kMinDepth = 2.0;
-    constexpr double kMaxDepth = 25.0;
-
-    // Ensure the image -> camera -> image transformation works.
-    for (double x = 0.0; x < kImageWidth; x += 10.0) {
-        for (double y = 0.0; y < kImageHeight; y += 10.0) {
-            const Eigen::Vector2d pixel(x, y);
-            // Get the normalized ray of that pixel.
-            const Vector3d normalized_ray = camera.imageToSpace(pixel);
-
-            // Test the reprojection at several depths.
-            for (double depth = kMinDepth; depth < kMaxDepth; depth += 1.0) {
-                // Convert it to a full 3D point in the camera coordinate
-                // system.
-                const Vector3d point = normalized_ray * depth;
-                const Vector2d reprojected_pixel = camera.spaceToImage(point);
-
-                // Expect the reprojection to be close.
-                EXPECT_LT((pixel - reprojected_pixel).norm(), kTolerance)
-                    << "gt pixel: " << pixel.transpose()
-                    << "\n"
-                       "reprojected pixel: "
-                    << reprojected_pixel.transpose();
+                    EXPECT_LT((point - reprojected_point).norm(),
+                              kNormalizedTolerance)
+                        << "GT pixel: " << point.transpose()
+                        << "\n"
+                           "Reprojected pixel: "
+                        << reprojected_point.transpose();
+                }
             }
         }
     }
 
-    // Ensure the camera -> image -> camera transformation works.
-    for (double x = -0.8; x < 0.8; x += 0.1) {
-        for (double y = -0.8; y < 0.8; y += 0.1) {
-            for (double depth = kMinDepth; depth < kMaxDepth; depth += 1.0) {
-                const Eigen::Vector3d point(x, y, depth);
-                const Vector2d pixel = camera.spaceToImage(point);
+protected:
+    FisheyeCameraModel _camera;
+};
 
-                // Get the normalized ray of that pixel.
-                const Vector3d normalized_ray = camera.imageToSpace(pixel);
+TEST_F(FisheyeCameraFixture, ReprojectionNoDistortion)
+{
+    _camera.setRadialDistortion(0., 0., 0., 0.);
+    TestReprojection();
+}
 
-                // Convert it to a full 3D point in the camera coordinate
-                // system.
-                const Vector3d reprojected_point = normalized_ray * depth;
+TEST_F(FisheyeCameraFixture, ReprojectionOneDistortion)
+{
+    _camera.setRadialDistortion(0.01, 0., 0., 0.);
+    TestReprojection();
+}
 
-                // Expect the reprojection to be close.
-                EXPECT_LT((point - reprojected_point).norm(),
-                          kNormalizedTolerance)
-                    << "gt pixel: " << point.transpose()
-                    << "\nreprojected pixel: " << reprojected_point.transpose();
-            }
+TEST_F(FisheyeCameraFixture, ReprojectionTwoDistortion)
+{
+    _camera.setRadialDistortion(0.01, 0.001, 0., 0.);
+    TestReprojection();
+}
+
+TEST_F(FisheyeCameraFixture, ReprojectionThreeDistortion)
+{
+    _camera.setRadialDistortion(0.01, 0.001, 0.001, 0.);
+    TestReprojection();
+}
+
+TEST_F(FisheyeCameraFixture, ReprojectionFourDistortion)
+{
+    _camera.setRadialDistortion(0.01, 0.001, 0.001, 0.001);
+    TestReprojection();
+}
+
+class cocFisheyeCameraFixture : public ::testing::Test
+{
+protected:
+    void SetUp() override
+    {
+        // clang-format off
+        _camera_coc = {"camera",
+                        1280, 800,
+                        -0.01648, -0.00203, 0.00069, -0.00048,
+                        419.22826, 420.42160,
+                        655.45487, 389.66377};
+        // clang-format on
+    }
+
+protected:
+    camodocal::EquidistantCamera _camera_coc;
+};
+
+TEST_F(cocFisheyeCameraFixture, CamOdoCalConsistency)
+{
+    FisheyeCameraModel camera;
+    camera.setFocalLength(419.22826);
+    camera.setAspectRatio(1.002847);
+    camera.setPrincipalPoint(655.45487, 389.66377);
+    camera.setRadialDistortion(-0.01648, -0.00203, 0.00069, -0.00048);
+
+    constexpr int kSampleCount = 100;
+
+    // FIXME: C style is not recommended
+    std::srand((unsigned int)::time(nullptr));
+
+    int count{0};
+    for (int i{0}; i < kSampleCount; ++i) {
+        Vector3d point3 = Vector3d::Random();
+        point3(2) = std::abs(point3(2));
+
+        // CalibKit
+        const auto px = camera.spaceToImage(point3);
+        auto ray_kit = camera.imageToSpace(px).normalized();
+
+        // CamOdoCal
+        Vector2d px_coc;
+        _camera_coc.spaceToPlane(point3, px_coc);
+
+        Vector3d ray_coc;
+        _camera_coc.liftProjective(px_coc, ray_coc);
+        ray_coc.normalize();
+
+        if (!((ray_coc - ray_kit).cwiseAbs().array() < 1e-10).all()) {
+            LOG(INFO) << "Original point: " << point3.transpose()
+                      << "; "
+                         "Reproject by CalibKit: "
+                      << ray_kit.transpose()
+                      << "; "
+                         "Reproject by CamOdoCal: "
+                      << ray_coc.transpose();
+
+            ++count;
         }
     }
+
+    LOG(INFO) << "There are " << count << " deviation points.";
+    EXPECT_EQ(count, 0);
 }
 
-TEST(FisheyeCameraModel, ReprojectionNoDistortion)
+TEST_F(cocFisheyeCameraFixture, CamOdoCalReprojectConsistency)
 {
-    constexpr double kPrincipalPoint[2] = {600.0, 400.0};
-    constexpr double kFocalLength = 1200;
-    FisheyeCameraModel camera;
-    camera.setFocalLength(kFocalLength);
-    camera.setPrincipalPoint(kPrincipalPoint[0], kPrincipalPoint[1]);
-    camera.setRadialDistortion(0, 0, 0, 0);
-    ReprojectionTest(camera);
+    constexpr int kSampleCount = 100;
+
+    int count{0};
+    for (int i = 0; i < 100; ++i) {
+        Eigen::Vector3d point = Eigen::Vector3d::Random();
+        point(2) = fabs(point(2));
+
+        Eigen::Vector2d px;
+        _camera_coc.spaceToPlane(point, px);
+
+        Eigen::Vector3d ray;
+        _camera_coc.liftProjective(px, ray);
+
+        Vector3d ray_newton;
+        _camera_coc.liftProjectiveByIteration1(px, ray_newton);
+
+        Vector3d ray_iter;
+        _camera_coc.liftProjectiveByIteration1(px, ray_iter);
+
+        point.normalize();
+        ray.normalize();
+        ray_newton.normalize();
+        ray_iter.normalize();
+
+        if (!((point - ray_newton).cwiseAbs().array() < 1e-10).all()) {
+            LOG(INFO) << "Origin: " << point.transpose()
+                      << ", "
+                         "Revise : "
+                      << ray_newton.transpose();
+            ++count;
+        }
+    }
+
+    LOG(INFO) << "There are " << count << " deviation points.";
+    EXPECT_EQ(count, 0);
 }
 
-TEST(FisheyeCameraModel, ReprojectionOneDistortion)
+TEST(FisheyeCameraModel, Playground)
 {
-    constexpr double kPrincipalPoint[2] = {600.0, 400.0};
-    constexpr double kFocalLength = 1200;
-    FisheyeCameraModel camera;
-    camera.setFocalLength(kFocalLength);
-    camera.setPrincipalPoint(kPrincipalPoint[0], kPrincipalPoint[1]);
-    camera.setRadialDistortion(0.01, 0.0, 0.0, 0.0);
-    ReprojectionTest(camera);
-}
+    // Good-1-CalibKit
+    // 0.0067743900959463966, 0.042858245977267943, -0.085987998031273952,
+    // 0.063911157302371041
 
-TEST(FisheyeCameraModel, ReprojectionTwoDistortion)
-{
-    constexpr double kPrincipalPoint[2] = {600.0, 400.0};
-    constexpr double kFocalLength = 1200;
-    FisheyeCameraModel camera;
-    camera.setFocalLength(kFocalLength);
-    camera.setPrincipalPoint(kPrincipalPoint[0], kPrincipalPoint[1]);
-    camera.setRadialDistortion(0.01, 0.001, 0.0, 0.0);
-    ReprojectionTest(camera);
-}
+    // Good-1-Kalibr
+    // 1.2352591910062178e-02, 1.8459255582963689e-02,
+    // -2.1322294391136667e-02, 6.8752410586414838e-03
 
-TEST(FisheyeCameraModel, ReprojectionThreeDistortion)
-{
-    constexpr double kPrincipalPoint[2] = {600.0, 400.0};
-    constexpr double kFocalLength = 1200;
-    FisheyeCameraModel camera;
-    camera.setFocalLength(kFocalLength);
-    camera.setPrincipalPoint(kPrincipalPoint[0], kPrincipalPoint[1]);
-    camera.setRadialDistortion(0.01, 0.001, 0.001, 0.0);
-    ReprojectionTest(camera);
-}
+    // Bad-1-CalibKit
+    // 0.019028151275260561, -0.04693368669301206, 0.16270783293226751,
+    // -0.16537907477560224
 
-TEST(FisheyeCameraModel, ReprojectionFourDistortion)
-{
-    constexpr double kPrincipalPoint[2] = {600.0, 400.0};
-    constexpr double kFocalLength = 1200;
-    FisheyeCameraModel camera;
-    camera.setFocalLength(kFocalLength);
-    camera.setPrincipalPoint(kPrincipalPoint[0], kPrincipalPoint[1]);
-    camera.setRadialDistortion(0.01, 0.001, 0.001, 0.001);
-    ReprojectionTest(camera);
+    // Bad-1-Kalibr
+    // 9.2997179392838806e-03, 3.0590423011149451e-02,
+    // -3.2023628626212566e-02, 1.0416638741187919e-02
+
+    FisheyeCameraModel camera_kit;
+    camera_kit.setFocalLength(318.30227058009393);
+    camera_kit.setAspectRatio(0.9999181798078266);
+    camera_kit.setPrincipalPoint(324.963542409841, 200.2321543392214);
+    camera_kit.setRadialDistortion(0.0109363, 0.00989819, 0.00153313,
+                                   -0.00833513);
+
+    FisheyeCameraModel camera_kalibr;
+    camera_kalibr.setFocalLength(318.30227058009393);
+    camera_kalibr.setAspectRatio(0.9999181798078266);
+    camera_kalibr.setPrincipalPoint(324.963542409841, 200.2321543392214);
+    camera_kalibr.setRadialDistortion(
+        9.2997179392838806e-03, 3.0590423011149451e-02, -3.2023628626212566e-02,
+        1.0416638741187919e-02);
+
+    cv::Mat detection = cv::Mat::zeros(480, 640, CV_8UC3);
+
+    constexpr int kSampleCount = 1000;
+    for (int i{0}; i < kSampleCount; ++i) {
+        Vector3d point3 = Vector3d::Random();
+        point3(2) = std::abs(point3(2));
+
+        const auto pixel_kit = camera_kit.spaceToImage(point3);
+
+        const auto pixel_kalibr = camera_kalibr.spaceToImage(point3);
+
+        if ((pixel_kit.array() > 0).all() && (pixel_kalibr.array() > 0).all()) {
+            cv::drawMarker(detection, cv::Point(pixel_kit.x(), pixel_kit.y()),
+                           CV_RGB(255, 0, 0), cv::MARKER_CROSS, 4);
+            cv::drawMarker(detection,
+                           cv::Point(pixel_kalibr.x(), pixel_kalibr.y()),
+                           CV_RGB(0, 255, 0), cv::MARKER_CROSS, 4);
+        }
+    }
+
+    cv::imwrite("space_to_pixel.png", detection);
+
+    EXPECT_TRUE(true);
 }

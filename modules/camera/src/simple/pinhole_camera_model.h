@@ -1,7 +1,8 @@
 ﻿#pragma once
 
-#include "camera_intrinsics.h"
 #include <ceres/ceres.h>
+
+#include "camera_intrinsics.h"
 
 namespace tl {
 
@@ -30,7 +31,7 @@ class PinholeCameraModel final : public CameraIntrinsics
 public:
     PinholeCameraModel();
 
-    Type type() const override;
+    constexpr Type type() const override { return Type::Pinhole; }
 
     void setFromMetaData(const CameraMetaData& meta) override;
     CameraMetaData toMetaData() const override;
@@ -59,7 +60,9 @@ public:
     std::vector<int> constantParameterIndices(
         OptimizeIntrinsicsType flags) const override;
 
-    void calibrationMatrix(Eigen::Matrix3d& matrix) const override;
+    Eigen::Matrix3d calibrationMatrix() const override;
+
+    bool isValid() const override;
 
     // ---------------------- Point Mapping --------------------------------
     //
@@ -68,6 +71,9 @@ public:
 
     template <typename T>
     static bool pixelToSpace(const T* intrinsics, const T* pixel, T* point);
+
+    template <typename T>
+    static bool isUnprojectable(const T* intrinsics, const T* pixel);
 
     template <typename T>
     static bool distort(const T* intrinsics, const T* undistort, T* distorted);
@@ -108,7 +114,8 @@ public:
         return undistorted;
     }
 
-    void print() const override;
+protected:
+    std::string toLog() const override;
 };
 
 /// -------------------------- Implementation -------------------------------
@@ -161,6 +168,12 @@ bool PinholeCameraModel::pixelToSpace(const T* intrinsics, const T* px, T* pt)
 }
 
 template <typename T>
+bool PinholeCameraModel::isUnprojectable(const T* intrinsics, const T* pixel)
+{
+    return true;
+}
+
+template <typename T>
 bool PinholeCameraModel::distort(const T* intrinsics, const T* pt_u, T* pt_d)
 {
     T rd;
@@ -176,7 +189,7 @@ template <typename T>
 bool PinholeCameraModel::undistort(const T* intrinsics, const T* pt_d, T* pt_u)
 {
     constexpr int kIterations{100};
-    constexpr T kUndistortionEpsilon = T(1e-10);
+    const T kUndistortionEpsilon = T(1e-10);
 
     T prev_pt_u[2];
     pt_u[0] = pt_d[0];

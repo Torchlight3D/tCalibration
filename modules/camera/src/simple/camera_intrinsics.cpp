@@ -1,8 +1,12 @@
 ﻿#include "camera_intrinsics.h"
 
 #include <glog/logging.h>
+
 #include <magic_enum/magic_enum.hpp>
 
+#include <tCore/Math>
+
+#include "../util_camera_matrix.h"
 #include "division_undistortion_camera_model.h"
 #include "double_sphere_camera_model.h"
 #include "extended_unified_camera_model.h"
@@ -12,7 +16,6 @@
 #include "orthographic_camera_model.h"
 #include "pinhole_camera_model.h"
 #include "pinhole_radial_tangential_camera_model.h"
-#include "../util_camera_matrix.h"
 
 namespace tl {
 
@@ -189,13 +192,20 @@ std::vector<int> CameraIntrinsics::constantParameterIndices(
     return indices;
 }
 
-void CameraIntrinsics::calibrationMatrix(Matrix3d& K) const
+Eigen::Matrix3d CameraIntrinsics::calibrationMatrix() const
 {
-    intrinsicsToCalibrationMatrix(parameters_[Fx], 0., parameters_[YX],
-                                  parameters_[Cx], parameters_[Cy], K);
+    return intrinsicsToCalibrationMatrix(parameters_[Fx], 0., parameters_[YX],
+                                         parameters_[Cx], parameters_[Cy]);
 }
 
-void CameraIntrinsics::createUndistortionMap(MatrixXf& map1, MatrixXf& map2,
+bool CameraIntrinsics::isValid() const
+{
+    return !math::isApprox0(fx()) && !math::isApprox0(aspectRatio()) &&
+           !math::isApprox0(cx()) && !math::isApprox0(cy());
+}
+
+void CameraIntrinsics::createUndistortionMap(Eigen::MatrixXf& map1,
+                                             Eigen::MatrixXf& map2,
                                              const Eigen::Vector2i& imageSize,
                                              double scale)
 {
@@ -203,8 +213,8 @@ void CameraIntrinsics::createUndistortionMap(MatrixXf& map1, MatrixXf& map2,
 }
 
 void CameraIntrinsics::createUndistortionRectifyMap(
-    MatrixXf& map1, MatrixXf& map2, Matrix3d& newK,
-    const Eigen::Vector2i& imageSize, const Matrix3d& R)
+    Eigen::MatrixXf& map1, Eigen::MatrixXf& map2, Eigen::Matrix3d& newK,
+    const Eigen::Vector2i& imageSize, const Eigen::Matrix3d& R)
 {
     if (!(imageSize.array() > 0).all()) {
         LOG(ERROR) << "Failed to create undistortion map: "
@@ -256,7 +266,7 @@ void CameraIntrinsics::createUndistortionRectifyMap(
     }
 }
 
-std::string CameraIntrinsics::toLogString() const
+std::string CameraIntrinsics::toLog() const
 {
     std::ostringstream oss;
     oss << "Camera model type: " << magic_enum::enum_name(type())
@@ -268,9 +278,14 @@ std::string CameraIntrinsics::toLogString() const
         << aspectRatio()
         << "\n"
            "Principal point: "
-        << cx() << ", " << cy() << std::endl;
+        << cx() << ", " << cy();
 
     return oss.str();
+}
+
+std::ostream& operator<<(std::ostream& os, const CameraIntrinsics& cam)
+{
+    return os << cam.toLog();
 }
 
 } // namespace tl

@@ -109,7 +109,10 @@ TEST(CameraIntrinsics, Dataset1)
 
     // Mono Result
     auto camera = calib.camera();
-    camera->print();
+    LOG(INFO) << "\n"
+                 "Camera: "
+                 "\n"
+              << *camera;
 
     // TODO: Camera Pose refine
 

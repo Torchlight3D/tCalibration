@@ -10,12 +10,11 @@
 
 namespace camodocal {
 
-std::shared_ptr<CameraFactory> CameraFactory::m_instance;
-
 CameraFactory::CameraFactory() {}
 
 std::shared_ptr<CameraFactory> CameraFactory::instance()
 {
+    std::shared_ptr<CameraFactory> m_instance;
     if (!m_instance.get()) {
         m_instance.reset(new CameraFactory);
     }

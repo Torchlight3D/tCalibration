@@ -8,11 +8,9 @@
 
 namespace camodocal {
 
-/**
- * C. Mei, and P. Rives, Single View Point Omnidirectional Camera Calibration
- * from Planar Grids, ICRA 2007
- */
-
+// Reference:
+// C. Mei, and P. Rives, Single View Point Omnidirectional Camera Calibration
+// from Planar Grids, ICRA 2007
 class CataCamera final : public Camera
 {
 public:
@@ -59,14 +57,10 @@ public:
 
     private:
         double m_xi;
-        double m_k1;
-        double m_k2;
-        double m_p1;
-        double m_p2;
-        double m_gamma1;
-        double m_gamma2;
-        double m_u0;
-        double m_v0;
+        double m_k1, m_k2;
+        double m_p1, m_p2;
+        double m_gamma1, m_gamma2;
+        double m_u0, m_v0;
     };
 
     using Ptr = std::shared_ptr<CataCamera>;
@@ -74,9 +68,14 @@ public:
 
     CataCamera();
     explicit CataCamera(const Parameters &params);
-    CataCamera(const std::string &cameraName, int imageWidth, int imageHeight,
-               double xi, double k1, double k2, double p1, double p2,
-               double gamma1, double gamma2, double u0, double v0);
+    inline CataCamera(const std::string &cameraName, int imageWidth,
+                      int imageHeight, double xi, double k1, double k2,
+                      double p1, double p2, double gamma1, double gamma2,
+                      double u0, double v0)
+        : CataCamera(Parameters{cameraName, imageWidth, imageHeight, xi, k1, k2,
+                                p1, p2, gamma1, gamma2, u0, v0})
+    {
+    }
 
     Camera::ModelType modelType() const override;
     const std::string &cameraName() const override;
@@ -141,6 +140,9 @@ public:
     void writeParametersToYamlFile(const std::string &filename) const override;
 
     std::string parametersToString() const override;
+
+private:
+    bool withoutDistortion() const;
 
 private:
     Parameters mParameters;

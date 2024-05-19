@@ -1,8 +1,5 @@
 ﻿#include "extended_unified_camera_model.h"
 
-#include <glog/logging.h>
-#include <magic_enum/magic_enum.hpp>
-
 #include <tCamera/CameraMatrixUtils>
 
 namespace tl {
@@ -16,11 +13,6 @@ ExtendedUnifiedCameraModel::ExtendedUnifiedCameraModel() : CameraIntrinsics()
     setParameter(Skew, 0.);
     setParameter(Alpha, 0.5);
     setParameter(Beta, 0.);
-}
-
-CameraIntrinsics::Type ExtendedUnifiedCameraModel::type() const
-{
-    return Type::ExtendedUnified;
 }
 
 void ExtendedUnifiedCameraModel::setFromMetaData(const CameraMetaData& meta)
@@ -89,19 +81,29 @@ std::vector<int> ExtendedUnifiedCameraModel::constantParameterIndices(
     return indices;
 }
 
-void ExtendedUnifiedCameraModel::calibrationMatrix(Eigen::Matrix3d& K) const
+Eigen::Matrix3d ExtendedUnifiedCameraModel::calibrationMatrix() const
 {
-    intrinsicsToCalibrationMatrix(parameters_[Fx], parameters_[Skew],
-                                  parameters_[YX], parameters_[Cx],
-                                  parameters_[Cy], K);
+    return intrinsicsToCalibrationMatrix(parameters_[Fx], parameters_[Skew],
+                                         parameters_[YX], parameters_[Cx],
+                                         parameters_[Cy]);
 }
 
-void ExtendedUnifiedCameraModel::print() const
+bool ExtendedUnifiedCameraModel::isValid() const
 {
-    LOG(INFO) << toLogString() << "Skew: " << skew()
-              << "\n"
-                 "Radial distortion (alpha, beta): "
-              << alpha() << ", " << beta();
+    return CameraIntrinsics::isValid();
+}
+
+std::string ExtendedUnifiedCameraModel::toLog() const
+{
+    std::ostringstream oss;
+    oss << CameraIntrinsics::toLog()
+        << "\n"
+           "Skew: "
+        << skew()
+        << "\n"
+           "Radial distortion (alpha, beta): "
+        << alpha() << ", " << beta();
+    return oss.str();
 }
 
 } // namespace tl

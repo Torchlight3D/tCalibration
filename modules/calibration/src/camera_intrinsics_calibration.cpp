@@ -631,11 +631,6 @@ ViewId CameraIntrinsicsCalibration::Impl::addViewToScene(
             break;
     }
 
-    LOG(INFO) << "Add view " << viewId << "(" << viewName
-              << "). "
-                 "Internal camera info: ";
-    view->camera().print();
-
     return viewId;
 }
 

@@ -1,4 +1,4 @@
-#include <Eigen/Dense>
+#include <Eigen/Core>
 #include <gtest/gtest.h>
 
 #include <tCamera/Camera>
@@ -21,13 +21,13 @@ RandomNumberGenerator kRNG{157};
 TEST(Camera, ProjectionMatrix)
 {
     constexpr double kTolerance = 1e-12;
+    constexpr double kImageEdge = 500.;
 
     Camera camera;
-    constexpr double image_size = 500.;
     Matrix34d gt_projection_matrix;
     for (int i = 0; i < 100; i++) {
         gt_projection_matrix.setRandom();
-        EXPECT_TRUE(camera.setFromProjectMatrix(image_size, image_size,
+        EXPECT_TRUE(camera.setFromProjectMatrix(kImageEdge, kImageEdge,
                                                 gt_projection_matrix));
         Matrix34d projection_matrix;
         camera.projectionMatrix(projection_matrix);
@@ -41,10 +41,7 @@ TEST(Camera, ProjectionMatrix)
 TEST(Camera, InternalParameterGettersAndSetters)
 {
     Camera camera;
-
     auto intrinsics = camera.cameraIntrinsics();
-
-    PinholeCameraModel pinhole_intrinsics;
 
     // Check that default values are set
     EXPECT_EQ(camera.focalLength(), 1.);
@@ -52,19 +49,24 @@ TEST(Camera, InternalParameterGettersAndSetters)
     EXPECT_EQ(camera.principalPointY(), 0.);
 
     // Make sure the default intrinsics are sets for pinhole cameras.
+    PinholeCameraModel pinhole_intrinsics;
     EXPECT_EQ(camera.cameraIntrinsicsModel(), CameraIntrinsics::Type::Pinhole);
     for (int i = 0; i < intrinsics->numParameters(); i++) {
         EXPECT_EQ(intrinsics->parameter(i), pinhole_intrinsics.parameter(i));
     }
 
+    constexpr double kFocalLength{600.};
+    constexpr double kPrincipalPointX{300.};
+    constexpr double kPrincipalPointY{400.};
+
     // Set parameters to different values.
-    camera.setFocalLength(600.0);
-    camera.setPrincipalPoint(300.0, 400.0);
+    camera.setFocalLength(kFocalLength);
+    camera.setPrincipalPoint(kPrincipalPointX, kPrincipalPointY);
 
     // Check that the values were updated.
-    EXPECT_EQ(camera.focalLength(), 600.0);
-    EXPECT_EQ(camera.principalPointX(), 300.0);
-    EXPECT_EQ(camera.principalPointY(), 400.0);
+    EXPECT_EQ(camera.focalLength(), kFocalLength);
+    EXPECT_EQ(camera.principalPointX(), kPrincipalPointX);
+    EXPECT_EQ(camera.principalPointY(), kPrincipalPointY);
 }
 
 TEST(Camera, ExternalParameterGettersAndSetters)
@@ -110,7 +112,7 @@ TEST(Camera, ExternalParameterGettersAndSetters)
               kTolerance);
 }
 
-TEST(Camera, SetFromCameraIntrinsicsPrior)
+TEST(Camera, SetFromCameraMetaData)
 {
     CameraMetaData meta;
     meta.image_width = 1920;
@@ -161,26 +163,30 @@ void ReprojectionTest(const Camera& camera)
 
         // Expect the reconstructed 3d points to be close.
         EXPECT_LT(std::abs(random_depth - depth), kTolerance * random_depth)
-            << "real depth = " << random_depth
-            << " and reconstructed depth = " << depth;
+            << "Real depth: " << random_depth
+            << "\n"
+               "Reconstructed depth: "
+            << depth;
 
         // Expect the reprojection to be close.
         EXPECT_LT((pixel - reprojected_pixel).norm(), kTolerance)
-            << "gt pixel: " << pixel.transpose()
-            << "\nreprojected pixel: " << reprojected_pixel.transpose();
+            << "GT pixel: " << pixel.transpose()
+            << "\n"
+               "Reprojected pixel: "
+            << reprojected_pixel.transpose();
     }
 }
 
 TEST(Camera, Reprojection)
 {
-    constexpr double image_size = 600.;
+    constexpr double kImageEdge = 600.;
 
     Camera camera;
     Matrix34d projection_mat;
     for (int i = 0; i < 100; i++) {
         // Initialize a random camera.
         projection_mat.setRandom();
-        camera.setFromProjectMatrix(image_size, image_size, projection_mat);
+        camera.setFromProjectMatrix(kImageEdge, kImageEdge, projection_mat);
 
         ReprojectionTest(camera);
     }

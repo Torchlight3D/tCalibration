@@ -1,4 +1,4 @@
-#include <Eigen/Dense>
+#include <Eigen/Core>
 #include <gtest/gtest.h>
 
 #include <tCamera/DoubleSphereCameraModel>
@@ -12,6 +12,7 @@ TEST(DoubleSphereCameraModel, InternalParameterGettersAndSetters)
 {
     DoubleSphereCameraModel camera;
 
+    // Check type
     EXPECT_EQ(camera.type(), CameraIntrinsics::Type::DoubleSphere);
 
     // Check that default values are set
@@ -23,219 +24,229 @@ TEST(DoubleSphereCameraModel, InternalParameterGettersAndSetters)
     EXPECT_EQ(camera.alpha(), 0.5);
     EXPECT_EQ(camera.xi(), 0.);
 
-    // Set parameters to different values.
-    camera.setFocalLength(0.5 * 805);
-    camera.setAspectRatio(805 / 800);
-    camera.setSkew(0.00);
-    camera.setPrincipalPoint(505, 509);
-    camera.setDistortion(0.5 * -0.150694, 0.5 * 1.48785);
+    // Set parameters to different values, and check that they were updated.
+    constexpr auto kFocalLength{0.5 * 805.};
+    constexpr auto kAspectRatio{805. / 800.};
+    constexpr auto kSkew{0.};
+    constexpr auto kPrincipalPointX{505.};
+    constexpr auto kPrincipalPointY{509.};
+    constexpr auto kAlpha{0.5 * -0.150694};
+    constexpr auto kXi{0.5 * 1.48785};
 
-    // Check that the values were updated.
-    EXPECT_EQ(camera.focalLength(), 0.5 * 805);
-    EXPECT_EQ(camera.aspectRatio(), 805 / 800);
-    EXPECT_EQ(camera.skew(), 0.00);
-    EXPECT_EQ(camera.principalPointX(), 505);
-    EXPECT_EQ(camera.principalPointY(), 509);
-    EXPECT_EQ(camera.alpha(), 0.5 * -0.150694);
-    EXPECT_EQ(camera.xi(), 0.5 * 1.48785);
+    camera.setFocalLength(kFocalLength);
+    camera.setAspectRatio(kAspectRatio);
+    camera.setSkew(kSkew);
+    camera.setPrincipalPoint(kPrincipalPointX, kPrincipalPointY);
+    camera.setDistortion(kAlpha, kXi);
+
+    EXPECT_EQ(camera.focalLength(), kFocalLength);
+    EXPECT_EQ(camera.aspectRatio(), kAspectRatio);
+    EXPECT_EQ(camera.skew(), kSkew);
+    EXPECT_EQ(camera.principalPointX(), kPrincipalPointX);
+    EXPECT_EQ(camera.principalPointY(), kPrincipalPointY);
+    EXPECT_EQ(camera.alpha(), kAlpha);
+    EXPECT_EQ(camera.xi(), kXi);
 }
 
-// Test to ensure that the camera intrinsics are being set appropriately.
-inline void TestSetFromCameraMetaData(const CameraMetaData& prior)
-{
-    const DoubleSphereCameraModel default_camera;
-    DoubleSphereCameraModel camera;
-    camera.setFromMetaData(prior);
-
-    if (prior.focal_length.is_set) {
-        EXPECT_EQ(camera.focalLength(), prior.focal_length.value[0]);
-    }
-    else {
-        EXPECT_EQ(camera.focalLength(), default_camera.focalLength());
-    }
-
-    if (prior.principal_point.is_set) {
-        EXPECT_EQ(camera.principalPointX(), prior.principal_point.value[0]);
-        EXPECT_EQ(camera.principalPointY(), prior.principal_point.value[1]);
-    }
-    else {
-        EXPECT_EQ(camera.principalPointX(), default_camera.principalPointX());
-        EXPECT_EQ(camera.principalPointY(), default_camera.principalPointY());
-    }
-
-    if (prior.aspect_ratio.is_set) {
-        EXPECT_EQ(camera.aspectRatio(), prior.aspect_ratio.value[0]);
-    }
-    else {
-        EXPECT_EQ(camera.aspectRatio(), default_camera.aspectRatio());
-    }
-
-    if (prior.skew.is_set) {
-        EXPECT_EQ(camera.skew(), prior.skew.value[0]);
-    }
-    else {
-        EXPECT_EQ(camera.skew(), default_camera.skew());
-    }
-
-    if (prior.radial_distortion.is_set) {
-        EXPECT_EQ(camera.alpha(), prior.radial_distortion.value[0]);
-        EXPECT_EQ(camera.xi(), prior.radial_distortion.value[1]);
-    }
-    else {
-        EXPECT_EQ(camera.xi(), default_camera.xi());
-        EXPECT_EQ(camera.alpha(), default_camera.alpha());
-    }
-}
-
-// Gradually add one prior at a time and ensure that the method still works. We
-// test before and after setting the "is_set" member variable to true to ensure
-// that setting the value of priors when is_set=false is handled properly.
 TEST(DoubleSphereCameraModel, SetFromCameraMetaDatas)
 {
-    CameraMetaData prior;
-    prior.focal_length.value[0] = 1000.0;
-    prior.principal_point.value[0] = 400.0;
-    prior.principal_point.value[1] = 300.0;
-    prior.aspect_ratio.value[0] = 1.01;
-    prior.skew.value[0] = 0.01;
-    prior.radial_distortion.value[0] = 0.01;
-    prior.radial_distortion.value[1] = 0.001;
+    // Test to ensure that the camera intrinsics are being set appropriately.
+    auto TestCameraSetFromMeta = [](const CameraMetaData& meta) {
+        const DoubleSphereCameraModel default_camera;
 
-    TestSetFromCameraMetaData(prior);
+        DoubleSphereCameraModel camera;
+        camera.setFromMetaData(meta);
 
-    prior.focal_length.is_set = true;
-    TestSetFromCameraMetaData(prior);
+        if (meta.focal_length.is_set) {
+            EXPECT_EQ(camera.focalLength(), meta.focal_length.value[0]);
+        }
+        else {
+            EXPECT_EQ(camera.focalLength(), default_camera.focalLength());
+        }
 
-    prior.principal_point.is_set = true;
-    TestSetFromCameraMetaData(prior);
+        if (meta.principal_point.is_set) {
+            EXPECT_EQ(camera.principalPointX(), meta.principal_point.value[0]);
+            EXPECT_EQ(camera.principalPointY(), meta.principal_point.value[1]);
+        }
+        else {
+            EXPECT_EQ(camera.cx(), default_camera.cx());
+            EXPECT_EQ(camera.cy(), default_camera.cy());
+        }
 
-    prior.aspect_ratio.is_set = true;
-    TestSetFromCameraMetaData(prior);
+        if (meta.aspect_ratio.is_set) {
+            EXPECT_EQ(camera.aspectRatio(), meta.aspect_ratio.value[0]);
+        }
+        else {
+            EXPECT_EQ(camera.aspectRatio(), default_camera.aspectRatio());
+        }
 
-    prior.skew.is_set = true;
-    TestSetFromCameraMetaData(prior);
+        if (meta.skew.is_set) {
+            EXPECT_EQ(camera.skew(), meta.skew.value[0]);
+        }
+        else {
+            EXPECT_EQ(camera.skew(), default_camera.skew());
+        }
 
-    prior.radial_distortion.is_set = true;
-    TestSetFromCameraMetaData(prior);
+        if (meta.radial_distortion.is_set) {
+            EXPECT_EQ(camera.alpha(), meta.radial_distortion.value[0]);
+            EXPECT_EQ(camera.xi(), meta.radial_distortion.value[1]);
+        }
+        else {
+            EXPECT_EQ(camera.xi(), default_camera.xi());
+            EXPECT_EQ(camera.alpha(), default_camera.alpha());
+        }
+    };
+
+    CameraMetaData meta;
+    meta.focal_length.value[0] = 1000.0;
+    meta.principal_point.value[0] = 400.0;
+    meta.principal_point.value[1] = 300.0;
+    meta.aspect_ratio.value[0] = 1.01;
+    meta.skew.value[0] = 0.01;
+    meta.radial_distortion.value[0] = 0.01;
+    meta.radial_distortion.value[1] = 0.001;
+
+    TestCameraSetFromMeta(meta);
+
+    meta.focal_length.is_set = true;
+    TestCameraSetFromMeta(meta);
+
+    meta.principal_point.is_set = true;
+    TestCameraSetFromMeta(meta);
+
+    meta.aspect_ratio.is_set = true;
+    TestCameraSetFromMeta(meta);
+
+    meta.skew.is_set = true;
+    TestCameraSetFromMeta(meta);
+
+    meta.radial_distortion.is_set = true;
+    TestCameraSetFromMeta(meta);
 }
 
 TEST(DoubleSphereCameraModel, GetSubsetFromOptimizeIntrinsicsType)
 {
+    using _Type = OptimizeIntrinsicsType;
+
     DoubleSphereCameraModel camera;
-    std::vector<int> constant_subset;
+    std::vector<int> indices;
 
-    constant_subset =
-        camera.constantParameterIndices(OptimizeIntrinsicsType::None);
-    EXPECT_EQ(constant_subset.size(), camera.numParameters());
+    indices = camera.constantParameterIndices(_Type::None);
+    EXPECT_EQ(indices.size(), camera.numParameters());
 
-    // Test that optimizing for focal length works correctly.
-    constant_subset =
-        camera.constantParameterIndices(OptimizeIntrinsicsType::FocalLength);
-    EXPECT_EQ(constant_subset.size(), camera.numParameters() - 1);
-    for (const auto& constant : constant_subset) {
-        EXPECT_NE(constant, DoubleSphereCameraModel::Fx);
+    // Focal length
+    indices = camera.constantParameterIndices(_Type::FocalLength);
+    EXPECT_EQ(indices.size(), camera.numParameters() - 1);
+    for (const auto& index : indices) {
+        EXPECT_NE(index, DoubleSphereCameraModel::Fx);
     }
 
-    // Test that optimizing for principal_points works correctly.
-    constant_subset =
-        camera.constantParameterIndices(OptimizeIntrinsicsType::PrincipalPoint);
-    EXPECT_EQ(constant_subset.size(), camera.numParameters() - 2);
-    for (int i = 0; i < constant_subset.size(); i++) {
-        EXPECT_NE(constant_subset[i], DoubleSphereCameraModel::Cx);
-        EXPECT_NE(constant_subset[i], DoubleSphereCameraModel::Cy);
+    // Principal point
+    indices = camera.constantParameterIndices(_Type::PrincipalPoint);
+    EXPECT_EQ(indices.size(), camera.numParameters() - 2);
+    for (const auto& index : indices) {
+        EXPECT_NE(index, DoubleSphereCameraModel::Cx);
+        EXPECT_NE(index, DoubleSphereCameraModel::Cy);
     }
 
-    // Test that optimizing for aspect ratio works correctly.
-    constant_subset =
-        camera.constantParameterIndices(OptimizeIntrinsicsType::AspectRatio);
-    EXPECT_EQ(constant_subset.size(), camera.numParameters() - 1);
-    for (int i = 0; i < constant_subset.size(); i++) {
-        EXPECT_NE(constant_subset[i], DoubleSphereCameraModel::YX);
+    // Aspect ratio
+    indices = camera.constantParameterIndices(_Type::AspectRatio);
+    EXPECT_EQ(indices.size(), camera.numParameters() - 1);
+    for (const auto& index : indices) {
+        EXPECT_NE(index, DoubleSphereCameraModel::YX);
     }
 
-    // Test that optimizing for skew works correctly.
-    constant_subset =
-        camera.constantParameterIndices(OptimizeIntrinsicsType::Skew);
-    EXPECT_EQ(constant_subset.size(), camera.numParameters() - 1);
-    for (int i = 0; i < constant_subset.size(); i++) {
-        EXPECT_NE(constant_subset[i], DoubleSphereCameraModel::Skew);
+    // Skew
+    indices = camera.constantParameterIndices(_Type::Skew);
+    EXPECT_EQ(indices.size(), camera.numParameters() - 1);
+    for (const auto& index : indices) {
+        EXPECT_NE(index, DoubleSphereCameraModel::Skew);
     }
 
-    // Test that optimizing for radial distortion works correctly.
-    constant_subset = camera.constantParameterIndices(
-        OptimizeIntrinsicsType::RadialDistortion);
-    EXPECT_EQ(constant_subset.size(), camera.numParameters() - 2);
-    for (int i = 0; i < constant_subset.size(); i++) {
-        EXPECT_NE(constant_subset[i], DoubleSphereCameraModel::Alpha);
-        EXPECT_NE(constant_subset[i], DoubleSphereCameraModel::Xi);
+    // Radial distortion
+    indices = camera.constantParameterIndices(_Type::RadialDistortion);
+    EXPECT_EQ(indices.size(), camera.numParameters() - 2);
+    for (const auto& index : indices) {
+        EXPECT_NE(index, DoubleSphereCameraModel::Alpha);
+        EXPECT_NE(index, DoubleSphereCameraModel::Xi);
     }
 }
 
-// Test the projection functions of the camera model by testing pixels on a grid
-// in the entire image to ensure that the effects of lens distortion at the
-// edges of the image are modeled correctly.
-void ReprojectionTest(const DoubleSphereCameraModel& camera)
+class DoubleSphereCameraFixture : public ::testing::Test
 {
-    constexpr double kTolerance = 1e-6;
-    const double kNormalizedTolerance = kTolerance / camera.focalLength();
-    constexpr int kImageWidth = 1280;
-    constexpr int kImageHeight = 1024;
-    constexpr double kMinDepth = 2.0;
-    constexpr double kMaxDepth = 25.0;
+protected:
+    void SetUp() override
+    {
+        constexpr double kFocalLength = 364.4687315519798;
+        constexpr double kPrincipalPoint[2] = {620.8633446632857,
+                                               512.7479213012696};
 
-    // Ensure the image -> camera -> image transformation works.
-    for (double x = 0.0; x < kImageWidth; x += 10.0) {
-        for (double y = 0.0; y < kImageHeight; y += 10.0) {
-            const Eigen::Vector2d pixel(x, y);
-            // Get the normalized ray of that pixel.
-            const Vector3d normalized_ray = camera.imageToSpace(pixel);
+        _camera.setFocalLength(kFocalLength);
+        _camera.setPrincipalPoint(kPrincipalPoint[0], kPrincipalPoint[1]);
+    }
 
-            // Test the reprojection at several depths.
-            for (double depth = kMinDepth; depth < kMaxDepth; depth += 1.0) {
-                // Convert it to a full 3D point in the camera coordinate
-                // system.
-                const Vector3d point = normalized_ray * depth;
-                const Vector2d reprojected_pixel = camera.spaceToImage(point);
+    // Test the projection functions of the camera model by testing pixels on a
+    // grid in the entire image to ensure that the effects of lens distortion at
+    // the edges of the image are modeled correctly.
+    void TestReprojection() const
+    {
+        constexpr double kTolerance = 1e-6;
+        const double kNormalizedTolerance = kTolerance / _camera.focalLength();
+        constexpr int kImageWidth = 1280;
+        constexpr int kImageHeight = 1024;
+        constexpr double kMinDepth = 2.0;
+        constexpr double kMaxDepth = 25.0;
 
-                // Expect the reprojection to be close.
-                EXPECT_LT((pixel - reprojected_pixel).norm(), kTolerance)
-                    << "gt pixel: " << pixel.transpose()
-                    << "\nreprojected pixel: " << reprojected_pixel.transpose();
+        // Ensure the image -> camera -> image transformation works.
+        for (double x = 0.0; x < kImageWidth; x += 10.0) {
+            for (double y = 0.0; y < kImageHeight; y += 10.0) {
+                const Vector2d pixel{x, y};
+                const Vector3d normalized_ray = _camera.imageToSpace(pixel);
+
+                // Test the reprojection at several depths.
+                for (double depth = kMinDepth; depth < kMaxDepth; depth += 1.) {
+                    const Vector3d point = normalized_ray * depth;
+                    const Vector2d reprojected_pixel =
+                        _camera.spaceToImage(point);
+
+                    // Expect the reprojection to be close.
+                    EXPECT_LT((pixel - reprojected_pixel).norm(), kTolerance)
+                        << "GT pixel: " << pixel.transpose()
+                        << "\n"
+                           "Reprojected pixel: "
+                        << reprojected_pixel.transpose();
+                }
+            }
+        }
+
+        // Ensure the camera -> image -> camera transformation works.
+        for (double x = -0.8; x < 0.8; x += 0.1) {
+            for (double y = -0.8; y < 0.8; y += 0.1) {
+                for (double depth = kMinDepth; depth < kMaxDepth; depth += 1.) {
+                    const Vector3d point{x, y, depth};
+                    const Vector2d pixel = _camera.spaceToImage(point);
+                    Vector3d normalized_ray = _camera.imageToSpace(pixel);
+                    normalized_ray /= normalized_ray[2];
+                    const Vector3d reprojected_point = normalized_ray * depth;
+
+                    // Expect the reprojection to be close.
+                    EXPECT_LT((point - reprojected_point).norm(),
+                              kNormalizedTolerance)
+                        << "GT pixel: " << point.transpose()
+                        << "\n"
+                           "Reprojected pixel: "
+                        << reprojected_point.transpose();
+                }
             }
         }
     }
 
-    // Ensure the camera -> image -> camera transformation works.
-    for (double x = -0.8; x < 0.8; x += 0.1) {
-        for (double y = -0.8; y < 0.8; y += 0.1) {
-            for (double depth = kMinDepth; depth < kMaxDepth; depth += 1.0) {
-                const Eigen::Vector3d point(x, y, depth);
-                const Vector2d pixel = camera.spaceToImage(point);
+protected:
+    DoubleSphereCameraModel _camera;
+};
 
-                // Get the normalized ray of that pixel.
-                Vector3d normalized_ray = camera.imageToSpace(pixel);
-                normalized_ray /= normalized_ray[2];
-                // Convert it to a full 3D point in the camera coordinate
-                // system.
-                const Vector3d reprojected_point = normalized_ray * depth;
-
-                // Expect the reprojection to be close.
-                EXPECT_LT((point - reprojected_point).norm(),
-                          kNormalizedTolerance)
-                    << "gt pixel: " << point.transpose()
-                    << "\nreprojected pixel: " << reprojected_point.transpose();
-            }
-        }
-    }
-}
-
-TEST(DoubleSphereCameraModel, ReprojectionDistortion)
+TEST_F(DoubleSphereCameraFixture, ReprojectionDistortion)
 {
-    constexpr double kPrincipalPoint[2] = {620.8633446632857,
-                                           512.7479213012696};
-    DoubleSphereCameraModel camera;
-    camera.setFocalLength(364.4687315519798);
-    camera.setPrincipalPoint(kPrincipalPoint[0], kPrincipalPoint[1]);
-    camera.setDistortion(0.572501301952097, -0.2725048615813684);
-    ReprojectionTest(camera);
+    _camera.setDistortion(0.572501301952097, -0.2725048615813684);
+    TestReprojection();
 }

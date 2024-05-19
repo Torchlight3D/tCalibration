@@ -1,15 +1,8 @@
 ﻿#include "division_undistortion_camera_model.h"
 
-#include <glog/logging.h>
-#include <magic_enum/magic_enum.hpp>
-
 #include <tCamera/CameraMatrixUtils>
 
 namespace tl {
-
-namespace {
-constexpr double kDefaultRadialDistortion{0.};
-}
 
 DivisionUndistortionCameraModel::DivisionUndistortionCameraModel()
     : CameraIntrinsics()
@@ -18,12 +11,7 @@ DivisionUndistortionCameraModel::DivisionUndistortionCameraModel()
     setFocalLength(1.);
     setAspectRatio(1.);
     setPrincipalPoint(0., 0.);
-    setParameter(K, kDefaultRadialDistortion);
-}
-
-CameraIntrinsics::Type DivisionUndistortionCameraModel::type() const
-{
-    return Type::DivisionUndistortion;
+    setParameter(K, 0.);
 }
 
 void DivisionUndistortionCameraModel::setFromMetaData(
@@ -35,7 +23,7 @@ void DivisionUndistortionCameraModel::setFromMetaData(
         setParameter(K, meta.radial_distortion.value[0]);
     }
     else {
-        setParameter(K, kDefaultRadialDistortion);
+        setParameter(K, 0.);
     }
 }
 
@@ -80,9 +68,19 @@ std::vector<int> DivisionUndistortionCameraModel::constantParameterIndices(
     return indices;
 }
 
-void DivisionUndistortionCameraModel::print() const
+bool DivisionUndistortionCameraModel::isValid() const
 {
-    LOG(INFO) << toLogString() << "Radial distortion (k): " << k();
+    return CameraIntrinsics::isValid();
+}
+
+std::string DivisionUndistortionCameraModel::toLog() const
+{
+    std::ostringstream oss;
+    oss << CameraIntrinsics::toLog()
+        << "\n"
+           "Radial distortion (k): "
+        << k();
+    return oss.str();
 }
 
 } // namespace tl

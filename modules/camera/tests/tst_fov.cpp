@@ -1,4 +1,4 @@
-#include <Eigen/Dense>
+#include <Eigen/Core>
 #include <gtest/gtest.h>
 
 #include <tCamera/FovCameraModel>
@@ -11,247 +11,231 @@ using Eigen::Vector3d;
 TEST(FOVCameraModel, InternalParameterGettersAndSetters)
 {
     FOVCameraModel camera;
-    constexpr double kDefaultOmega{0.75};
-
+    // Check type
     EXPECT_EQ(camera.type(), CameraIntrinsics::Type::Fov);
 
     // Check that default values are set
-    EXPECT_EQ(camera.focalLength(), 1.0);
-    EXPECT_EQ(camera.aspectRatio(), 1.0);
-    EXPECT_EQ(camera.principalPointX(), 0.0);
-    EXPECT_EQ(camera.principalPointY(), 0.0);
-    EXPECT_EQ(camera.radialDistortion1(), kDefaultOmega);
+    EXPECT_EQ(camera.focalLength(), 1.);
+    EXPECT_EQ(camera.aspectRatio(), 1.);
+    EXPECT_EQ(camera.principalPointX(), 0.);
+    EXPECT_EQ(camera.principalPointY(), 0.);
+    EXPECT_EQ(camera.omega(), FOVCameraModel::kDefaultOmega);
+
+    constexpr double kFocalLength{600.};
+    constexpr double kAspectRatio{0.9};
+    constexpr double kPrincipalPointX{300.};
+    constexpr double kPrincipalPointY{400.};
+    constexpr double kOmega{0.01};
 
     // Set parameters to different values.
-    camera.setFocalLength(600.0);
-    camera.setAspectRatio(0.9);
-    camera.setPrincipalPoint(300.0, 400.0);
-    camera.setRadialDistortion(0.01);
+    camera.setFocalLength(kFocalLength);
+    camera.setAspectRatio(kAspectRatio);
+    camera.setPrincipalPoint(kPrincipalPointX, kPrincipalPointY);
+    camera.setRadialDistortion(kOmega);
 
     // Check that the values were updated.
-    EXPECT_EQ(camera.focalLength(), 600.0);
-    EXPECT_EQ(camera.aspectRatio(), 0.9);
-    EXPECT_EQ(camera.principalPointX(), 300.0);
-    EXPECT_EQ(camera.principalPointY(), 400.0);
-    EXPECT_EQ(camera.radialDistortion1(), 0.01);
+    EXPECT_EQ(camera.focalLength(), kFocalLength);
+    EXPECT_EQ(camera.aspectRatio(), kAspectRatio);
+    EXPECT_EQ(camera.cx(), kPrincipalPointX);
+    EXPECT_EQ(camera.cy(), kPrincipalPointY);
+    EXPECT_EQ(camera.omega(), kOmega);
 }
 
-// Test to ensure that the camera intrinsics are being set appropriately.
-inline void TestSetFromCameraMetaData(const CameraMetaData& prior)
-{
-    const FOVCameraModel default_camera;
-    FOVCameraModel camera;
-    camera.setFromMetaData(prior);
-
-    if (prior.focal_length.is_set) {
-        EXPECT_EQ(camera.focalLength(), prior.focal_length.value[0]);
-    }
-    else {
-        EXPECT_EQ(camera.focalLength(), default_camera.focalLength());
-    }
-
-    if (prior.principal_point.is_set) {
-        EXPECT_EQ(camera.principalPointX(), prior.principal_point.value[0]);
-        EXPECT_EQ(camera.principalPointY(), prior.principal_point.value[1]);
-    }
-    else {
-        EXPECT_EQ(camera.principalPointX(), default_camera.principalPointX());
-        EXPECT_EQ(camera.principalPointY(), default_camera.principalPointY());
-    }
-
-    if (prior.aspect_ratio.is_set) {
-        EXPECT_EQ(camera.aspectRatio(), prior.aspect_ratio.value[0]);
-    }
-    else {
-        EXPECT_EQ(camera.aspectRatio(), default_camera.aspectRatio());
-    }
-
-    if (prior.radial_distortion.is_set) {
-        EXPECT_EQ(camera.radialDistortion1(), prior.radial_distortion.value[0]);
-    }
-    else {
-        EXPECT_EQ(camera.radialDistortion1(),
-                  default_camera.radialDistortion1());
-    }
-}
-
-// Gradually add one prior at a time and ensure that the method still works. We
+// Gradually add one meta at a time and ensure that the method still works. We
 // test before and after setting the "is_set" member variable to true to ensure
 // that setting the value of priors when is_set=false is handled properly.
-TEST(FOVCameraModel, SetFromCameraMetaDatas)
+TEST(FOVCameraModel, SetFromCameraMetaData)
 {
-    CameraMetaData prior;
-    prior.focal_length.value[0] = 1000.0;
-    prior.principal_point.value[0] = 400.0;
-    prior.principal_point.value[1] = 300.0;
-    prior.aspect_ratio.value[0] = 1.01;
-    prior.radial_distortion.value[0] = 0.01;
+    // Test to ensure that the camera intrinsics are being set appropriately.
+    auto TestCameraSetFromMeta = [](const CameraMetaData& meta) {
+        const FOVCameraModel default_camera;
+        FOVCameraModel camera;
+        camera.setFromMetaData(meta);
 
-    TestSetFromCameraMetaData(prior);
+        if (meta.focal_length.is_set) {
+            EXPECT_EQ(camera.focalLength(), meta.focal_length.value[0]);
+        }
+        else {
+            EXPECT_EQ(camera.focalLength(), default_camera.focalLength());
+        }
 
-    prior.focal_length.is_set = true;
-    TestSetFromCameraMetaData(prior);
+        if (meta.principal_point.is_set) {
+            EXPECT_EQ(camera.principalPointX(), meta.principal_point.value[0]);
+            EXPECT_EQ(camera.principalPointY(), meta.principal_point.value[1]);
+        }
+        else {
+            EXPECT_EQ(camera.cx(), default_camera.cx());
+            EXPECT_EQ(camera.cy(), default_camera.cy());
+        }
 
-    prior.principal_point.is_set = true;
-    TestSetFromCameraMetaData(prior);
+        if (meta.aspect_ratio.is_set) {
+            EXPECT_EQ(camera.aspectRatio(), meta.aspect_ratio.value[0]);
+        }
+        else {
+            EXPECT_EQ(camera.aspectRatio(), default_camera.aspectRatio());
+        }
 
-    prior.aspect_ratio.is_set = true;
-    TestSetFromCameraMetaData(prior);
+        if (meta.radial_distortion.is_set) {
+            EXPECT_EQ(camera.omega(), meta.radial_distortion.value[0]);
+        }
+        else {
+            EXPECT_EQ(camera.omega(), default_camera.omega());
+        }
+    };
 
-    prior.radial_distortion.is_set = true;
-    TestSetFromCameraMetaData(prior);
+    CameraMetaData meta;
+    meta.focal_length.value[0] = 1000.0;
+    meta.principal_point.value[0] = 400.0;
+    meta.principal_point.value[1] = 300.0;
+    meta.aspect_ratio.value[0] = 1.01;
+    meta.radial_distortion.value[0] = 0.01;
+
+    TestCameraSetFromMeta(meta);
+
+    meta.focal_length.is_set = true;
+    TestCameraSetFromMeta(meta);
+
+    meta.principal_point.is_set = true;
+    TestCameraSetFromMeta(meta);
+
+    meta.aspect_ratio.is_set = true;
+    TestCameraSetFromMeta(meta);
+
+    meta.radial_distortion.is_set = true;
+    TestCameraSetFromMeta(meta);
 }
 
 TEST(FOVCameraModel, constantParameterIndices)
 {
+    using _Type = OptimizeIntrinsicsType;
+
     FOVCameraModel camera;
-    std::vector<int> constant_subset;
+    std::vector<int> indices;
 
-    constant_subset =
-        camera.constantParameterIndices(OptimizeIntrinsicsType::None);
-    EXPECT_EQ(constant_subset.size(), camera.numParameters());
+    indices = camera.constantParameterIndices(_Type::None);
+    EXPECT_EQ(indices.size(), camera.numParameters());
 
-    // Test that optimizing for focal length works correctly.
-    constant_subset =
-        camera.constantParameterIndices(OptimizeIntrinsicsType::FocalLength);
-    EXPECT_EQ(constant_subset.size(), camera.numParameters() - 1);
-    for (int i = 0; i < constant_subset.size(); i++) {
-        EXPECT_NE(constant_subset[i], FOVCameraModel::Fx);
+    // Focal length
+    indices = camera.constantParameterIndices(_Type::FocalLength);
+    EXPECT_EQ(indices.size(), camera.numParameters() - 1);
+    for (const auto& index : indices) {
+        EXPECT_NE(index, FOVCameraModel::Fx);
     }
 
-    // Test that optimizing for principal_points works correctly.
-    constant_subset =
-        camera.constantParameterIndices(OptimizeIntrinsicsType::PrincipalPoint);
-    EXPECT_EQ(constant_subset.size(), camera.numParameters() - 2);
-    for (int i = 0; i < constant_subset.size(); i++) {
-        EXPECT_NE(constant_subset[i], FOVCameraModel::Cx);
-        EXPECT_NE(constant_subset[i], FOVCameraModel::Cy);
+    // Principal point
+    indices = camera.constantParameterIndices(_Type::PrincipalPoint);
+    EXPECT_EQ(indices.size(), camera.numParameters() - 2);
+    for (const auto& index : indices) {
+        EXPECT_NE(index, FOVCameraModel::Cx);
+        EXPECT_NE(index, FOVCameraModel::Cy);
     }
 
-    // Test that optimizing for aspect ratio works correctly.
-    constant_subset =
-        camera.constantParameterIndices(OptimizeIntrinsicsType::AspectRatio);
-    EXPECT_EQ(constant_subset.size(), camera.numParameters() - 1);
-    for (int i = 0; i < constant_subset.size(); i++) {
-        EXPECT_NE(constant_subset[i], FOVCameraModel::YX);
+    // Aspect ratio
+    indices = camera.constantParameterIndices(_Type::AspectRatio);
+    EXPECT_EQ(indices.size(), camera.numParameters() - 1);
+    for (const auto& index : indices) {
+        EXPECT_NE(index, FOVCameraModel::YX);
     }
 
-    // Test that optimizing for radial distortion works correctly.
-    constant_subset = camera.constantParameterIndices(
-        OptimizeIntrinsicsType::RadialDistortion);
-    EXPECT_EQ(constant_subset.size(), camera.numParameters() - 1);
-    for (int i = 0; i < constant_subset.size(); i++) {
-        EXPECT_NE(constant_subset[i], FOVCameraModel::Omega);
+    // Skew
+    indices = camera.constantParameterIndices(_Type::RadialDistortion);
+    EXPECT_EQ(indices.size(), camera.numParameters() - 1);
+    for (const auto& index : indices) {
+        EXPECT_NE(index, FOVCameraModel::Omega);
     }
 
-    // Test that optimizing for skew and tangential distortion does not optimize
-    // any parameters.
-    constant_subset =
-        camera.constantParameterIndices(OptimizeIntrinsicsType::Skew);
-    EXPECT_EQ(constant_subset.size(), camera.numParameters());
-    constant_subset = camera.constantParameterIndices(
-        OptimizeIntrinsicsType::TangentialDistortion);
-    EXPECT_EQ(constant_subset.size(), camera.numParameters());
+    // Skew and tangential distortion
+    indices = camera.constantParameterIndices(_Type::Skew);
+    EXPECT_EQ(indices.size(), camera.numParameters());
+    indices = camera.constantParameterIndices(_Type::TangentialDistortion);
+    EXPECT_EQ(indices.size(), camera.numParameters());
 }
 
-void ReprojectionTest(const FOVCameraModel& camera)
+class FovCameraFixture : public ::testing::Test
 {
-    constexpr double kTolerance{1e-5};
-    const double kNormalizedTolerance = kTolerance / camera.focalLength();
-    constexpr int kImageWidth{1200};
-    constexpr int kImageHeight{980};
-    constexpr double kMinDepth{2.0};
-    constexpr double kMaxDepth{25.0};
+protected:
+    void SetUp() override
+    {
+        constexpr double kPrincipalPoint[2]{600., 400.};
+        constexpr double kFocalLength{1200.};
 
-    // Ensure the image -> camera -> image transformation works.
-    for (double x = 0.0; x < kImageWidth; x += 10.0) {
-        for (double y = 0.0; y < kImageHeight; y += 10.0) {
-            const Eigen::Vector2d pixel(x, y);
-            // Get the normalized ray of that pixel.
-            const Vector3d normalized_ray = camera.imageToSpace(pixel);
+        _camera.setFocalLength(kFocalLength);
+        _camera.setPrincipalPoint(kPrincipalPoint[0], kPrincipalPoint[1]);
+    }
 
-            // Test the reprojection at several depths.
-            for (double depth = kMinDepth; depth < kMaxDepth; depth += 1.0) {
-                // Convert it to a full 3D point in the camera coordinate
-                // system.
-                const Vector3d point = normalized_ray * depth;
-                const Vector2d reprojected_pixel = camera.spaceToImage(point);
+    void TestProjection() const
+    {
+        constexpr double kTolerance{1e-5};
+        const double kNormalizedTolerance = kTolerance / _camera.focalLength();
+        constexpr int kImageWidth{1200};
+        constexpr int kImageHeight{980};
+        constexpr double kMinDepth{2.0};
+        constexpr double kMaxDepth{25.0};
 
-                // Expect the reprojection to be close.
-                EXPECT_LT((pixel - reprojected_pixel).norm(), kTolerance)
-                    << "gt pixel: " << pixel.transpose()
-                    << "\nreprojected pixel: " << reprojected_pixel.transpose();
+        // Ensure the image -> camera -> image transformation works.
+        for (double x = 0.0; x < kImageWidth; x += 10.0) {
+            for (double y = 0.0; y < kImageHeight; y += 10.0) {
+                const Vector2d pixel{x, y};
+                const Vector3d ray = _camera.imageToSpace(pixel);
+
+                for (double depth = kMinDepth; depth < kMaxDepth; depth += 1.) {
+                    const Vector3d point = ray * depth;
+                    const Vector2d reprojected_pixel =
+                        _camera.spaceToImage(point);
+
+                    EXPECT_LT((pixel - reprojected_pixel).norm(), kTolerance)
+                        << "GT pixel: " << pixel.transpose()
+                        << "\n"
+                           "Reprojected pixel: "
+                        << reprojected_pixel.transpose();
+                }
+            }
+        }
+
+        // Ensure the camera -> image -> camera transformation works.
+        for (double x = -0.8; x < 0.8; x += 0.1) {
+            for (double y = -0.8; y < 0.8; y += 0.1) {
+                for (double depth = kMinDepth; depth < kMaxDepth; depth += 1.) {
+                    const Vector3d point{x, y, depth};
+                    const Vector2d pixel = _camera.spaceToImage(point);
+                    const Vector3d ray = _camera.imageToSpace(pixel);
+                    const Vector3d reprojected_point = ray * depth;
+
+                    EXPECT_LT((point - reprojected_point).norm(),
+                              kNormalizedTolerance)
+                        << "GT pixel: " << point.transpose()
+                        << "\n"
+                           "Reprojected pixel: "
+                        << reprojected_point.transpose();
+                }
             }
         }
     }
 
-    // Ensure the camera -> image -> camera transformation works.
-    for (double x = -0.8; x < 0.8; x += 0.1) {
-        for (double y = -0.8; y < 0.8; y += 0.1) {
-            for (double depth = kMinDepth; depth < kMaxDepth; depth += 1.0) {
-                const Eigen::Vector3d point(x, y, depth);
-                const Vector2d pixel = camera.spaceToImage(point);
+protected:
+    FOVCameraModel _camera;
+};
 
-                // Get the normalized ray of that pixel.
-                const Vector3d normalized_ray = camera.imageToSpace(pixel);
-
-                // Convert it to a full 3D point in the camera coordinate
-                // system.
-                const Vector3d reprojected_point = normalized_ray * depth;
-
-                // Expect the reprojection to be close.
-                EXPECT_LT((point - reprojected_point).norm(),
-                          kNormalizedTolerance)
-                    << "gt pixel: " << point.transpose()
-                    << "\nreprojected pixel: " << reprojected_point.transpose();
-            }
-        }
-    }
+TEST_F(FovCameraFixture, ReprojectionNoDistortion)
+{
+    _camera.setRadialDistortion(0.);
+    TestProjection();
 }
 
-TEST(FOVCameraModel, ReprojectionNoDistortion)
+TEST_F(FovCameraFixture, ReprojectionOneDistortionSmall)
 {
-    constexpr double kPrincipalPoint[2]{600., 400.};
-    constexpr double kFocalLength{1200.};
-    FOVCameraModel camera;
-    camera.setFocalLength(kFocalLength);
-    camera.setPrincipalPoint(kPrincipalPoint[0], kPrincipalPoint[1]);
-    camera.setRadialDistortion(0);
-    ReprojectionTest(camera);
+    _camera.setRadialDistortion(1e-4);
+    TestProjection();
 }
 
-TEST(FOVCameraModel, ReprojectionOneDistortionSmall)
+TEST_F(FovCameraFixture, ReprojectionOneDistortionMedium)
 {
-    constexpr double kPrincipalPoint[2]{600., 400.};
-    constexpr double kFocalLength{1200.};
-    FOVCameraModel camera;
-    camera.setFocalLength(kFocalLength);
-    camera.setPrincipalPoint(kPrincipalPoint[0], kPrincipalPoint[1]);
-
-    camera.setRadialDistortion(0.0001);
-    ReprojectionTest(camera);
+    _camera.setRadialDistortion(1e-3);
+    TestProjection();
 }
 
-TEST(FOVCameraModel, ReprojectionOneDistortionMedium)
+TEST_F(FovCameraFixture, ReprojectionOneDistortionLarge)
 {
-    constexpr double kPrincipalPoint[2]{600., 400.};
-    constexpr double kFocalLength{1200.};
-    FOVCameraModel camera;
-    camera.setFocalLength(kFocalLength);
-    camera.setPrincipalPoint(kPrincipalPoint[0], kPrincipalPoint[1]);
-
-    camera.setRadialDistortion(0.001);
-    ReprojectionTest(camera);
-}
-
-TEST(FOVCameraModel, ReprojectionOneDistortionLarge)
-{
-    constexpr double kPrincipalPoint[2]{600., 400.};
-    constexpr double kFocalLength{1200.};
-    FOVCameraModel camera;
-    camera.setFocalLength(kFocalLength);
-    camera.setPrincipalPoint(kPrincipalPoint[0], kPrincipalPoint[1]);
-
-    camera.setRadialDistortion(0.1);
-    ReprojectionTest(camera);
+    _camera.setRadialDistortion(1e-1);
+    TestProjection();
 }

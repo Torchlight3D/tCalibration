@@ -18,9 +18,6 @@ public:
 
 private:
     CameraFactory();
-
-private:
-    static std::shared_ptr<CameraFactory> m_instance;
 };
 
 } // namespace camodocal

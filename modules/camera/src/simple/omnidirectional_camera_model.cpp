@@ -1,7 +1,5 @@
 #include "omnidirectional_camera_model.h"
 
-#include <glog/logging.h>
-
 #include <tCamera/CameraMatrixUtils>
 
 namespace tl {
@@ -17,11 +15,6 @@ OmnidirectionalCameraModel::OmnidirectionalCameraModel() : CameraIntrinsics()
     setParameter(K2, 0.);
     setParameter(P1, 0.);
     setParameter(P2, 0.);
-}
-
-CameraIntrinsics::Type OmnidirectionalCameraModel::type() const
-{
-    return Type::Omnidirectional;
 }
 
 void OmnidirectionalCameraModel::setFromMetaData(const CameraMetaData& meta)
@@ -137,15 +130,25 @@ std::vector<int> OmnidirectionalCameraModel::constantParameterIndices(
     return indices;
 }
 
-void OmnidirectionalCameraModel::print() const
+bool OmnidirectionalCameraModel::isValid() const
 {
-    LOG(INFO) << toLogString() << "Mirror distortion (xi): " << xi()
-              << "\n"
-                 "Radial distortion (k1, k2): "
-              << k1() << ", " << k2()
-              << "\n"
-                 "Tangential distortion (p1, p2): "
-              << p1() << ", " << p2();
+    return CameraIntrinsics::isValid() && (xi() < 2. && xi() > 1.4);
+}
+
+std::string OmnidirectionalCameraModel::toLog() const
+{
+    std::ostringstream oss;
+    oss << CameraIntrinsics::toLog()
+        << "\n"
+           "Mirror distortion (xi): "
+        << xi()
+        << "\n"
+           "Radial distortion (k1, k2): "
+        << k1() << ", " << k2()
+        << "\n"
+           "Tangential distortion (p1, p2): "
+        << p1() << ", " << p2();
+    return oss.str();
 }
 
 } // namespace tl

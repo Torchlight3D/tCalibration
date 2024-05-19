@@ -1,11 +1,5 @@
 ﻿#include "pinhole_camera_model.h"
 
-#include <ceres/rotation.h>
-#include <Eigen/Core>
-#include <Eigen/Geometry>
-#include <glog/logging.h>
-#include <magic_enum/magic_enum.hpp>
-
 #include <tCamera/CameraMatrixUtils>
 
 namespace tl {
@@ -19,11 +13,6 @@ PinholeCameraModel::PinholeCameraModel() : CameraIntrinsics()
     setParameter(Skew, 0.);
     setParameter(K1, 0.);
     setParameter(K2, 0.);
-}
-
-CameraIntrinsics::Type PinholeCameraModel::type() const
-{
-    return Type::Pinhole;
 }
 
 void PinholeCameraModel::setFromMetaData(const CameraMetaData& meta)
@@ -52,6 +41,22 @@ CameraMetaData PinholeCameraModel::toMetaData() const
     return meta;
 }
 
+int PinholeCameraModel::numParameters() const { return IntrinsicsSize; }
+
+void PinholeCameraModel::setSkew(double skew) { parameters_[Skew] = skew; }
+
+double PinholeCameraModel::skew() const { return parameters_[Skew]; }
+
+void PinholeCameraModel::setRadialDistortion(double k1, double k2)
+{
+    parameters_[K1] = k1;
+    parameters_[K2] = k2;
+}
+
+double PinholeCameraModel::radialDistortion1() const { return parameters_[K1]; }
+
+double PinholeCameraModel::radialDistortion2() const { return parameters_[K2]; }
+
 std::vector<int> PinholeCameraModel::constantParameterIndices(
     OptimizeIntrinsicsType flags) const
 {
@@ -73,35 +78,26 @@ std::vector<int> PinholeCameraModel::constantParameterIndices(
     return indices;
 }
 
-void PinholeCameraModel::calibrationMatrix(Eigen::Matrix3d& K) const
+Eigen::Matrix3d PinholeCameraModel::calibrationMatrix() const
 {
-    intrinsicsToCalibrationMatrix(parameters_[Fx], parameters_[Skew],
-                                  parameters_[YX], parameters_[Cx],
-                                  parameters_[Cy], K);
+    return intrinsicsToCalibrationMatrix(parameters_[Fx], parameters_[Skew],
+                                         parameters_[YX], parameters_[Cx],
+                                         parameters_[Cy]);
 }
 
-int PinholeCameraModel::numParameters() const { return IntrinsicsSize; }
+bool PinholeCameraModel::isValid() const { return CameraIntrinsics::isValid(); }
 
-void PinholeCameraModel::setSkew(double skew) { parameters_[Skew] = skew; }
-
-double PinholeCameraModel::skew() const { return parameters_[Skew]; }
-
-void PinholeCameraModel::setRadialDistortion(double k1, double k2)
+std::string PinholeCameraModel::toLog() const
 {
-    parameters_[K1] = k1;
-    parameters_[K2] = k2;
-}
-
-double PinholeCameraModel::radialDistortion1() const { return parameters_[K1]; }
-
-double PinholeCameraModel::radialDistortion2() const { return parameters_[K2]; }
-
-void PinholeCameraModel::print() const
-{
-    LOG(INFO) << toLogString() << "Skew: " << skew()
-              << "\n"
-                 "Radial distortion (k1, k2): "
-              << k1() << ", " << k2();
+    std::ostringstream oss;
+    oss << CameraIntrinsics::toLog()
+        << "\n"
+           "Skew: "
+        << skew()
+        << "\n"
+           "Radial distortion (k1, k2): "
+        << k1() << ", " << k2();
+    return oss.str();
 }
 
 } // namespace tl

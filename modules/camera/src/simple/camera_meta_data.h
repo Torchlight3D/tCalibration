@@ -4,6 +4,8 @@
 
 namespace tl {
 
+// TODO:
+// 1. Setter/Getter are neither intuitive nor safe
 template <int Size_t>
 struct Elem
 {

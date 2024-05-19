@@ -34,7 +34,6 @@ public:
         double &cx();
         double &cy();
 
-        double xi() const;
         double k1() const;
         double k2() const;
         double p1() const;
@@ -52,14 +51,10 @@ public:
                                         const Parameters &params);
 
     private:
-        double m_k1;
-        double m_k2;
-        double m_p1;
-        double m_p2;
-        double m_fx;
-        double m_fy;
-        double m_cx;
-        double m_cy;
+        double m_k1, m_k2;
+        double m_p1, m_p2;
+        double m_fx, m_fy;
+        double m_cx, m_cy;
     };
 
     using Ptr = std::shared_ptr<PinholeCamera>;
@@ -67,9 +62,13 @@ public:
 
     PinholeCamera();
     explicit PinholeCamera(const Parameters &params);
-    PinholeCamera(const std::string &cameraName, int imageWidth,
-                  int imageHeight, double k1, double k2, double p1, double p2,
-                  double fx, double fy, double cx, double cy);
+    inline PinholeCamera(const std::string &cameraName, int imageWidth,
+                         int imageHeight, double k1, double k2, double p1,
+                         double p2, double fx, double fy, double cx, double cy)
+        : PinholeCamera(Parameters{cameraName, imageWidth, imageHeight, k1, k2,
+                                   p1, p2, fx, fy, cx, cy})
+    {
+    }
 
     Camera::ModelType modelType() const override;
     const std::string &cameraName() const override;
@@ -128,6 +127,9 @@ public:
     void writeParametersToYamlFile(const std::string &filename) const override;
 
     std::string parametersToString() const override;
+
+private:
+    bool withoutDistortion() const;
 
 private:
     Parameters mParameters;

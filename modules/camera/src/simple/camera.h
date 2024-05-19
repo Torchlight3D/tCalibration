@@ -51,7 +51,7 @@ public:
     double* rIntrinsics();
     std::vector<double> parameters() const;
 
-    void calibrationMatrix(Eigen::Matrix3d& matrix) const;
+    Eigen::Matrix3d calibrationMatrix() const;
 
     /// ----------------------- Extrinsics ------------------------
     ///
@@ -119,8 +119,10 @@ public:
     Eigen::Vector3d pixelToNormalizedCoordinates(
         const Eigen::Vector2d& pixel) const;
 
+    void transform(const Eigen::Matrix3d& R, const Eigen::Vector3d& t,
+                   double scale = 1.);
+
     /// Debugs
-    void print() const;
 
 private:
     double extrinsics_[ExtrinsicsSize];
@@ -128,5 +130,7 @@ private:
     int img_size_[2]; // width, height
     bool calibrated_;
 };
+
+std::ostream& operator<<(std::ostream& os, const Camera& cam);
 
 } // namespace tl

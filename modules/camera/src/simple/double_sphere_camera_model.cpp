@@ -1,8 +1,5 @@
 ﻿#include "double_sphere_camera_model.h"
 
-#include <glog/logging.h>
-#include <magic_enum/magic_enum.hpp>
-
 #include <tCamera/CameraMatrixUtils>
 
 namespace tl {
@@ -16,11 +13,6 @@ DoubleSphereCameraModel::DoubleSphereCameraModel() : CameraIntrinsics()
     setParameter(Skew, 0.);
     setParameter(Xi, 0.);
     setParameter(Alpha, 0.5);
-}
-
-CameraIntrinsics::Type DoubleSphereCameraModel::type() const
-{
-    return Type::DoubleSphere;
 }
 
 void DoubleSphereCameraModel::setFromMetaData(const CameraMetaData& meta)
@@ -86,19 +78,29 @@ std::vector<int> DoubleSphereCameraModel::constantParameterIndices(
     return indices;
 }
 
-void DoubleSphereCameraModel::calibrationMatrix(Eigen::Matrix3d& K) const
+Eigen::Matrix3d DoubleSphereCameraModel::calibrationMatrix() const
 {
-    intrinsicsToCalibrationMatrix(parameters_[Fx], parameters_[Skew],
-                                  parameters_[YX], parameters_[Cx],
-                                  parameters_[Cy], K);
+    return intrinsicsToCalibrationMatrix(parameters_[Fx], parameters_[Skew],
+                                         parameters_[YX], parameters_[Cx],
+                                         parameters_[Cy]);
 }
 
-void DoubleSphereCameraModel::print() const
+bool DoubleSphereCameraModel::isValid() const
 {
-    LOG(INFO) << toLogString() << "Skew: " << skew()
-              << "\n"
-                 "Radial distortion (alpha, xi): "
-              << alpha() << ", " << xi();
+    return CameraIntrinsics::isValid();
+}
+
+std::string DoubleSphereCameraModel::toLog() const
+{
+    std::ostringstream oss;
+    oss << CameraIntrinsics::toLog()
+        << "\n"
+           "Skew: "
+        << skew()
+        << "\n"
+           "Radial distortion (alpha, xi): "
+        << alpha() << ", " << xi();
+    return oss.str();
 }
 
 } // namespace tl

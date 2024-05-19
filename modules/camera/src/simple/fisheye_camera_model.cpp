@@ -1,8 +1,5 @@
 ﻿#include "fisheye_camera_model.h"
 
-#include <glog/logging.h>
-#include <magic_enum/magic_enum.hpp>
-
 #include <tCamera/CameraMatrixUtils>
 
 namespace tl {
@@ -18,11 +15,6 @@ FisheyeCameraModel::FisheyeCameraModel() : CameraIntrinsics()
     setParameter(K2, 0.);
     setParameter(K3, 0.);
     setParameter(K4, 0.);
-}
-
-CameraIntrinsics::Type FisheyeCameraModel::type() const
-{
-    return Type::Fisheye;
 }
 
 void FisheyeCameraModel::setFromMetaData(const CameraMetaData& meta)
@@ -123,19 +115,26 @@ std::vector<int> FisheyeCameraModel::constantParameterIndices(
     return indices;
 }
 
-void FisheyeCameraModel::calibrationMatrix(Eigen::Matrix3d& K) const
+Eigen::Matrix3d FisheyeCameraModel::calibrationMatrix() const
 {
-    intrinsicsToCalibrationMatrix(parameters_[Fx], parameters_[Skew],
-                                  parameters_[YX], parameters_[Cx],
-                                  parameters_[Cy], K);
+    return intrinsicsToCalibrationMatrix(parameters_[Fx], parameters_[Skew],
+                                         parameters_[YX], parameters_[Cx],
+                                         parameters_[Cy]);
 }
 
-void FisheyeCameraModel::print() const
+bool FisheyeCameraModel::isValid() const { return CameraIntrinsics::isValid(); }
+
+std::string FisheyeCameraModel::toLog() const
 {
-    LOG(INFO) << toLogString() << "Skew: " << skew()
-              << "\n"
-                 "Radial distortion (k1, k2, k3, k4): "
-              << k1() << ", " << k2() << ", " << k3() << ", " << k4();
+    std::ostringstream oss;
+    oss << CameraIntrinsics::toLog()
+        << "\n"
+           "Skew: "
+        << skew()
+        << "\n"
+           "Radial distortion (k1, k2, k3, k4): "
+        << k1() << ", " << k2() << ", " << k3() << ", " << k4();
+    return oss.str();
 }
 
 } // namespace tl

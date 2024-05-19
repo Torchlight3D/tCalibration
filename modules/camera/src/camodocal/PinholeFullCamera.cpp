@@ -1,12 +1,8 @@
 #include "PinholeFullCamera.h"
 
-#include <cmath>
-#include <cstdio>
-#include <iostream>
-
-#include <opencv2/calib3d/calib3d.hpp>
+#include <opencv2/calib3d.hpp>
 #include <opencv2/core/eigen.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/imgproc.hpp>
 
 namespace camodocal {
 
@@ -151,14 +147,29 @@ void PinholeFullCamera::Parameters::write(cv::FileStorage &fs) const
 
     // Distortion: k1, k2, k3, k4, k5, k6 (radial), p1, p2 (tangential)
     fs << key::kDistortionParameters;
-    fs << "{" << key::kK1 << m_k1 << key::kK2 << m_k2 << key::kK3 << m_k3
-       << key::kK4 << m_k4 << key::kK5 << m_k5 << key::kK6 << m_k6 << key::kP1
-       << m_p1 << key::kP2 << m_p2 << "}";
+    // clang-format off
+    fs << "{"
+       << key::kK1 << m_k1
+       << key::kK2 << m_k2
+       << key::kK3 << m_k3
+       << key::kK4 << m_k4
+       << key::kK5 << m_k5
+       << key::kK6 << m_k6
+       << key::kP1 << m_p1
+       << key::kP2 << m_p2
+       << "}";
+    // clang-format on
 
     // Projection: fx, fy, cx, cy
     fs << key::kProjectionParameters;
-    fs << "{" << key::kFx << m_fx << key::kFy << m_fy << key::kCx << m_cx
-       << key::kCy << m_cy << "}";
+    // clang-format off
+    fs << "{"
+       << key::kFx << m_fx
+       << key::kFy << m_fy
+       << key::kCx << m_cx
+       << key::kCy << m_cy
+       << "}";
+    // clang-format on
 }
 
 PinholeFullCamera::Parameters &PinholeFullCamera::Parameters::operator=(
@@ -189,31 +200,64 @@ PinholeFullCamera::Parameters &PinholeFullCamera::Parameters::operator=(
 std::ostream &operator<<(std::ostream &out,
                          const PinholeFullCamera::Parameters &params)
 {
-    out << "Camera Parameters:" << std::endl;
-    out << "    model_type "
-        << "PINHOLE_FULL" << std::endl;
-    out << "   camera_name " << params.m_cameraName << std::endl;
-    out << "   image_width " << params.m_imageWidth << std::endl;
-    out << "  image_height " << params.m_imageHeight << std::endl;
+    out << "Camera Parameters:"
+           "\n"
+           "    model_type "
+        << PinholeFullCamera::Parameters::kModelTypeName
+        << "\n"
+           "   camera_name "
+        << params.m_cameraName
+        << "\n"
+           "   image_width "
+        << params.m_imageWidth
+        << "\n"
+           "  image_height "
+        << params.m_imageHeight
+        << "\n"
 
-    // radial distortion: k1, k2
-    // tangential distortion: p1, p2
-    out << "Distortion Parameters" << std::endl;
-    out << "            k1 " << params.m_k1 << std::endl
-        << "            k2 " << params.m_k2 << std::endl
-        << "            k3 " << params.m_k3 << std::endl
-        << "            k4 " << params.m_k4 << std::endl
-        << "            k5 " << params.m_k5 << std::endl
-        << "            k6 " << params.m_k6 << std::endl
-        << "            p1 " << params.m_p1 << std::endl
-        << "            p2 " << params.m_p2 << std::endl;
+           // Radial distortion: k1, k2
+           // Tangential distortion: p1, p2
+           "Distortion Parameters"
+           "\n"
+           "            k1 "
+        << params.m_k1
+        << "\n"
+           "            k2 "
+        << params.m_k2
+        << "\n"
+           "            k3 "
+        << params.m_k3
+        << "\n"
+           "            k4 "
+        << params.m_k4
+        << "\n"
+           "            k5 "
+        << params.m_k5
+        << "\n"
+           "            k6 "
+        << params.m_k6
+        << "\n"
+           "            p1 "
+        << params.m_p1
+        << "\n"
+           "            p2 "
+        << params.m_p2
+        << "\n"
 
-    // projection: fx, fy, cx, cy
-    out << "Projection Parameters" << std::endl;
-    out << "            fx " << params.m_fx << std::endl
-        << "            fy " << params.m_fy << std::endl
-        << "            cx " << params.m_cx << std::endl
-        << "            cy " << params.m_cy << std::endl;
+           // Projection: fx, fy, cx, cy
+           "Projection Parameters"
+           "\n"
+           "            fx "
+        << params.m_fx
+        << "\n"
+           "            fy "
+        << params.m_fy
+        << "\n"
+           "            cx "
+        << params.m_cx
+        << "\n"
+           "            cy "
+        << params.m_cy << std::endl;
 
     return out;
 }
@@ -227,40 +271,11 @@ PinholeFullCamera::PinholeFullCamera()
 {
 }
 
-PinholeFullCamera::PinholeFullCamera(const std::string &cameraName,
-                                     int imageWidth, int imageHeight, double k1,
-                                     double k2, double k3, double k4, double k5,
-                                     double k6, double p1, double p2, double fx,
-                                     double fy, double cx, double cy)
-    : mParameters(cameraName, imageWidth, imageHeight, k1, k2, k3, k4, k5, k6,
-                  p1, p2, fx, fy, cx, cy)
-{
-    if ((mParameters.k1() == 0.0) && (mParameters.k2() == 0.0) &&
-        (mParameters.p1() == 0.0) && (mParameters.p2() == 0.0)) {
-        m_noDistortion = true;
-    }
-    else {
-        m_noDistortion = false;
-    }
-
-    // Inverse camera projection matrix parameters
-    m_inv_K11 = 1.0 / mParameters.fx();
-    m_inv_K13 = -mParameters.cx() / mParameters.fx();
-    m_inv_K22 = 1.0 / mParameters.fy();
-    m_inv_K23 = -mParameters.cy() / mParameters.fy();
-}
-
 PinholeFullCamera::PinholeFullCamera(
     const PinholeFullCamera::Parameters &params)
     : mParameters(params)
 {
-    if ((mParameters.k1() == 0.0) && (mParameters.k2() == 0.0) &&
-        (mParameters.p1() == 0.0) && (mParameters.p2() == 0.0)) {
-        m_noDistortion = true;
-    }
-    else {
-        m_noDistortion = false;
-    }
+    m_noDistortion = withoutDistortion();
 
     // Inverse camera projection matrix parameters
     m_inv_K11 = 1.0 / mParameters.fx();
@@ -341,7 +356,7 @@ void PinholeFullCamera::estimateIntrinsics(
         }
 
         for (int j = 0; j < 4; ++j) {
-            n[j] = 1.0 / sqrt(n[j]);
+            n[j] = 1.0 / std::sqrt(n[j]);
         }
 
         for (int j = 0; j < 3; ++j) {
@@ -362,8 +377,8 @@ void PinholeFullCamera::estimateIntrinsics(
     cv::Mat f(2, 1, CV_64F);
     cv::solve(A, b, f, cv::DECOMP_NORMAL | cv::DECOMP_LU);
 
-    params.fx() = sqrt(fabs(1.0 / f.at<double>(0)));
-    params.fy() = sqrt(fabs(1.0 / f.at<double>(1)));
+    params.fx() = std::sqrt(std::abs(1. / f.at<double>(0)));
+    params.fy() = std::sqrt(std::abs(1. / f.at<double>(1)));
 
     setParameters(params);
 }
@@ -455,7 +470,7 @@ void PinholeFullCamera::liftProjective(const Eigen::Vector2d &p,
         //     double x_proj = xd * fx + cx;
         //     double y_proj = yd * fy + cy;
 
-        //     error = sqrt(pow(x_proj - u, 2) + pow(y_proj - v, 2));
+        //     error = std::sqrt(pow(x_proj - u, 2) + std::pow(y_proj - v, 2));
         // }
     }
 
@@ -772,14 +787,7 @@ void PinholeFullCamera::setParameters(
     const PinholeFullCamera::Parameters &parameters)
 {
     mParameters = parameters;
-
-    if ((mParameters.k1() == 0.0) && (mParameters.k2() == 0.0) &&
-        (mParameters.p1() == 0.0) && (mParameters.p2() == 0.0)) {
-        m_noDistortion = true;
-    }
-    else {
-        m_noDistortion = false;
-    }
+    m_noDistortion = withoutDistortion();
 
     m_inv_K11 = 1.0 / mParameters.fx();
     m_inv_K13 = -mParameters.cx() / mParameters.fx();
@@ -841,4 +849,11 @@ std::string PinholeFullCamera::parametersToString() const
 
     return oss.str();
 }
+
+bool PinholeFullCamera::withoutDistortion() const
+{
+    return (mParameters.k1() == 0.) && (mParameters.k2() == 0.) &&
+           (mParameters.p1() == 0.) && (mParameters.p2() == 0.);
+}
+
 } // namespace camodocal

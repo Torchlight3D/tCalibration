@@ -17,7 +17,6 @@
 
 namespace tl {
 
-using Eigen::Map;
 using Eigen::Matrix3d;
 using Eigen::Quaterniond;
 using Eigen::Vector2d;
@@ -33,7 +32,8 @@ inline Eigen::Vector3d projectionCenterFromProjectionMatrix(const Matrix34d& P)
 
 Camera::Camera(CameraIntrinsics::Type type) : calibrated_(false)
 {
-    Map<Eigen::Matrix<double, 1, ExtrinsicsSize>>(rExtrinsics()).setZero();
+    Eigen::Map<Eigen::Matrix<double, 1, ExtrinsicsSize>>(rExtrinsics())
+        .setZero();
     intrinsics_ = CameraIntrinsics::create(type);
 
     img_size_[0] = 0;
@@ -118,8 +118,8 @@ bool Camera::setFromProjectMatrix(int imageWidth, int imageHeight,
     Vector3d rvec, tvec;
     decomposeProjectionMatrix(P, K, rvec, tvec);
 
-    Map<Vector3d>(rExtrinsics() + Orientation) = rvec;
-    Map<Vector3d>(rExtrinsics() + Position) = tvec;
+    Eigen::Map<Vector3d>(rExtrinsics() + Orientation) = rvec;
+    Eigen::Map<Vector3d>(rExtrinsics() + Position) = tvec;
 
     using math::isApprox0;
 
@@ -199,34 +199,34 @@ double* Camera::rIntrinsics() { return intrinsics_->rParameters(); }
 
 std::vector<double> Camera::parameters() const { return intrinsics_->vector(); }
 
-void Camera::calibrationMatrix(Matrix3d& K) const
+Eigen::Matrix3d Camera::calibrationMatrix() const
 {
-    intrinsics_->calibrationMatrix(K);
+    return intrinsics_->calibrationMatrix();
 }
 
 void Camera::setPosition(const Vector3d& position)
 {
-    Map<Vector3d>(rExtrinsics() + Position) = position;
+    Eigen::Map<Vector3d>(rExtrinsics() + Position) = position;
 }
 
-Vector3d Camera::position() const
+Eigen::Vector3d Camera::position() const
 {
-    return Map<const Vector3d>(extrinsics() + Position);
+    return Eigen::Map<const Vector3d>(extrinsics() + Position);
 }
 
-void Camera::setOrientationFromRotationMatrix(const Matrix3d& rotation)
+void Camera::setOrientationFromRotationMatrix(const Eigen::Matrix3d& rotation)
 {
     ceres::RotationMatrixToAngleAxis(
         ceres::ColumnMajorAdapter3x3(rotation.data()),
         rExtrinsics() + Orientation);
 }
 
-void Camera::setOrientationFromAngleAxis(const Vector3d& rvec)
+void Camera::setOrientationFromAngleAxis(const Eigen::Vector3d& rvec)
 {
-    Map<Vector3d>(rExtrinsics() + Orientation) = rvec;
+    Eigen::Map<Vector3d>(rExtrinsics() + Orientation) = rvec;
 }
 
-Matrix3d Camera::orientationAsRotationMatrix() const
+Eigen::Matrix3d Camera::orientationAsRotationMatrix() const
 {
     Matrix3d rotation;
     ceres::AngleAxisToRotationMatrix(
@@ -235,12 +235,12 @@ Matrix3d Camera::orientationAsRotationMatrix() const
     return rotation;
 }
 
-Vector3d Camera::orientationAsAngleAxis() const
+Eigen::Vector3d Camera::orientationAsAngleAxis() const
 {
-    return Map<const Vector3d>(extrinsics() + Orientation);
+    return Eigen::Map<const Vector3d>(extrinsics() + Orientation);
 }
 
-Vector3d Camera::orientationAsEuler() const
+Eigen::Vector3d Camera::orientationAsEuler() const
 {
     double roll, pitch, yaw;
     math::RotationMatrixToRPY(orientationAsRotationMatrix(), roll, pitch, yaw);
@@ -253,8 +253,7 @@ double* Camera::rExtrinsics() { return extrinsics_; }
 
 void Camera::projectionMatrix(Matrix34d& P) const
 {
-    Matrix3d K;
-    intrinsics_->calibrationMatrix(K);
+    const auto K = calibrationMatrix();
     composeProjectionMatrix(K, orientationAsAngleAxis(), position(), P);
 }
 
@@ -267,15 +266,16 @@ void Camera::invProjectionMatrix(Matrix34d& matrix) const
     matrix.rightCols<1>() = projectionCenterFromProjectionMatrix(P);
 }
 
-Vector3d Camera::projectionCenter() const
+Eigen::Vector3d Camera::projectionCenter() const
 {
     const auto quat = Quaterniond{orientationAsRotationMatrix()}.normalized();
     const auto tvec = position();
     return quat * -tvec;
 }
 
-double Camera::projectPoint(const Vector4d& point, Vector2d& pixel,
-                            const Vector3d* rvec, const Vector3d* tvec) const
+double Camera::projectPoint(const Eigen::Vector4d& point,
+                            Eigen::Vector2d& pixel, const Eigen::Vector3d* rvec,
+                            const Eigen::Vector3d* tvec) const
 {
     // FIXME: Feel like something wrong here
     const auto rotation = (rvec ? (*rvec) : orientationAsAngleAxis());
@@ -290,7 +290,7 @@ double Camera::projectPoint(const Vector4d& point, Vector2d& pixel,
     return rotated_point[2] / point[3];
 }
 
-Vector3d Camera::pixelToUnitDepthRay(const Vector2d& pixel) const
+Eigen::Vector3d Camera::pixelToUnitDepthRay(const Eigen::Vector2d& pixel) const
 {
     // Remove the effect of calibration.
     const Vector3d undistorted_point = pixelToNormalizedCoordinates(pixel);
@@ -301,21 +301,34 @@ Vector3d Camera::pixelToUnitDepthRay(const Vector2d& pixel) const
     return direction;
 }
 
-Vector3d Camera::pixelToNormalizedCoordinates(const Vector2d& pixel) const
+Eigen::Vector3d Camera::pixelToNormalizedCoordinates(
+    const Eigen::Vector2d& pixel) const
 {
     return intrinsics_->imageToSpace(pixel);
 }
 
-void Camera::print() const
+void Camera::transform(const Eigen::Matrix3d& R, const Eigen::Vector3d& t,
+                       double scale)
 {
-    intrinsics_->print();
-    LOG(INFO) << "Camera pose in world coordinate: "
+    const auto R_wc = orientationAsRotationMatrix();
+    setOrientationFromRotationMatrix(R_wc * R.transpose());
+
+    auto t_wc = position();
+    math::transformPoint(R, t, scale, t_wc);
+    setPosition(t_wc);
+}
+
+std::ostream& operator<<(std::ostream& os, const Camera& cam)
+{
+    return os << *cam.cameraIntrinsics()
+              << "\n"
+                 "Camera pose in world coordinate: "
                  "\n"
                  "Position: "
-              << position().transpose()
+              << cam.position().transpose()
               << "\n"
                  "Orientation (roll, pitch, yaw):"
-              << orientationAsEuler().transpose();
+              << cam.orientationAsEuler().transpose();
 }
 
 } // namespace tl

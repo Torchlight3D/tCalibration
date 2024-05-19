@@ -11,7 +11,7 @@
 #include <tCalibration/StereoCameraCalibration>
 #include <tCalibration/StereoRectify>
 #include <tCamera/OmnidirectionalCameraModel>
-#include <tCamera/StereoCameraTypes>
+#include <tCamera/Types>
 #include <tCore/Math>
 #include <tCore/TimeUtils>
 #include <tMath/Eigen/Utils>
@@ -128,11 +128,18 @@ bool StereoModuleTask::Impl::calibCameraIntrinsics()
     const auto* left = m_calibCamIntri->camera(kCameraLeftId);
     const auto* right = m_calibCamIntri->camera(kCameraRightId);
 
-    LOG(INFO) << "******* "
+    LOG(INFO) << "\n"
+                 "******* "
                  "Calibrated camera intrinsics"
-                 " *******";
-    left->print();
-    right->print();
+                 " *******"
+                 "\n"
+                 "Left camera: "
+                 "\n"
+              << *left->cameraIntrinsics()
+              << "\n---\n"
+                 "Right camera: "
+                 "\n"
+              << *right->cameraIntrinsics();
 
     m_stereo[kCameraLeftId] = *left;
     m_stereo[kCameraRightId] = *right;
@@ -161,11 +168,18 @@ void StereoModuleTask::Impl::calibStereoExtrinsics()
     const auto* left = m_calibCamIntri->camera(kCameraLeftId);
     const auto* right = m_calibCamIntri->camera(kCameraRightId);
 
-    LOG(INFO) << "******* "
+    LOG(INFO) << "\n"
+                 "******* "
                  "Camera intrinsics after stereo calibration"
-                 " *******";
-    left->print();
-    right->print();
+                 " *******"
+                 "\n"
+                 "Left camera: "
+                 "\n"
+              << *left->cameraIntrinsics()
+              << "\n---\n"
+                 "Right camera: "
+                 "\n"
+              << *right->cameraIntrinsics();
 
     double roll, pitch, yaw;
     math::RotationMatrixToRPY(m_q_l_r.toRotationMatrix(), roll, pitch, yaw);

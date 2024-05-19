@@ -1,8 +1,5 @@
 ﻿#include "pinhole_radial_tangential_camera_model.h"
 
-#include <glog/logging.h>
-#include <magic_enum/magic_enum.hpp>
-
 #include <tCamera/CameraMatrixUtils>
 
 namespace tl {
@@ -20,11 +17,6 @@ PinholeRadialTangentialCameraModel::PinholeRadialTangentialCameraModel()
     setParameter(K3, 0.);
     setParameter(T1, 0.);
     setParameter(T2, 0.);
-}
-
-CameraIntrinsics::Type PinholeRadialTangentialCameraModel::type() const
-{
-    return Type::PinholeRadialTangential;
 }
 
 void PinholeRadialTangentialCameraModel::setFromMetaData(
@@ -148,23 +140,32 @@ std::vector<int> PinholeRadialTangentialCameraModel::constantParameterIndices(
     return indices;
 }
 
-void PinholeRadialTangentialCameraModel::calibrationMatrix(
-    Eigen::Matrix3d& K) const
+Eigen::Matrix3d PinholeRadialTangentialCameraModel::calibrationMatrix() const
 {
-    intrinsicsToCalibrationMatrix(parameters_[Fx], parameters_[Skew],
-                                  parameters_[YX], parameters_[Cx],
-                                  parameters_[Cy], K);
+    return intrinsicsToCalibrationMatrix(parameters_[Fx], parameters_[Skew],
+                                         parameters_[YX], parameters_[Cx],
+                                         parameters_[Cy]);
 }
 
-void PinholeRadialTangentialCameraModel::print() const
+bool PinholeRadialTangentialCameraModel::isValid() const
 {
-    LOG(INFO) << toLogString() << "Skew: " << skew()
-              << "\n"
-                 "Radial distortion (k1, k2, k3): "
-              << k1() << ", " << k2() << ", " << k3()
-              << "\n"
-                 "Tangential distortion (t1, t2): "
-              << t1() << ", " << t2();
+    return CameraIntrinsics::isValid();
+}
+
+std::string PinholeRadialTangentialCameraModel::toLog() const
+{
+    std::ostringstream oss;
+    oss << CameraIntrinsics::toLog()
+        << "\n"
+           "Skew: "
+        << skew()
+        << "\n"
+           "Radial distortion (k1, k2, k3): "
+        << k1() << ", " << k2() << ", " << k3()
+        << "\n"
+           "Tangential distortion (t1, t2): "
+        << t1() << ", " << t2();
+    return oss.str();
 }
 
 } // namespace tl

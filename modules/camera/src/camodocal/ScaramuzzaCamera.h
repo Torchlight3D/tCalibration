@@ -8,11 +8,9 @@
 
 namespace camodocal {
 
-/**
- * Scaramuzza Camera (Omnidirectional)
- * https://sites.google.com/site/scarabotix/ocamcalib-toolbox
- */
-
+// Reference:
+// Scaramuzza Camera (Omnidirectional)
+// https://sites.google.com/site/scarabotix/ocamcalib-toolbox
 class OCAMCamera final : public Camera
 {
 public:
@@ -62,11 +60,8 @@ public:
     private:
         double m_poly[kPolySize];
         double m_inv_poly[kInvPolySize];
-        double m_C;
-        double m_D;
-        double m_E;
-        double m_center_x;
-        double m_center_y;
+        double m_C, m_D, m_E;
+        double m_center_x, m_center_y;
     };
 
     using Ptr = std::shared_ptr<OCAMCamera>;

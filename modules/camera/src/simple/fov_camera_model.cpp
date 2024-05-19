@@ -1,15 +1,8 @@
 ﻿#include "fov_camera_model.h"
 
-#include <glog/logging.h>
-#include <magic_enum/magic_enum.hpp>
-
 #include <tCamera/CameraMatrixUtils>
 
 namespace tl {
-
-namespace {
-constexpr double kDefaultOmega{0.75};
-}
 
 FOVCameraModel::FOVCameraModel() : CameraIntrinsics()
 {
@@ -17,10 +10,8 @@ FOVCameraModel::FOVCameraModel() : CameraIntrinsics()
     setFocalLength(1.0);
     setAspectRatio(1.0);
     setPrincipalPoint(0.0, 0.0);
-    setParameter(Omega, kDefaultOmega);
+    setParameter(Omega, FOVCameraModel::kDefaultOmega);
 }
-
-CameraIntrinsics::Type FOVCameraModel::type() const { return Type::Fov; }
 
 void FOVCameraModel::setFromMetaData(const CameraMetaData& meta)
 {
@@ -87,9 +78,16 @@ std::vector<int> FOVCameraModel::constantParameterIndices(
     return indices;
 }
 
-void FOVCameraModel::print() const
+bool FOVCameraModel::isValid() const { return CameraIntrinsics::isValid(); }
+
+std::string FOVCameraModel::toLog() const
 {
-    LOG(INFO) << toLogString() << "Radial distortion (omega): " << omega();
+    std::ostringstream oss;
+    oss << CameraIntrinsics::toLog()
+        << "\n"
+           "Radial distortion (omega): "
+        << omega();
+    return oss.str();
 }
 
 } // namespace tl

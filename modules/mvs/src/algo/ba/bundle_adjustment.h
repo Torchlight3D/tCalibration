@@ -4,8 +4,9 @@
 #include <unordered_set>
 
 #include <ceres/solver.h>
+#include <Eigen/Core>
 
-#include <tCamera/CameraIntrinsics>
+#include <tCamera/Types>
 #include <tMath/Types>
 #include <tMvs/Types>
 

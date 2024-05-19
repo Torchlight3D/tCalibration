@@ -13,6 +13,7 @@ target_sources(${CAMERA_TEST_TARGET}
         tst_omnidirectional.cpp
         tst_orthographic.cpp
         tst_pinhole.cpp
+        # main.cpp
 )
 
 # googletest, Ubuntu 20.04 default 1.10.0.

@@ -2,66 +2,17 @@
 
 #ifdef _WIN32
 #include <winsock.h>
+#include <sys/types.h>
+#include <winsock.h>
 #else
 #include <time.h>
 #endif
 
-// source:
-// https://stackoverflow.com/questions/5167269/clock-gettime-alternative-in-mac-os-x
-#ifdef __APPLE__
-#include <mach/mach_time.h>
-#define ORWL_NANO (+1.0E-9)
-#define ORWL_GIGA UINT64_C(1000000000)
-
-static double orwl_timebase = 0.0;
-static uint64_t orwl_timestart = 0;
-
-struct timespec orwl_gettime()
-{
-    // be more careful in a multithreaded environement
-    if (!orwl_timestart) {
-        mach_timebase_info_data_t tb = {0};
-        mach_timebase_info(&tb);
-        orwl_timebase = tb.numer;
-        orwl_timebase /= tb.denom;
-        orwl_timestart = mach_absolute_time();
-    }
-    struct timespec t;
-    double diff = (mach_absolute_time() - orwl_timestart) * orwl_timebase;
-    t.tv_sec = diff * ORWL_NANO;
-    t.tv_nsec = diff - (t.tv_sec * ORWL_GIGA);
-    return t;
-}
-#endif // __APPLE__
-
-const double WGS84_A = 6378137.0;
-const double WGS84_ECCSQ = 0.00669437999013;
-
-// Windows lacks fminf
-#ifndef fminf
-#define fminf(x, y) (((x) < (y)) ? (x) : (y))
-#endif
-
 namespace camodocal {
 
-double hypot3(double x, double y, double z)
-{
-    return sqrt(square(x) + square(y) + square(z));
-}
-
-float hypot3f(float x, float y, float z)
-{
-    return sqrtf(square(x) + square(y) + square(z));
-}
-
-double sinc(double theta) { return sin(theta) / theta; }
-
+// TODO: Get rid of these old fashion interface
 #ifdef _WIN32
-#include <sys/timeb.h>
-#include <sys/types.h>
-#include <winsock.h>
-LARGE_INTEGER
-getFILETIMEoffset()
+LARGE_INTEGER getFILETIMEoffset()
 {
     SYSTEMTIME s;
     FILETIME f;
@@ -106,8 +57,9 @@ int clock_gettime(int X, struct timespec *tp)
             frequencyToMicroseconds = 10.;
         }
     }
-    if (usePerformanceCounter)
+    if (usePerformanceCounter) {
         QueryPerformanceCounter(&t);
+    }
     else {
         GetSystemTimeAsFileTime(&f);
         t.QuadPart = f.dwHighDateTime;
@@ -123,6 +75,8 @@ int clock_gettime(int X, struct timespec *tp)
     return (0);
 }
 #endif
+
+double sinc(double theta) { return std::sin(theta) / theta; }
 
 float colormapAutumn[128][3] = {
     {1.0f, 0.f, 0.f},       {1.0f, 0.007874f, 0.f}, {1.0f, 0.015748f, 0.f},
@@ -271,7 +225,8 @@ bool colormap(const std::string &name, unsigned char idx, float &r, float &g,
 
         return true;
     }
-    else if (name.compare("autumn") == 0) {
+
+    if (name.compare("autumn") == 0) {
         float *color = colormapAutumn[idx];
 
         r = color[0];
@@ -284,12 +239,11 @@ bool colormap(const std::string &name, unsigned char idx, float &r, float &g,
     return false;
 }
 
-std::vector<cv::Point2i> bresLine(int x0, int y0, int x1, int y1)
+// Bresenham's line algorithm
+// Find cells intersected by line between (x0, y0) and (x1, y1)
+std::vector<cv::Point> bresLine(int x0, int y0, int x1, int y1)
 {
-    // Bresenham's line algorithm
-    // Find cells intersected by line between (x0,y0) and (x1,y1)
-
-    std::vector<cv::Point2i> cells;
+    std::vector<cv::Point> cells;
 
     int dx = std::abs(x1 - x0);
     int dy = std::abs(y1 - y0);
@@ -300,7 +254,7 @@ std::vector<cv::Point2i> bresLine(int x0, int y0, int x1, int y1)
     int err = dx - dy;
 
     while (1) {
-        cells.push_back(cv::Point2i(x0, y0));
+        cells.emplace_back(x0, y0);
 
         if (x0 == x1 && y0 == y1) {
             break;
@@ -320,16 +274,16 @@ std::vector<cv::Point2i> bresLine(int x0, int y0, int x1, int y1)
     return cells;
 }
 
-std::vector<cv::Point2i> bresCircle(int x0, int y0, int r)
+// Bresenham's circle algorithm
+// Find cells intersected by circle with center (x0, y0) and radius r
+std::vector<cv::Point> bresCircle(int x0, int y0, int r)
 {
-    // Bresenham's circle algorithm
-    // Find cells intersected by circle with center (x0,y0) and radius r
-
-    std::vector<std::vector<bool>> mask(2 * r + 1);
-
-    for (int i = 0; i < 2 * r + 1; ++i) {
-        mask[i].resize(2 * r + 1);
-        for (int j = 0; j < 2 * r + 1; ++j) {
+    // TODO: Use cv::Mat is much easier and faster
+    const auto edge = 2 * r + 1;
+    std::vector<std::vector<bool>> mask(edge);
+    for (int i = 0; i < edge; ++i) {
+        mask[i].resize(edge);
+        for (int j = 0; j < edge; ++j) {
             mask[i][j] = false;
         }
     }
@@ -340,18 +294,16 @@ std::vector<cv::Point2i> bresCircle(int x0, int y0, int r)
     int x = 0;
     int y = r;
 
-    std::vector<cv::Point2i> line;
+    std::vector<cv::Point> line;
 
     line = bresLine(x0, y0 - r, x0, y0 + r);
-    for (std::vector<cv::Point2i>::iterator it = line.begin(); it != line.end();
-         ++it) {
-        mask[it->x - x0 + r][it->y - y0 + r] = true;
+    for (const auto &point : line) {
+        mask[point.x - x0 + r][point.y - y0 + r] = true;
     }
 
     line = bresLine(x0 - r, y0, x0 + r, y0);
-    for (std::vector<cv::Point2i>::iterator it = line.begin(); it != line.end();
-         ++it) {
-        mask[it->x - x0 + r][it->y - y0 + r] = true;
+    for (const auto &point : line) {
+        mask[point.x - x0 + r][point.y - y0 + r] = true;
     }
 
     while (x < y) {
@@ -366,35 +318,31 @@ std::vector<cv::Point2i> bresCircle(int x0, int y0, int r)
         f += ddF_x;
 
         line = bresLine(x0 - x, y0 + y, x0 + x, y0 + y);
-        for (std::vector<cv::Point2i>::iterator it = line.begin();
-             it != line.end(); ++it) {
-            mask[it->x - x0 + r][it->y - y0 + r] = true;
+        for (const auto &point : line) {
+            mask[point.x - x0 + r][point.y - y0 + r] = true;
         }
 
         line = bresLine(x0 - x, y0 - y, x0 + x, y0 - y);
-        for (std::vector<cv::Point2i>::iterator it = line.begin();
-             it != line.end(); ++it) {
-            mask[it->x - x0 + r][it->y - y0 + r] = true;
+        for (const auto &point : line) {
+            mask[point.x - x0 + r][point.y - y0 + r] = true;
         }
 
         line = bresLine(x0 - y, y0 + x, x0 + y, y0 + x);
-        for (std::vector<cv::Point2i>::iterator it = line.begin();
-             it != line.end(); ++it) {
-            mask[it->x - x0 + r][it->y - y0 + r] = true;
+        for (const auto &point : line) {
+            mask[point.x - x0 + r][point.y - y0 + r] = true;
         }
 
         line = bresLine(x0 - y, y0 - x, x0 + y, y0 - x);
-        for (std::vector<cv::Point2i>::iterator it = line.begin();
-             it != line.end(); ++it) {
-            mask[it->x - x0 + r][it->y - y0 + r] = true;
+        for (const auto &point : line) {
+            mask[point.x - x0 + r][point.y - y0 + r] = true;
         }
     }
 
-    std::vector<cv::Point2i> cells;
-    for (int i = 0; i < 2 * r + 1; ++i) {
-        for (int j = 0; j < 2 * r + 1; ++j) {
+    std::vector<cv::Point> cells;
+    for (int i = 0; i < edge; ++i) {
+        for (int j = 0; j < edge; ++j) {
             if (mask[i][j]) {
-                cells.push_back(cv::Point2i(i - r + x0, j - r + y0));
+                cells.emplace_back(i - r + x0, j - r + y0);
             }
         }
     }
@@ -402,11 +350,11 @@ std::vector<cv::Point2i> bresCircle(int x0, int y0, int r)
     return cells;
 }
 
+// D. Umbach, and K. Jones, A Few Methods for Fitting Circles to Data,
+// IEEE Transactions on Instrumentation and Measurement, 2000
 void fitCircle(const std::vector<cv::Point2d> &points, double &centerX,
                double &centerY, double &radius)
 {
-    // D. Umbach, and K. Jones, A Few Methods for Fitting Circles to Data,
-    // IEEE Transactions on Instrumentation and Measurement, 2000
     // We use the modified least squares method.
     double sum_x = 0.0;
     double sum_y = 0.0;
@@ -450,7 +398,7 @@ void fitCircle(const std::vector<cv::Point2d> &points, double &centerX,
         double x = points.at(i).x;
         double y = points.at(i).y;
 
-        sum_r += hypot(x - centerX, y - centerY);
+        sum_r += std::hypot(x - centerX, y - centerY);
     }
 
     radius = sum_r / n;
@@ -459,33 +407,32 @@ void fitCircle(const std::vector<cv::Point2d> &points, double &centerX,
 std::vector<cv::Point2d> intersectCircles(double x1, double y1, double r1,
                                           double x2, double y2, double r2)
 {
-    std::vector<cv::Point2d> ipts;
-
-    double d = hypot(x1 - x2, y1 - y2);
+    double d = std::hypot(x1 - x2, y1 - y2);
     if (d > r1 + r2) {
-        // circles are separate
-        return ipts;
+        // Circles are not overlap
+        return {};
     }
-    if (d < fabs(r1 - r2)) {
-        // one circle is contained within the other
-        return ipts;
+    if (d < std::abs(r1 - r2)) {
+        // One circle is inside the other
+        return {};
     }
 
     double a = (square(r1) - square(r2) + square(d)) / (2.0 * d);
-    double h = sqrt(square(r1) - square(a));
+    double h = std::sqrt(square(r1) - square(a));
 
     double x3 = x1 + a * (x2 - x1) / d;
     double y3 = y1 + a * (y2 - y1) / d;
 
+    std::vector<cv::Point2d> points;
     if (h < 1e-10) {
-        // two circles touch at one point
-        ipts.push_back(cv::Point2d(x3, y3));
-        return ipts;
+        // Two circles are in touch each other
+        points.emplace_back(x3, y3);
+        return points;
     }
 
-    ipts.push_back(cv::Point2d(x3 + h * (y2 - y1) / d, y3 - h * (x2 - x1) / d));
-    ipts.push_back(cv::Point2d(x3 - h * (y2 - y1) / d, y3 + h * (x2 - x1) / d));
-    return ipts;
+    points.emplace_back(x3 + h * (y2 - y1) / d, y3 - h * (x2 - x1) / d);
+    points.emplace_back(x3 - h * (y2 - y1) / d, y3 + h * (x2 - x1) / d);
+    return points;
 }
 
 } // namespace camodocal

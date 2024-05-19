@@ -91,28 +91,22 @@ public:
     // Lift points from the image plane to the sphere
     virtual void liftSphere(const Eigen::Vector2d &p,
                             Eigen::Vector3d &P) const = 0;
-    //%output P
 
     // Lift points from the image plane to the projective space
     virtual void liftProjective(const Eigen::Vector2d &p,
                                 Eigen::Vector3d &P) const = 0;
-    //%output P
 
     // Projects 3D points to the image plane (Pi function)
     virtual void spaceToPlane(const Eigen::Vector3d &P,
                               Eigen::Vector2d &p) const = 0;
-    //%output p
 
     // Projects 3D points to the image plane (Pi function)
     // and calculates jacobian
     // virtual void spaceToPlane(const Eigen::Vector3d& P, Eigen::Vector2d& p,
     //                          Eigen::Matrix<double,2,3>& J) const = 0;
-    //%output p
-    //%output J
 
     virtual void undistToPlane(const Eigen::Vector2d &p_u,
                                Eigen::Vector2d &p) const = 0;
-    //%output p
 
     // virtual void initUndistortMap(cv::Mat& map1, cv::Mat& map2, double fScale
     // = 1.0) const = 0;

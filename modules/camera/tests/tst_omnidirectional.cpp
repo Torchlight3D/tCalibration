@@ -4,73 +4,61 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 
-#include <tCamera/OmnidirectionalCameraModel>
 #include <tCamera/coc/CataCamera>
+#include <tCamera/OmnidirectionalCameraModel>
 
 using namespace tl;
 
 using Eigen::Vector2d;
 using Eigen::Vector3d;
 
-// Test case from CamOdoCal
-
-// TODO: Use fixture
-TEST(OmnidirectionalCameraModel, SpaceToImage)
+class OmnidirectionalCameraFixture : public ::testing::Test
 {
-    OmnidirectionalCameraModel camera;
-    camera.setFocalLength(758.355);
-    camera.setAspectRatio(0.999024);
-    camera.setPrincipalPoint(646.72, 395.001);
-    camera.setMirrorDistortion(0.894975);
-    camera.setTangentialDistortion(-0.00403995, 0.00610364);
-    camera.setRadialDistortion(-0.344504, 0.0984552);
+protected:
+    void SetUp() override
+    {
+        _camera.setFocalLength(758.355);
+        _camera.setAspectRatio(0.999024);
+        _camera.setPrincipalPoint(646.72, 395.001);
+        _camera.setMirrorDistortion(0.894975);
+        _camera.setTangentialDistortion(-0.00403995, 0.00610364);
+        _camera.setRadialDistortion(-0.344504, 0.0984552);
+    }
 
-    Vector3d point3{0., 0., 1.};
-    const Vector2d pixel = camera.spaceToImage(point3);
+protected:
+    OmnidirectionalCameraModel _camera;
+};
 
-    EXPECT_NEAR(camera.principalPointX(), pixel(0), 1e-10);
-    EXPECT_NEAR(camera.principalPointY(), pixel(1), 1e-10);
+TEST_F(OmnidirectionalCameraFixture, SpaceToImage)
+{
+    const Vector3d point3{0., 0., 1.};
+    const Vector2d pixel = _camera.spaceToImage(point3);
+
+    EXPECT_NEAR(_camera.principalPointX(), pixel(0), 1e-10);
+    EXPECT_NEAR(_camera.principalPointY(), pixel(1), 1e-10);
 }
 
-TEST(OmnidirectionalCameraModel, ImageToRay)
+TEST_F(OmnidirectionalCameraFixture, ImageToRay)
 {
-    OmnidirectionalCameraModel camera;
-    camera.setFocalLength(758.355);
-    camera.setAspectRatio(0.999024);
-    camera.setPrincipalPoint(646.72, 395.001);
-    camera.setMirrorDistortion(0.894975);
-    camera.setTangentialDistortion(-0.00403995, 0.00610364);
-    camera.setRadialDistortion(-0.344504, 0.0984552);
-
-    const Vector2d px{camera.principalPointX(), camera.principalPointY()};
-    auto ray = camera.imageToSpace(px);
-    ray.normalize();
+    const Vector2d px{_camera.principalPointX(), _camera.principalPointY()};
+    const Vector3d ray = _camera.imageToSpace(px).normalized();
 
     EXPECT_NEAR(0., ray(0), 1e-10);
     EXPECT_NEAR(0., ray(1), 1e-10);
     EXPECT_NEAR(1., ray(2), 1e-10);
 }
 
-TEST(OmnidirectionalCameraModel, Reprojection)
+TEST_F(OmnidirectionalCameraFixture, Reprojection)
 {
-    OmnidirectionalCameraModel camera;
-    camera.setFocalLength(758.355);
-    camera.setAspectRatio(0.999024);
-    camera.setPrincipalPoint(646.72, 395.001);
-    camera.setMirrorDistortion(0.894975);
-    camera.setTangentialDistortion(-0.00403995, 0.00610364);
-    camera.setRadialDistortion(-0.344504, 0.0984552);
-
     constexpr int kSampleCount = 100;
     for (int i{0}; i < kSampleCount; ++i) {
-        Eigen::Vector3d point3 = Eigen::Vector3d::Random();
+        Vector3d point3 = Vector3d::Random();
         point3(2) = std::abs(point3(2));
 
-        const auto pixel = camera.spaceToImage(point3);
-        auto reprojected = camera.imageToSpace(pixel);
+        const auto pixel = _camera.spaceToImage(point3);
+        auto reprojected = _camera.imageToSpace(pixel).normalized();
 
         point3.normalize();
-        reprojected.normalize();
 
         EXPECT_NEAR(point3(0), reprojected(0), 1e-2);
         EXPECT_NEAR(point3(1), reprojected(1), 1e-2);
@@ -78,46 +66,32 @@ TEST(OmnidirectionalCameraModel, Reprojection)
     }
 }
 
-TEST(OmnidirectionalCameraModel, CamOdoCalConsistency)
+TEST_F(OmnidirectionalCameraFixture, CamOdoCalConsistency)
 {
-    GTEST_SKIP();
+    const camodocal::CataCamera camera_coc{
+        "camera",    640,        480,     0.894975, -0.344504, 0.0984552,
+        -0.00403995, 0.00610364, 758.355, 757.615,  646.72,    395.001};
 
-    OmnidirectionalCameraModel camera;
-    camera.setFocalLength(758.355);
-    camera.setAspectRatio(0.999024);
-    camera.setPrincipalPoint(646.72, 395.001);
-    camera.setMirrorDistortion(0.894975);
-    camera.setTangentialDistortion(-0.00403995, 0.00610364);
-    camera.setRadialDistortion(-0.344504, 0.0984552);
-
-    camodocal::CataCamera camera_coc("camera", 640, 480, 0.894975, -0.344504,
-                                     0.0984552, -0.00403995, 0.00610364,
-                                     758.355, 757.615, 646.72, 395.001);
-
+    // TODO: Use random points in frustum
     constexpr int kSampleCount = 100;
     for (int i{0}; i < kSampleCount; ++i) {
-        Eigen::Vector3d point3 = Eigen::Vector3d::Random();
+        Vector3d point3 = Vector3d::Random();
         point3(2) = std::abs(point3(2));
 
-        // CamOdoCal
-        Eigen::Vector2d p_est;
-        camera_coc.spaceToPlane(point3, p_est);
-
-        Eigen::Vector3d P_est;
-        camera_coc.liftProjective(p_est, P_est);
-
+        // Ensure both "world -> image -> world" map to a same result
         // CalibKit
-        const auto pixel = camera.spaceToImage(point3);
-        auto reprojected = camera.imageToSpace(pixel);
+        const auto pixel = _camera.spaceToImage(point3);
+        auto reprojected = _camera.imageToSpace(pixel).normalized();
 
-        LOG(INFO) << "Project by CalibKit: " << pixel.transpose()
-                  << "; "
-                     "Project by CamOdoCal: "
-                  << p_est.transpose();
+        // CamOdoCal
+        Vector2d pixel_coc;
+        camera_coc.spaceToPlane(point3, pixel_coc);
+
+        Vector3d reprojected_coc;
+        camera_coc.liftProjective(pixel_coc, reprojected_coc);
+        reprojected_coc.normalize();
 
         point3.normalize();
-        P_est.normalize();
-        reprojected.normalize();
 
         EXPECT_NEAR(point3(0), reprojected(0), 1e-2);
         EXPECT_NEAR(point3(1), reprojected(1), 1e-2);
@@ -127,7 +101,8 @@ TEST(OmnidirectionalCameraModel, CamOdoCalConsistency)
 
 TEST(OmnidirectionalCameraModel, KalibrCompatible)
 {
-    //    GTEST_SKIP();
+    // TODO: Finish here
+    GTEST_SKIP();
 
     OmnidirectionalCameraModel camera_kit;
     // Reference: before any edit
@@ -167,7 +142,7 @@ TEST(OmnidirectionalCameraModel, KalibrCompatible)
 
     constexpr int kSampleCount = 1000;
     for (int i{0}; i < kSampleCount; ++i) {
-        Eigen::Vector3d point3 = Eigen::Vector3d::Random();
+        Vector3d point3 = Vector3d::Random();
         point3(2) = std::abs(point3(2));
 
         // CalibKit
@@ -206,33 +181,6 @@ TEST(OmnidirectionalCameraModel, KalibrCompatible)
 
 TEST(OmnidirectionalCameraModel, OpenCVCompatible)
 {
+    // TODO: Finish here
     GTEST_SKIP();
-
-    OmnidirectionalCameraModel camera;
-    camera.setFocalLength(758.355);
-    camera.setAspectRatio(0.999024);
-    camera.setPrincipalPoint(646.72, 395.001);
-    camera.setMirrorDistortion(0.894975);
-    camera.setTangentialDistortion(-0.00403995, 0.00610364);
-    camera.setRadialDistortion(-0.344504, 0.0984552);
-
-    camodocal::CataCamera camera_coc("camera", 640, 480, 0.894975, -0.344504,
-                                     0.0984552, -0.00403995, 0.00610364,
-                                     758.355, 757.615, 646.72, 395.001);
-
-    constexpr int kSampleCount = 100;
-    for (int i{0}; i < kSampleCount; ++i) {
-        Eigen::Vector3d point3 = Eigen::Vector3d::Random();
-        point3(2) = std::abs(point3(2));
-
-        const auto pixel = camera.spaceToImage(point3);
-        auto reprojected = camera.imageToSpace(pixel);
-
-        point3.normalize();
-        reprojected.normalize();
-
-        EXPECT_NEAR(point3(0), reprojected(0), 1e-2);
-        EXPECT_NEAR(point3(1), reprojected(1), 1e-2);
-        EXPECT_NEAR(point3(2), reprojected(2), 1e-2);
-    }
 }

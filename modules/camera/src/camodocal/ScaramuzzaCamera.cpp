@@ -1,13 +1,10 @@
 #include "ScaramuzzaCamera.h"
 
-#include <cmath>
-#include <cstdio>
-#include <iomanip>
 #include <iostream>
 
 #include <Eigen/SVD>
 #include <opencv2/core/eigen.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/imgproc.hpp>
 
 #include "gpl.h"
 
@@ -161,8 +158,15 @@ void OCAMCamera::Parameters::write(cv::FileStorage &fs) const
 
     // Affine parameters
     fs << key::kAffineParameter;
-    fs << "{" << key::kC << m_C << key::kD << m_D << key::kE << m_E << key::kCx
-       << m_center_x << key::kCy << m_center_y << "}";
+    // clang-format off
+    fs << "{"
+       << key::kC << m_C
+       << key::kD << m_D
+       << key::kE << m_E
+       << key::kCx << m_center_x
+       << key::kCy << m_center_y
+       << "}";
+    // clang-format on
 }
 
 OCAMCamera::Parameters &OCAMCamera::Parameters::operator=(
@@ -189,8 +193,7 @@ OCAMCamera::Parameters &OCAMCamera::Parameters::operator=(
 std::ostream &operator<<(std::ostream &out,
                          const OCAMCamera::Parameters &params)
 {
-    out << "Camera Parameters:"
-        << "\n"
+    out << "Camera Parameters:" << "\n"
         << "    model_type " << OCAMCamera::Parameters::keyModelType << "\n"
         << "   camera_name " << params.m_cameraName << "\n"
         << "   image_width " << params.m_imageWidth << "\n"
@@ -198,20 +201,17 @@ std::ostream &operator<<(std::ostream &out,
 
     out << std::fixed << std::setprecision(10);
 
-    out << "Poly Parameters"
-        << "\n";
+    out << "Poly Parameters" << "\n";
     for (int i = 0; i < OCAMCamera::kPolySize; i++) {
         out << key::polyIndex(i) << ": " << params.m_poly[i] << "\n";
     }
 
-    out << "Inverse Poly Parameters"
-        << "\n";
+    out << "Inverse Poly Parameters" << "\n";
     for (int i = 0; i < OCAMCamera::kInvPolySize; i++) {
         out << key::polyIndex(i) << ": " << params.m_inv_poly[i] << "\n";
     }
 
-    out << "Affine Parameters"
-        << "\n"
+    out << "Affine Parameters" << "\n"
         << "            ac " << params.m_C << "\n"
         << "            ad " << params.m_D << "\n"
         << "            ae " << params.m_E << "\n"
@@ -312,9 +312,9 @@ void OCAMCamera::estimateIntrinsics(
         const double CC = square(sr12) + square(sr22);
 
         const double sr32_squared_1 =
-            (-(CC - BB) + sqrt(square(CC - BB) + 4.0 * AA)) / 2.0;
+            (-(CC - BB) + std::sqrt(square(CC - BB) + 4.0 * AA)) / 2.0;
         const double sr32_squared_2 =
-            (-(CC - BB) - sqrt(square(CC - BB) + 4.0 * AA)) / 2.0;
+            (-(CC - BB) - std::sqrt(square(CC - BB) + 4.0 * AA)) / 2.0;
 
         // printf("rst = %.12f\n", sr32_squared_1*sr32_squared_1 +
         // (CC-BB)*sr32_squared_1 - AA);
@@ -363,7 +363,7 @@ void OCAMCamera::estimateIntrinsics(
             const double sr31 = sr31_values.at(i);
             const double sr32 = sr32_values.at(i);
             const double lambda =
-                1.0 / sqrt(sr11 * sr11 + sr21 * sr21 + sr31 * sr31);
+                1.0 / std::sqrt(sr11 * sr11 + sr21 * sr21 + sr31 * sr31);
             Eigen::Matrix3d H;
             H.setZero();
             H(0, 0) = sr11;
@@ -723,7 +723,7 @@ OCAMCamera::initUndistortMap(cv::Mat& map1, cv::Mat& map2, double fScale) const
             double d2 = mx_u * mx_u + my_u * my_u;
 
             Eigen::Vector3d P;
-            P << mx_u, my_u, 1.0 - xi * (d2 + 1.0) / (xi + sqrt(1.0 + (1.0 - xi * xi) * d2));
+            P << mx_u, my_u, 1.0 - xi * (d2 + 1.0) / (xi + std::sqrt(1.0 + (1.0 - xi * xi) * d2));
 
             Eigen::Vector2d p;
             spaceToPlane(P, p);

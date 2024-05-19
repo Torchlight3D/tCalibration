@@ -115,9 +115,14 @@ TEST(IoTest, VioReadCompatibility)
         io::loadFromVioYamlFile(kTestVioConfigFile, left, right, focalLength,
                                 leftCameraToImu, rightCameraToImu);
 
-    left.print();
-    right.print();
-
+    LOG(INFO) << "\n"
+                 "Left camera: "
+                 "\n"
+              << left
+              << "\n---\n"
+                 "Right camera: "
+                 "\n"
+              << right;
     LOG(INFO) << "Left to imu: " << leftCameraToImu;
     LOG(INFO) << "Right to imu: " << rightCameraToImu;
 

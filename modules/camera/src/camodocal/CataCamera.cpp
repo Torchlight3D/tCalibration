@@ -1,13 +1,10 @@
 #include "CataCamera.h"
 
-#include <cmath>
-#include <cstdio>
-#include <iomanip>
 #include <iostream>
 
-#include <opencv2/calib3d/calib3d.hpp>
+#include <opencv2/calib3d.hpp>
 #include <opencv2/core/eigen.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/imgproc.hpp>
 
 #include "gpl.h"
 
@@ -132,17 +129,33 @@ void CataCamera::Parameters::write(cv::FileStorage &fs) const
 
     // Mirror: xi
     fs << key::kMirrorParameter;
-    fs << "{" << key::kXi << m_xi << "}";
+    // clang-format off
+    fs << "{"
+       << key::kXi << m_xi
+       << "}";
+    // clang-format on
 
     // Distortion: k1, k2 (radial), p1, p2 (tangential)
     fs << key::kDistortionParameters;
-    fs << "{" << key::kK1 << m_k1 << key::kK2 << m_k2 << key::kP1 << m_p1
-       << key::kP2 << m_p2 << "}";
+    // clang-format off
+    fs << "{"
+       << key::kK1 << m_k1
+       << key::kK2 << m_k2
+       << key::kP1 << m_p1
+       << key::kP2 << m_p2
+       << "}";
+    // clang-format on
 
     // Projection: gamma1, gamma2, u0, v0
     fs << key::kProjectionParameters;
-    fs << "{" << key::kGamma1 << m_gamma1 << key::kGamma2 << m_gamma2
-       << key::kU0 << m_u0 << key::kV0 << m_v0 << "}";
+    // clang-format off
+    fs << "{"
+       << key::kGamma1 << m_gamma1
+       << key::kGamma2 << m_gamma2
+       << key::kU0 << m_u0
+       << key::kV0 << m_v0
+       << "}";
+    // clang-format on
 }
 
 CataCamera::Parameters &CataCamera::Parameters::operator=(
@@ -170,31 +183,58 @@ CataCamera::Parameters &CataCamera::Parameters::operator=(
 std::ostream &operator<<(std::ostream &out,
                          const CataCamera::Parameters &params)
 {
-    out << "Camera Parameters:" << std::endl;
-    out << "    model_type "
-        << "MEI" << std::endl;
-    out << "   camera_name " << params.m_cameraName << std::endl;
-    out << "   image_width " << params.m_imageWidth << std::endl;
-    out << "  image_height " << params.m_imageHeight << std::endl;
-
-    out << "Mirror Parameters" << std::endl;
+    out << "Camera Parameters:"
+           "\n"
+           "    model_type "
+        << CataCamera::Parameters::kModelTypeName
+        << "\n"
+           "   camera_name "
+        << params.m_cameraName
+        << "\n"
+           "   image_width "
+        << params.m_imageWidth
+        << "\n"
+           "  image_height "
+        << params.m_imageHeight
+        << "\n"
+           // Mirror parameters
+           "Mirror Parameters"
+           "\n";
     out << std::fixed << std::setprecision(10);
-    out << "            xi " << params.m_xi << std::endl;
+    out << "            xi " << params.m_xi
+        << "\n"
 
-    // radial distortion: k1, k2
-    // tangential distortion: p1, p2
-    out << "Distortion Parameters" << std::endl;
-    out << "            k1 " << params.m_k1 << std::endl
-        << "            k2 " << params.m_k2 << std::endl
-        << "            p1 " << params.m_p1 << std::endl
-        << "            p2 " << params.m_p2 << std::endl;
+        // Radial distortion: k1, k2
+        // Tangential distortion: p1, p2
+        << "Distortion Parameters"
+           "\n"
+           "            k1 "
+        << params.m_k1
+        << "\n"
+           "            k2 "
+        << params.m_k2
+        << "\n"
+           "            p1 "
+        << params.m_p1
+        << "\n"
+           "            p2 "
+        << params.m_p2
+        << "\n"
 
-    // projection: gamma1, gamma2, u0, v0
-    out << "Projection Parameters" << std::endl;
-    out << "        gamma1 " << params.m_gamma1 << std::endl
-        << "        gamma2 " << params.m_gamma2 << std::endl
-        << "            u0 " << params.m_u0 << std::endl
-        << "            v0 " << params.m_v0 << std::endl;
+           // Projection: gamma1, gamma2, u0, v0
+           "Projection Parameters"
+           "\n"
+           "        gamma1 "
+        << params.m_gamma1
+        << "\n"
+           "        gamma2 "
+        << params.m_gamma2
+        << "\n"
+           "            u0 "
+        << params.m_u0
+        << "\n"
+           "            v0 "
+        << params.m_v0 << std::endl;
 
     return out;
 }
@@ -208,38 +248,10 @@ CataCamera::CataCamera()
 {
 }
 
-CataCamera::CataCamera(const std::string &cameraName, int imageWidth,
-                       int imageHeight, double xi, double k1, double k2,
-                       double p1, double p2, double gamma1, double gamma2,
-                       double u0, double v0)
-    : mParameters(cameraName, imageWidth, imageHeight, xi, k1, k2, p1, p2,
-                  gamma1, gamma2, u0, v0)
-{
-    if ((mParameters.k1() == 0.0) && (mParameters.k2() == 0.0) &&
-        (mParameters.p1() == 0.0) && (mParameters.p2() == 0.0)) {
-        m_noDistortion = true;
-    }
-    else {
-        m_noDistortion = false;
-    }
-
-    // Inverse camera projection matrix parameters
-    m_inv_K11 = 1.0 / mParameters.gamma1();
-    m_inv_K13 = -mParameters.u0() / mParameters.gamma1();
-    m_inv_K22 = 1.0 / mParameters.gamma2();
-    m_inv_K23 = -mParameters.v0() / mParameters.gamma2();
-}
-
 CataCamera::CataCamera(const CataCamera::Parameters &params)
     : mParameters(params)
 {
-    if ((mParameters.k1() == 0.0) && (mParameters.k2() == 0.0) &&
-        (mParameters.p1() == 0.0) && (mParameters.p2() == 0.0)) {
-        m_noDistortion = true;
-    }
-    else {
-        m_noDistortion = false;
-    }
+    m_noDistortion = withoutDistortion();
 
     // Inverse camera projection matrix parameters
     m_inv_K11 = 1.0 / mParameters.gamma1();
@@ -315,14 +327,14 @@ void CataCamera::estimateIntrinsics(
             }
 
             // check that line image is not radial
-            double d = sqrt(1.0 / t);
+            double d = std::sqrt(1.0 / t);
             double nx = C.at<double>(0) * d;
             double ny = C.at<double>(1) * d;
             if (hypot(nx, ny) > 0.95) {
                 continue;
             }
 
-            double gamma = sqrt(C.at<double>(2) / C.at<double>(3));
+            double gamma = std::sqrt(C.at<double>(2) / C.at<double>(3));
 
             params.gamma1() = gamma;
             params.gamma2() = gamma;
@@ -426,9 +438,9 @@ void CataCamera::liftSphere(const Eigen::Vector2d &p, Eigen::Vector3d &P) const
         P << lambda * mx_u, lambda * my_u, lambda - 1.0;
     }
     else {
-        lambda =
-            (xi + sqrt(1.0 + (1.0 - xi * xi) * (mx_u * mx_u + my_u * my_u))) /
-            (1.0 + mx_u * mx_u + my_u * my_u);
+        lambda = (xi + std::sqrt(1.0 + (1.0 - xi * xi) *
+                                           (mx_u * mx_u + my_u * my_u))) /
+                 (1.0 + mx_u * mx_u + my_u * my_u);
         P << lambda * mx_u, lambda * my_u, lambda - xi;
     }
 }
@@ -506,7 +518,7 @@ void CataCamera::liftProjective(const Eigen::Vector2d &p,
         rho2_d = mx_u * mx_u + my_u * my_u;
         P << mx_u, my_u,
             1.0 - xi * (rho2_d + 1.0) /
-                      (xi + sqrt(1.0 + (1.0 - xi * xi) * rho2_d));
+                      (xi + std::sqrt(1.0 + (1.0 - xi * xi) * rho2_d));
     }
 }
 
@@ -718,7 +730,8 @@ void CataCamera::initUndistortMap(cv::Mat &map1, cv::Mat &map2,
 
             Eigen::Vector3d P;
             P << mx_u, my_u,
-                1.0 - xi * (d2 + 1.0) / (xi + sqrt(1.0 + (1.0 - xi * xi) * d2));
+                1.0 - xi * (d2 + 1.0) /
+                          (xi + std::sqrt(1.0 + (1.0 - xi * xi) * d2));
 
             Eigen::Vector2d p;
             spaceToPlane(P, p);
@@ -798,13 +811,7 @@ void CataCamera::setParameters(const CataCamera::Parameters &parameters)
 {
     mParameters = parameters;
 
-    if ((mParameters.k1() == 0.0) && (mParameters.k2() == 0.0) &&
-        (mParameters.p1() == 0.0) && (mParameters.p2() == 0.0)) {
-        m_noDistortion = true;
-    }
-    else {
-        m_noDistortion = false;
-    }
+    m_noDistortion = withoutDistortion();
 
     m_inv_K11 = 1.0 / mParameters.gamma1();
     m_inv_K13 = -mParameters.u0() / mParameters.gamma1();
@@ -858,6 +865,12 @@ std::string CataCamera::parametersToString() const
     oss << mParameters;
 
     return oss.str();
+}
+
+bool CataCamera::withoutDistortion() const
+{
+    return (mParameters.k1() == 0.) && (mParameters.k2() == 0.) &&
+           (mParameters.p1() == 0.) && (mParameters.p2() == 0.);
 }
 
 } // namespace camodocal

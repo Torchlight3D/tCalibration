@@ -1,7 +1,8 @@
 ﻿#pragma once
 
-#include "camera_intrinsics.h"
 #include <ceres/ceres.h>
+
+#include "camera_intrinsics.h"
 
 namespace tl {
 
@@ -10,12 +11,14 @@ namespace tl {
 // Explanation:
 //
 // Reference:
+
+// FIXME: Use FovCameraModel
 class FOVCameraModel final : public CameraIntrinsics
 {
 public:
     FOVCameraModel();
 
-    Type type() const override;
+    constexpr Type type() const override { return Type::Fov; }
 
     void setFromMetaData(const CameraMetaData& meta) override;
     CameraMetaData toMetaData() const override;
@@ -30,12 +33,15 @@ public:
     };
     int numParameters() const override;
 
+    inline static constexpr auto kDefaultOmega{0.75};
     void setRadialDistortion(double omega);
     double radialDistortion1() const;
     inline auto omega() const { return radialDistortion1(); }
 
     std::vector<int> constantParameterIndices(
         OptimizeIntrinsicsType flags) const override;
+
+    bool isValid() const override;
 
     // ---------------------- Point Mapping --------------------------------
     //
@@ -44,6 +50,9 @@ public:
 
     template <typename T>
     static bool pixelToSpace(const T* intrinsics, const T* pixel, T* point);
+
+    template <typename T>
+    static bool isUnprojectable(const T* intrinsics, const T* pixel);
 
     template <typename T>
     static bool distort(const T* intrinsics, const T* undistorted,
@@ -81,7 +90,8 @@ public:
         return undistorted;
     }
 
-    void print() const override;
+protected:
+    std::string toLog() const override;
 };
 
 /// ---------------------- Implementation -----------------------------------
@@ -126,6 +136,13 @@ bool FOVCameraModel::pixelToSpace(const T* intrinsics, const T* px, T* pt)
     FOVCameraModel::undistort(intrinsics, pt_d, pt);
     pt[2] = T(1.);
 
+    return true;
+}
+
+template <typename T>
+bool FOVCameraModel::isUnprojectable(const T* intrinsics, const T* pixel)
+{
+    // FIXME: complete here
     return true;
 }
 
@@ -193,7 +210,7 @@ bool FOVCameraModel::undistort(const T* intrinsics, const T* pt_d, T* pt_u)
     // the Taylor series so that bundle adjustment will still be able to compute
     // a gradient and can appropriately optimize the distortion parameter.
     T r_u;
-    constexpr T kVerySmallNumber(1e-3);
+    const T kVerySmallNumber(1e-3);
     if (omega < kVerySmallNumber) {
         // Derivation of this case with Matlab borrowed from COLMAP:
         // https://github.com/colmap/colmap/blob/master/src/base/camera_models.h#L1146

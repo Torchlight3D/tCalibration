@@ -1,4 +1,4 @@
-#include <Eigen/Dense>
+#include <Eigen/Core>
 #include <gtest/gtest.h>
 
 #include <tCamera/PinholeCameraModel>
@@ -11,7 +11,7 @@ using Eigen::Vector3d;
 TEST(PinholeCameraModel, InternalParameterGettersAndSetters)
 {
     PinholeCameraModel camera;
-
+    // Check type
     EXPECT_EQ(camera.type(), CameraIntrinsics::Type::Pinhole);
 
     // Check that default values are set
@@ -23,254 +23,249 @@ TEST(PinholeCameraModel, InternalParameterGettersAndSetters)
     EXPECT_EQ(camera.radialDistortion1(), 0.0);
     EXPECT_EQ(camera.radialDistortion2(), 0.0);
 
+    constexpr double kFocalLength{600.};
+    constexpr double kAspectRatio{0.9};
+    constexpr double kSkew{0.01};
+    constexpr double kPrincipalPointX{300.};
+    constexpr double kPrincipalPointY{400.};
+    constexpr double kK1{0.01};
+    constexpr double kK2{0.001};
+
     // Set parameters to different values.
-    camera.setFocalLength(600.0);
-    camera.setAspectRatio(0.9);
-    camera.setSkew(0.01);
-    camera.setPrincipalPoint(300.0, 400.0);
-    camera.setRadialDistortion(0.01, 0.001);
+    camera.setFocalLength(kFocalLength);
+    camera.setAspectRatio(kAspectRatio);
+    camera.setSkew(kSkew);
+    camera.setPrincipalPoint(kPrincipalPointX, kPrincipalPointY);
+    camera.setRadialDistortion(kK1, kK2);
 
     // Check that the values were updated.
-    EXPECT_EQ(camera.focalLength(), 600.0);
-    EXPECT_EQ(camera.aspectRatio(), 0.9);
-    EXPECT_EQ(camera.skew(), 0.01);
-    EXPECT_EQ(camera.principalPointX(), 300.0);
-    EXPECT_EQ(camera.principalPointY(), 400.0);
-    EXPECT_EQ(camera.radialDistortion1(), 0.01);
-    EXPECT_EQ(camera.radialDistortion2(), 0.001);
+    EXPECT_EQ(camera.focalLength(), kFocalLength);
+    EXPECT_EQ(camera.aspectRatio(), kAspectRatio);
+    EXPECT_EQ(camera.skew(), kSkew);
+    EXPECT_EQ(camera.principalPointX(), kPrincipalPointX);
+    EXPECT_EQ(camera.principalPointY(), kPrincipalPointY);
+    EXPECT_EQ(camera.radialDistortion1(), kK1);
+    EXPECT_EQ(camera.radialDistortion2(), kK2);
 }
 
-// Test to ensure that the camera intrinsics are being set appropriately.
-inline void TestSetFromCameraMetaData(const CameraMetaData& prior)
-{
-    const PinholeCameraModel default_camera;
-    PinholeCameraModel camera;
-    camera.setFromMetaData(prior);
-
-    if (prior.focal_length.is_set) {
-        EXPECT_EQ(camera.focalLength(), prior.focal_length.value[0]);
-    }
-    else {
-        EXPECT_EQ(camera.focalLength(), default_camera.focalLength());
-    }
-
-    if (prior.principal_point.is_set) {
-        EXPECT_EQ(camera.principalPointX(), prior.principal_point.value[0]);
-        EXPECT_EQ(camera.principalPointY(), prior.principal_point.value[1]);
-    }
-    else {
-        EXPECT_EQ(camera.principalPointX(), default_camera.principalPointX());
-        EXPECT_EQ(camera.principalPointY(), default_camera.principalPointY());
-    }
-
-    if (prior.aspect_ratio.is_set) {
-        EXPECT_EQ(camera.aspectRatio(), prior.aspect_ratio.value[0]);
-    }
-    else {
-        EXPECT_EQ(camera.aspectRatio(), default_camera.aspectRatio());
-    }
-
-    if (prior.skew.is_set) {
-        EXPECT_EQ(camera.skew(), prior.skew.value[0]);
-    }
-    else {
-        EXPECT_EQ(camera.skew(), default_camera.skew());
-    }
-
-    if (prior.radial_distortion.is_set) {
-        EXPECT_EQ(camera.radialDistortion1(), prior.radial_distortion.value[0]);
-        EXPECT_EQ(camera.radialDistortion2(), prior.radial_distortion.value[1]);
-    }
-    else {
-        EXPECT_EQ(camera.radialDistortion1(),
-                  default_camera.radialDistortion1());
-        EXPECT_EQ(camera.radialDistortion2(),
-                  default_camera.radialDistortion2());
-    }
-}
-
-// Gradually add one prior at a time and ensure that the method still works. We
+// Gradually add one meta at a time and ensure that the method still works. We
 // test before and after setting the "is_set" member variable to true to ensure
 // that setting the value of priors when is_set=false is handled properly.
-TEST(PinholeCameraModel, SetFromCameraMetaDatas)
+TEST(PinholeCameraModel, SetFromCameraMetaData)
 {
-    CameraMetaData prior;
-    prior.focal_length.value[0] = 1000.0;
-    prior.principal_point.value[0] = 400.0;
-    prior.principal_point.value[1] = 300.0;
-    prior.aspect_ratio.value[0] = 1.01;
-    prior.skew.value[0] = 0.01;
-    prior.radial_distortion.value[0] = 0.01;
-    prior.radial_distortion.value[1] = 0.001;
+    // Test to ensure that the camera intrinsics are being set appropriately.
+    auto TestCameraSetFromMeta = [](const CameraMetaData& meta) {
+        const PinholeCameraModel default_camera;
+        PinholeCameraModel camera;
+        camera.setFromMetaData(meta);
 
-    TestSetFromCameraMetaData(prior);
+        if (meta.focal_length.is_set) {
+            EXPECT_EQ(camera.focalLength(), meta.focal_length.value[0]);
+        }
+        else {
+            EXPECT_EQ(camera.focalLength(), default_camera.focalLength());
+        }
 
-    prior.focal_length.is_set = true;
-    TestSetFromCameraMetaData(prior);
+        if (meta.principal_point.is_set) {
+            EXPECT_EQ(camera.cx(), meta.principal_point.value[0]);
+            EXPECT_EQ(camera.cy(), meta.principal_point.value[1]);
+        }
+        else {
+            EXPECT_EQ(camera.cx(), default_camera.cx());
+            EXPECT_EQ(camera.cy(), default_camera.cy());
+        }
 
-    prior.principal_point.is_set = true;
-    TestSetFromCameraMetaData(prior);
+        if (meta.aspect_ratio.is_set) {
+            EXPECT_EQ(camera.aspectRatio(), meta.aspect_ratio.value[0]);
+        }
+        else {
+            EXPECT_EQ(camera.aspectRatio(), default_camera.aspectRatio());
+        }
 
-    prior.aspect_ratio.is_set = true;
-    TestSetFromCameraMetaData(prior);
+        if (meta.skew.is_set) {
+            EXPECT_EQ(camera.skew(), meta.skew.value[0]);
+        }
+        else {
+            EXPECT_EQ(camera.skew(), default_camera.skew());
+        }
 
-    prior.skew.is_set = true;
-    TestSetFromCameraMetaData(prior);
+        if (meta.radial_distortion.is_set) {
+            EXPECT_EQ(camera.k1(), meta.radial_distortion.value[0]);
+            EXPECT_EQ(camera.k2(), meta.radial_distortion.value[1]);
+        }
+        else {
+            EXPECT_EQ(camera.k1(), default_camera.k1());
+            EXPECT_EQ(camera.k2(), default_camera.k2());
+        }
+    };
 
-    prior.radial_distortion.is_set = true;
-    TestSetFromCameraMetaData(prior);
+    CameraMetaData meta;
+    meta.focal_length.value[0] = 1000.0;
+    meta.principal_point.value[0] = 400.0;
+    meta.principal_point.value[1] = 300.0;
+    meta.aspect_ratio.value[0] = 1.01;
+    meta.skew.value[0] = 0.01;
+    meta.radial_distortion.value[0] = 0.01;
+    meta.radial_distortion.value[1] = 0.001;
+
+    TestCameraSetFromMeta(meta);
+
+    meta.focal_length.is_set = true;
+    TestCameraSetFromMeta(meta);
+
+    meta.principal_point.is_set = true;
+    TestCameraSetFromMeta(meta);
+
+    meta.aspect_ratio.is_set = true;
+    TestCameraSetFromMeta(meta);
+
+    meta.skew.is_set = true;
+    TestCameraSetFromMeta(meta);
+
+    meta.radial_distortion.is_set = true;
+    TestCameraSetFromMeta(meta);
 }
 
 TEST(PinholeCameraModel, constantParameterIndices)
 {
+    using _Type = OptimizeIntrinsicsType;
+
     PinholeCameraModel camera;
-    std::vector<int> constant_subset;
+    std::vector<int> indices;
 
-    constant_subset =
-        camera.constantParameterIndices(OptimizeIntrinsicsType::None);
-    EXPECT_EQ(constant_subset.size(), camera.numParameters());
+    indices = camera.constantParameterIndices(_Type::None);
+    EXPECT_EQ(indices.size(), camera.numParameters());
 
-    // Test that optimizing for focal length works correctly.
-    constant_subset =
-        camera.constantParameterIndices(OptimizeIntrinsicsType::FocalLength);
-    EXPECT_EQ(constant_subset.size(), camera.numParameters() - 1);
-    for (int i = 0; i < constant_subset.size(); i++) {
-        EXPECT_NE(constant_subset[i], PinholeCameraModel::Fx);
+    // Focal length
+    indices = camera.constantParameterIndices(_Type::FocalLength);
+    EXPECT_EQ(indices.size(), camera.numParameters() - 1);
+    for (const auto& index : indices) {
+        EXPECT_NE(index, PinholeCameraModel::Fx);
     }
 
-    // Test that optimizing for principal_points works correctly.
-    constant_subset =
-        camera.constantParameterIndices(OptimizeIntrinsicsType::PrincipalPoint);
-    EXPECT_EQ(constant_subset.size(), camera.numParameters() - 2);
-    for (int i = 0; i < constant_subset.size(); i++) {
-        EXPECT_NE(constant_subset[i], PinholeCameraModel::Cx);
-        EXPECT_NE(constant_subset[i], PinholeCameraModel::Cy);
+    // Principal point
+    indices = camera.constantParameterIndices(_Type::PrincipalPoint);
+    EXPECT_EQ(indices.size(), camera.numParameters() - 2);
+    for (const auto& index : indices) {
+        EXPECT_NE(index, PinholeCameraModel::Cx);
+        EXPECT_NE(index, PinholeCameraModel::Cy);
     }
 
-    // Test that optimizing for aspect ratio works correctly.
-    constant_subset =
-        camera.constantParameterIndices(OptimizeIntrinsicsType::AspectRatio);
-    EXPECT_EQ(constant_subset.size(), camera.numParameters() - 1);
-    for (int i = 0; i < constant_subset.size(); i++) {
-        EXPECT_NE(constant_subset[i], PinholeCameraModel::YX);
+    // Aspect ratio
+    indices = camera.constantParameterIndices(_Type::AspectRatio);
+    EXPECT_EQ(indices.size(), camera.numParameters() - 1);
+    for (const auto& index : indices) {
+        EXPECT_NE(index, PinholeCameraModel::YX);
     }
 
-    // Test that optimizing for skew works correctly.
-    constant_subset =
-        camera.constantParameterIndices(OptimizeIntrinsicsType::Skew);
-    EXPECT_EQ(constant_subset.size(), camera.numParameters() - 1);
-    for (int i = 0; i < constant_subset.size(); i++) {
-        EXPECT_NE(constant_subset[i], PinholeCameraModel::Skew);
+    // Skew
+    indices = camera.constantParameterIndices(_Type::Skew);
+    EXPECT_EQ(indices.size(), camera.numParameters() - 1);
+    for (const auto& index : indices) {
+        EXPECT_NE(index, PinholeCameraModel::Skew);
     }
 
-    // Test that optimizing for radial distortion works correctly.
-    constant_subset = camera.constantParameterIndices(
-        OptimizeIntrinsicsType::RadialDistortion);
-    EXPECT_EQ(constant_subset.size(), camera.numParameters() - 2);
-    for (int i = 0; i < constant_subset.size(); i++) {
-        EXPECT_NE(constant_subset[i], PinholeCameraModel::K1);
-        EXPECT_NE(constant_subset[i], PinholeCameraModel::K2);
+    // Radial distortion
+    indices = camera.constantParameterIndices(_Type::RadialDistortion);
+    EXPECT_EQ(indices.size(), camera.numParameters() - 2);
+    for (const auto& index : indices) {
+        EXPECT_NE(index, PinholeCameraModel::K1);
+        EXPECT_NE(index, PinholeCameraModel::K2);
     }
 
-    // Test that optimizing for tangential distortion does not optimize any
-    // parameters.
-    constant_subset = camera.constantParameterIndices(
-        OptimizeIntrinsicsType::TangentialDistortion);
-    EXPECT_EQ(constant_subset.size(), camera.numParameters());
+    // Tangential distortion
+    indices = camera.constantParameterIndices(_Type::TangentialDistortion);
+    EXPECT_EQ(indices.size(), camera.numParameters());
 }
 
-// Test the projection functions of the camera model by testing pixels on a grid
-// in the entire image to ensure that the effects of lens distortion at the
-// edges of the image are modeled correctly.
-void ReprojectionTest(const PinholeCameraModel& camera)
+class PinholeCameraFixture : public ::testing::Test
 {
-    constexpr double kTolerance = 1e-5;
-    const double kNormalizedTolerance = kTolerance / camera.focalLength();
-    constexpr int kImageWidth = 1200;
-    constexpr int kImageHeight = 980;
-    constexpr double kMinDepth = 2.0;
-    constexpr double kMaxDepth = 25.0;
+protected:
+    void SetUp() override
+    {
+        constexpr double kPrincipalPoint[2] = {600.0, 400.0};
+        constexpr double kFocalLength = 1200;
 
-    // Ensure the image -> camera -> image transformation works.
-    for (double x = 0.0; x < kImageWidth; x += 10.0) {
-        for (double y = 0.0; y < kImageHeight; y += 10.0) {
-            const Eigen::Vector2d pixel(x, y);
-            // Get the normalized ray of that pixel.
-            const Vector3d normalized_ray = camera.imageToSpace(pixel);
+        _camera.setFocalLength(kFocalLength);
+        _camera.setPrincipalPoint(kPrincipalPoint[0], kPrincipalPoint[1]);
+    }
 
-            // Test the reprojection at several depths.
-            for (double depth = kMinDepth; depth < kMaxDepth; depth += 1.0) {
-                // Convert it to a full 3D point in the camera coordinate
-                // system.
-                const Vector3d point = normalized_ray * depth;
-                const Vector2d reprojected_pixel = camera.spaceToImage(point);
+    // Test the projection functions of the camera model by testing pixels on a
+    // grid in the entire image to ensure that the effects of lens distortion at
+    // the edges of the image are modeled correctly.
+    void TestReprojection() const
+    {
+        constexpr double kTolerance = 1e-5;
+        const double kNormalizedTolerance = kTolerance / _camera.focalLength();
+        constexpr int kImageWidth = 1200;
+        constexpr int kImageHeight = 980;
+        constexpr double kMinDepth = 2.0;
+        constexpr double kMaxDepth = 25.0;
 
-                // Expect the reprojection to be close.
-                EXPECT_LT((pixel - reprojected_pixel).norm(), kTolerance)
-                    << "gt pixel: " << pixel.transpose()
-                    << "\nreprojected pixel: " << reprojected_pixel.transpose();
+        // Ensure the image -> camera -> image transformation works.
+        for (double x = 0.0; x < kImageWidth; x += 10.0) {
+            for (double y = 0.0; y < kImageHeight; y += 10.0) {
+                const Vector2d pixel{x, y};
+                const Vector3d normalized_ray = _camera.imageToSpace(pixel);
+
+                // Test the reprojection at several depths.
+                for (double depth = kMinDepth; depth < kMaxDepth;
+                     depth += 1.0) {
+                    const Vector3d point = normalized_ray * depth;
+                    const Vector2d reprojected_pixel =
+                        _camera.spaceToImage(point);
+
+                    // Expect the reprojection to be close.
+                    EXPECT_LT((pixel - reprojected_pixel).norm(), kTolerance)
+                        << "GT pixel: " << pixel.transpose()
+                        << "\n"
+                           "Reprojected pixel: "
+                        << reprojected_pixel.transpose();
+                }
+            }
+        }
+
+        // Ensure the camera -> image -> camera transformation works.
+        for (double x = -0.8; x < 0.8; x += 0.1) {
+            for (double y = -0.8; y < 0.8; y += 0.1) {
+                for (double depth = kMinDepth; depth < kMaxDepth; depth += 1.) {
+                    const Vector3d point{x, y, depth};
+                    const Vector2d pixel = _camera.spaceToImage(point);
+                    const Vector3d normalized_ray = _camera.imageToSpace(pixel);
+                    const Vector3d reprojected_point = normalized_ray * depth;
+
+                    // Expect the reprojection to be close.
+                    EXPECT_LT((point - reprojected_point).norm(),
+                              kNormalizedTolerance)
+                        << "GT pixel: " << point.transpose()
+                        << "\n"
+                           "Reprojected pixel: "
+                        << reprojected_point.transpose();
+                }
             }
         }
     }
 
-    // Ensure the camera -> image -> camera transformation works.
-    for (double x = -0.8; x < 0.8; x += 0.1) {
-        for (double y = -0.8; y < 0.8; y += 0.1) {
-            for (double depth = kMinDepth; depth < kMaxDepth; depth += 1.0) {
-                const Eigen::Vector3d point(x, y, depth);
-                const Vector2d pixel = camera.spaceToImage(point);
+protected:
+    PinholeCameraModel _camera;
+};
 
-                // Get the normalized ray of that pixel.
-                const Vector3d normalized_ray = camera.imageToSpace(pixel);
-
-                // Convert it to a full 3D point in the camera coordinate
-                // system.
-                const Vector3d reprojected_point = normalized_ray * depth;
-
-                // Expect the reprojection to be close.
-                EXPECT_LT((point - reprojected_point).norm(),
-                          kNormalizedTolerance)
-                    << "gt pixel: " << point.transpose()
-                    << "\nreprojected pixel: " << reprojected_point.transpose();
-            }
-        }
-    }
+TEST_F(PinholeCameraFixture, ReprojectionNoDistortion)
+{
+    _camera.setRadialDistortion(0., 0.);
+    TestReprojection();
 }
 
-TEST(PinholeCameraModel, ReprojectionNoDistortion)
+TEST_F(PinholeCameraFixture, ReprojectionOneDistortion)
 {
-    constexpr double kPrincipalPoint[2] = {600.0, 400.0};
-    constexpr double kFocalLength = 1200;
-
-    PinholeCameraModel camera;
-    camera.setFocalLength(kFocalLength);
-    camera.setPrincipalPoint(kPrincipalPoint[0], kPrincipalPoint[1]);
-    camera.setRadialDistortion(0, 0);
-    ReprojectionTest(camera);
+    _camera.setRadialDistortion(0.01, 0.);
+    TestReprojection();
 }
 
-TEST(PinholeCameraModel, ReprojectionOneDistortion)
+TEST_F(PinholeCameraFixture, ReprojectionTwoDistortion)
 {
-    constexpr double kPrincipalPoint[2] = {600.0, 400.0};
-    constexpr double kFocalLength = 1200;
-
-    PinholeCameraModel camera;
-    camera.setFocalLength(kFocalLength);
-    camera.setPrincipalPoint(kPrincipalPoint[0], kPrincipalPoint[1]);
-    camera.setRadialDistortion(0.01, 0);
-    ReprojectionTest(camera);
-}
-
-TEST(PinholeCameraModel, ReprojectionTwoDistortion)
-{
-    constexpr double kPrincipalPoint[2] = {600.0, 400.0};
-    constexpr double kFocalLength = 1200;
-
-    PinholeCameraModel camera;
-    camera.setFocalLength(kFocalLength);
-    camera.setPrincipalPoint(kPrincipalPoint[0], kPrincipalPoint[1]);
-    camera.setRadialDistortion(0.01, 0.001);
-    ReprojectionTest(camera);
+    _camera.setRadialDistortion(0.01, 0.001);
+    TestReprojection();
 }
 
 #include <tCamera/PinholeRadialTangentialCameraModel>
@@ -278,7 +273,7 @@ TEST(PinholeCameraModel, ReprojectionTwoDistortion)
 TEST(PinholeRadialTangentialCameraModel, InternalParameterGettersAndSetters)
 {
     PinholeRadialTangentialCameraModel camera;
-
+    // Check type
     EXPECT_EQ(camera.type(), CameraIntrinsics::Type::PinholeRadialTangential);
 
     // Check that default values are set
@@ -293,291 +288,292 @@ TEST(PinholeRadialTangentialCameraModel, InternalParameterGettersAndSetters)
     EXPECT_EQ(camera.tangentialDistortion1(), 0.0);
     EXPECT_EQ(camera.tangentialDistortion2(), 0.0);
 
+    constexpr double kFocalLength{600.};
+    constexpr double kAspectRatio{0.9};
+    constexpr double kSkew{0.01};
+    constexpr double kPrincipalPointX{300.};
+    constexpr double kPrincipalPointY{400.};
+    constexpr double kK1{1e-2};
+    constexpr double kK2{1e-3};
+    constexpr double kK3{1e-4};
+    constexpr double kT1{2e-2};
+    constexpr double kT2{2e-3};
+
     // Set parameters to different values.
-    camera.setFocalLength(600.0);
-    camera.setAspectRatio(0.9);
-    camera.setSkew(0.01);
-    camera.setPrincipalPoint(300.0, 400.0);
-    camera.setRadialDistortion(0.01, 0.001, 0.0001);
-    camera.setTangentialDistortion(0.02, 0.002);
+    camera.setFocalLength(kFocalLength);
+    camera.setAspectRatio(kAspectRatio);
+    camera.setSkew(kSkew);
+    camera.setPrincipalPoint(kPrincipalPointX, kPrincipalPointY);
+    camera.setRadialDistortion(kK1, kK2, kK3);
+    camera.setTangentialDistortion(kT1, kT2);
 
     // Check that the values were updated.
-    EXPECT_EQ(camera.focalLength(), 600.0);
-    EXPECT_EQ(camera.aspectRatio(), 0.9);
-    EXPECT_EQ(camera.skew(), 0.01);
-    EXPECT_EQ(camera.principalPointX(), 300.0);
-    EXPECT_EQ(camera.principalPointY(), 400.0);
-    EXPECT_EQ(camera.radialDistortion1(), 0.01);
-    EXPECT_EQ(camera.radialDistortion2(), 0.001);
-    EXPECT_EQ(camera.radialDistortion3(), 0.0001);
-    EXPECT_EQ(camera.tangentialDistortion1(), 0.02);
-    EXPECT_EQ(camera.tangentialDistortion2(), 0.002);
+    EXPECT_EQ(camera.focalLength(), kFocalLength);
+    EXPECT_EQ(camera.aspectRatio(), kAspectRatio);
+    EXPECT_EQ(camera.skew(), kSkew);
+    EXPECT_EQ(camera.principalPointX(), kPrincipalPointX);
+    EXPECT_EQ(camera.principalPointY(), kPrincipalPointY);
+    EXPECT_EQ(camera.radialDistortion1(), kK1);
+    EXPECT_EQ(camera.radialDistortion2(), kK2);
+    EXPECT_EQ(camera.radialDistortion3(), kK3);
+    EXPECT_EQ(camera.tangentialDistortion1(), kT1);
+    EXPECT_EQ(camera.tangentialDistortion2(), kT2);
 }
 
-// Test to ensure that the camera intrinsics are being set appropriately.
-inline void TestSetFromCameraintrinsicsPrior(const CameraMetaData& prior)
-{
-    const PinholeRadialTangentialCameraModel default_camera;
-
-    PinholeRadialTangentialCameraModel camera;
-    camera.setFromMetaData(prior);
-
-    if (prior.focal_length.is_set) {
-        EXPECT_EQ(camera.focalLength(), prior.focal_length.value[0]);
-    }
-    else {
-        EXPECT_EQ(camera.focalLength(), default_camera.focalLength());
-    }
-
-    if (prior.principal_point.is_set) {
-        EXPECT_EQ(camera.principalPointX(), prior.principal_point.value[0]);
-        EXPECT_EQ(camera.principalPointY(), prior.principal_point.value[1]);
-    }
-    else {
-        EXPECT_EQ(camera.principalPointX(), default_camera.principalPointX());
-        EXPECT_EQ(camera.principalPointY(), default_camera.principalPointY());
-    }
-
-    if (prior.aspect_ratio.is_set) {
-        EXPECT_EQ(camera.aspectRatio(), prior.aspect_ratio.value[0]);
-    }
-    else {
-        EXPECT_EQ(camera.aspectRatio(), default_camera.aspectRatio());
-    }
-
-    if (prior.skew.is_set) {
-        EXPECT_EQ(camera.skew(), prior.skew.value[0]);
-    }
-    else {
-        EXPECT_EQ(camera.skew(), default_camera.skew());
-    }
-
-    if (prior.radial_distortion.is_set) {
-        EXPECT_EQ(camera.radialDistortion1(), prior.radial_distortion.value[0]);
-        EXPECT_EQ(camera.radialDistortion2(), prior.radial_distortion.value[1]);
-    }
-    else {
-        EXPECT_EQ(camera.radialDistortion1(),
-                  default_camera.radialDistortion1());
-        EXPECT_EQ(camera.radialDistortion2(),
-                  default_camera.radialDistortion2());
-    }
-}
-
-// Gradually add one prior at a time and ensure that the method still works. We
+// Gradually add one meta at a time and ensure that the method still works. We
 // test before and after setting the "is_set" member variable to true to ensure
 // that setting the value of priors when is_set=false is handled properly.
-TEST(PinholeRadialTangentialCameraModel, SetFromCameraIntrinsicsPriors)
+TEST(PinholeRadialTangentialCameraModel, SetFromCameraMetaData)
 {
-    CameraMetaData prior;
-    prior.focal_length.value[0] = 1000.0;
-    prior.principal_point.value[0] = 400.0;
-    prior.principal_point.value[1] = 300.0;
-    prior.aspect_ratio.value[0] = 1.01;
-    prior.skew.value[0] = 0.01;
-    prior.radial_distortion.value[0] = 0.1;
-    prior.radial_distortion.value[1] = 0.01;
-    prior.radial_distortion.value[2] = 0.001;
-    prior.tangential_distortion.value[0] = 0.1;
-    prior.tangential_distortion.value[1] = 0.01;
+    // Test to ensure that the camera intrinsics are being set appropriately.
+    auto TestCameraSetFromMeta = [](const CameraMetaData& meta) {
+        const PinholeRadialTangentialCameraModel default_camera;
 
-    TestSetFromCameraintrinsicsPrior(prior);
+        PinholeRadialTangentialCameraModel camera;
+        camera.setFromMetaData(meta);
 
-    prior.focal_length.is_set = true;
-    TestSetFromCameraintrinsicsPrior(prior);
+        if (meta.focal_length.is_set) {
+            EXPECT_EQ(camera.focalLength(), meta.focal_length.value[0]);
+        }
+        else {
+            EXPECT_EQ(camera.focalLength(), default_camera.focalLength());
+        }
 
-    prior.principal_point.is_set = true;
-    TestSetFromCameraintrinsicsPrior(prior);
+        if (meta.principal_point.is_set) {
+            EXPECT_EQ(camera.principalPointX(), meta.principal_point.value[0]);
+            EXPECT_EQ(camera.principalPointY(), meta.principal_point.value[1]);
+        }
+        else {
+            EXPECT_EQ(camera.cx(), default_camera.cx());
+            EXPECT_EQ(camera.cy(), default_camera.cy());
+        }
 
-    prior.aspect_ratio.is_set = true;
-    TestSetFromCameraintrinsicsPrior(prior);
+        if (meta.aspect_ratio.is_set) {
+            EXPECT_EQ(camera.aspectRatio(), meta.aspect_ratio.value[0]);
+        }
+        else {
+            EXPECT_EQ(camera.aspectRatio(), default_camera.aspectRatio());
+        }
 
-    prior.skew.is_set = true;
-    TestSetFromCameraintrinsicsPrior(prior);
+        if (meta.skew.is_set) {
+            EXPECT_EQ(camera.skew(), meta.skew.value[0]);
+        }
+        else {
+            EXPECT_EQ(camera.skew(), default_camera.skew());
+        }
 
-    prior.radial_distortion.is_set = true;
-    TestSetFromCameraintrinsicsPrior(prior);
+        if (meta.radial_distortion.is_set) {
+            EXPECT_EQ(camera.k1(), meta.radial_distortion.value[0]);
+            EXPECT_EQ(camera.k2(), meta.radial_distortion.value[1]);
+            EXPECT_EQ(camera.k3(), meta.radial_distortion.value[2]);
+        }
+        else {
+            EXPECT_EQ(camera.k1(), default_camera.k1());
+            EXPECT_EQ(camera.k2(), default_camera.k2());
+            EXPECT_EQ(camera.k3(), default_camera.k3());
+        }
 
-    prior.tangential_distortion.is_set = true;
-    TestSetFromCameraintrinsicsPrior(prior);
+        if (meta.tangential_distortion.is_set) {
+            EXPECT_EQ(camera.t1(), meta.tangential_distortion.value[0]);
+            EXPECT_EQ(camera.t2(), meta.tangential_distortion.value[1]);
+        }
+        else {
+            EXPECT_EQ(camera.t1(), default_camera.t1());
+            EXPECT_EQ(camera.t2(), default_camera.t2());
+        }
+    };
+
+    CameraMetaData meta;
+    meta.focal_length.value[0] = 1000.0;
+    meta.principal_point.value[0] = 400.0;
+    meta.principal_point.value[1] = 300.0;
+    meta.aspect_ratio.value[0] = 1.01;
+    meta.skew.value[0] = 0.01;
+    meta.radial_distortion.value[0] = 0.1;
+    meta.radial_distortion.value[1] = 0.01;
+    meta.radial_distortion.value[2] = 0.001;
+    meta.tangential_distortion.value[0] = 0.1;
+    meta.tangential_distortion.value[1] = 0.01;
+
+    TestCameraSetFromMeta(meta);
+
+    meta.focal_length.is_set = true;
+    TestCameraSetFromMeta(meta);
+
+    meta.principal_point.is_set = true;
+    TestCameraSetFromMeta(meta);
+
+    meta.aspect_ratio.is_set = true;
+    TestCameraSetFromMeta(meta);
+
+    meta.skew.is_set = true;
+    TestCameraSetFromMeta(meta);
+
+    meta.radial_distortion.is_set = true;
+    TestCameraSetFromMeta(meta);
+
+    meta.tangential_distortion.is_set = true;
+    TestCameraSetFromMeta(meta);
 }
 
 TEST(PinholeRadialTangentialCameraModel, GetSubsetFromOptimizeIntrinsicsType)
 {
-    PinholeRadialTangentialCameraModel camera;
-    std::vector<int> constant_subset;
+    using _Type = OptimizeIntrinsicsType;
 
-    constant_subset =
-        camera.constantParameterIndices(OptimizeIntrinsicsType::None);
-    EXPECT_EQ(constant_subset.size(), camera.numParameters());
+    PinholeRadialTangentialCameraModel camera;
+    std::vector<int> indices;
+
+    indices = camera.constantParameterIndices(_Type::None);
+    EXPECT_EQ(indices.size(), camera.numParameters());
 
     // Test that optimizing for focal length works correctly.
-    constant_subset =
-        camera.constantParameterIndices(OptimizeIntrinsicsType::FocalLength);
-    EXPECT_EQ(constant_subset.size(), camera.numParameters() - 1);
-    for (int i = 0; i < constant_subset.size(); i++) {
-        EXPECT_NE(constant_subset[i], PinholeRadialTangentialCameraModel::Fx);
+    indices = camera.constantParameterIndices(_Type::FocalLength);
+    EXPECT_EQ(indices.size(), camera.numParameters() - 1);
+    for (const auto& index : indices) {
+        EXPECT_NE(index, PinholeRadialTangentialCameraModel::Fx);
     }
 
     // Test that optimizing for principal_points works correctly.
-    constant_subset =
-        camera.constantParameterIndices(OptimizeIntrinsicsType::PrincipalPoint);
-    EXPECT_EQ(constant_subset.size(), camera.numParameters() - 2);
-    for (int i = 0; i < constant_subset.size(); i++) {
-        EXPECT_NE(constant_subset[i], PinholeRadialTangentialCameraModel::Cx);
-        EXPECT_NE(constant_subset[i], PinholeRadialTangentialCameraModel::Cy);
+    indices = camera.constantParameterIndices(_Type::PrincipalPoint);
+    EXPECT_EQ(indices.size(), camera.numParameters() - 2);
+    for (const auto& index : indices) {
+        EXPECT_NE(index, PinholeRadialTangentialCameraModel::Cx);
+        EXPECT_NE(index, PinholeRadialTangentialCameraModel::Cy);
     }
 
     // Test that optimizing for aspect ratio works correctly.
-    constant_subset =
-        camera.constantParameterIndices(OptimizeIntrinsicsType::AspectRatio);
-    EXPECT_EQ(constant_subset.size(), camera.numParameters() - 1);
-    for (int i = 0; i < constant_subset.size(); i++) {
-        EXPECT_NE(constant_subset[i], PinholeRadialTangentialCameraModel::YX);
+    indices = camera.constantParameterIndices(_Type::AspectRatio);
+    EXPECT_EQ(indices.size(), camera.numParameters() - 1);
+    for (const auto& index : indices) {
+        EXPECT_NE(index, PinholeRadialTangentialCameraModel::YX);
     }
 
     // Test that optimizing for skew works correctly.
-    constant_subset =
-        camera.constantParameterIndices(OptimizeIntrinsicsType::Skew);
-    EXPECT_EQ(constant_subset.size(), camera.numParameters() - 1);
-    for (int i = 0; i < constant_subset.size(); i++) {
-        EXPECT_NE(constant_subset[i], PinholeRadialTangentialCameraModel::Skew);
+    indices = camera.constantParameterIndices(_Type::Skew);
+    EXPECT_EQ(indices.size(), camera.numParameters() - 1);
+    for (const auto& index : indices) {
+        EXPECT_NE(index, PinholeRadialTangentialCameraModel::Skew);
     }
 
     // Test that optimizing for radial distortion works correctly.
-    constant_subset = camera.constantParameterIndices(
-        OptimizeIntrinsicsType::RadialDistortion);
-    EXPECT_EQ(constant_subset.size(), camera.numParameters() - 3);
-    for (int i = 0; i < constant_subset.size(); i++) {
-        EXPECT_NE(constant_subset[i], PinholeRadialTangentialCameraModel::K1);
-        EXPECT_NE(constant_subset[i], PinholeRadialTangentialCameraModel::K2);
-        EXPECT_NE(constant_subset[i], PinholeRadialTangentialCameraModel::K3);
+    indices = camera.constantParameterIndices(_Type::RadialDistortion);
+    EXPECT_EQ(indices.size(), camera.numParameters() - 3);
+    for (const auto& index : indices) {
+        EXPECT_NE(index, PinholeRadialTangentialCameraModel::K1);
+        EXPECT_NE(index, PinholeRadialTangentialCameraModel::K2);
+        EXPECT_NE(index, PinholeRadialTangentialCameraModel::K3);
     }
 
     // Test that optimizing for tangential distortion does not optimize any
     // parameters.
-    constant_subset = camera.constantParameterIndices(
-        OptimizeIntrinsicsType::TangentialDistortion);
-    EXPECT_EQ(constant_subset.size(), camera.numParameters() - 2);
-    for (int i = 0; i < constant_subset.size(); i++) {
-        EXPECT_NE(constant_subset[i], PinholeRadialTangentialCameraModel::T1);
-        EXPECT_NE(constant_subset[i], PinholeRadialTangentialCameraModel::T2);
+    indices = camera.constantParameterIndices(_Type::TangentialDistortion);
+    EXPECT_EQ(indices.size(), camera.numParameters() - 2);
+    for (const auto& index : indices) {
+        EXPECT_NE(index, PinholeRadialTangentialCameraModel::T1);
+        EXPECT_NE(index, PinholeRadialTangentialCameraModel::T2);
     }
 }
 
-void ReprojectionTest(const PinholeRadialTangentialCameraModel& camera)
+class PinholeRadialTangentialCameraFixture : public ::testing::Test
 {
-    constexpr double kTolerance = 1e-5;
-    const double kNormalizedTolerance = kTolerance / camera.focalLength();
-    constexpr int kImageWidth = 1200;
-    constexpr int kImageHeight = 980;
-    constexpr double kMinDepth{2.0};
-    constexpr double kMaxDepth{25.0};
+protected:
+    void SetUp() override
+    {
+        constexpr double kPrincipalPoint[2]{600., 400.};
+        constexpr double kFocalLength{1200.};
 
-    // Ensure the image -> camera -> image transformation works.
-    for (double x = 0.0; x < kImageWidth; x += 10.0) {
-        for (double y = 0.0; y < kImageHeight; y += 10.0) {
-            const Eigen::Vector2d pixel(x, y);
-            // Get the normalized ray of that pixel.
-            const Vector3d normalized_ray = camera.imageToSpace(pixel);
+        _camera.setFocalLength(kFocalLength);
+        _camera.setPrincipalPoint(kPrincipalPoint[0], kPrincipalPoint[1]);
+    }
 
-            // Test the reprojection at several depths.
-            for (double depth = kMinDepth; depth < kMaxDepth; depth += 1.0) {
-                // Convert it to a full 3D point in the camera coordinate
-                // system.
-                const Vector3d point = normalized_ray * depth;
-                const Vector2d reprojected_pixel = camera.spaceToImage(point);
+    void TestReprojection() const
+    {
+        constexpr double kTolerance = 1e-5;
+        const double kNormalizedTolerance = kTolerance / _camera.focalLength();
+        constexpr int kImageWidth = 1200;
+        constexpr int kImageHeight = 980;
+        constexpr double kMinDepth{2.0};
+        constexpr double kMaxDepth{25.0};
 
-                // Expect the reprojection to be close.
-                EXPECT_LT((pixel - reprojected_pixel).norm(), kTolerance)
-                    << "gt pixel: " << pixel.transpose()
-                    << "\nreprojected pixel: " << reprojected_pixel.transpose();
+        // Ensure the image -> camera -> image transformation works.
+        for (double x = 0.0; x < kImageWidth; x += 10.0) {
+            for (double y = 0.0; y < kImageHeight; y += 10.0) {
+                const Vector2d pixel{x, y};
+                const Vector3d normalized_ray = _camera.imageToSpace(pixel);
+
+                // Test the reprojection at several depths.
+                for (double depth = kMinDepth; depth < kMaxDepth;
+                     depth += 1.0) {
+                    const Vector3d point = normalized_ray * depth;
+                    const Vector2d reprojected_pixel =
+                        _camera.spaceToImage(point);
+
+                    // Expect the reprojection to be close.
+                    EXPECT_LT((pixel - reprojected_pixel).norm(), kTolerance)
+                        << "GT pixel: " << pixel.transpose()
+                        << "\n"
+                           "Reprojected pixel: "
+                        << reprojected_pixel.transpose();
+                }
+            }
+        }
+
+        // Ensure the camera -> image -> camera transformation works.
+        for (double x = -0.8; x < 0.8; x += 0.1) {
+            for (double y = -0.8; y < 0.8; y += 0.1) {
+                for (double depth = kMinDepth; depth < kMaxDepth;
+                     depth += 1.0) {
+                    const Vector3d point{x, y, depth};
+                    const Vector2d pixel = _camera.spaceToImage(point);
+                    const Vector3d normalized_ray = _camera.imageToSpace(pixel);
+                    const Vector3d reprojected_point = normalized_ray * depth;
+
+                    // Expect the reprojection to be close.
+                    EXPECT_LT((point - reprojected_point).norm(),
+                              kNormalizedTolerance)
+                        << "GT pixel: " << point.transpose()
+                        << "\n"
+                           "Reprojected pixel: "
+                        << reprojected_point.transpose();
+                }
             }
         }
     }
 
-    // Ensure the camera -> image -> camera transformation works.
-    for (double x = -0.8; x < 0.8; x += 0.1) {
-        for (double y = -0.8; y < 0.8; y += 0.1) {
-            for (double depth = kMinDepth; depth < kMaxDepth; depth += 1.0) {
-                const Eigen::Vector3d point(x, y, depth);
-                const Vector2d pixel = camera.spaceToImage(point);
+protected:
+    PinholeRadialTangentialCameraModel _camera;
+};
 
-                // Get the normalized ray of that pixel.
-                const Vector3d normalized_ray = camera.imageToSpace(pixel);
-
-                // Convert it to a full 3D point in the camera coordinate
-                // system.
-                const Vector3d reprojected_point = normalized_ray * depth;
-
-                // Expect the reprojection to be close.
-                EXPECT_LT((point - reprojected_point).norm(),
-                          kNormalizedTolerance)
-                    << "gt pixel: " << point.transpose()
-                    << "\nreprojected pixel: " << reprojected_point.transpose();
-            }
-        }
-    }
+TEST_F(PinholeRadialTangentialCameraFixture, ReprojectionNoDistortion)
+{
+    _camera.setRadialDistortion(0., 0., 0.);
+    TestReprojection();
 }
 
-TEST(PinholeRadialTangentialCameraModel, ReprojectionNoDistortion)
+TEST_F(PinholeRadialTangentialCameraFixture, ReprojectionOneRadialDistortion)
 {
-    constexpr double kPrincipalPoint[2]{600., 400.};
-    constexpr double kFocalLength{1200.};
-
-    PinholeRadialTangentialCameraModel camera;
-    camera.setFocalLength(kFocalLength);
-    camera.setPrincipalPoint(kPrincipalPoint[0], kPrincipalPoint[1]);
-    camera.setRadialDistortion(0., 0., 0.);
-    ReprojectionTest(camera);
+    _camera.setRadialDistortion(0.01, 0., 0.);
+    TestReprojection();
 }
 
-TEST(PinholeRadialTangentialCameraModel, ReprojectionOneRadialDistortion)
+TEST_F(PinholeRadialTangentialCameraFixture, ReprojectionTwoRadialDistortion)
 {
-    constexpr double kPrincipalPoint[2]{600., 400.};
-    constexpr double kFocalLength{1200.};
-
-    PinholeRadialTangentialCameraModel camera;
-    camera.setFocalLength(kFocalLength);
-    camera.setPrincipalPoint(kPrincipalPoint[0], kPrincipalPoint[1]);
-    camera.setRadialDistortion(0.01, 0., 0.);
-    ReprojectionTest(camera);
+    _camera.setRadialDistortion(0.01, 0.001, 0.);
+    TestReprojection();
 }
 
-TEST(PinholeRadialTangentialCameraModel, ReprojectionTwoRadialDistortion)
+TEST_F(PinholeRadialTangentialCameraFixture,
+       ReprojectionOneTangentialDistortion)
 {
-    constexpr double kPrincipalPoint[2]{600., 400.};
-    constexpr double kFocalLength{1200.};
-
-    PinholeRadialTangentialCameraModel camera;
-    camera.setFocalLength(kFocalLength);
-    camera.setPrincipalPoint(kPrincipalPoint[0], kPrincipalPoint[1]);
-    camera.setRadialDistortion(0.01, 0.001, 0.);
-    ReprojectionTest(camera);
+    _camera.setRadialDistortion(0.01, 0.001, 0.0001);
+    _camera.setTangentialDistortion(0.01, 0.);
+    TestReprojection();
 }
 
-TEST(PinholeRadialTangentialCameraModel, ReprojectionOneTangentialDistortion)
+TEST_F(PinholeRadialTangentialCameraFixture,
+       ReprojectionTwoTangentialDistortion)
 {
-    constexpr double kPrincipalPoint[2]{600., 400.};
-    constexpr double kFocalLength{1200.};
-
-    PinholeRadialTangentialCameraModel camera;
-    camera.setFocalLength(kFocalLength);
-    camera.setPrincipalPoint(kPrincipalPoint[0], kPrincipalPoint[1]);
-    camera.setRadialDistortion(0.01, 0.001, 0.0001);
-    camera.setTangentialDistortion(0.01, 0.);
-    ReprojectionTest(camera);
-}
-
-TEST(PinholeRadialTangentialCameraModel, ReprojectionTwoTangentialDistortion)
-{
-    constexpr double kPrincipalPoint[2]{600., 400.};
-    constexpr double kFocalLength{1200.};
-
-    PinholeRadialTangentialCameraModel camera;
-    camera.setFocalLength(kFocalLength);
-    camera.setPrincipalPoint(kPrincipalPoint[0], kPrincipalPoint[1]);
-    camera.setRadialDistortion(0.01, 0.001, 0.0001);
-    camera.setTangentialDistortion(0.01, 0.001);
-    ReprojectionTest(camera);
+    _camera.setRadialDistortion(0.01, 0.001, 0.0001);
+    _camera.setTangentialDistortion(0.01, 0.001);
+    TestReprojection();
 }

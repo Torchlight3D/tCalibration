@@ -10,7 +10,7 @@
 #include <QUuid>
 
 #include <tCalibration/CalibrationIO>
-#include <tCamera/StereoCameraTypes>
+#include <tCamera/Types>
 #include <tCore/Channel>
 #include <tCore/ThreadPool>
 #include <tDevice/StereoDataRecorder>

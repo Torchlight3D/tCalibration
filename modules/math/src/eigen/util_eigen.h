@@ -281,6 +281,13 @@ Eigen::Matrix4<T> QuaternionMultMatRight(const Eigen::Quaternion<T>& q)
     // clang-format on
 }
 
+// TODO: It's weird to show up here
+inline void transformPoint(const Eigen::Matrix3d& R, const Eigen::Vector3d& t,
+                           double scale, Eigen::Vector3d& point)
+{
+    point = scale * R * point + t;
+}
+
 Eigen::Vector3d Lerp(const Eigen::Vector3d& v0, const Eigen::Vector3d& v1,
                      double fraction);
 

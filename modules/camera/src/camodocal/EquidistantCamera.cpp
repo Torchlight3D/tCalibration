@@ -1,12 +1,10 @@
 #include "EquidistantCamera.h"
 
-#include <cmath>
-#include <cstdio>
 #include <iostream>
 
 #include <Eigen/Eigenvalues>
 #include <opencv2/core/eigen.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/imgproc.hpp>
 
 #include "gpl.h"
 
@@ -115,9 +113,18 @@ void EquidistantCamera::Parameters::write(cv::FileStorage &fs) const
 
     // Projection: k2, k3, k4, k5, mu, mv, u0, v0
     fs << key::kProjectionParameters;
-    fs << "{" << key::kK2 << m_k2 << key::kK3 << m_k3 << key::kK4 << m_k4
-       << key::kK5 << m_k5 << key::kMu << m_mu << key::kMv << m_mv << key::kU0
-       << m_u0 << key::kV0 << m_v0 << "}";
+    // clang-format off
+    fs << "{"
+       << key::kK2 << m_k2
+       << key::kK3 << m_k3
+       << key::kK4 << m_k4
+       << key::kK5 << m_k5
+       << key::kMu << m_mu
+       << key::kMv << m_mv
+       << key::kU0 << m_u0
+       << key::kV0 << m_v0
+       << "}";
+    // clang-format on
 }
 
 EquidistantCamera::Parameters &EquidistantCamera::Parameters::operator=(
@@ -144,23 +151,47 @@ EquidistantCamera::Parameters &EquidistantCamera::Parameters::operator=(
 std::ostream &operator<<(std::ostream &out,
                          const EquidistantCamera::Parameters &params)
 {
-    out << "Camera Parameters:" << std::endl;
-    out << "    model_type "
-        << "KANNALA_BRANDT" << std::endl;
-    out << "   camera_name " << params.m_cameraName << std::endl;
-    out << "   image_width " << params.m_imageWidth << std::endl;
-    out << "  image_height " << params.m_imageHeight << std::endl;
+    out << "Camera Parameters:"
+           "\n"
+           "    model_type "
+        << EquidistantCamera::Parameters::kModelTypeName
+        << "\n"
+           "   camera_name "
+        << params.m_cameraName
+        << "\n"
+           "   image_width "
+        << params.m_imageWidth
+        << "\n"
+           "  image_height "
+        << params.m_imageHeight
+        << "\n"
 
-    // projection: k2, k3, k4, k5, mu, mv, u0, v0
-    out << "Projection Parameters" << std::endl;
-    out << "            k2 " << params.m_k2 << std::endl
-        << "            k3 " << params.m_k3 << std::endl
-        << "            k4 " << params.m_k4 << std::endl
-        << "            k5 " << params.m_k5 << std::endl
-        << "            mu " << params.m_mu << std::endl
-        << "            mv " << params.m_mv << std::endl
-        << "            u0 " << params.m_u0 << std::endl
-        << "            v0 " << params.m_v0 << std::endl;
+           // Projection: k2, k3, k4, k5, mu, mv, u0, v0
+           "Projection Parameters"
+        << "\n"
+           "            k2 "
+        << params.m_k2
+        << "\n"
+           "            k3 "
+        << params.m_k3
+        << "\n"
+           "            k4 "
+        << params.m_k4
+        << "\n"
+           "            k5 "
+        << params.m_k5
+        << "\n"
+           "            mu "
+        << params.m_mu
+        << "\n"
+           "            mv "
+        << params.m_mv
+        << "\n"
+           "            u0 "
+        << params.m_u0
+        << "\n"
+           "            v0 "
+        << params.m_v0 << std::endl;
 
     return out;
 }
@@ -168,20 +199,6 @@ std::ostream &operator<<(std::ostream &out,
 EquidistantCamera::EquidistantCamera()
     : m_inv_K11(1.0), m_inv_K13(0.0), m_inv_K22(1.0), m_inv_K23(0.0)
 {
-}
-
-EquidistantCamera::EquidistantCamera(const std::string &cameraName,
-                                     int imageWidth, int imageHeight, double k2,
-                                     double k3, double k4, double k5, double mu,
-                                     double mv, double u0, double v0)
-    : mParameters(cameraName, imageWidth, imageHeight, k2, k3, k4, k5, mu, mv,
-                  u0, v0)
-{
-    // Inverse camera projection matrix parameters
-    m_inv_K11 = 1.0 / mParameters.mu();
-    m_inv_K13 = -mParameters.u0() / mParameters.mu();
-    m_inv_K22 = 1.0 / mParameters.mv();
-    m_inv_K23 = -mParameters.v0() / mParameters.mv();
 }
 
 EquidistantCamera::EquidistantCamera(
@@ -264,7 +281,7 @@ void EquidistantCamera::estimateIntrinsics(
                     continue;
                 }
 
-                double f = cv::norm(ipts.at(0) - ipts.at(1)) / M_PI;
+                double f = cv::norm(ipts.at(0) - ipts.at(1)) / pi;
 
                 params.mu() = f;
                 params.mv() = f;
@@ -335,6 +352,104 @@ void EquidistantCamera::liftProjective(const Eigen::Vector2d &p,
     P(2) = std::cos(theta);
 }
 
+void EquidistantCamera::liftProjectiveByIteration1(const Eigen::Vector2d &px,
+                                                   Eigen::Vector3d &ray) const
+{
+    const auto &fx = mParameters.mu();
+    const auto &fy = mParameters.mv();
+    const auto &cx = mParameters.u0();
+    const auto &cy = mParameters.v0();
+    const auto &k1 = mParameters.k2();
+    const auto &k2 = mParameters.k3();
+    const auto &k3 = mParameters.k4();
+    const auto &k4 = mParameters.k5();
+
+    using Eigen::Vector2d;
+
+    const Vector2d px_norm =
+        (px - Vector2d{cx, cy}).cwiseProduct(Vector2d{1. / fx, 1. / fy});
+
+    const auto thetad = px_norm.norm();
+
+    constexpr int kIteration{14};
+    auto theta = thetad;
+    double theta2, theta4, theta8;
+    for (int i{0}; i < kIteration; ++i) {
+        theta2 = theta * theta;
+        theta4 = theta2 * theta2;
+        theta8 = theta4 * theta4;
+        // clang-format off
+        theta = thetad / (1.
+                          + k1 * theta2
+                          + k2 * theta4
+                          + k3 * theta4 * theta2
+                          + k4 * theta8);
+        // clang-format on
+    }
+    const auto scale = std::tan(theta) / thetad;
+
+    ray.head<2>() = scale * px_norm;
+    ray[2] = 1.;
+}
+
+void EquidistantCamera::liftProjectiveByIteration2(const Eigen::Vector2d &px,
+                                                   Eigen::Vector3d &ray) const
+{
+    const auto &fx = mParameters.mu();
+    const auto &fy = mParameters.mv();
+    const auto &cx = mParameters.u0();
+    const auto &cy = mParameters.v0();
+    const auto &k1 = mParameters.k2();
+    const auto &k2 = mParameters.k3();
+    const auto &k3 = mParameters.k4();
+    const auto &k4 = mParameters.k5();
+
+    using Eigen::Vector2d;
+
+    const Vector2d px_norm =
+        (px - Vector2d{cx, cy}).cwiseProduct(Vector2d{1. / fx, 1. / fy});
+
+    constexpr int kIteration{100};
+    constexpr double kVerySmallNumber{1e-8};
+    constexpr double kUndistortionEpsilon{1e-10};
+
+    Vector2d prev_px_u = Vector2d::Zero();
+    Vector2d px_u = px_norm;
+
+    double scale = 1.;
+    double theta, theta2, theta4, theta8, thetad;
+    for (int i{0}; i < kIteration; ++i) {
+        prev_px_u = px_u;
+
+        const auto psi = px_u.norm();
+        if (psi < kVerySmallNumber) {
+            break;
+        }
+
+        theta = std::atan2(psi, 1.);
+        theta2 = theta * theta;
+        theta4 = theta2 * theta2;
+        theta8 = theta4 * theta4;
+        // clang-format off
+        thetad = theta * (1.
+                          + k1 * theta2
+                          + k2 * theta4
+                          + k3 * theta4 * theta2
+                          + k4 * theta8);
+        // clang-format on
+        scale = psi / thetad;
+        px_u = scale * px_norm;
+
+        if (((prev_px_u - px_u).cwiseAbs().array() < kUndistortionEpsilon)
+                .all()) {
+            break;
+        }
+    }
+
+    ray.head<2>() = px_u;
+    ray[2] = 1.;
+}
+
 /**
  * \brief Project a 3D point (\a x,\a y,\a z) to the image plane in (\a u,\a v)
  *
@@ -354,6 +469,33 @@ void EquidistantCamera::spaceToPlane(const Eigen::Vector3d &P,
     // Apply generalised projection matrix
     p << mParameters.mu() * p_u(0) + mParameters.u0(),
         mParameters.mv() * p_u(1) + mParameters.v0();
+}
+
+void EquidistantCamera::spaceToPlane2(const Eigen::Vector3d &P,
+                                      Eigen::Vector2d &p) const
+{
+    const auto &k1 = mParameters.k2();
+    const auto &k2 = mParameters.k3();
+    const auto &k3 = mParameters.k4();
+    const auto &k4 = mParameters.k5();
+
+    const auto rr = P.head<2>().squaredNorm();
+    // Force distortion here
+    // if (rr < std::numeric_limits<double>::epsilon()) {
+    //     return false;
+    // }
+
+    auto rd = std::sqrt(rr);
+    const auto theta = std::atan2(rd, std::abs(P(2)));
+    const auto theta_2 = theta * theta;
+    const auto theta_4 = theta_2 * theta_2;
+    const auto theta_8 = theta_4 * theta_4;
+    auto thetad = theta * (1. + k1 * theta_2 + k2 * theta_4 +
+                           k3 * theta_2 * theta_4 + k4 * theta_8);
+
+    Eigen::Vector2d pt_d = P.head<2>() * thetad / rd;
+    p << mParameters.mu() * pt_d(0) + mParameters.u0(),
+        mParameters.mv() * pt_d(1) + mParameters.v0();
 }
 
 /**

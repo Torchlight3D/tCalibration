@@ -1,8 +1,5 @@
 #include "orthographic_camera_model.h"
 
-#include <glog/logging.h>
-#include <magic_enum/magic_enum.hpp>
-
 #include <tCamera/CameraMatrixUtils>
 
 namespace tl {
@@ -16,11 +13,6 @@ OrthographicCameraModel::OrthographicCameraModel() : CameraIntrinsics()
     setParameter(Skew, 0.);
     setParameter(K1, 0.);
     setParameter(K2, 0.);
-}
-
-CameraIntrinsics::Type OrthographicCameraModel::type() const
-{
-    return Type::Orthographic;
 }
 
 void OrthographicCameraModel::setFromMetaData(const CameraMetaData& meta)
@@ -92,19 +84,29 @@ std::vector<int> OrthographicCameraModel::constantParameterIndices(
     return indices;
 }
 
-void OrthographicCameraModel::calibrationMatrix(Eigen::Matrix3d& K) const
+Eigen::Matrix3d OrthographicCameraModel::calibrationMatrix() const
 {
-    intrinsicsToCalibrationMatrix(parameters_[Fx], parameters_[Skew],
-                                  parameters_[YX], parameters_[Cx],
-                                  parameters_[Cy], K);
+    return intrinsicsToCalibrationMatrix(parameters_[Fx], parameters_[Skew],
+                                         parameters_[YX], parameters_[Cx],
+                                         parameters_[Cy]);
 }
 
-void OrthographicCameraModel::print() const
+bool OrthographicCameraModel::isValid() const
 {
-    LOG(INFO) << toLogString() << "Skew: " << skew()
-              << "\n"
-                 "Radial distortion (k1, k2): "
-              << k1() << ", " << k2();
+    return CameraIntrinsics::isValid();
+}
+
+std::string OrthographicCameraModel::toLog() const
+{
+    std::ostringstream oss;
+    oss << CameraIntrinsics::toLog()
+        << "\n"
+           "Skew: "
+        << skew()
+        << "\n"
+           "Radial distortion (k1, k2): "
+        << k1() << ", " << k2();
+    return oss.str();
 }
 
 } // namespace tl

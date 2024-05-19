@@ -10,14 +10,16 @@ using Eigen::AngleAxisd;
 using Eigen::Matrix3d;
 using Eigen::Vector3d;
 
-void intrinsicsToCalibrationMatrix(double fx, double skew, double y_x,
-                                   double cx, double cy, Eigen::Matrix3d& K)
+Eigen::Matrix3d intrinsicsToCalibrationMatrix(double fx, double skew,
+                                              double y_x, double cx, double cy)
 {
+    Matrix3d K;
     // clang-format off
     K << fx,     skew,  cx,
          0., fx * y_x,  cy,
          0.,       0.,  1.;
     // clang-format on
+    return K;
 }
 
 void calibrationMatrixToIntrinsics(const Eigen::Matrix3d& K, double* fx,

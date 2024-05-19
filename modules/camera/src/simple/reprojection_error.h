@@ -51,6 +51,10 @@ struct ReprojectionError
         T reprojection[2];
         CameraIntrinsics::spaceToPixel(intrinsics, rotated_point, reprojection);
 
+        if (!CameraIntrinsics::isUnprojectable(intrinsics, reprojection)) {
+            return false;
+        }
+
         // Compute the reprojection error.
         residual[0] = reprojection[0] - feature_.x();
         residual[1] = reprojection[1] - feature_.y();

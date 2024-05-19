@@ -5,8 +5,8 @@
 
 #include <tCore/Global>
 #include <tCore/EnumUtils>
-#include <tCamera/StereoCameraTypes>
 #include <tCamera/coc/Camera>
+#include <tCamera/Types>
 
 namespace tl {
 

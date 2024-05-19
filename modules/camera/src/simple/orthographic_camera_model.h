@@ -1,7 +1,8 @@
 #pragma once
 
-#include "camera_intrinsics.h"
 #include <ceres/ceres.h>
+
+#include "camera_intrinsics.h"
 
 namespace tl {
 
@@ -15,7 +16,7 @@ class OrthographicCameraModel final : public CameraIntrinsics
 public:
     OrthographicCameraModel();
 
-    Type type() const override;
+    constexpr Type type() const override { return Type::Orthographic; }
 
     void setFromMetaData(const CameraMetaData& meta) override;
     CameraMetaData toMetaData() const override;
@@ -45,7 +46,9 @@ public:
     std::vector<int> constantParameterIndices(
         OptimizeIntrinsicsType flags) const override;
 
-    void calibrationMatrix(Eigen::Matrix3d& matrix) const override;
+    Eigen::Matrix3d calibrationMatrix() const override;
+
+    bool isValid() const override;
 
     // ------------------------- Point Mapping ----------------------------
     //
@@ -54,6 +57,9 @@ public:
 
     template <typename T>
     static bool pixelToSpace(const T* intrinsics, const T* pixel, T* point);
+
+    template <typename T>
+    static bool isUnprojectable(const T* intrinsics, const T* pixel);
 
     template <typename T>
     static bool distort(const T* intrinsics, const T* undistort, T* distorted);
@@ -95,8 +101,8 @@ public:
         return undistorted;
     }
 
-    /// Debug
-    void print() const override;
+protected:
+    std::string toLog() const override;
 };
 
 /// -------------------------- Implementation -------------------------------
@@ -144,6 +150,13 @@ bool OrthographicCameraModel::pixelToSpace(const T* intrinsics, const T* pixel,
     // Undo the radial distortion.
     OrthographicCameraModel::undistort(intrinsics, pt_d, point);
     point[2] = T(1.);
+    return true;
+}
+
+template <typename T>
+bool OrthographicCameraModel::isUnprojectable(const T* intrinsics,
+                                              const T* pixel)
+{
     return true;
 }
 

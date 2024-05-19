@@ -1,7 +1,8 @@
 #pragma once
 
-#include "camera_intrinsics.h"
 #include <ceres/ceres.h>
+
+#include "camera_intrinsics.h"
 
 namespace tl {
 
@@ -15,7 +16,7 @@ class OmnidirectionalCameraModel final : public CameraIntrinsics
 public:
     OmnidirectionalCameraModel();
 
-    Type type() const override;
+    constexpr Type type() const override { return Type::Omnidirectional; }
 
     void setFromMetaData(const CameraMetaData& meta) override;
     CameraMetaData toMetaData() const override;
@@ -63,6 +64,8 @@ public:
     std::vector<int> constantParameterIndices(
         OptimizeIntrinsicsType flags) const override;
 
+    bool isValid() const override;
+
     // ---------------------- Point Mapping --------------------------------
     //
     /// Static methods, for ceres
@@ -71,6 +74,9 @@ public:
 
     template <typename T>
     static bool pixelToSpace(const T* intrinsics, const T* pixel, T* point);
+
+    template <typename T>
+    static bool isUnprojectable(const T* intrinsics, const T* pixel);
 
     template <typename T>
     static bool distort(const T* intrinsics, const T* undistort, T* distorted);
@@ -114,7 +120,8 @@ public:
         return undistorted;
     }
 
-    void print() const override;
+protected:
+    std::string toLog() const override;
 };
 
 /// ---------------------- Implementation -----------------------------------
@@ -187,6 +194,38 @@ bool OmnidirectionalCameraModel::pixelToSpace(const T* intrinsics, const T* px,
     }
 
     return true;
+}
+
+template <typename T>
+bool OmnidirectionalCameraModel::isUnprojectable(const T* intrinsics,
+                                                 const T* px)
+{
+    // Unproject
+    const T& fx = intrinsics[Fx];
+    const T& y_x = intrinsics[YX];
+    const T fy = fx * y_x;
+    const T& cx = intrinsics[Cx];
+    const T& cy = intrinsics[Cy];
+
+    const T Kinv_11 = T(1) / fx;
+    const T Kinv_22 = T(1) / fy;
+    const T Kinv_13 = -cx / fx;
+    const T Kinv_23 = -cy / fy;
+
+    T pt_d[2];
+    pt_d[0] = Kinv_11 * px[0] + Kinv_13;
+    pt_d[1] = Kinv_22 * px[1] + Kinv_23;
+
+    // Undistort
+    T pt_u[2];
+    undistort(intrinsics, pt_d, pt_u);
+
+    const T& xi = intrinsics[Xi];
+    const T& x_u = pt_u[0];
+    const T& y_u = pt_u[1];
+    const T rho2 = x_u * x_u + y_u * y_u;
+
+    return (xi <= T(1) || rho2 <= (T(1) / (xi * xi - T(1))));
 }
 
 template <typename T>

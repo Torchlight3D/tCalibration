@@ -15,7 +15,7 @@ class DivisionUndistortionCameraModel final : public CameraIntrinsics
 public:
     DivisionUndistortionCameraModel();
 
-    Type type() const override;
+    constexpr Type type() const override { return Type::DivisionUndistortion; }
 
     void setFromMetaData(const CameraMetaData& meta) override;
     CameraMetaData toMetaData() const override;
@@ -38,6 +38,8 @@ public:
     std::vector<int> constantParameterIndices(
         OptimizeIntrinsicsType flags) const override;
 
+    bool isValid() const override;
+
     // ---------------------- Point Mapping --------------------------------
     //
     template <typename T>
@@ -45,6 +47,9 @@ public:
 
     template <typename T>
     static bool pixelToSpace(const T* intrinsics, const T* pixel, T* point);
+
+    template <typename T>
+    static bool isUnprojectable(const T* intrinsics, const T* pixel);
 
     template <typename T>
     static bool distort(T distortion, const T* undistort, T* distorted);
@@ -99,8 +104,8 @@ public:
         return undistorted;
     }
 
-    /// Debug
-    void print() const override;
+protected:
+    std::string toLog() const override;
 };
 
 /// -------------------------- Implementation -------------------------------
@@ -159,6 +164,14 @@ bool DivisionUndistortionCameraModel::pixelToSpace(const T* intrinsics,
     pt[1] /= fy;
     pt[2] = T(1.);
 
+    return true;
+}
+
+template <typename T>
+bool DivisionUndistortionCameraModel::isUnprojectable(const T* intrinsics,
+                                                      const T* pixel)
+{
+    // FIXME: complete here
     return true;
 }
 
