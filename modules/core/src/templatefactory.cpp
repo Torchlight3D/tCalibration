@@ -1,4 +1,4 @@
-#include "template_factory.h"
+#include "templatefactory.h"
 
 #if defined(_MSC_VER)
 #include <Windows.h>
