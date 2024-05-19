@@ -1,8 +1,7 @@
 ﻿#include "sqpnp.h"
 #include "impl/sqpnp_impl.h"
 
-#include <iostream>
-#include <tMath/MathBase>
+#include <tCore/Math>
 
 namespace tl {
 
@@ -17,7 +16,7 @@ SQPSolution runSQP(const Vector9d& r0, const Matrix9d& omega,
     int step{0};
     Vector9d delta;
     Vector9d r = r0;
-    double delta_squared_norm = math::kMaxDouble;
+    auto delta_squared_norm = kMaxDouble;
     while (delta_squared_norm > DEFAULT_SQP_SQUARED_TOLERANCE &&
            step++ < DEFAULT_SQP_SQUARED_TOLERANCE) {
         SolveSQPSystem(r, omega, delta);
@@ -260,7 +259,7 @@ bool SQPnP(const Vector2dList& image_points, const Vector3dList& world_points,
         findNearestRotationMatrix = findNearestRotationMatrixBySVD;
     }
 
-    double min_sq_error = math::kMaxDouble;
+    auto min_sq_error = kMaxDouble;
     int num_eigen_points = nullSpaceDim > 0 ? nullSpaceDim : 1;
     // clear solutions
     SQPSolution solutions_[18];

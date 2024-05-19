@@ -1,7 +1,6 @@
 ﻿#include "tag_detector.h"
 
 #include <algorithm>
-#include <climits>
 #include <cmath>
 #include <iostream>
 #include <map>
@@ -11,7 +10,7 @@
 #include <glog/logging.h>
 #include <opencv2/core/mat.hpp>
 
-#include <tMath/MathBase>
+#include <tCore/Math>
 
 #include "apriltag_types.h"
 #include "float_image.h"
@@ -73,7 +72,7 @@ namespace {
 constexpr float kMinEdgeMag{0.004f};
 
 // 30 degrees = maximum acceptable, difference in local orientations
-constexpr float kMaxEdgeCost{30.f * math::pi<float> / 180.f};
+constexpr float kMaxEdgeCost{30.f * pi_f / 180.f};
 
 // was 10000
 constexpr int kWidghtScale{100};
@@ -207,9 +206,7 @@ void mergeEdges(std::vector<Edge> &edges, UnionFindSimple &uf, float tmin[],
 
         // corner case that's probably not too useful to handle correctly, oh
         // well.
-        if (tmaxab - tminab > math::two_pi<float>) {
-            tmaxab = tminab + math::two_pi<float>;
-        }
+        tmaxab = std::min(tmaxab, tminab + two_pi_f);
 
         float mminab = std::min(mmin[ida], mmin[idb]);
         float mmaxab = std::max(mmax[ida], mmax[idb]);
@@ -444,7 +441,7 @@ std::vector<TagDetection> TagDetector::extractTags(const cv::Mat &image)
         }
 
         if (flip > noflip) {
-            seg.theta = seg.theta + math::pi<float>;
+            seg.theta = seg.theta + pi_f;
         }
 
         float dot = dx * std::cos(seg.theta) + dy * std::sin(seg.theta);
@@ -578,10 +575,8 @@ std::vector<TagDetection> TagDetector::extractTags(const cv::Mat &image)
             thisTagDetection.homography = quad.homography.getH();
             thisTagDetection.hxy = quad.homography.getCXY();
 
-            float c =
-                std::cos(thisTagDetection.rotation * math::half_pi<float>);
-            float s =
-                std::sin(thisTagDetection.rotation * math::half_pi<float>);
+            float c = std::cos(thisTagDetection.rotation * half_pi_f);
+            float s = std::sin(thisTagDetection.rotation * half_pi_f);
             Eigen::Matrix3d R;
             R.setZero();
             R(0, 0) = R(1, 1) = c;
@@ -880,7 +875,7 @@ std::vector<TagDetection> TagDetector::extractTagsKalibr(const cv::Mat &image)
         }
 
         if (flip > noflip) {
-            seg.theta = seg.theta + math::pi<float>;
+            seg.theta = seg.theta + pi_f;
         }
 
         float dot = dx * std::cos(seg.theta) + dy * std::sin(seg.theta);

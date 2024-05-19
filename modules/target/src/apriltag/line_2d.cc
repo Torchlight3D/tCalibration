@@ -1,6 +1,6 @@
 ﻿#include "line_2d.h"
 
-#include <tMath/MathBase>
+#include <tCore/Math>
 
 using namespace tl;
 

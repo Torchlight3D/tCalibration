@@ -4,17 +4,15 @@
 
 #include <tCore/ContainerUtils>
 #include <tCore/Global>
-#include <tMath/MathBase>
-#include <tMath/RandomGenerator>
+#include <tCore/Math>
+#include <tCore/RandomGenerator>
 #include <tMvs/SQPnP>
 
 #include "test_utils.h"
 
 using namespace tl;
-using namespace tl::math;
 
 using Eigen::AngleAxisd;
-using Eigen::Map;
 using Eigen::Matrix3d;
 using Eigen::Quaterniond;
 using Eigen::Vector2d;
@@ -104,11 +102,11 @@ inline void BasicTest()
         Vector3d(-1.0, 3.0, 3.0), Vector3d(1.0, -1.0, 2.0),
         Vector3d(-1.0, 1.0, 2.0), Vector3d(2.0, 1.0, 3.0)};
     const Quaterniond soln_rotation{
-        AngleAxisd{degToRad(13.0), Vector3d::UnitZ()}};
+        AngleAxisd{math::degToRad(13.0), Vector3d::UnitZ()}};
     const Vector3d soln_translation(1.0, 1.0, 1.0);
     constexpr double kNoise{0.0};
     constexpr double kMaxReprojectionError{1e-4};
-    constexpr double kMaxAllowedRotationDifference = degToRad(1.);
+    constexpr double kMaxAllowedRotationDifference = math::degToRad(1.);
     constexpr double kMaxAllowedTranslationDifference{1e-2};
 
     TestSQPnPWithNoise(points_3d, kNoise, soln_rotation, soln_translation,
@@ -126,11 +124,11 @@ TEST(SQPnP, NoiseTest)
         Vector3d(-1.0, -3.0, 2.0), Vector3d(1.0, -2.0, 1.0),
         Vector3d(-1.0, 4.0, 2.0),  Vector3d(-2.0, 2.0, 3.0)};
     const Quaterniond soln_rotation{
-        AngleAxisd{degToRad(13.0), Vector3d(0.0, 0.0, 1.0)}};
+        AngleAxisd{math::degToRad(13.0), Vector3d(0.0, 0.0, 1.0)}};
     const Vector3d soln_translation(1.0, 1.0, 1.0);
     constexpr double kNoise = 1.0 / 512.0;
     constexpr double kMaxReprojectionError = 5e-3;
-    constexpr double kMaxAllowedRotationDifference = degToRad(0.25);
+    constexpr double kMaxAllowedRotationDifference = math::degToRad(0.25);
     constexpr double kMaxAllowedTranslationDifference = 1e-2;
 
     TestSQPnPWithNoise(points_3d, kNoise, soln_rotation, soln_translation,
@@ -151,11 +149,11 @@ TEST(SQPnP, ManyPoints)
                                      Vector3d(1.0, 1.0, 1.0).normalized()};
 
     static const double kRotationAngles[con::ArraySize(kAxes)]{
-        degToRad(7.0),  degToRad(12.0), degToRad(15.0),
-        degToRad(20.0), degToRad(11.0),
-        degToRad(0.0), // Tests no rotation.
-        degToRad(5.0),
-        degToRad(0.0) // Tests no rotation and no translation.
+        math::degToRad(7.0),  math::degToRad(12.0), math::degToRad(15.0),
+        math::degToRad(20.0), math::degToRad(11.0),
+        math::degToRad(0.0), // Tests no rotation.
+        math::degToRad(5.0),
+        math::degToRad(0.0) // Tests no rotation and no translation.
     };
 
     static const Vector3d kTranslations[con::ArraySize(kAxes)] = {
@@ -169,7 +167,7 @@ TEST(SQPnP, ManyPoints)
     constexpr int num_points[3]{100, 500, 1000};
     constexpr double kNoise{1.0 / 512.0};
     constexpr double kMaxReprojectionError{1e-2};
-    constexpr double kMaxAllowedRotationDifference = degToRad(0.3);
+    constexpr double kMaxAllowedRotationDifference = math::degToRad(0.3);
     constexpr double kMaxAllowedTranslationDifference{5e-3};
 
     for (size_t i{0}; i < con::ArraySize(kAxes); i++) {
@@ -200,11 +198,11 @@ TEST(SQPnP, NoRotation)
         Vector3d(-1.0, -3.0, 2.0), Vector3d(1.0, -2.0, 1.0),
         Vector3d(-1.0, 4.0, 2.0),  Vector3d(-2.0, 2.0, 3.0)};
     const Quaterniond soln_rotation{
-        AngleAxisd(degToRad(0.0), Vector3d(0.0, 0.0, 1.0))};
+        AngleAxisd(math::degToRad(0.0), Vector3d(0.0, 0.0, 1.0))};
     const Vector3d soln_translation(1.0, 1.0, 1.0);
     constexpr double kNoise{1.0 / 512.0};
     constexpr double kMaxReprojectionError{5e-3};
-    constexpr double kMaxAllowedRotationDifference = degToRad(0.25);
+    constexpr double kMaxAllowedRotationDifference = math::degToRad(0.25);
     constexpr double kMaxAllowedTranslationDifference{5e-4};
 
     TestSQPnPWithNoise(points_3d, kNoise, soln_rotation, soln_translation,
@@ -220,11 +218,11 @@ TEST(SQPnP, NoTranslation)
         Vector3d(-1.0, -3.0, 2.0), Vector3d(1.0, -2.0, 1.0),
         Vector3d(-1.0, 4.0, 2.0),  Vector3d(-2.0, 2.0, 3.0)};
     const Quaterniond soln_rotation{
-        AngleAxisd(degToRad(13.0), Vector3d(0.0, 0.0, 1.0))};
+        AngleAxisd(math::degToRad(13.0), Vector3d(0.0, 0.0, 1.0))};
     const Vector3d soln_translation(0.0, 0.0, 0.0);
     constexpr double kNoise = 1.0 / 512.0;
     constexpr double kMaxReprojectionError = 1e-2;
-    constexpr double kMaxAllowedRotationDifference = degToRad(0.2);
+    constexpr double kMaxAllowedRotationDifference = math::degToRad(0.2);
     constexpr double kMaxAllowedTranslationDifference = 5e-3;
 
     TestSQPnPWithNoise(points_3d, kNoise, soln_rotation, soln_translation,
@@ -240,11 +238,11 @@ TEST(SQPnP, OrthogonalRotation)
         Vector3d(-1.0, -3.0, 2.0), Vector3d(1.0, -2.0, 1.0),
         Vector3d(-1.0, 4.0, 2.0),  Vector3d(-2.0, 2.0, 3.0)};
     const Quaterniond soln_rotation{
-        AngleAxisd{degToRad(90.), Vector3d::UnitZ()}};
+        AngleAxisd{math::degToRad(90.), Vector3d::UnitZ()}};
     const Vector3d soln_translation(1.0, 1.0, 1.0);
     constexpr double kNoise = 1.0 / 512.0;
     constexpr double kMaxReprojectionError = 5e-3;
-    constexpr double kMaxAllowedRotationDifference = degToRad(0.25);
+    constexpr double kMaxAllowedRotationDifference = math::degToRad(0.25);
     constexpr double kMaxAllowedTranslationDifference = 5e-3;
 
     TestSQPnPWithNoise(points_3d, kNoise, soln_rotation, soln_translation,

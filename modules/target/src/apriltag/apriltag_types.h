@@ -2,9 +2,10 @@
 
 #include <iostream>
 #include <vector>
+
 #include <opencv2/core/types.hpp>
 
-#include <tMath/MathBase>
+#include <tCore/Math>
 
 namespace apriltags {
 

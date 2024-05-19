@@ -13,8 +13,8 @@
 #include <tCamera/PinholeCameraModel>
 #include <tCamera/PinholeRadialTangentialCameraModel>
 #include <tCore/ContainerUtils>
+#include <tCore/Math>
 #include <tMath/EigenUtils>
-#include <tMath/MathBase>
 
 namespace tl {
 
@@ -246,7 +246,7 @@ void StereoCameraCalibration::Impl::findInitialPose(
 {
     const auto pairCnt = leftViewIds.size();
 
-    double minRPE = math::kMaxDouble;
+    auto minRPE = kMaxDouble;
     for (size_t i{0}; i < pairCnt; ++i) {
         const auto& thisLeftCamera = m_scene->view(leftViewIds[i])->camera();
         const auto& thisRightCamera = m_scene->view(rightViewIds[i])->camera();

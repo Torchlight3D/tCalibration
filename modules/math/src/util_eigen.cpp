@@ -1,5 +1,6 @@
 ﻿#include "util_eigen.h"
-#include "util_math.h"
+
+#include <tCore/Math>
 
 namespace tl {
 
@@ -29,9 +30,8 @@ size_t findNearestTimestamp(double t, const std::vector<double>& ts,
 
 } // namespace
 
-
-Eigen::Vector3d Lerp(const Eigen::Vector3d& v0,
-                            const Eigen::Vector3d& v1, double fraction)
+Eigen::Vector3d Lerp(const Eigen::Vector3d& v0, const Eigen::Vector3d& v1,
+                     double fraction)
 {
     return (1.0 - fraction) * v0 + fraction * v1;
 }

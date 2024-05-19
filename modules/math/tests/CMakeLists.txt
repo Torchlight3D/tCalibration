@@ -5,7 +5,6 @@ add_executable(${MATH_TEST_TARGET})
 target_sources(${MATH_TEST_TARGET}
     PRIVATE
         test_utils.h
-        tst_base.cpp
         tst_eigen.cpp
         tst_exhaustive_ransac.cpp
         tst_lmed.cpp

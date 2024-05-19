@@ -2,7 +2,7 @@
 
 #include <glog/logging.h>
 
-#include <tMath/MathBase>
+#include <tCore/Math>
 #include <tMath/FFT>
 #include <tSolver/BrentSolver>
 
@@ -24,12 +24,12 @@ VectorXd bspline_interp_freq_func(const VectorXd& omega, double spacing = 1.)
             if (x == 0.) {
                 return 1.;
             }
-            auto a = x * math::pi<double>;
+            auto a = x * pi;
             return std::sin(a) / a;
         };
 
         auto a = 3 * w.unaryExpr([&sinc](double x) {
-                          return sinc(x / math::two_pi<double>);
+                          return sinc(x / two_pi_<double>);
                       })
                          .array()
                          .pow(4);
@@ -42,7 +42,7 @@ VectorXd bspline_interp_freq_func(const VectorXd& omega, double spacing = 1.)
 
 VectorXd spline_interpolation_response(const VectorXd& freqs, double spacing)
 {
-    auto H = bspline_interp_freq_func(freqs * math::two_pi<double>, spacing);
+    auto H = bspline_interp_freq_func(freqs * two_pi_<double>, spacing);
     return H / H(0);
 }
 

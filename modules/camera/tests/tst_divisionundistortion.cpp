@@ -1,9 +1,9 @@
 #include <Eigen/Dense>
 #include <gtest/gtest.h>
 
-#include <tMath/MathBase>
 #include <tCamera/Camera>
 #include <tCamera/DivisionUndistortionCameraModel>
+#include <tCore/Math>
 
 using namespace tl;
 

@@ -1,7 +1,8 @@
 ﻿#pragma once
 
 #include <QString>
-#include <tMath/MathBase>
+
+#include <tCore/Math>
 
 using namespace Qt::Literals::StringLiterals;
 

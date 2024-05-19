@@ -1,7 +1,8 @@
 #include <gtest/gtest.h>
 
-#include <tMath/RandomGenerator>
+#include <tCore/RandomGenerator>
 #include <tMath/Ransac>
+
 #include "test_utils.h"
 
 using namespace tl;

@@ -1,18 +1,17 @@
+#include <Eigen/Dense>
 #include <gtest/gtest.h>
 
-#include <Eigen/Dense>
-#include <tMath/MathBase>
-#include <tMath/EigenUtils>
-#include <tMath/RandomGenerator>
-#include <tMath/RansacCreator>
-#include <tMvs/FeatureCorrespondence>
-#include <tMvs/EstimateRadialDistortionUncalibratedAbsolutePose>
 #include <tCamera/DivisionUndistortionCameraModel>
+#include <tCore/Math>
+#include <tCore/RandomGenerator>
+#include <tMath/EigenUtils>
+#include <tMath/RansacCreator>
+#include <tMvs/EstimateRadialDistortionUncalibratedAbsolutePose>
+#include <tMvs/FeatureCorrespondence>
 
 #include "test_utils.h"
 
 using namespace tl;
-using namespace tl::math;
 
 using Eigen::AngleAxisd;
 using Eigen::Matrix3d;
@@ -137,8 +136,8 @@ TEST(EstimateRadialDistUncalibratedAbsolutePose, AllInliersNoNoise)
 
     const std::vector<Matrix3d> rotations{
         Matrix3d::Identity(),
-        AngleAxisd(degToRad(12.), Vector3d::UnitY()).toRotationMatrix(),
-        AngleAxisd(degToRad(-9.), Vector3d(1., 0.2, -0.8).normalized())
+        AngleAxisd(math::degToRad(12.), Vector3d::UnitY()).toRotationMatrix(),
+        AngleAxisd(math::degToRad(-9.), Vector3d(1., 0.2, -0.8).normalized())
             .toRotationMatrix()};
     const std::vector<Vector3d> positions{Vector3d(1.3, 0., 0.),
                                           Vector3d(1., 1., 0.1)};
@@ -166,8 +165,8 @@ TEST(EstimateRadialDistUncalibratedAbsolutePose, AllInliersWithNoise)
 
     const Matrix3dList rotations{
         Matrix3d::Identity(),
-        AngleAxisd{degToRad(12.), Vector3d::UnitY()}.toRotationMatrix(),
-        AngleAxisd{degToRad(-9.), Vector3d{1.0, 0.2, -0.8}.normalized()}
+        AngleAxisd{math::degToRad(12.), Vector3d::UnitY()}.toRotationMatrix(),
+        AngleAxisd{math::degToRad(-9.), Vector3d{1.0, 0.2, -0.8}.normalized()}
             .toRotationMatrix()};
     const Vector3dList positions{Vector3d(1.3, 0., 0.),
                                  Vector3d(1.0, 1.0, 0.1)};
@@ -194,8 +193,7 @@ TEST(EstimateRadialDistUncalibratedAbsolutePose, OutliersNoNoise)
     constexpr double kNoise = 0.0;
     constexpr double kPoseTolerance = 1e-2;
 
-    const Matrix3dList rotations{Matrix3d::Identity(),
-                                 RandomRotation(15.0, &kRNG)};
+    const Matrix3dList rotations{Matrix3d::Identity(), RandomRotation(15.)};
     const Vector3dList positions{Vector3d(1.3, 0, 0.0),
                                  Vector3d(1.0, 1.0, 0.1)};
 
@@ -222,8 +220,7 @@ TEST(EstimateRadialDistUncalibratedAbsolutePose, OutliersWithNoise)
     constexpr double kNoise = 1.0;
     constexpr double kPoseTolerance = 0.1;
 
-    const Matrix3dList rotations{Matrix3d::Identity(),
-                                 RandomRotation(15., &kRNG)};
+    const Matrix3dList rotations{Matrix3d::Identity(), RandomRotation(15.)};
     const Vector3dList positions{Vector3d(1.3, 0, 0.0),
                                  Vector3d(1.0, 1.0, 0.1)};
 

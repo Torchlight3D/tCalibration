@@ -1,23 +1,27 @@
-#include <gtest/gtest.h>
 #include <Eigen/Core>
+#include <gtest/gtest.h>
 
 #include <tCamera/Camera>
-#include <tMath/RandomGenerator>
+#include <tCore/RandomGenerator>
 #include <tMvs/BundleAdjustment>
 #include <tMvs/Scene>
+
 #include "test_utils.h"
 
 using namespace tl;
 
+using Eigen::Vector2d;
+using Eigen::Vector3d;
+
 namespace {
-RandomNumberGenerator rng(52);
+RandomNumberGenerator kRNG{52};
 }
 
 inline Camera RandomCamera()
 {
     Camera camera;
-    camera.setPosition(rng.RandVector3d());
-    camera.setOrientationFromAngleAxis(0.2 * rng.RandVector3d());
+    camera.setPosition(Vector3d::Random());
+    camera.setOrientationFromAngleAxis(0.2 * Vector3d::Random());
     camera.setImageSize(1000, 1000);
     camera.setFocalLength(500);
     camera.setPrincipalPoint(500, 500);
@@ -34,17 +38,17 @@ inline void TestOptimizeView(int numPoints, double pixelNoise)
     scene.rView(vid)->setEstimated(true);
     // Set up random points.
     for (int i = 0; i < numPoints; i++) {
-        Eigen::Vector3d point(rng.RandDouble(-5., 5.), rng.RandDouble(-5., 5.),
-                              rng.RandDouble(4., 10.));
+        Vector3d point(kRNG.RandDouble(-5., 5.), kRNG.RandDouble(-5., 5.),
+                       kRNG.RandDouble(4., 10.));
         auto trackId = scene.addTrack();
         scene.rTrack(trackId)->setPosition(point.homogeneous());
         scene.rTrack(trackId)->setEstimated(true);
 
-        Eigen::Vector2d pixel;
+        Vector2d pixel;
         double depth =
             scene.view(vid)->camera().projectPoint(point.homogeneous(), pixel);
         if (pixelNoise > 0.0) {
-            AddNoiseToProjection(pixelNoise, &rng, &pixel);
+            AddNoiseToProjection(pixelNoise, &kRNG, &pixel);
         }
         if (depth > 0.0) {
             scene.addFeature(vid, trackId, Feature(pixel));

@@ -3,7 +3,7 @@
 #include <memory>
 #include <vector>
 
-#include <tMath/RandomGenerator>
+#include <tCore/RandomGenerator>
 
 namespace tl {
 

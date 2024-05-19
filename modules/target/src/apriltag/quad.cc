@@ -2,11 +2,10 @@
 
 #include <Eigen/Dense>
 
-#include <tMath/MathBase>
+#include <tCore/Math>
+
 #include "float_image.h"
 #include "line_2d.h"
-
-using namespace tl;
 
 namespace apriltags {
 
@@ -105,8 +104,9 @@ void Quad::search(const FloatImage& fImage, std::vector<Segment*>& path,
 
                 //	double ttheta = fmod(t1-t0, 2*M_PI) + fmod(t2-t1, 2*M_PI) +
                 //	  fmod(t3-t2, 2*M_PI) + fmod(t0-t3, 2*M_PI);
-                float ttheta = math::mod2pi(t1 - t0) + math::mod2pi(t2 - t1) +
-                               math::mod2pi(t3 - t2) + math::mod2pi(t0 - t3);
+                float ttheta =
+                    tl::math::mod2pi(t1 - t0) + tl::math::mod2pi(t2 - t1) +
+                    tl::math::mod2pi(t3 - t2) + tl::math::mod2pi(t0 - t3);
                 // cout << "ttheta=" << ttheta << endl;
                 // the magic value is -2*PI. It should be exact,
                 // but we allow for (lots of) numeric imprecision.

@@ -1,9 +1,10 @@
 ﻿#include "camera_imu_rotation_calibration.h"
 
 #include <glog/logging.h>
+
 #include <json/json.hpp>
 
-#include <tMath/MathBase>
+#include <tCore/Math>
 #include <tMath/EigenUtils>
 #include <tMotion/ImuData>
 
@@ -274,9 +275,9 @@ bool CameraImuRotationCalibration::calculate(
         auto vis_rot = vis_rots_diff[i] * interp_vis_rots[i].inverse();
         Eigen::Vector3d vis_ang_vel = vis_rot.vec() * diff_dt;
         // Suppress extremely large velocities > 2 * pi rad/s
-        if (std::abs(vis_ang_vel[0]) > math::two_pi<double> ||
-            std::abs(vis_ang_vel[1]) > math::two_pi<double> ||
-            std::abs(vis_ang_vel[2]) > math::two_pi<double>) {
+        if (std::abs(vis_ang_vel[0]) > two_pi ||
+            std::abs(vis_ang_vel[1]) > two_pi ||
+            std::abs(vis_ang_vel[2]) > two_pi) {
             if (i > 1) {
                 vis_ang_vel = vis_ang_vels[i - 1];
             }

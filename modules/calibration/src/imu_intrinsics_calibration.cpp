@@ -2,9 +2,10 @@
 
 #include <ceres/ceres.h>
 #include <glog/logging.h>
+
 #include <json/json.hpp>
 
-#include <tMath/MathBase>
+#include <tCore/Math>
 #include <tMotion/ImuIntegration>
 
 namespace tl {
@@ -215,7 +216,7 @@ bool ImuIntrinsicsCalibration::calibAccelerometer(const AccDatas& acclSamples)
     Eigen::Vector3d acclVar = acclSamples.variance(initInterval);
     const double acclThreshold = acclVar.norm();
 
-    double minCost = math::kMaxDouble;
+    auto minCost = kMaxDouble;
     int minCostFactor = -1;
     std::vector<double> minCostIntrinsics;
     for (int thresFactor{1}; thresFactor <= 10; thresFactor++) {

@@ -1,5 +1,7 @@
 ﻿#pragma once
 
+#include <algorithm>
+
 #include <glog/logging.h>
 
 #include "inlier_support.h"

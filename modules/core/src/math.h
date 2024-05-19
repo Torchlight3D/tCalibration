@@ -15,69 +15,81 @@
 #endif
 
 #include <limits>
+#include <numbers>
 #include <numeric>
 #include <stdexcept>
 
-#include "tl_math_global.h"
-
 namespace tl {
+
+constexpr auto pi = std::numbers::pi;
+constexpr auto pi_f = std::numbers::pi_v<float>;
+
+template <typename T>
+inline constexpr T two_pi_ = T(2) * std::numbers::pi_v<T>;
+
+inline constexpr auto two_pi = two_pi_<double>;
+inline constexpr auto two_pi_f = two_pi_<float>;
+
+template <typename T>
+inline constexpr T two_pi_inv = T(1) / two_pi_<T>;
+
+template <typename T>
+inline constexpr T four_pi = T(4) * std::numbers::pi_v<T>;
+
+template <typename T>
+inline constexpr T half_pi_ = T(0.5) * std::numbers::pi_v<T>;
+
+inline constexpr auto half_pi = half_pi_<double>;
+inline constexpr auto half_pi_f = half_pi_<float>;
+
+inline constexpr auto kMaxDouble = std::numeric_limits<double>::max();
+inline constexpr auto kMinDouble = std::numeric_limits<double>::min();
+inline constexpr auto kInfDouble = std::numeric_limits<double>::infinity();
+inline constexpr auto kMaxFloat = std::numeric_limits<float>::max();
+inline constexpr auto kMinFloat = std::numeric_limits<float>::min();
+inline constexpr auto kInfFloat = std::numeric_limits<float>::infinity();
+inline constexpr auto kMaxInt = std::numeric_limits<int>::max();
+inline constexpr auto kMinInt = std::numeric_limits<int>::min();
 
 namespace math {
 
-// TODO: Use <numbers> after Cpp20
 template <typename T>
-constexpr T pi = T(3.1415926535897932385L);
+inline constexpr T sgn(T val)
+{
+    return (T(0) < val) - (val < T(0));
+}
+
+// FIXME: Maybe overflow for int??
+template <class T>
+inline constexpr T square(T x)
+{
+    return x * x;
+}
 
 template <typename T>
-constexpr T two_pi = 2 * pi<T>;
-
-template <typename T>
-constexpr T two_pi_inv = T(1.0) / two_pi<T>;
-
-template <typename T>
-constexpr T four_pi = 4 * pi<T>;
-
-template <typename T>
-constexpr T half_pi = T(0.5) * pi<T>;
-
-static constexpr auto kMaxDouble = std::numeric_limits<double>::max();
-static constexpr auto kMinDouble = std::numeric_limits<double>::min();
-static constexpr auto kInfDouble = std::numeric_limits<double>::infinity();
-static constexpr auto kMaxFloat = std::numeric_limits<float>::max();
-static constexpr auto kMinFloat = std::numeric_limits<float>::min();
-static constexpr auto kInfFloat = std::numeric_limits<float>::infinity();
-static constexpr auto kMaxInt = std::numeric_limits<int>::max();
-static constexpr auto kMinInt = std::numeric_limits<int>::min();
-
-template <typename T>
-constexpr bool isApprox(T a, T b, T ratio = std::numeric_limits<T>::epsilon())
+inline constexpr bool isApprox(T a, T b,
+                               T ratio = std::numeric_limits<T>::epsilon())
 {
     return std::abs(a - b) <= (ratio * std::max(std::abs(a), std::abs(b)));
 }
 
 template <typename T>
-constexpr bool isApprox0(T v, T ratio = std::numeric_limits<T>::epsilon())
+inline constexpr bool isApprox0(T v,
+                                T ratio = std::numeric_limits<T>::epsilon())
 {
     return isApprox(v, T(0), ratio);
 }
 
 template <typename T>
-constexpr bool inSymmetricRange(T val, T expect, T tolerance)
+inline constexpr bool inSymmetricRange(T val, T expect, T tolerance)
 {
     return std::abs(val - expect) < tolerance;
 }
 
 template <typename T>
-constexpr bool inRange(T val, T min, T max)
+inline constexpr bool inRange(T val, T min, T max)
 {
     return (val - min) * (val - max) < 0;
-}
-
-// FIXME: Maybe overflow for int??
-template <class T>
-constexpr T square(const T& x)
-{
-    return x * x;
 }
 
 inline constexpr double toPercent(double val) { return val * 1e2; }
@@ -110,17 +122,17 @@ T combination(T n, T k)
     return r;
 }
 
-// Returns a result in [-Pi, Pi]
+// Returns a result in [-pi, pi]
 template <typename T>
 constexpr T mod2pi(T val)
 {
     const T abs_val = std::abs(val);
     const int qi = static_cast<int>(abs_val * two_pi_inv<T> + T(0.5));
-    const T r = abs_val - qi * two_pi<T>;
+    const T r = abs_val - qi * two_pi_<T>;
     return (val < T(0)) ? -r : r;
 }
 
-// Returns a value of v such that ref and v differ by no more than +/-Pi
+// Returns a value of v such that ref and v differ by no more than +/-pi
 template <typename T>
 constexpr T mod2pi(T ref, T val)
 {
@@ -130,13 +142,13 @@ constexpr T mod2pi(T ref, T val)
 template <typename T>
 constexpr T degToRad(T deg)
 {
-    return deg * pi<T> / T(180);
+    return deg * std::numbers::pi_v<T> / T(180);
 }
 
 template <typename T>
 constexpr T radToDeg(T rad)
 {
-    return rad * T(180) / pi<T>;
+    return rad * T(180) / std::numbers::pi_v<T>;
 }
 
 constexpr double m2cm(double m) { return m * 1e2; }

@@ -4,7 +4,7 @@
 #include <QBoxLayout>
 #include <QDialogButtonBox>
 
-#include <tMath/MathBase>
+#include <tCore/Math>
 
 namespace tl {
 

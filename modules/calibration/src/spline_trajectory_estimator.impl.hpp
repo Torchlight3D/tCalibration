@@ -2,13 +2,13 @@
 
 #include <thread>
 
+#include <ceres/sphere_manifold.h>
 #include <sophus/so3.hpp>
 #include <sophus/ceres_manifold.hpp>
-#include <ceres/sphere_manifold.h>
 
 #include <tCalibration/SplineTypes>
+#include <tCore/Math>
 #include <tCore/TimeUtils>
-#include <tMath/MathBase>
 #include <tMvs/Landmark>
 #include <tMvs/View>
 

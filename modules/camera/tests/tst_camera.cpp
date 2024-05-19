@@ -1,11 +1,11 @@
 #include <Eigen/Dense>
 #include <gtest/gtest.h>
 
-#include <tMath/EigenUtils>
-#include <tMath/RandomGenerator>
 #include <tCamera/Camera>
 #include <tCamera/CameraMetaData>
 #include <tCamera/PinholeCameraModel>
+#include <tCore/RandomGenerator>
+#include <tMath/EigenUtils>
 
 using namespace tl;
 
@@ -14,7 +14,9 @@ using Eigen::Vector2d;
 using Eigen::Vector3d;
 using Eigen::Vector4d;
 
-RandomNumberGenerator rng{157};
+namespace {
+RandomNumberGenerator kRNG{157};
+}
 
 TEST(Camera, ProjectionMatrix)
 {
@@ -24,7 +26,7 @@ TEST(Camera, ProjectionMatrix)
     constexpr double image_size = 500.;
     Matrix34d gt_projection_matrix;
     for (int i = 0; i < 100; i++) {
-        rng.SetRandom(&gt_projection_matrix);
+        gt_projection_matrix.setRandom();
         EXPECT_TRUE(camera.setFromProjectMatrix(image_size, image_size,
                                                 gt_projection_matrix));
         Matrix34d projection_matrix;
@@ -144,13 +146,12 @@ void ReprojectionTest(const Camera& camera)
 
     for (int i = 0; i < 10; i++) {
         // Get a random pixel within the image.
-        const Vector2d pixel =
-            camera.imageWidth() * rng.RandVector2d(-1.0, 1.0);
+        const Vector2d pixel = camera.imageWidth() * Vector2d::Random();
 
         // Get the normalized ray of that pixel.
         const Vector3d normalized_ray = camera.pixelToUnitDepthRay(pixel);
 
-        const double random_depth = rng.RandDouble(0.01, 100.0);
+        const double random_depth = kRNG.RandDouble(0.01, 100.0);
         const Vector4d random_point =
             (camera.position() + normalized_ray * random_depth).homogeneous();
 
@@ -178,7 +179,7 @@ TEST(Camera, Reprojection)
     Matrix34d projection_mat;
     for (int i = 0; i < 100; i++) {
         // Initialize a random camera.
-        rng.SetRandom(&projection_mat);
+        projection_mat.setRandom();
         camera.setFromProjectMatrix(image_size, image_size, projection_mat);
 
         ReprojectionTest(camera);

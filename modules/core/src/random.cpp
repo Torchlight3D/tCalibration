@@ -43,22 +43,4 @@ double RandomNumberGenerator::RandGaussian(double mean, double stddev) const
     return distribution(kRNG);
 }
 
-Eigen::Vector2d RandomNumberGenerator::RandVector2d(double min,
-                                                    double max) const
-{
-    return {Rand(min, max), Rand(min, max)};
-}
-
-Eigen::Vector3d RandomNumberGenerator::RandVector3d(double min,
-                                                    double max) const
-{
-    return {Rand(min, max), Rand(min, max), Rand(min, max)};
-}
-
-Eigen::Vector4d RandomNumberGenerator::RandVector4d(double min,
-                                                    double max) const
-{
-    return {Rand(min, max), Rand(min, max), Rand(min, max), Rand(min, max)};
-}
-
 } // namespace tl

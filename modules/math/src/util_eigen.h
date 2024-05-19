@@ -1,11 +1,11 @@
 ﻿#pragma once
 
 #include <numeric>
-#include <Eigen/Geometry>
+
 #include <ceres/rotation.h>
+#include <Eigen/Geometry>
 
 #include "eigen_types.h"
-#include "tl_math_global.h"
 
 namespace tl {
 

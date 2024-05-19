@@ -10,17 +10,17 @@
 #include <tCalibration/SplineTypes>
 #include <tCalibration/StereoCameraCalibration>
 #include <tCalibration/StereoRectify>
-#include <tTarget/CheckerGridBoard>
-#include <tTarget/KalibrAprilTagBoard>
 #include <tCamera/OmnidirectionalCameraModel>
 #include <tCamera/StereoCameraTypes>
+#include <tCore/Math>
 #include <tCore/TimeUtils>
-#include <tVision/BlurDetection>
+#include <tMath/EigenUtils>
 #include <tMotion/ImuIntrinsics>
 #include <tMotion/ImuNoise>
 #include <tMotion/SplineErrorWeighting>
-#include <tMath/EigenUtils>
-#include <tMath/MathBase>
+#include <tTarget/CheckerGridBoard>
+#include <tTarget/KalibrAprilTagBoard>
+#include <tVision/BlurDetection>
 
 #include "StereoModuleData.h"
 
@@ -199,7 +199,7 @@ bool StereoModuleTask::Impl::calibCameraImuTransform()
 {
     ///  Camera-IMU rotation estimation
     const auto scene = m_calibCamPose->scene();
-    double visStart{math::kMaxDouble}, visEnd{math::kMinDouble};
+    double visStart{kMaxDouble}, visEnd{kMinDouble};
     for (const auto& camId : {kCameraLeftId, kCameraRightId}) {
         for (const auto& viewId : scene->sharedCameraViewIds(camId)) {
             const auto time = scene->view(viewId)->timestamp();

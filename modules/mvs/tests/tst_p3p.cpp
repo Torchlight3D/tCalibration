@@ -1,17 +1,14 @@
-#include <cmath>
-
 #include <Eigen/Core>
 #include <Eigen/Geometry>
-// #include <glog/logging.h>
 #include <gtest/gtest.h>
 
-#include <tMath/MathBase>
-#include <tMath/RandomGenerator>
+#include <tCore/Math>
+#include <tCore/RandomGenerator>
 #include <tMvs/P3P>
+
 #include "test_utils.h"
 
 using namespace tl;
-using namespace tl::math;
 
 using Eigen::Map;
 using Eigen::Matrix3d;
@@ -28,8 +25,8 @@ void PoseFromThreeCalibratedTest(double noise)
 {
     // Projection matrix.
     const Matrix3d gt_rotation =
-        (AngleAxisd{degToRad(15.0), Vector3d::UnitX()} *
-         AngleAxisd{degToRad(-10.), Vector3d::UnitY()})
+        (AngleAxisd{math::degToRad(15.0), Vector3d::UnitX()} *
+         AngleAxisd{math::degToRad(-10.), Vector3d::UnitY()})
             .toRotationMatrix();
     const Vector3d gt_translation{0.3, -1.7, 1.15};
     Matrix34d projection_mat;
@@ -45,7 +42,7 @@ void PoseFromThreeCalibratedTest(double noise)
     for (int i = 0; i < 3; i++) {
         kPoints2d[i] =
             (projection_mat * kPoints3d[i].homogeneous()).eval().hnormalized();
-        if (!isApprox0(noise)) {
+        if (!math::isApprox0(noise)) {
             AddNoiseToProjection(noise, &rng, &kPoints2d[i]);
         }
     }
@@ -61,7 +58,7 @@ void PoseFromThreeCalibratedTest(double noise)
     for (int i = 0; i < rotations.size(); ++i) {
         // Check that the rotation and translation are close.
         double angular_diff =
-            radToDeg(Quaterniond{rotations[i]}.angularDistance(
+            math::radToDeg(Quaterniond{rotations[i]}.angularDistance(
                 Quaterniond{gt_rotation}));
         double trans_diff = ((-gt_rotation * gt_translation) -
                              (-rotations[i] * translations[i]))

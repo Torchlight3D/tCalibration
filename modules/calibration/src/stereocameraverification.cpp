@@ -13,15 +13,15 @@
 #include <tCamera/coc/PinholeFullCamera>
 #include <tCamera/coc/CameraFactory>
 #include <tCore/ContainerUtils>
-#include <tMath/MathBase>
+#include <tCore/Math>
 
 namespace tl {
-
-using Matrix34d = Eigen::Matrix<double, 3, 4>;
 
 using Eigen::Quaterniond;
 using Eigen::Vector2d;
 using Eigen::Vector3d;
+
+using Matrix34d = Eigen::Matrix<double, 3, 4>;
 
 namespace {
 

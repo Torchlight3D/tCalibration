@@ -2,7 +2,7 @@
 
 #include <gtest/gtest.h>
 
-#include <tMath/RandomGenerator>
+#include <tCore/RandomGenerator>
 #include <tMath/Lmed>
 
 #include "test_utils.h"

@@ -1,9 +1,10 @@
 #pragma once
 
-// #include <glog/logging.h>
 #include <ceres/rotation.h>
-#include <tMath/MathBase>
-#include <tMath/RandomGenerator>
+#include <Eigen/Core>
+
+#include <tCore/Math>
+#include <tCore/RandomGenerator>
 
 namespace tl {
 
@@ -18,12 +19,12 @@ inline void AddNoiseToProjection(double factor, RandomNumberGenerator* rng,
                      rng->RandDouble(-factor, factor));
 }
 
-inline Eigen::Matrix3d RandomRotation(double max_degrees_from_identity,
-                                      RandomNumberGenerator* rng)
+inline Eigen::Matrix3d RandomRotation(double max_degrees_from_identity)
 {
+    Eigen::Vector2d::Random();
     const Eigen::Vector3d angle_axis =
         math::degToRad(max_degrees_from_identity) *
-        rng->RandVector3d().normalized();
+        Eigen::Vector3d::Random().normalized();
     Eigen::Matrix3d rotation;
     ceres::AngleAxisToRotationMatrix(
         angle_axis.data(), ceres::ColumnMajorAdapter3x3(rotation.data()));

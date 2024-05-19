@@ -2,7 +2,7 @@
 
 #include <algorithm>
 
-#include <tMath/MathBase>
+#include <tCore/Math>
 
 using namespace tl;
 
@@ -18,8 +18,8 @@ GLineSegment2D GLineSegment2D::fitLine(
 {
     const auto line = GLine2D::fitLine(weightedPoints);
 
-    float maxCoord{math::kMinFloat};
-    float minCoord{math::kMaxFloat};
+    auto maxCoord{tl::kMinFloat};
+    auto minCoord{tl::kMaxFloat};
     for (const auto& weightedPoint : weightedPoints) {
         float coord = line.lineCoordinate(weightedPoint.point);
         maxCoord = std::max(maxCoord, coord);

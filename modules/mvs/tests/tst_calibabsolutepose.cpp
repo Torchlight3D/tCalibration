@@ -1,17 +1,16 @@
+#include <Eigen/Dense>
 #include <gtest/gtest.h>
 
-#include <Eigen/Dense>
-#include <tMath/MathBase>
+#include <tCore/Math>
+#include <tCore/RandomGenerator>
 #include <tMath/EigenUtils>
-#include <tMath/RandomGenerator>
 #include <tMath/RansacCreator>
-#include <tMvs/FeatureCorrespondence>
 #include <tMvs/EstimateCalibratedAbsolutePose>
+#include <tMvs/FeatureCorrespondence>
 
 #include "test_utils.h"
 
 using namespace tl;
-using namespace tl::math;
 
 using Eigen::AngleAxisd;
 using Eigen::Matrix3d;
@@ -26,7 +25,7 @@ constexpr int kMinIterations = 50;
 constexpr double kErrorThreshold =
     (kReprojectionError * kReprojectionError) / (kFocalLength * kFocalLength);
 
-RandomNumberGenerator rng(66);
+RandomNumberGenerator kRNG{66};
 } // namespace
 
 void ExecuteRandomTest(const SacParameters& options, const Matrix3d& rotation,
@@ -39,8 +38,8 @@ void ExecuteRandomTest(const SacParameters& options, const Matrix3d& rotation,
     for (int i = 0; i < kNumPoints; i++) {
         FeatureCorrespondence2D3D correspondence;
         correspondence.world_point =
-            Vector3d(rng.RandDouble(-2.0, 2.0), rng.RandDouble(-2.0, 2.0),
-                     rng.RandDouble(6.0, 10.0));
+            Vector3d(kRNG.RandDouble(-2.0, 2.0), kRNG.RandDouble(-2.0, 2.0),
+                     kRNG.RandDouble(6.0, 10.0));
 
         // Add an inlier or outlier.
         if (i < inlier_ratio * kNumPoints) {
@@ -50,14 +49,14 @@ void ExecuteRandomTest(const SacParameters& options, const Matrix3d& rotation,
                     .hnormalized();
         }
         else {
-            correspondence.feature = rng.RandVector2d();
+            correspondence.feature = Vector2d::Random();
         }
         correspondences.emplace_back(correspondence);
     }
 
     if (noise) {
         for (int i = 0; i < kNumPoints; i++) {
-            AddNoiseToProjection(noise / kFocalLength, &rng,
+            AddNoiseToProjection(noise / kFocalLength, &kRNG,
                                  &correspondences[i].feature);
         }
     }
@@ -82,7 +81,7 @@ void ExecuteRandomTest(const SacParameters& options, const Matrix3d& rotation,
 TEST(EstimateCalibratedAbsolutePose, AllInliersNoNoiseKNEIP)
 {
     SacParameters options;
-    options.rng = std::make_shared<RandomNumberGenerator>(rng);
+    options.rng = std::make_shared<RandomNumberGenerator>(kRNG);
     options.use_mle = true;
     options.error_thresh = kErrorThreshold;
     options.failure_probability = 0.001;
@@ -94,8 +93,8 @@ TEST(EstimateCalibratedAbsolutePose, AllInliersNoNoiseKNEIP)
 
     const std::vector<Matrix3d> rotations = {
         Matrix3d::Identity(),
-        AngleAxisd(degToRad(12.0), Vector3d::UnitY()).toRotationMatrix(),
-        AngleAxisd(degToRad(-9.0), Vector3d(1.0, 0.2, -0.8).normalized())
+        AngleAxisd(math::degToRad(12.0), Vector3d::UnitY()).toRotationMatrix(),
+        AngleAxisd(math::degToRad(-9.0), Vector3d(1.0, 0.2, -0.8).normalized())
             .toRotationMatrix()};
     const std::vector<Vector3d> positions = {Vector3d(-1.3, 0, 0),
                                              Vector3d(0, 0, 0.5)};
@@ -110,7 +109,7 @@ TEST(EstimateCalibratedAbsolutePose, AllInliersNoNoiseKNEIP)
 TEST(EstimateCalibratedAbsolutePose, AllInliersWithNoiseKNEIP)
 {
     SacParameters options;
-    options.rng = std::make_shared<RandomNumberGenerator>(rng);
+    options.rng = std::make_shared<RandomNumberGenerator>(kRNG);
     options.use_mle = true;
     options.error_thresh = kErrorThreshold;
     options.failure_probability = 0.001;
@@ -122,8 +121,8 @@ TEST(EstimateCalibratedAbsolutePose, AllInliersWithNoiseKNEIP)
 
     const std::vector<Matrix3d> rotations = {
         Matrix3d::Identity(),
-        AngleAxisd(degToRad(12.0), Vector3d::UnitY()).toRotationMatrix(),
-        AngleAxisd(degToRad(-9.0), Vector3d(1.0, 0.2, -0.8).normalized())
+        AngleAxisd(math::degToRad(12.0), Vector3d::UnitY()).toRotationMatrix(),
+        AngleAxisd(math::degToRad(-9.0), Vector3d(1.0, 0.2, -0.8).normalized())
             .toRotationMatrix()};
     const std::vector<Vector3d> positions = {Vector3d(-1.3, 0, 0),
                                              Vector3d(0, 0, 0.5)};
@@ -139,7 +138,7 @@ TEST(EstimateCalibratedAbsolutePose, AllInliersWithNoiseKNEIP)
 TEST(EstimateCalibratedAbsolutePose, AllInliersWithNoiseDLS)
 {
     SacParameters options;
-    options.rng = std::make_shared<RandomNumberGenerator>(rng);
+    options.rng = std::make_shared<RandomNumberGenerator>(kRNG);
     options.use_mle = true;
     options.error_thresh = kErrorThreshold;
     options.failure_probability = 0.001;
@@ -151,8 +150,8 @@ TEST(EstimateCalibratedAbsolutePose, AllInliersWithNoiseDLS)
 
     const std::vector<Matrix3d> rotations = {
         Matrix3d::Identity(),
-        AngleAxisd(degToRad(12.0), Vector3d::UnitY()).toRotationMatrix(),
-        AngleAxisd(degToRad(-9.0), Vector3d(1.0, 0.2, -0.8).normalized())
+        AngleAxisd(math::degToRad(12.0), Vector3d::UnitY()).toRotationMatrix(),
+        AngleAxisd(math::degToRad(-9.0), Vector3d(1.0, 0.2, -0.8).normalized())
             .toRotationMatrix()};
     const std::vector<Vector3d> positions = {Vector3d(-1.3, 0, 0),
                                              Vector3d(0, 0, 0.5)};
@@ -168,7 +167,7 @@ TEST(EstimateCalibratedAbsolutePose, AllInliersWithNoiseDLS)
 TEST(EstimateCalibratedAbsolutePose, AllInliersWithNoiseSQPnP)
 {
     SacParameters options;
-    options.rng = std::make_shared<RandomNumberGenerator>(rng);
+    options.rng = std::make_shared<RandomNumberGenerator>(kRNG);
     options.use_mle = true;
     options.error_thresh = kErrorThreshold;
     options.failure_probability = 0.001;
@@ -180,8 +179,8 @@ TEST(EstimateCalibratedAbsolutePose, AllInliersWithNoiseSQPnP)
 
     const std::vector<Matrix3d> rotations = {
         Matrix3d::Identity(),
-        AngleAxisd(degToRad(12.0), Vector3d::UnitY()).toRotationMatrix(),
-        AngleAxisd(degToRad(-9.0), Vector3d(1.0, 0.2, -0.8).normalized())
+        AngleAxisd(math::degToRad(12.0), Vector3d::UnitY()).toRotationMatrix(),
+        AngleAxisd(math::degToRad(-9.0), Vector3d(1.0, 0.2, -0.8).normalized())
             .toRotationMatrix()};
     const std::vector<Vector3d> positions = {Vector3d(-1.3, 0, 0),
                                              Vector3d(0, 0, 0.5)};
@@ -197,7 +196,7 @@ TEST(EstimateCalibratedAbsolutePose, AllInliersWithNoiseSQPnP)
 TEST(EstimateCalibratedAbsolutePose, OutliersNoNoiseKNEIP)
 {
     SacParameters options;
-    options.rng = std::make_shared<RandomNumberGenerator>(rng);
+    options.rng = std::make_shared<RandomNumberGenerator>(kRNG);
     options.use_mle = true;
     options.error_thresh = kErrorThreshold;
     options.failure_probability = 0.001;
@@ -208,7 +207,7 @@ TEST(EstimateCalibratedAbsolutePose, OutliersNoNoiseKNEIP)
     const PnPType type = PnPType::KNEIP;
 
     const std::vector<Matrix3d> rotations = {Matrix3d::Identity(),
-                                             RandomRotation(10.0, &rng)};
+                                             RandomRotation(10.)};
     const std::vector<Vector3d> positions = {Vector3d(1, 0, 0),
                                              Vector3d(0, 1, 0)};
 
@@ -223,7 +222,7 @@ TEST(EstimateCalibratedAbsolutePose, OutliersNoNoiseKNEIP)
 TEST(EstimateCalibratedAbsolutePose, OutliersWithNoiseKNEIP)
 {
     SacParameters options;
-    options.rng = std::make_shared<RandomNumberGenerator>(rng);
+    options.rng = std::make_shared<RandomNumberGenerator>(kRNG);
     options.use_mle = true;
     options.error_thresh = kErrorThreshold;
     options.failure_probability = 0.001;
@@ -234,7 +233,7 @@ TEST(EstimateCalibratedAbsolutePose, OutliersWithNoiseKNEIP)
     const PnPType type = PnPType::KNEIP;
 
     const std::vector<Matrix3d> rotations = {Matrix3d::Identity(),
-                                             RandomRotation(10.0, &rng)};
+                                             RandomRotation(10.)};
     const std::vector<Vector3d> positions = {Vector3d(1, 0, 0),
                                              Vector3d(0, 1, 0)};
 
@@ -249,7 +248,7 @@ TEST(EstimateCalibratedAbsolutePose, OutliersWithNoiseKNEIP)
 TEST(EstimateCalibratedAbsolutePose, OutliersWithNoiseDLS)
 {
     SacParameters options;
-    options.rng = std::make_shared<RandomNumberGenerator>(rng);
+    options.rng = std::make_shared<RandomNumberGenerator>(kRNG);
     options.use_mle = true;
     options.error_thresh = kErrorThreshold;
     options.failure_probability = 0.001;
@@ -260,7 +259,7 @@ TEST(EstimateCalibratedAbsolutePose, OutliersWithNoiseDLS)
     const PnPType type = PnPType::DLS;
 
     const std::vector<Matrix3d> rotations = {Matrix3d::Identity(),
-                                             RandomRotation(10.0, &rng)};
+                                             RandomRotation(10.)};
     const std::vector<Vector3d> positions = {Vector3d(1, 0, 0),
                                              Vector3d(0, 1, 0)};
 
@@ -275,7 +274,7 @@ TEST(EstimateCalibratedAbsolutePose, OutliersWithNoiseDLS)
 TEST(EstimateCalibratedAbsolutePose, OutliersWithNoiseSQPNP)
 {
     SacParameters options;
-    options.rng = std::make_shared<RandomNumberGenerator>(rng);
+    options.rng = std::make_shared<RandomNumberGenerator>(kRNG);
     options.use_mle = true;
     options.error_thresh = kErrorThreshold;
     options.failure_probability = 0.001;
@@ -286,7 +285,7 @@ TEST(EstimateCalibratedAbsolutePose, OutliersWithNoiseSQPNP)
     const PnPType type = PnPType::SQPnP;
 
     const std::vector<Matrix3d> rotations = {Matrix3d::Identity(),
-                                             RandomRotation(10.0, &rng)};
+                                             RandomRotation(10.0)};
     const std::vector<Vector3d> positions = {Vector3d(1, 0, 0),
                                              Vector3d(0, 1, 0)};
 
@@ -301,7 +300,7 @@ TEST(EstimateCalibratedAbsolutePose, OutliersWithNoiseSQPNP)
 TEST(EstimateCalibratedAbsolutePose, OutliersWithNoiseKNEIP_LO)
 {
     SacParameters options;
-    options.rng = std::make_shared<RandomNumberGenerator>(rng);
+    options.rng = std::make_shared<RandomNumberGenerator>(kRNG);
     options.use_mle = true;
     options.error_thresh = kErrorThreshold;
     options.failure_probability = 0.001;
@@ -314,7 +313,7 @@ TEST(EstimateCalibratedAbsolutePose, OutliersWithNoiseKNEIP_LO)
     const PnPType type = PnPType::KNEIP;
 
     const std::vector<Matrix3d> rotations = {Matrix3d::Identity(),
-                                             RandomRotation(10.0, &rng)};
+                                             RandomRotation(10.0)};
     const std::vector<Vector3d> positions = {Vector3d(1, 0, 0),
                                              Vector3d(0, 1, 0)};
 
@@ -329,7 +328,7 @@ TEST(EstimateCalibratedAbsolutePose, OutliersWithNoiseKNEIP_LO)
 TEST(EstimateCalibratedAbsolutePose, OutliersWithNoiseDLS_LO)
 {
     SacParameters options;
-    options.rng = std::make_shared<RandomNumberGenerator>(rng);
+    options.rng = std::make_shared<RandomNumberGenerator>(kRNG);
     options.use_mle = true;
     options.error_thresh = kErrorThreshold;
     options.failure_probability = 0.001;
@@ -343,7 +342,7 @@ TEST(EstimateCalibratedAbsolutePose, OutliersWithNoiseDLS_LO)
     constexpr PnPType type = PnPType::DLS;
 
     const std::vector<Matrix3d> rotations{Matrix3d::Identity(),
-                                          RandomRotation(10.0, &rng)};
+                                          RandomRotation(10.)};
     const std::vector<Vector3d> positions{Vector3d::UnitX(), Vector3d::UnitY()};
 
     for (size_t i = 0; i < rotations.size(); i++) {
@@ -357,7 +356,7 @@ TEST(EstimateCalibratedAbsolutePose, OutliersWithNoiseDLS_LO)
 TEST(EstimateCalibratedAbsolutePose, OutliersWithNoiseSQPNP_LO)
 {
     SacParameters options;
-    options.rng = std::make_shared<RandomNumberGenerator>(rng);
+    options.rng = std::make_shared<RandomNumberGenerator>(kRNG);
     options.use_mle = true;
     options.error_thresh = kErrorThreshold;
     options.failure_probability = 0.001;
@@ -370,7 +369,7 @@ TEST(EstimateCalibratedAbsolutePose, OutliersWithNoiseSQPNP_LO)
     constexpr PnPType type = PnPType::SQPnP;
 
     const std::vector<Matrix3d> rotations{Matrix3d::Identity(),
-                                          RandomRotation(10.0, &rng)};
+                                          RandomRotation(10.0)};
     const std::vector<Vector3d> positions{Vector3d::UnitX(), Vector3d::UnitY()};
 
     for (const auto& rotation : rotations) {

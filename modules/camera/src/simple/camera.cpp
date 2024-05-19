@@ -6,11 +6,12 @@
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 #include <glog/logging.h>
+
 #include <magic_enum/magic_enum.hpp>
 
-#include <tMath/EigenUtils>
-#include <tMath/MathBase>
 #include <tCamera/CameraMatrixUtils>
+#include <tCore/Math>
+#include <tMath/EigenUtils>
 
 #include "pinhole_camera_model.h"
 

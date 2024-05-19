@@ -1,25 +1,27 @@
-#include <gtest/gtest.h>
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
 
+#include <gtest/gtest.h>
+
 #include <tCore/ContainerUtils>
 #include <tCore/Global>
-#include <tMath/MathBase>
-#include <tMath/RandomGenerator>
+#include <tCore/Math>
+#include <tCore/RandomGenerator>
 #include <tMvs/DlsPnP>
+
 #include "test_utils.h"
 
 using namespace tl;
-using namespace tl::math;
 
 using Eigen::AngleAxisd;
-using Eigen::Map;
 using Eigen::Matrix3d;
 using Eigen::Quaterniond;
 using Eigen::Vector2d;
 using Eigen::Vector3d;
 
-RandomNumberGenerator rng(59);
+namespace {
+RandomNumberGenerator kRNG{59};
+}
 
 inline void TestDlsPnpWithNoise(const Vector3dList& world_points,
                                 double projection_noise_std_dev,
@@ -48,7 +50,7 @@ inline void TestDlsPnpWithNoise(const Vector3dList& world_points,
     if (projection_noise_std_dev) {
         // Adds noise to both of the rays.
         for (int i = 0; i < num_points; i++) {
-            AddNoiseToProjection(projection_noise_std_dev, &rng,
+            AddNoiseToProjection(projection_noise_std_dev, &kRNG,
                                  &feature_points[i]);
         }
     }
@@ -101,7 +103,7 @@ inline void BasicTest()
         Vector3d(-1.0, 3.0, 3.0), Vector3d(1.0, -1.0, 2.0),
         Vector3d(-1.0, 1.0, 2.0), Vector3d(2.0, 1.0, 3.0)};
     const Quaterniond soln_rotation{
-        AngleAxisd{degToRad(13.), Vector3d::UnitZ()}};
+        AngleAxisd{math::degToRad(13.), Vector3d::UnitZ()}};
     const Vector3d soln_translation(1.0, 1.0, 1.0);
     constexpr double kNoise = 0.0;
     constexpr double kMaxReprojectionError = 1e-4;
@@ -123,11 +125,11 @@ TEST(DlsPnp, NoiseTest)
         Vector3d(-1.0, -3.0, 2.0), Vector3d(1.0, -2.0, 1.0),
         Vector3d(-1.0, 4.0, 2.0),  Vector3d(-2.0, 2.0, 3.0)};
     const Quaterniond soln_rotation{
-        AngleAxisd{degToRad(13.), Vector3d::UnitZ()}};
+        AngleAxisd{math::degToRad(13.), Vector3d::UnitZ()}};
     const Vector3d soln_translation(1.0, 1.0, 1.0);
     constexpr double kNoise = 1.0 / 512.0;
     constexpr double kMaxReprojectionError = 5e-3;
-    constexpr double kMaxAllowedRotationDifference = degToRad(0.25);
+    constexpr double kMaxAllowedRotationDifference = math::degToRad(0.25);
     constexpr double kMaxAllowedTranslationDifference = 1e-2;
 
     TestDlsPnpWithNoise(points_3d, kNoise, soln_rotation, soln_translation,
@@ -148,11 +150,11 @@ TEST(DlsPnp, ManyPoints)
                                   Vector3d(1.0, 1.0, 1.0).normalized()};
 
     static const double kRotationAngles[con::ArraySize(kAxes)] = {
-        degToRad(7.0),  degToRad(12.0), degToRad(15.0),
-        degToRad(20.0), degToRad(11.0),
-        degToRad(0.0), // Tests no rotation.
-        degToRad(5.0),
-        degToRad(0.0) // Tests no rotation and no translation.
+        math::degToRad(7.0),  math::degToRad(12.0), math::degToRad(15.0),
+        math::degToRad(20.0), math::degToRad(11.0),
+        math::degToRad(0.0), // Tests no rotation.
+        math::degToRad(5.0),
+        math::degToRad(0.0) // Tests no rotation and no translation.
     };
 
     static const Vector3d kTranslations[con::ArraySize(kAxes)] = {
@@ -166,7 +168,7 @@ TEST(DlsPnp, ManyPoints)
     constexpr int num_points[3]{100, 500, 1000};
     constexpr double kNoise{1. / 512.};
     constexpr double kMaxReprojectionError{1e-2};
-    constexpr double kMaxAllowedRotationDifference = degToRad(0.3);
+    constexpr double kMaxAllowedRotationDifference = math::degToRad(0.3);
     constexpr double kMaxAllowedTranslationDifference{5e-3};
 
     for (size_t i{0}; i < con::ArraySize(kAxes); i++) {
@@ -176,9 +178,9 @@ TEST(DlsPnp, ManyPoints)
             Vector3dList points_3d;
             points_3d.reserve(num_points[j]);
             for (int k = 0; k < num_points[j]; k++) {
-                points_3d.push_back(Vector3d(rng.RandDouble(-5., 5.),
-                                             rng.RandDouble(-5., 5.),
-                                             rng.RandDouble(2., 10.)));
+                points_3d.push_back(Vector3d(kRNG.RandDouble(-5., 5.),
+                                             kRNG.RandDouble(-5., 5.),
+                                             kRNG.RandDouble(2., 10.)));
             }
 
             TestDlsPnpWithNoise(points_3d, kNoise, soln_rotation,
@@ -196,11 +198,11 @@ TEST(DlsPnp, NoRotation)
                                  Vector3d(-1., -3., 2.), Vector3d(1., -2., 1.),
                                  Vector3d(-1., 4., 2.),  Vector3d(-2., 2., 3.)};
     const Quaterniond soln_rotation{
-        AngleAxisd{degToRad(0.), Vector3d::UnitZ()}};
+        AngleAxisd{math::degToRad(0.), Vector3d::UnitZ()}};
     const Vector3d soln_translation(1.0, 1.0, 1.0);
     constexpr double kNoise = 1.0 / 512.0;
     constexpr double kMaxReprojectionError = 5e-3;
-    constexpr double kMaxAllowedRotationDifference = degToRad(0.25);
+    constexpr double kMaxAllowedRotationDifference = math::degToRad(0.25);
     constexpr double kMaxAllowedTranslationDifference = 5e-4;
 
     TestDlsPnpWithNoise(points_3d, kNoise, soln_rotation, soln_translation,
@@ -215,11 +217,11 @@ TEST(DlsPnp, NoTranslation)
                                  Vector3d(-1., -3., 2.), Vector3d(1., -2., 1.),
                                  Vector3d(-1., 4., 2.),  Vector3d(-2., 2., 3.)};
     const Quaterniond soln_rotation{
-        AngleAxisd{degToRad(13.), Vector3d::UnitZ()}};
+        AngleAxisd{math::degToRad(13.), Vector3d::UnitZ()}};
     const Vector3d soln_translation(0.0, 0.0, 0.0);
     constexpr double kNoise{1.0 / 512.0};
     constexpr double kMaxReprojectionError{1e-2};
-    constexpr double kMaxAllowedRotationDifference = degToRad(0.2);
+    constexpr double kMaxAllowedRotationDifference = math::degToRad(0.2);
     constexpr double kMaxAllowedTranslationDifference{5e-3};
 
     TestDlsPnpWithNoise(points_3d, kNoise, soln_rotation, soln_translation,
@@ -234,11 +236,11 @@ TEST(DlsPnp, OrthogonalRotation)
                                  Vector3d(-1., -3., 2.), Vector3d(1., -2., 1.),
                                  Vector3d(-1., 4., 2.),  Vector3d(-2., 2., 3.)};
     const Quaterniond soln_rotation{
-        AngleAxisd{degToRad(90.), Vector3d::UnitZ()}};
+        AngleAxisd{math::degToRad(90.), Vector3d::UnitZ()}};
     const Vector3d soln_translation(1.0, 1.0, 1.0);
     constexpr double kNoise{1.0 / 512.0};
     constexpr double kMaxReprojectionError{5e-3};
-    constexpr double kMaxAllowedRotationDifference = degToRad(0.25);
+    constexpr double kMaxAllowedRotationDifference = math::degToRad(0.25);
     constexpr double kMaxAllowedTranslationDifference{5e-3};
 
     TestDlsPnpWithNoise(points_3d, kNoise, soln_rotation, soln_translation,
