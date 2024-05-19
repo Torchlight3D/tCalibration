@@ -1,0 +1,15 @@
+site_name: Torchlight
+site_url: null
+site_description: null
+site_author: Bob Law
+repo_url: https://github.com/BobbleLaw/CalibKit
+repo_name: Github
+theme:
+  name: readthedocs
+  highlightjs: true
+  hljs_languages:
+    - c++
+    - python
+  locale: en
+
+
