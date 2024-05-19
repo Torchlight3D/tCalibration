@@ -1,15 +1,27 @@
 #include "spline_error_weighting.h"
 
+#include <unsupported/Eigen/FFT>
 #include <glog/logging.h>
 
 #include <tCore/Math>
-#include <tMath/FFT>
-#include <tSolver/BrentSolver>
+#include <tMath/Solvers/BrentSolver>
 
 namespace tl {
 
 using Eigen::VectorXd;
 using Eigen::MatrixX3cd;
+
+VectorXd fftfreq(int len, double d)
+{
+    const auto val = 1. / (len * d);
+    const auto head = (len - 1) / 2 + 1;
+    const auto tail = len - head;
+
+    Eigen::VectorXd res{len};
+    res.head(head) = Eigen::VectorXi::LinSpaced(head, 0, head).cast<double>();
+    res.tail(tail) = Eigen::VectorXi::LinSpaced(tail, -tail, -1).cast<double>();
+    return res * val;
+}
 
 inline double calcSignalEnergy(const VectorXd& signal)
 {
@@ -61,9 +73,12 @@ VectorXd makeReferenceSpectrum(const ImuReadings& data)
     // Shape: N x 3
     const auto mat = data.toMatrix();
 
+    Eigen::FFT<double> fft;
     MatrixX3cd mat_fft{mat.rows(), mat.cols()};
-    for (int c{0}; c < 3; ++c) {
-        mat_fft.col(c) = fft_1d(VectorXd(mat.col(c)));
+    for (int c{0}; c < mat.cols(); ++c) {
+        Eigen::VectorXcd out = mat_fft.col(c);
+        const Eigen::VectorXd in = mat.col(c);
+        fft.fwd(out, in);
     }
 
     // Remove DC component

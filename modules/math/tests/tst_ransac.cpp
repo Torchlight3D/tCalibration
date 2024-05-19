@@ -1,14 +1,14 @@
 #include <gtest/gtest.h>
 
 #include <tCore/RandomGenerator>
-#include <tMath/Ransac>
+#include <tMath/RANSAC/Ransac>
 
 #include "test_utils.h"
 
 using namespace tl;
 
 namespace {
-RandomNumberGenerator kRNG(46);
+RandomNumberGenerator kRNG{46};
 }
 
 // TODO: use Test Fixture

@@ -7,11 +7,11 @@
 #include <sophus/se3.hpp>
 #include <sophus/so3.hpp>
 
+#include <tMath/Eigen/Utils>
 #include <tMotion/ImuData>
 #include <tMotion/ImuIntrinsics>
 #include <tMvs/View>
 #include <tMvs/Scene>
-#include <tMath/EigenUtils>
 
 namespace tl {
 

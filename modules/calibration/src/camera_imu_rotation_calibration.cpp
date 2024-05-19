@@ -5,7 +5,7 @@
 #include <json/json.hpp>
 
 #include <tCore/Math>
-#include <tMath/EigenUtils>
+#include <tMath/Eigen/Utils>
 #include <tMotion/ImuData>
 
 namespace tl {

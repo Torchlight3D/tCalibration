@@ -46,7 +46,6 @@ target_link_libraries(${MVS_TARGET_NAME}
         ${NS_PREFIX}::Camera
         ${NS_PREFIX}::Core
         ${NS_PREFIX}::Math
-        ${NS_PREFIX}::Solver
         ${NS_PREFIX}::Vision
     PRIVATE
         fmt::fmt

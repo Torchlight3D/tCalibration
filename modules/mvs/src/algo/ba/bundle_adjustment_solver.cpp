@@ -8,6 +8,7 @@
 #include <tCamera/OmnidirectionalCameraModel>
 #include <tCamera/ReprojectionError>
 #include <tCore/ContainerUtils>
+#include <tMath/Solvers/LossFunction>
 
 #include "../residuals/inversereprojectionerror.h"
 

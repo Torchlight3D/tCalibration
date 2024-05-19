@@ -10,14 +10,14 @@
 #include <tCamera/CameraIntrinsics>
 #include <tCamera/DivisionUndistortionCameraModel>
 #include <tCamera/DoubleSphereCameraModel>
-#include <tVision/EigenCVUtils>
-#include <tMath/EigenUtils>
-#include <tMath/RansacCreator>
-#include <tMath/SampleConsensusEstimator>
+#include <tMath/Eigen/Utils>
+#include <tMath/RANSAC/RansacCreator>
+#include <tMath/RANSAC/SampleConsensusEstimator>
 #include <tMvs/EstimateCalibratedAbsolutePose>
 #include <tMvs/EstimateUncalibratedAbsolutePose>
 #include <tMvs/EstimateRadialDistortionUncalibratedAbsolutePose>
 #include <tMvs/FeatureCorrespondence>
+#include <tVision/EigenCVUtils>
 
 namespace tl {
 

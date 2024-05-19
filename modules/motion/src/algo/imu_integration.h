@@ -1,10 +1,11 @@
 #pragma once
 
 #include <ceres/rotation.h>
+
 #include <Eigen/Core>
 
+#include <tMath/Eigen/Utils>
 #include <tMotion/ImuData>
-#include <tMath/EigenUtils>
 
 namespace tl {
 

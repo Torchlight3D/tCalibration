@@ -5,8 +5,6 @@
 
 #include <Eigen/Geometry>
 
-#include <tMath/EigenTypes>
-
 namespace tl {
 
 class InertialBasedScaleEstimation

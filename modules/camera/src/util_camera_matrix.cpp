@@ -1,9 +1,14 @@
 #include "util_camera_matrix.h"
 
 #include <glog/logging.h>
-#include <tMath/EigenUtils>
+
+#include <tMath/Eigen/Utils>
 
 namespace tl {
+
+using Eigen::AngleAxisd;
+using Eigen::Matrix3d;
+using Eigen::Vector3d;
 
 void intrinsicsToCalibrationMatrix(double fx, double skew, double y_x,
                                    double cx, double cy, Eigen::Matrix3d& K)
@@ -32,9 +37,9 @@ void calibrationMatrixToIntrinsics(const Eigen::Matrix3d& K, double* fx,
 bool decomposeProjectionMatrix(const Matrix34d& P, Eigen::Matrix3d& K,
                                Eigen::Vector3d& rvec, Eigen::Vector3d& tvec)
 {
-    math::RQDecomposition<Eigen::Matrix3d> rq{P.block<3, 3>(0, 0)};
+    math::RQDecomposition<Matrix3d> rq{P.block<3, 3>(0, 0)};
 
-    Eigen::Matrix3d rmat = projectToRotationMatrix(rq.matrixQ());
+    Matrix3d rmat = projectToRotationMatrix(rq.matrixQ());
 
     const double k_det = rq.matrixR().determinant();
     if (k_det == 0) {
@@ -57,7 +62,7 @@ bool decomposeProjectionMatrix(const Matrix34d& P, Eigen::Matrix3d& K,
     }
 
     // Solve for t.
-    const Eigen::Vector3d t = K.triangularView<Eigen::Upper>().solve(P.col(3));
+    const Vector3d t = K.triangularView<Eigen::Upper>().solve(P.col(3));
 
     // c = - R' * t, and flip the sign according to k_det;
     if (k_det > 0) {
@@ -67,7 +72,7 @@ bool decomposeProjectionMatrix(const Matrix34d& P, Eigen::Matrix3d& K,
         tvec = rmat.transpose() * t;
     }
 
-    const Eigen::AngleAxisd aa{rmat};
+    const AngleAxisd aa{rmat};
     rvec = aa.angle() * aa.axis();
 
     return true;
@@ -80,11 +85,11 @@ bool composeProjectionMatrix(const Eigen::Matrix3d& K,
     const double angle = rvec.norm();
     // TODO: use isApprox0
     if (angle == 0) {
-        P.block<3, 3>(0, 0) = Eigen::Matrix3d::Identity();
+        P.block<3, 3>(0, 0) = Matrix3d::Identity();
     }
     else {
         P.block<3, 3>(0, 0) =
-            Eigen::AngleAxisd{angle, rvec / angle}.toRotationMatrix();
+            AngleAxisd{angle, rvec / angle}.toRotationMatrix();
     }
 
     P.col(3) = -(P.block<3, 3>(0, 0) * tvec);
@@ -95,10 +100,10 @@ bool composeProjectionMatrix(const Eigen::Matrix3d& K,
 
 Eigen::Matrix3d projectToRotationMatrix(const Eigen::Matrix3d& matrix)
 {
-    Eigen::JacobiSVD<Eigen::Matrix3d> svd{
-        matrix, Eigen::ComputeFullU | Eigen::ComputeFullV};
+    Eigen::JacobiSVD<Matrix3d> svd{matrix,
+                                   Eigen::ComputeFullU | Eigen::ComputeFullV};
 
-    Eigen::Matrix3d rmat = svd.matrixU() * (svd.matrixV().transpose());
+    Matrix3d rmat = svd.matrixU() * (svd.matrixV().transpose());
     // Valid rotation matrices should have a positive determinant.
     if (rmat.determinant() < 0) {
         rmat *= -1.0;

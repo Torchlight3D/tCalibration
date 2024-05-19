@@ -14,7 +14,7 @@
 #include <tCamera/StereoCameraTypes>
 #include <tCore/Math>
 #include <tCore/TimeUtils>
-#include <tMath/EigenUtils>
+#include <tMath/Eigen/Utils>
 #include <tMotion/ImuIntrinsics>
 #include <tMotion/ImuNoise>
 #include <tMotion/SplineErrorWeighting>

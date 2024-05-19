@@ -5,7 +5,7 @@
 #include <tCamera/CameraMetaData>
 #include <tCamera/PinholeCameraModel>
 #include <tCore/RandomGenerator>
-#include <tMath/EigenUtils>
+#include <tMath/Eigen/Utils>
 
 using namespace tl;
 

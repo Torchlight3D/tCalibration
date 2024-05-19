@@ -1,13 +1,15 @@
 #include <gtest/gtest.h>
 
-#include <tMath/EigenUtils>
+#include <tMath/Eigen/Utils>
 
 using namespace tl;
 
-TEST(Eigen, QuaternionTo){
-
+TEST(Eigen, QuaternionTo)
+{
+    // ...
 }
 
-TEST(Eigen, RotationMatrixTo){
-    
+TEST(Eigen, RotationMatrixTo)
+{
+    // ...
 }

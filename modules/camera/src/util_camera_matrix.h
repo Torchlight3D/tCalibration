@@ -1,6 +1,6 @@
 #pragma once
 
-#include <tMath/EigenTypes>
+#include <tMath/Eigen/Types>
 
 namespace tl {
 

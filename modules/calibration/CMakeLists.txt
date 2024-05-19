@@ -63,14 +63,13 @@ target_include_directories(${CALIBRATION_TARGET_NAME}
 
 target_link_libraries(${CALIBRATION_TARGET_NAME}
     PUBLIC
-        ${NS_PREFIX}::Target # not public link
         ${NS_PREFIX}::Camera
         ${NS_PREFIX}::Core
-        ${NS_PREFIX}::Vision
-        ${NS_PREFIX}::Motion
         ${NS_PREFIX}::Math
+        ${NS_PREFIX}::Motion
         ${NS_PREFIX}::Mvs
-        ${NS_PREFIX}::Solver
+        ${NS_PREFIX}::Target # not public link
+        ${NS_PREFIX}::Vision
         fmt::fmt
         Sophus::Sophus
         yaml-cpp::yaml-cpp

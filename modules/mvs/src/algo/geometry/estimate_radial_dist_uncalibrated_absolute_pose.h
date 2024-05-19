@@ -1,9 +1,10 @@
 ﻿#pragma once
 
 #include <vector>
+
 #include <Eigen/Core>
 
-#include <tMath/RansacCreator>
+#include <tMath/Types>
 
 namespace tl {
 
@@ -25,8 +26,8 @@ struct RadialDistUncalibratedAbsolutePoseMetaData
 };
 
 struct FeatureCorrespondence2D3D;
-struct RansacParameters;
-struct RansacSummary;
+struct SacParameters;
+struct SacSummary;
 
 // Estimates the uncalibrated absolute pose using the ransac variant of choice
 // (e.g. Ransac, Prosac, etc.). Apart from the focal length, a radial distortion

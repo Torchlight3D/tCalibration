@@ -4,8 +4,9 @@
 
 #include <tCamera/CameraIntrinsics>
 #include <tCamera/CameraMatrixUtils>
-#include <tMath/EigenTypes>
-#include <tMath/RansacModelEstimator>
+#include <tMath/Eigen/Types>
+#include <tMath/RANSAC/RansacCreator>
+#include <tMath/RANSAC/RansacModelEstimator>
 #include <tMvs/FeatureCorrespondence>
 #include <tMvs/P4PFocalLength>
 

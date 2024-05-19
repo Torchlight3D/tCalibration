@@ -3,7 +3,7 @@
 #include <memory>
 
 #include <tCore/EnumUtils>
-#include <tMath/EigenTypes>
+#include <tMath/Eigen/Types>
 
 #include "camera_meta_data.h"
 

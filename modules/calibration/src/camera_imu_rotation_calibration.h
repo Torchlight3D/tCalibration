@@ -1,7 +1,8 @@
 ﻿#pragma once
 
 #include <memory>
-#include <tMath/EigenUtils>
+
+#include <tMath/Eigen/Utils>
 
 namespace tl {
 

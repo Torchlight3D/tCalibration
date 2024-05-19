@@ -4,8 +4,8 @@
 #include <tCamera/DivisionUndistortionCameraModel>
 #include <tCore/Math>
 #include <tCore/RandomGenerator>
-#include <tMath/EigenUtils>
-#include <tMath/RansacCreator>
+#include <tMath/Eigen/Utils>
+#include <tMath/RANSAC/SampleConsensusEstimator>
 #include <tMvs/EstimateRadialDistortionUncalibratedAbsolutePose>
 #include <tMvs/FeatureCorrespondence>
 
@@ -24,7 +24,7 @@ constexpr double kRadialDistortion = -1e-7;
 constexpr double kReprojectionError = 1.;
 constexpr double kErrorThreshold = kReprojectionError * kReprojectionError;
 
-RandomNumberGenerator kRNG(64);
+RandomNumberGenerator kRNG{64};
 
 // TODO: Duplicated code in DivisionUndistortionCameraModel and
 // EstimateRadialDistortionUncalibratedAbsolutePose, but whatever

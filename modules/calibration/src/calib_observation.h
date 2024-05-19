@@ -2,9 +2,8 @@
 
 #include <Eigen/Geometry>
 #include <opencv2/core/mat.hpp>
-#include <opencv2/core/types.hpp>
 
-#include <tMath/EigenUtils>
+#include <tMath/Eigen/Types>
 #include <tTarget/CalibBoardBase>
 
 namespace tl {

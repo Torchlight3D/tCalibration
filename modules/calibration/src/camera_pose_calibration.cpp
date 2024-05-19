@@ -1,21 +1,20 @@
 ﻿#include "camera_pose_calibration.h"
 
-#include <thread>
 #include <unordered_map>
 
 #include <json/json.hpp>
 
-#include <tTarget/CalibBoardBase>
 #include <tCore/ContainerUtils>
 #include <tCore/TimeUtils>
-#include <tVision/EigenCVUtils>
-#include <tMath/SampleConsensusEstimator>
+#include <tMath/RANSAC/SampleConsensusEstimator>
+#include <tMath/Solvers/LossFunction>
 #include <tMvs/BundleAdjustment>
 #include <tMvs/EstimateCalibratedAbsolutePose>
 #include <tMvs/FeatureCorrespondence>
 #include <tMvs/Landmark>
 #include <tMvs/View>
-#include <tSolver/LossFunctionCreator>
+#include <tTarget/CalibBoardBase>
+#include <tVision/EigenCVUtils>
 
 #include "util_scene.h"
 

@@ -2,7 +2,6 @@
 #include "impl/dlspnp_impl.h"
 
 #include <cmath>
-#include <vector>
 
 #include <Eigen/Eigenvalues>
 #include <glog/logging.h>

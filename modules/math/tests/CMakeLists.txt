@@ -5,12 +5,13 @@ add_executable(${MATH_TEST_TARGET})
 target_sources(${MATH_TEST_TARGET}
     PRIVATE
         test_utils.h
+        tst_brent.cpp
         tst_eigen.cpp
         tst_exhaustive_ransac.cpp
         tst_lmed.cpp
         tst_prosac.cpp
         tst_ransac.cpp
-        tst_fft.cpp
+        # main.cpp
 )
 
 set(GTest_DIR ${ACTIVE_DEPENDS_PREFIX}/googletest/1.14.0/lib/cmake/GTest)

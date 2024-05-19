@@ -3,8 +3,8 @@
 
 #include <tCore/Math>
 #include <tCore/RandomGenerator>
-#include <tMath/EigenUtils>
-#include <tMath/RansacCreator>
+#include <tMath/Eigen/Utils>
+#include <tMath/RANSAC/SampleConsensusEstimator>
 #include <tMvs/EstimateCalibratedAbsolutePose>
 #include <tMvs/FeatureCorrespondence>
 

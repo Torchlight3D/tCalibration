@@ -3,7 +3,7 @@
 #include <QVector3D>
 
 #include <tCamera/Camera>
-#include <tMath/EigenTypes>
+#include <tMath/Eigen/Types>
 #include <tMvs/Types>
 #include <tScene3d/KeyFrameInterpolator>
 #include <tScene3d/Scene3DViewer>

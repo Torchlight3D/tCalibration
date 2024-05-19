@@ -14,7 +14,7 @@
 #include <tCamera/PinholeRadialTangentialCameraModel>
 #include <tCore/ContainerUtils>
 #include <tCore/Math>
-#include <tMath/EigenUtils>
+#include <tMath/Eigen/Utils>
 
 namespace tl {
 

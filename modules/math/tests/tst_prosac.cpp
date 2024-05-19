@@ -1,7 +1,9 @@
 #include <random>
+
 #include <gtest/gtest.h>
 
-#include <tMath/Prosac>
+#include <tMath/RANSAC/Prosac>
+
 #include "test_utils.h"
 
 using namespace tl;

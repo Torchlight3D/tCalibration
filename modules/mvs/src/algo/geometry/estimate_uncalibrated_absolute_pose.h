@@ -1,15 +1,16 @@
 ﻿#pragma once
 
 #include <vector>
+
 #include <Eigen/Core>
 
-#include <tMath/RansacCreator>
+#include <tMath/Types>
 
 namespace tl {
 
 struct FeatureCorrespondence2D3D;
-struct RansacParameters;
-struct RansacSummary;
+struct SacParameters;
+struct SacSummary;
 
 struct UncalibratedAbsolutePose
 {

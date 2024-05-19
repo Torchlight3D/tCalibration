@@ -2,7 +2,8 @@
 
 #include <Eigen/Dense>
 
-#include <tMath/RansacModelEstimator>
+#include <tMath/RANSAC/RansacCreator>
+#include <tMath/RANSAC/RansacModelEstimator>
 #include <tMvs/P4PFocalLengthDistortion>
 #include <tMvs/FeatureCorrespondence>
 

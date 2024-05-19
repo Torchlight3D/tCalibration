@@ -1,9 +1,10 @@
 ﻿#pragma once
 
 #include <vector>
+
 #include <Eigen/Core>
 
-#include <tMath/RansacCreator>
+#include <tMath/Types>
 #include <tMvs/Types>
 
 namespace tl {

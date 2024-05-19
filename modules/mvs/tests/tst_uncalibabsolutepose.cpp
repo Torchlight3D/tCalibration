@@ -4,8 +4,8 @@
 
 #include <tCore/Math>
 #include <tCore/RandomGenerator>
-#include <tMath/EigenUtils>
-#include <tMath/RansacCreator>
+#include <tMath/Eigen/Utils>
+#include <tMath/RANSAC/SampleConsensusEstimator>
 #include <tMvs/EstimateUncalibratedAbsolutePose>
 #include <tMvs/FeatureCorrespondence>
 
@@ -24,7 +24,7 @@ constexpr double kFocalLength = 1000.0;
 constexpr double kReprojectionError = 4.0;
 constexpr double kErrorThreshold = kReprojectionError * kReprojectionError;
 
-RandomNumberGenerator rng(64);
+RandomNumberGenerator kRNG{64};
 } // namespace
 
 inline void ExecuteRandomTest(const SacParameters& options,
@@ -38,8 +38,8 @@ inline void ExecuteRandomTest(const SacParameters& options,
     for (int i = 0; i < kNumPoints; i++) {
         FeatureCorrespondence2D3D correspondence;
         correspondence.world_point =
-            Vector3d(rng.RandDouble(-2.0, 2.0), rng.RandDouble(-2.0, 2.0),
-                     rng.RandDouble(6.0, 10.0));
+            Vector3d(kRNG.RandDouble(-2.0, 2.0), kRNG.RandDouble(-2.0, 2.0),
+                     kRNG.RandDouble(6.0, 10.0));
 
         // Add an inlier or outlier.
         if (i < inlier_ratio * kNumPoints) {
@@ -51,15 +51,15 @@ inline void ExecuteRandomTest(const SacParameters& options,
         }
         else {
             correspondence.feature =
-                kFocalLength *
-                Vector2d(rng.RandDouble(-1.0, 1.0), rng.RandDouble(-1.0, 1.0));
+                kFocalLength * Vector2d(kRNG.RandDouble(-1.0, 1.0),
+                                        kRNG.RandDouble(-1.0, 1.0));
         }
         correspondences.emplace_back(correspondence);
     }
 
     if (noise) {
         for (int i = 0; i < kNumPoints; i++) {
-            AddNoiseToProjection(noise, &rng, &correspondences[i].feature);
+            AddNoiseToProjection(noise, &kRNG, &correspondences[i].feature);
         }
     }
 
@@ -88,7 +88,7 @@ inline void ExecuteRandomTest(const SacParameters& options,
 TEST(EstimateUncalibratedAbsolutePose, AllInliersNoNoise)
 {
     SacParameters options;
-    options.rng = std::make_shared<RandomNumberGenerator>(rng);
+    options.rng = std::make_shared<RandomNumberGenerator>(kRNG);
     options.use_mle = true;
     options.error_thresh = kErrorThreshold;
     options.failure_probability = 0.001;
@@ -113,7 +113,7 @@ TEST(EstimateUncalibratedAbsolutePose, AllInliersNoNoise)
 TEST(EstimateUncalibratedAbsolutePose, AllInliersWithNoise)
 {
     SacParameters options;
-    options.rng = std::make_shared<RandomNumberGenerator>(rng);
+    options.rng = std::make_shared<RandomNumberGenerator>(kRNG);
     options.use_mle = true;
     options.error_thresh = kErrorThreshold;
     options.failure_probability = 0.001;
@@ -140,7 +140,7 @@ TEST(EstimateUncalibratedAbsolutePose, AllInliersWithNoise)
 TEST(EstimateUncalibratedAbsolutePose, OutliersNoNoise)
 {
     SacParameters options;
-    options.rng = std::make_shared<RandomNumberGenerator>(rng);
+    options.rng = std::make_shared<RandomNumberGenerator>(kRNG);
     options.use_mle = true;
     options.error_thresh = kErrorThreshold;
     options.failure_probability = 0.001;
@@ -164,7 +164,7 @@ TEST(EstimateUncalibratedAbsolutePose, OutliersNoNoise)
 TEST(EstimateUncalibratedAbsolutePose, OutliersWithNoise)
 {
     SacParameters options;
-    options.rng = std::make_shared<RandomNumberGenerator>(rng);
+    options.rng = std::make_shared<RandomNumberGenerator>(kRNG);
     options.use_mle = true;
     options.error_thresh = kErrorThreshold;
     options.failure_probability = 0.001;

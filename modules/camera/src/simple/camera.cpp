@@ -11,7 +11,7 @@
 
 #include <tCamera/CameraMatrixUtils>
 #include <tCore/Math>
-#include <tMath/EigenUtils>
+#include <tMath/Eigen/Utils>
 
 #include "pinhole_camera_model.h"
 

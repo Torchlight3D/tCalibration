@@ -3,7 +3,7 @@
 #include <gtest/gtest.h>
 
 #include <tCore/RandomGenerator>
-#include <tMath/Lmed>
+#include <tMath/RANSAC/Lmed>
 
 #include "test_utils.h"
 

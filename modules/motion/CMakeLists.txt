@@ -31,7 +31,6 @@ target_link_libraries(${IMU_TARGET_NAME}
     PUBLIC   
         ${NS_PREFIX}::Core
         ${NS_PREFIX}::Math
-        ${NS_PREFIX}::Solver
 )
 
 install(

@@ -3,11 +3,15 @@
 #include <gtest/gtest.h>
 
 #include <tCore/RandomGenerator>
-#include <tMath/ExhaustiveRansac>
+#include <tMath/RANSAC/ExhaustiveRansac>
 
 #include "test_utils.h"
 
 using namespace tl;
+
+namespace {
+RandomNumberGenerator kRNG{46};
+} // namespace
 
 TEST(ExhaustiveSampler, EnsureExhaustiveSample)
 {
@@ -39,10 +43,6 @@ TEST(ExhaustiveSampler, EnsureExhaustiveSample)
     EXPECT_EQ(subset[1], 1);
 }
 
-namespace {
-RandomNumberGenerator kRng(46);
-} // namespace
-
 TEST(ExhaustiveRansacTest, LineFitting)
 {
     // Create a set of points along y=x with a small random pertubation.
@@ -51,19 +51,19 @@ TEST(ExhaustiveRansacTest, LineFitting)
     points.reserve(kDataPointSize);
     for (size_t i{0}; i < kDataPointSize; ++i) {
         if (i % 2 == 0) {
-            double noise_x = kRng.RandGaussian(0.0, 0.1);
-            double noise_y = kRng.RandGaussian(0.0, 0.1);
+            double noise_x = kRNG.RandGaussian(0.0, 0.1);
+            double noise_y = kRNG.RandGaussian(0.0, 0.1);
             points.emplace_back(i + noise_x, i + noise_y);
         }
         else {
-            double noise_x = kRng.RandDouble(0.0, 10000);
-            double noise_y = kRng.RandDouble(0.0, 10000);
+            double noise_x = kRNG.RandDouble(0.0, 10000);
+            double noise_y = kRNG.RandDouble(0.0, 10000);
             points.emplace_back(noise_x, noise_y);
         }
     }
 
     SacParameters params;
-    params.rng = std::make_shared<RandomNumberGenerator>(kRng);
+    params.rng = std::make_shared<RandomNumberGenerator>(kRNG);
     params.error_thresh = 0.5;
 
     LineEstimator line_estimator;
@@ -84,19 +84,19 @@ TEST(ExhaustiveRansacTest, TerminationNumInliers)
     input_points.reserve(kDataPointSize);
     for (int i = 0; i < 10000; ++i) {
         if (i % 2 == 0) {
-            double noise_x = kRng.RandGaussian(0., 0.1);
-            double noise_y = kRng.RandGaussian(0., 0.1);
+            double noise_x = kRNG.RandGaussian(0., 0.1);
+            double noise_y = kRNG.RandGaussian(0., 0.1);
             input_points.emplace_back(i + noise_x, i + noise_y);
         }
         else {
-            double noise_x = kRng.RandDouble(0., 10000);
-            double noise_y = kRng.RandDouble(0., 10000);
+            double noise_x = kRNG.RandDouble(0., 10000);
+            double noise_y = kRNG.RandDouble(0., 10000);
             input_points.emplace_back(noise_x, noise_y);
         }
     }
 
     SacParameters params;
-    params.rng = std::make_shared<RandomNumberGenerator>(kRng);
+    params.rng = std::make_shared<RandomNumberGenerator>(kRNG);
     params.error_thresh = 0.5;
 
     LineEstimator line_estimator;

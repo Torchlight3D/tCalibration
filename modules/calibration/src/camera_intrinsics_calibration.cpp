@@ -3,26 +3,27 @@
 #include <map>
 #include <thread>
 
-#include <json/json.hpp>
-#include <magic_enum/magic_enum.hpp>
 #include <opencv2/core.hpp>
 
-#include <tCalibration/CameraIntrinsicsInitialization>
+#include <json/json.hpp>
+#include <magic_enum/magic_enum.hpp>
+
 #include <tCamera/Camera>
 #include <tCamera/DivisionUndistortionCameraModel>
 #include <tCamera/DoubleSphereCameraModel>
 #include <tCamera/ExtendedUnifiedCameraModel>
 #include <tCamera/OmnidirectionalCameraModel>
 #include <tCore/TimeUtils>
-#include <tVision/EigenCVUtils>
-#include <tMath/SampleConsensusEstimator>
+#include <tMath/RANSAC/SampleConsensusEstimator>
 #include <tMvs/BundleAdjustment>
 #include <tMvs/FeatureCorrespondence>
 #include <tMvs/Landmark>
 #include <tMvs/Scene>
 #include <tMvs/View>
+#include <tVision/EigenCVUtils>
 
 #include "util_scene.h"
+#include "initialize_intrinsics.h"
 
 namespace tl {
 

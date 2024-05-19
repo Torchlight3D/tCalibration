@@ -5,15 +5,9 @@
 #include "prosac.h"
 #include "ransac.h"
 
-namespace tl {
+#include <tMath/Types>
 
-enum class RansacType
-{
-    RANSAC = 0,
-    PROSAC = 1,
-    LMED = 2,
-    EXHAUSTIVE = 3
-};
+namespace tl {
 
 template <class Estimator>
 std::unique_ptr<SampleConsensusEstimator<Estimator>> createRansac(
