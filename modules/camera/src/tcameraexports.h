@@ -1,5 +1,7 @@
 #pragma once
 
+#include <tCore/platform.h>
+
 #ifndef TL_STATIC
 #if defined(TL_CAMERA_EXPORT)
 #define TL_CAMERA_API TL_DECL_EXPORT

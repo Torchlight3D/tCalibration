@@ -523,8 +523,7 @@ public:
 #ifdef THREAD_POOL_ENABLE_WAIT_DEADLOCK_CHECK
     struct wait_deadlock : public std::runtime_error
     {
-        wait_deadlock()
-            : std::runtime_error("agilex::thread_pool::wait_deadlock"){};
+        wait_deadlock() : std::runtime_error("thread_pool::wait_deadlock"){};
     };
 #endif
 
