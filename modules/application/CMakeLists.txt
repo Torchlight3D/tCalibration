@@ -5,8 +5,8 @@
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU"
         AND UNIX
         AND NOT APPLE
-        AND NOT AX_SKIP_PIE_CHANGE)
-  message(STATUS "Setting -no-pie on EXE flags; use AX_SKIP_PIE_CHANGE=TRUE to avoid" )
+        AND NOT TL_SKIP_PIE_CHANGE)
+  message(STATUS "Setting -no-pie on EXE flags; use TL_SKIP_PIE_CHANGE=TRUE to avoid" )
   set(CMAKE_EXE_LINKER_FLAGS "-no-pie")
 endif()
 

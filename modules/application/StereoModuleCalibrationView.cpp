@@ -603,7 +603,7 @@ void RemoteStatusModel::show(const Data &data)
 ///------- StereoModuleCalibrationViewPrivate starts from here
 class StereoModuleCalibrationViewPrivate
 {
-    AX_Q_DEFINE_PIMPL(StereoModuleCalibrationView)
+    TL_Q_DEFINE_PIMPL(StereoModuleCalibrationView)
 
 public:
     explicit StereoModuleCalibrationViewPrivate(StereoModuleCalibrationView *q);

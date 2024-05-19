@@ -27,7 +27,7 @@ constexpr char kPageIndex[]{"pageIndex"};
 ///------- StereoModuleToolViewPrivate starts from here
 class StereoModuleToolViewPrivate
 {
-    AX_Q_DEFINE_PIMPL(StereoModuleToolView)
+    TL_Q_DEFINE_PIMPL(StereoModuleToolView)
 
 public:
     explicit StereoModuleToolViewPrivate(StereoModuleToolView* q);

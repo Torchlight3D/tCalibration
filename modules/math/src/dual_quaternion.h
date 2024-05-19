@@ -1,10 +1,10 @@
 ﻿#pragma once
 
 #include <ostream>
+
 #include <Eigen/Geometry>
 
 #include "util_eigen.h"
-#include "ax_math_global.h"
 
 namespace tl {
 
@@ -22,7 +22,7 @@ template <typename T>
 std::ostream& operator<<(std::ostream& out, const DualQuaternion<T>& dq);
 
 template <typename T>
-class AX_MATH_API DualQuaternion
+class DualQuaternion
 {
 public:
     using Quaternion_t = Eigen::Quaternion<T>;

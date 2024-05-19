@@ -11,16 +11,16 @@
     Class* const q_ptr;
 
 // Make translations in private class go to parent's scope
-#define AX_Q_DECLARE_PUBLIC(Class)                                            \
+#define TL_Q_DECLARE_PUBLIC(Class)                                            \
     Q_DECLARE_PUBLIC(Class)                                                   \
     inline static auto Tr(const char* s, const char* c = nullptr, int n = -1) \
     {                                                                         \
         return Class::tr(s, c, n);                                            \
     }
 
-#define AX_Q_DEFINE_PIMPL(Class)   \
+#define TL_Q_DEFINE_PIMPL(Class)   \
     Q_DISABLE_COPY(Class##Private) \
-    AX_Q_DECLARE_PUBLIC(Class)     \
+    TL_Q_DECLARE_PUBLIC(Class)     \
     Class* const q_ptr;
 
 class QLayout;

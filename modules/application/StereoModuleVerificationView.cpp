@@ -24,7 +24,7 @@ namespace fs = std::filesystem;
 ///------- StereoModuleVerificationViewPrivate starts from here
 class StereoModuleVerificationViewPrivate
 {
-    AX_Q_DEFINE_PIMPL(StereoModuleVerificationView)
+    TL_Q_DEFINE_PIMPL(StereoModuleVerificationView)
 
 public:
     explicit StereoModuleVerificationViewPrivate(

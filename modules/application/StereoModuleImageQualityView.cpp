@@ -5,7 +5,7 @@ namespace tl {
 ///------- StereoModuleImageQualityViewPrivate starts from here
 class StereoModuleImageQualityViewPrivate
 {
-    AX_Q_DEFINE_PIMPL(StereoModuleImageQualityView)
+    TL_Q_DEFINE_PIMPL(StereoModuleImageQualityView)
 
 public:
     explicit StereoModuleImageQualityViewPrivate(

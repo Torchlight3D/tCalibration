@@ -4,14 +4,14 @@
 
 namespace tl {
 
-#ifndef AX_STATIC
-    #if defined(AX_MVS_EXPORT)
-        #define AX_MVS_API AX_DECL_EXPORT
-    #else
-        #define AX_MVS_API AX_DECL_IMPORT
-    #endif    
+#ifndef TL_STATIC
+#if defined(TL_MVS_EXPORT)
+#define TL_MVS_API TL_DECL_EXPORT
 #else
-    #define AX_MVS_API
+#define TL_MVS_API TL_DECL_IMPORT
+#endif
+#else
+#define TL_MVS_API
 #endif
 
-}
+} // namespace tl
