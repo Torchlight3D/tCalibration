@@ -8,14 +8,19 @@ add_library(${NS_PREFIX}::${MVS_TARGET_NAME} ALIAS ${MVS_TARGET_NAME})
 # 2. use src/CMakeLists.txt to control source files
 # 3. explicitly list source files
 file(GLOB_RECURSE MVS_INTERNAL_HEADERS
+    src/ba/*.h
     src/desc/*.h
-    src/algo/*.h
+    src/pnp/*.h
+    src/residuals/*.h
     src/*.h
 )
 file(GLOB_RECURSE MVS_SOURCES
+    src/ba/*.cpp
     src/desc/*.cpp
-    src/algo/*.cpp
-    src/algo/*.cc
+    src/pnp/*.cpp
+    src/pnp/**/*.cpp
+    src/pnp/**/*.cc
+    src/residuals/*.cpp
 )
 
 target_sources(${MVS_TARGET_NAME}

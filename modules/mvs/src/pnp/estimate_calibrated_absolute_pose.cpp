@@ -4,12 +4,12 @@
 #include <tMath/RANSAC/RansacCreator>
 #include <tMath/RANSAC/RansacModelEstimator>
 #include <tMvs/BundleAdjustment>
-#include <tMvs/DlsPnP>
 #include <tMvs/FeatureCorrespondence>
 #include <tMvs/Landmark>
-#include <tMvs/P3P>
+#include <tMvs/PnP/DlsPnP>
+#include <tMvs/PnP/P3P>
+#include <tMvs/PnP/SQPnP>
 #include <tMvs/Scene>
-#include <tMvs/SQPnP>
 #include <tMvs/View>
 
 namespace tl {

@@ -1,1 +1,1 @@
-#include "../../src/algo/ba/bundle_adjustment_solver.h"
+#include "../../src/ba/bundle_adjustment_solver.h"

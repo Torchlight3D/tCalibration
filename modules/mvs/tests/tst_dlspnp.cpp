@@ -7,7 +7,7 @@
 #include <tCore/Global>
 #include <tCore/Math>
 #include <tCore/RandomGenerator>
-#include <tMvs/DlsPnP>
+#include <tMvs/PnP/DlsPnP>
 
 #include "test_utils.h"
 

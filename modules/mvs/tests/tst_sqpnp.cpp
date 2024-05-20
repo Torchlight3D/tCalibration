@@ -1,4 +1,3 @@
-#include <Eigen/Core>
 #include <Eigen/Geometry>
 #include <gtest/gtest.h>
 
@@ -6,7 +5,7 @@
 #include <tCore/Global>
 #include <tCore/Math>
 #include <tCore/RandomGenerator>
-#include <tMvs/SQPnP>
+#include <tMvs/PnP/SQPnP>
 
 #include "test_utils.h"
 

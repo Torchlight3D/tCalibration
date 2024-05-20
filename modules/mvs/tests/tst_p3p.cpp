@@ -1,10 +1,9 @@
-#include <Eigen/Core>
 #include <Eigen/Geometry>
 #include <gtest/gtest.h>
 
 #include <tCore/Math>
 #include <tCore/RandomGenerator>
-#include <tMvs/P3P>
+#include <tMvs/PnP/P3P>
 
 #include "test_utils.h"
 

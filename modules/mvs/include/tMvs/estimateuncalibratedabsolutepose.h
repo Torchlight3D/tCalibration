@@ -1,1 +1,1 @@
-#include "../../src/algo/geometry/estimate_uncalibrated_absolute_pose.h"
+#include "../../src/pnp/estimate_uncalibrated_absolute_pose.h"

@@ -8,7 +8,7 @@
 #include <tMath/RANSAC/RansacCreator>
 #include <tMath/RANSAC/RansacModelEstimator>
 #include <tMvs/FeatureCorrespondence>
-#include <tMvs/P4PFocalLength>
+#include <tMvs/PnP/P4PFocalLength>
 
 namespace tl {
 

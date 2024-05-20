@@ -4,7 +4,7 @@
 
 #include <tMath/RANSAC/RansacCreator>
 #include <tMath/RANSAC/RansacModelEstimator>
-#include <tMvs/P4PFocalLengthDistortion>
+#include <tMvs/PnP/P4PFocalLengthDistortion>
 #include <tMvs/FeatureCorrespondence>
 
 namespace tl {
