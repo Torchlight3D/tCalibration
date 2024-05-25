@@ -55,9 +55,9 @@ inline void TestOptimizeView(int numPoints, double pixelNoise)
         }
     }
 
-    BundleAdjustmentOptions opts;
+    BundleAdjustment::Options opts;
     opts.verbose = true;
-    BundleAdjustmentSummary sum = BundleAdjustView(opts, vid, &scene);
+    BundleAdjustment::Summary sum = BundleAdjustView(opts, vid, &scene);
     std::cout << "Success: " << sum.success << "\n";
     std::cout << "Final squared reprojection error: " << 2.0 * sum.final_cost
               << "\n";

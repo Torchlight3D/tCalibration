@@ -183,7 +183,7 @@ BENCHMARK(coc_fisheye_imageToRay_iteration2);
 static void calibkit_omni_spaceToImage(bm::State &state)
 {
     // Same parameters as CamOdoCal test case
-    agilex::OmnidirectionalCameraModel camera;
+    OmnidirectionalCameraModel camera;
     camera.setFocalLength(758.355);
     camera.setAspectRatio(0.999024);
     camera.setPrincipalPoint(646.72, 395.001);
@@ -202,7 +202,7 @@ BENCHMARK(calibkit_omni_spaceToImage);
 static void calibkit_fisheye_spaceToImage(bm::State &state)
 {
     // Same parameters as CamOdoCal test case
-    agilex::FisheyeCameraModel camera;
+    FisheyeCameraModel camera;
     camera.setFocalLength(419.22826);
     camera.setAspectRatio(1.002847);
     camera.setPrincipalPoint(655.45487, 389.66377);
@@ -219,7 +219,7 @@ BENCHMARK(calibkit_fisheye_spaceToImage);
 static void calibkit_fisheye_imageToRay(bm::State &state)
 {
     // Same parameters as CamOdoCal test case
-    agilex::FisheyeCameraModel camera;
+    FisheyeCameraModel camera;
     camera.setFocalLength(419.22826);
     camera.setAspectRatio(1.002847);
     camera.setPrincipalPoint(655.45487, 389.66377);

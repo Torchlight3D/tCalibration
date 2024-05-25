@@ -40,10 +40,10 @@ int SolvePlaneRotation(const Vector3d normalized_image_points[3],
     *b = 1.0 / (1.0 - cos_beta * cos_beta) - 1.0;
 
     if (cos_beta < 0) {
-        *b = -sqrt(*b);
+        *b = -std::sqrt(*b);
     }
     else {
-        *b = sqrt(*b);
+        *b = std::sqrt(*b);
     }
 
     // Definition of temporary variables for readability in the coefficients
@@ -106,9 +106,9 @@ void Backsubstitute(const Matrix3d& intermediate_world_frame,
                     double cot_alpha, double d_12, double b,
                     Vector3d* translation, Matrix3d* rotation)
 {
-    const double sin_theta = sqrt(1.0 - cos_theta * cos_theta);
-    const double sin_alpha = sqrt(1.0 / (cot_alpha * cot_alpha + 1.0));
-    double cos_alpha = sqrt(1.0 - sin_alpha * sin_alpha);
+    const double sin_theta = std::sqrt(1.0 - cos_theta * cos_theta);
+    const double sin_alpha = std::sqrt(1.0 / (cot_alpha * cot_alpha + 1.0));
+    double cos_alpha = std::sqrt(1.0 - sin_alpha * sin_alpha);
 
     if (cot_alpha < 0) {
         cos_alpha = -cos_alpha;

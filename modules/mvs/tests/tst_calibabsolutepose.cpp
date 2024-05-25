@@ -4,9 +4,10 @@
 #include <tCore/Math>
 #include <tCore/RandomGenerator>
 #include <tMath/Eigen/Utils>
-#include <tMath/RANSAC/SampleConsensusEstimator>
-#include <tMvs/EstimateCalibratedAbsolutePose>
-#include <tMvs/FeatureCorrespondence>
+#include <tMath/RANSAC/SampleConsensus>
+#include <tMvs/PnP/EstimateCalibratedAbsolutePose>
+#include <tMvs/Feature>
+#include <tMvs/Types>
 
 #include "test_utils.h"
 
@@ -34,9 +35,9 @@ void ExecuteRandomTest(const SacParameters& options, const Matrix3d& rotation,
 {
     // Create feature correspondences (inliers and outliers) and add noise if
     // appropriate.
-    std::vector<FeatureCorrespondence2D3D> correspondences;
+    std::vector<Feature2D3D> correspondences;
     for (int i = 0; i < kNumPoints; i++) {
-        FeatureCorrespondence2D3D correspondence;
+        Feature2D3D correspondence;
         correspondence.world_point =
             Vector3d(kRNG.RandDouble(-2.0, 2.0), kRNG.RandDouble(-2.0, 2.0),
                      kRNG.RandDouble(6.0, 10.0));

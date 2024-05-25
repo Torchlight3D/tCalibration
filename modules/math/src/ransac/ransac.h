@@ -1,19 +1,20 @@
 ﻿#pragma once
 
 #include "random_sampler.h"
-#include "sac_estimator.h"
+#include "sampleconsensus.h"
 
 namespace tl {
 
 template <class ModelEstimator>
 class Ransac : public SampleConsensusEstimator<ModelEstimator>
 {
-public:
     using Base = SampleConsensusEstimator<ModelEstimator>;
-    using Datum = typename ModelEstimator::Datum;
+
+public:
+    using Data = typename ModelEstimator::Data;
     using Model = typename ModelEstimator::Model;
 
-    using Base::SampleConsensusEstimator;
+    using Base::Base;
 
     bool Initialize()
     {

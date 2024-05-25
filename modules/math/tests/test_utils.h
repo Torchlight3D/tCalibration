@@ -32,7 +32,7 @@ public:
     LineEstimator() {}
     ~LineEstimator() {}
 
-    double SampleSize() const override { return 2; }
+    int SampleSize() const override { return 2; }
 
     bool EstimateModel(const std::vector<Point> &data,
                        std::vector<Line> *models) const override

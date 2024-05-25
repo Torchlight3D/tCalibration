@@ -7,10 +7,12 @@
 #include <tMath/Eigen/Types>
 #include <tMath/RANSAC/RansacCreator>
 #include <tMath/RANSAC/RansacModelEstimator>
-#include <tMvs/FeatureCorrespondence>
+#include <tMvs/Feature>
 #include <tMvs/PnP/P4PFocalLength>
 
 namespace tl {
+
+using Eigen::Vector2d;
 
 namespace {
 
@@ -21,16 +23,18 @@ namespace {
 // correspondences. The feature correspondences should be normalized such that
 // the principal point is at (0, 0).
 class UncalibratedAbsolutePoseEstimator
-    : public Estimator<FeatureCorrespondence2D3D, Matrix34d>
+    : public Estimator<Feature2D3D, Matrix34d>
 {
+    using Base = Estimator<Feature2D3D, Matrix34d>;
+
 public:
-    using Estimator<FeatureCorrespondence2D3D, Matrix34d>::Estimator;
+    using Base::Base;
 
     // 3 correspondences are needed to determine the absolute pose.
-    double SampleSize() const override { return 4; }
+    int SampleSize() const override { return 4; }
 
     // Estimates candidate absolute poses from correspondences.
-    bool EstimateModel(const std::vector<FeatureCorrespondence2D3D>& corres,
+    bool EstimateModel(const std::vector<Feature2D3D>& corres,
                        std::vector<Matrix34d>* poses) const override
     {
         const Vector2dList point2s{corres[0].feature, corres[1].feature,
@@ -46,21 +50,20 @@ public:
 
     // The error for a correspondences given an absolute pose. This is the
     // squared reprojection error.
-    double Error(const FeatureCorrespondence2D3D& corr,
-                 const Matrix34d& pose) const override
+    double Error(const Feature2D3D& corr, const Matrix34d& pose) const override
     {
-        // The reprojected point is computed as R * (X - c) where R is the
-        // camera rotation, c is the position, and X is the 3D point.
-        const Eigen::Vector2d reprojected_feature =
+        // T = [ R, t ]
+        // [x, 1]' = T * [X, 1]'
+        const Vector2d reprojected =
             (pose * corr.world_point.homogeneous()).eval().hnormalized();
-        return (reprojected_feature - corr.feature).squaredNorm();
+        return (reprojected - corr.feature).squaredNorm();
     }
 };
 
 /// ======= EstimateUncalibratedAbsolutePose starts from here
 bool EstimateUncalibratedAbsolutePose(
     const SacParameters& ransacParams, RansacType ransacType,
-    const std::vector<FeatureCorrespondence2D3D>& normalized_correspondences,
+    const std::vector<Feature2D3D>& normalized_correspondences,
     UncalibratedAbsolutePose* pose, SacSummary* sacSummary)
 {
     UncalibratedAbsolutePoseEstimator estimator;

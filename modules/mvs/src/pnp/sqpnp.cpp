@@ -1,9 +1,13 @@
 ﻿#include "sqpnp.h"
 #include "impl/sqpnp_impl.h"
 
+#include <numbers>
+
 #include <tCore/Math>
 
 namespace tl {
+
+using std::numbers::sqrt3;
 
 namespace {
 
@@ -265,10 +269,10 @@ bool SQPnP(const Vector2dList& image_points, const Vector3dList& world_points,
     SQPSolution solutions_[18];
     int num_solutions_ = 0;
     for (int i = 9 - num_eigen_points; i < 9; i++) {
-        // NOTE: No need to scale by sqrt(3) here, but better be there for other
+        // NOTE: No need to scale by sqrt3 here, but better be there for other
         // computations (i.e., orthogonality test)
         // Eigen::Map<Matrix91>(U.block<9, 1>(0, i).data());
-        const Vector9d e = SQRT3 * U.col(i);
+        const Vector9d e = sqrt3 * U.col(i);
         double orthogonality_sq_error = OrthogonalityError(e);
         // Find nearest rotation vector
         SQPSolution solution[2];

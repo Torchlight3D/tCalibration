@@ -19,7 +19,7 @@
 
 namespace tl {
 
-static constexpr int kBiasSplineOrder{3};
+inline constexpr int kBiasSplineOrder{3};
 
 template <int _N>
 struct AccelerationCostFunctorSplit : public CeresSplineHelper<double, _N>
@@ -279,9 +279,9 @@ struct GSReprojectionCostFunctorSplit : public CeresSplineHelper<double, _N>
             }
             else {
                 const T inv_info_x =
-                    T(1. / ceres::sqrt(feature.covariance_(0, 0)));
+                    T(1. / ceres::sqrt(feature.covariance(0, 0)));
                 const T inv_info_y =
-                    T(1. / ceres::sqrt(feature.covariance_(1, 1)));
+                    T(1. / ceres::sqrt(feature.covariance(1, 1)));
                 sResiduals[2 * i + 0] =
                     inv_info_x * (reprojection[0] - T(feature.x()));
                 sResiduals[2 * i + 1] =
@@ -417,9 +417,9 @@ struct RSReprojectionCostFunctorSplit : public CeresSplineHelper<double, _N>
             }
             else {
                 const T inv_info_x =
-                    T(1. / ceres::sqrt(feature.covariance_(0, 0)));
+                    T(1. / ceres::sqrt(feature.covariance(0, 0)));
                 const T inv_info_y =
-                    T(1. / ceres::sqrt(feature.covariance_(1, 1)));
+                    T(1. / ceres::sqrt(feature.covariance(1, 1)));
                 sResiduals[2 * i + 0] =
                     inv_info_x * (reprojection[0] - T(feature.x()));
                 sResiduals[2 * i + 1] =

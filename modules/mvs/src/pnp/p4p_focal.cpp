@@ -91,17 +91,17 @@ int FourPointPoseAndFocalLength(const Vector2dList& image_points,
 
         // Fix the scale.
         Eigen::Matrix<double, 6, 1> d;
-        d(0) = sqrt(
+        d(0) = std::sqrt(
             glab / (point3_adjust.col(0) - point3_adjust.col(1)).squaredNorm());
-        d(1) = sqrt(
+        d(1) = std::sqrt(
             glac / (point3_adjust.col(0) - point3_adjust.col(2)).squaredNorm());
-        d(2) = sqrt(
+        d(2) = std::sqrt(
             glad / (point3_adjust.col(0) - point3_adjust.col(3)).squaredNorm());
-        d(3) = sqrt(
+        d(3) = std::sqrt(
             glbc / (point3_adjust.col(1) - point3_adjust.col(2)).squaredNorm());
-        d(4) = sqrt(
+        d(4) = std::sqrt(
             glbd / (point3_adjust.col(1) - point3_adjust.col(3)).squaredNorm());
-        d(5) = sqrt(
+        d(5) = std::sqrt(
             glcd / (point3_adjust.col(2) - point3_adjust.col(3)).squaredNorm());
         const double gta = d.mean();
 

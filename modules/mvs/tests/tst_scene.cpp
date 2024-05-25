@@ -204,8 +204,8 @@ TEST(Reconstruction, addFeatureValid)
 
     const auto feature1 = view1->featureOf(trackId);
     EXPECT_NE(feature1, nullptr);
-    EXPECT_EQ(feature1->point_.x(), kFeatures[0].point_.x());
-    EXPECT_EQ(feature1->point_.y(), kFeatures[0].point_.y());
+    EXPECT_EQ(feature1->pos.x(), kFeatures[0].pos.x());
+    EXPECT_EQ(feature1->pos.y(), kFeatures[0].pos.y());
 
     const auto feature2 = view2->featureOf(trackId);
     EXPECT_EQ(feature2, nullptr);

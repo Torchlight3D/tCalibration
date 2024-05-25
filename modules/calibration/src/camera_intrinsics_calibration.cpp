@@ -14,9 +14,9 @@
 #include <tCamera/ExtendedUnifiedCameraModel>
 #include <tCamera/OmnidirectionalCameraModel>
 #include <tCore/TimeUtils>
-#include <tMath/RANSAC/SampleConsensusEstimator>
+#include <tMath/RANSAC/SampleConsensus>
 #include <tMvs/BundleAdjustment>
-#include <tMvs/FeatureCorrespondence>
+#include <tMvs/Feature>
 #include <tMvs/Landmark>
 #include <tMvs/Scene>
 #include <tMvs/View>
@@ -266,7 +266,7 @@ bool CameraIntrinsicsCalibration::Impl::initializeView(
     // Cache
     Vector2dList features;
     features.reserve(cornerCount);
-    std::vector<FeatureCorrespondence2D3D> corrs(cornerCount);
+    std::vector<Feature2D3D> corrs(cornerCount);
     for (int i{0}; i < cornerCount; ++i) {
         const auto feature = cvPoint2ToEigen(corners[i]);
         features.push_back(feature);
@@ -384,7 +384,7 @@ void CameraIntrinsicsCalibration::Impl::initializeViews(
         // Cache
         Vector2dList features;
         features.reserve(cornerCount);
-        std::vector<FeatureCorrespondence2D3D> correspondences(cornerCount);
+        std::vector<Feature2D3D> correspondences(cornerCount);
         for (int i{0}; i < cornerCount; ++i) {
             const auto feature = cvPoint2ToEigen(corners[i]);
             features.push_back(feature);
@@ -487,7 +487,7 @@ CameraIntrinsicsCalibration::Impl::startBA(CameraId camId)
               << " views."
                  " =======";
 
-    BundleAdjustmentOptions ba_options;
+    BundleAdjustment::Options ba_options;
     ba_options.verbose = true;
     ba_options.loss_function_type = LossFunctionType::Cauchy;
     ba_options.robust_loss_width = 1.0;

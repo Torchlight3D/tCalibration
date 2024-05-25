@@ -500,9 +500,8 @@ bool StereoCameraCalibration::calibrate()
             for (const auto& trackId : sharedTrackIds) {
                 const Vector3d objPoint =
                     d->m_scene->track(trackId)->position().head<3>();
-                const auto& leftImgPoint = leftView->featureOf(trackId)->point_;
-                const auto& rightImgPoint =
-                    rightView->featureOf(trackId)->point_;
+                const auto& leftImgPoint = leftView->featureOf(trackId)->pos;
+                const auto& rightImgPoint = rightView->featureOf(trackId)->pos;
 
                 auto* costFunc = createStereoReprojectionError(
                     objPoint, leftImgPoint, rightImgPoint,

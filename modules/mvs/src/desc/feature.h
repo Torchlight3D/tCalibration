@@ -6,17 +6,17 @@ namespace tl {
 
 struct Feature
 {
-    // 2D point
-    Eigen::Vector2d point_ = Eigen::Vector2d::Zero();
+    // 2D pos
+    Eigen::Vector2d pos = Eigen::Vector2d::Zero();
 
     // 2D standard deviation
-    Eigen::Matrix2d covariance_ = Eigen::Matrix2d::Identity();
+    Eigen::Matrix2d covariance = Eigen::Matrix2d::Identity();
 
     // Depth prior, some features might have a depth info from an RGB-D image
-    double depth_prior_ = 0.0;
+    double depthPrior = 0.;
 
     // Depth prior variance
-    double depth_prior_variance_ = 0.0;
+    double depthPriorVar = 0.;
 
     Feature() = default;
     Feature(double x, double y) : Feature(Eigen::Vector2d{x, y}) {}
@@ -25,40 +25,45 @@ struct Feature
     {
     }
     // No explicit on purpose
-    Feature(const Eigen::Vector2d &point) : point_(point) {}
+    Feature(const Eigen::Vector2d &point) : Feature(point, 0.) {}
     Feature(const Eigen::Vector2d &point, double depth)
-        : point_(point), depth_prior_(depth)
+        : pos(point), depthPrior(depth)
     {
     }
     Feature(const Eigen::Vector2d &point, const Eigen::Matrix2d &covariance)
-
-        : point_(point), covariance_(covariance)
-    {
-    }
-    Feature(const Eigen::Vector2d &point, const Eigen::Matrix2d &covariance,
-            double depthPrior, double depthPriorVariance)
-        : point_(point),
-          covariance_(covariance),
-          depth_prior_(depthPrior),
-          depth_prior_variance_(depthPriorVariance)
+        : pos(point), covariance(covariance)
     {
     }
 
-    double x() const { return point_[0]; }
-    double y() const { return point_[1]; }
+    auto x() const { return pos.x(); }
+    auto y() const { return pos.y(); }
 
-    double depth_prior() const { return depth_prior_; }
-    double depth_prior_variance() const { return depth_prior_variance_; }
-
-    bool operator==(const Feature &o) const
-    {
-        return point_.x() == o.point_.x() && point_.y() == o.point_.y();
-    }
+    bool operator==(const Feature &o) const { return pos.isApprox(o.pos); }
     bool operator<(const Feature &o) const
     {
-        return point_.x() < o.point_.x() ||
-               (point_.x() == o.point_.x() && point_.y() < o.point_.y());
+        return x() < o.x() || (x() == o.x() && y() < o.y());
     }
+};
+
+struct Feature2D2D
+{
+    Feature feature1;
+    Feature feature2;
+
+    Feature2D2D() = default;
+
+    bool operator==(const Feature2D2D &o) const
+    {
+        return feature1 == o.feature1 && feature2 == o.feature2;
+    }
+};
+
+struct Feature2D3D
+{
+    Eigen::Vector2d feature;
+    Eigen::Vector3d world_point;
+
+    Feature2D3D() = default;
 };
 
 } // namespace tl
@@ -70,8 +75,8 @@ struct std::hash<tl::Feature>
     {
         // Compute individual hash values for two data members and combine them
         // using XOR and bit shifting
-        return ((hash<double>()(k.point_.x()) ^
-                 (hash<double>()(k.point_.y()) << 1)) >>
-                1);
+        return (
+            (hash<double>()(k.pos.x()) ^ (hash<double>()(k.pos.y()) << 1)) >>
+            1);
     }
 };

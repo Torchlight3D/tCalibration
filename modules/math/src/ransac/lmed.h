@@ -1,8 +1,8 @@
 ﻿#pragma once
 
-#include "sac_estimator.h"
-#include "random_sampler.h"
 #include "lmed_quality_measurement.h"
+#include "random_sampler.h"
+#include "sampleconsensus.h"
 
 namespace tl {
 
@@ -12,10 +12,10 @@ class LMed : public SampleConsensusEstimator<ModelEstimator>
     using Base = SampleConsensusEstimator<ModelEstimator>;
 
 public:
-    using Datum = typename ModelEstimator::Datum;
+    using Data = typename ModelEstimator::Data;
     using Model = typename ModelEstimator::Model;
 
-    using Base::SampleConsensusEstimator;
+    using Base::Base;
 
     bool Initialize() override
     {

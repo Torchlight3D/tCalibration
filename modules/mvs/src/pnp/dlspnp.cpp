@@ -129,8 +129,8 @@ bool DlsPnp(const Vector2dList& feature_position,
         // If the rotation solutions are real, treat this as a valid candidate
         // rotation.
         constexpr double kEpsilon{1e-6};
-        if (fabs(s1.imag()) < kEpsilon && fabs(s2.imag()) < kEpsilon &&
-            fabs(s3.imag()) < kEpsilon) {
+        if (std::abs(s1.imag()) < kEpsilon && std::abs(s2.imag()) < kEpsilon &&
+            std::abs(s3.imag()) < kEpsilon) {
             // Compute the rotation (which is the transpose rotation of our
             // solution) and translation.
             Quaterniond soln_rotation(1.0, s1.real(), s2.real(), s3.real());

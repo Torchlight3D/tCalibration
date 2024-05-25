@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 
-#include "feature_correspondence.h"
+#include "feature.h"
 #include "stereo_view_info.h"
 
 namespace tl {
@@ -20,7 +20,7 @@ public:
 
     // Feature locations in pixel coordinates. If the match is a verified match
     // then this only contains inlier correspondences.
-    std::vector<FeatureCorrespondence> correspondences;
+    std::vector<Feature2D2D> correspondences;
 };
 
 } // namespace tl

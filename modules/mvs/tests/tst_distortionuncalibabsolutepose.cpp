@@ -5,9 +5,9 @@
 #include <tCore/Math>
 #include <tCore/RandomGenerator>
 #include <tMath/Eigen/Utils>
-#include <tMath/RANSAC/SampleConsensusEstimator>
-#include <tMvs/EstimateRadialDistortionUncalibratedAbsolutePose>
-#include <tMvs/FeatureCorrespondence>
+#include <tMath/RANSAC/SampleConsensus>
+#include <tMvs/PnP/EstimateRadialDistortionUncalibratedAbsolutePose>
+#include <tMvs/Feature>
 
 #include "test_utils.h"
 
@@ -59,9 +59,9 @@ inline void ExecuteRandomTest(const SacParameters& options,
 {
     // Create feature correspondences (inliers and outliers) and add noise if
     // appropriate.
-    std::vector<FeatureCorrespondence2D3D> corres;
+    std::vector<Feature2D3D> corres;
     for (int i = 0; i < kNumPoints; i++) {
-        FeatureCorrespondence2D3D corr;
+        Feature2D3D corr;
         corr.world_point =
             Vector3d(kRNG.RandDouble(-5., 5.), kRNG.RandDouble(-5., 5.),
                      kRNG.RandDouble(3., 10.));

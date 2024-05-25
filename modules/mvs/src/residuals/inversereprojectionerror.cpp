@@ -55,13 +55,13 @@ public:
                                                    point.data(), reprojection);
 
         const T sqrt_information_x =
-            T(1. / ceres::sqrt(feature_.covariance_(0, 0)));
+            T(1. / ceres::sqrt(feature_.covariance(0, 0)));
         const T sqrt_information_y =
-            T(1. / ceres::sqrt(feature_.covariance_(1, 1)));
+            T(1. / ceres::sqrt(feature_.covariance(1, 1)));
         reprojection_error[0] =
-            sqrt_information_x * (reprojection[0] - feature_.point_.x());
+            sqrt_information_x * (reprojection[0] - feature_.pos.x());
         reprojection_error[1] =
-            sqrt_information_y * (reprojection[1] - feature_.point_.y());
+            sqrt_information_y * (reprojection[1] - feature_.pos.y());
 
         return res;
     }

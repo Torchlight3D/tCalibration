@@ -8,7 +8,7 @@
 
 namespace tl {
 
-struct FeatureCorrespondence2D3D;
+struct Feature2D3D;
 struct SacParameters;
 struct SacSummary;
 
@@ -26,7 +26,7 @@ struct UncalibratedAbsolutePose
 // data.
 bool EstimateUncalibratedAbsolutePose(
     const SacParameters& ransac_params, RansacType ransac_type,
-    const std::vector<FeatureCorrespondence2D3D>& normalized_correspondences,
+    const std::vector<Feature2D3D>& normalized_correspondences,
     UncalibratedAbsolutePose* absolute_pose, SacSummary* ransac_summary);
 
 } // namespace tl

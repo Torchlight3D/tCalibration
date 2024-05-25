@@ -1,17 +1,20 @@
-﻿#include "bundle_adjustment_two_views_solver.h"
+﻿#include "bundleadjustment.h"
 
 #include <ceres/ceres.h>
 
 #include <tCamera/Camera>
 #include <tCamera/ReprojectionError>
-#include <tMvs/FeatureCorrespondence>
+#include <tMath/Solvers/LossFunction>
+#include <tMvs/Feature>
+#include <tMVS/Scene>
 #include <tMvs/StereoViewInfo>
 
 namespace tl {
 
 namespace {
 
-void baOptionsToCeresOptions(const BundleAdjustmentOptions& ba_options,
+// TODO: Duplicate in BundleAdjustment
+void baOptionsToCeresOptions(const BundleAdjustment::Options& ba_options,
                              ceres::Solver::Options& ceres_options)
 {
     ceres_options.linear_solver_type = ceres::DENSE_SCHUR;
@@ -225,21 +228,86 @@ struct UnitNormThreeVectorManifold
     }
 };
 
-// Triangulates all 3d points and performs standard bundle adjustment on the
-// points and cameras.
-BundleAdjustmentSummary BundleAdjustTwoViews(
+// Calculate symmetric geometric cost terms:
+//
+// forward_error = D(H * x1, x2)
+// backward_error = D(H^-1 * x2, x1)
+//
+// Templated to be used with autodifferentiation.
+template <typename T>
+void SymmetricGeometricDistanceTerms(const Eigen::Matrix<T, 3, 3>& H,
+                                     const Eigen::Matrix<T, 2, 1>& x1,
+                                     const Eigen::Matrix<T, 2, 1>& x2,
+                                     T forward_error[2], T backward_error[2])
+{
+    using Vec3 = Eigen::Matrix<T, 3, 1>;
+    Vec3 x(x1(0), x1(1), T(1.0));
+    Vec3 y(x2(0), x2(1), T(1.0));
+
+    Vec3 H_x = H * x;
+    Vec3 Hinv_y = H.inverse() * y;
+
+    H_x /= H_x(2);
+    Hinv_y /= Hinv_y(2);
+
+    forward_error[0] = H_x(0) - y(0);
+    forward_error[1] = H_x(1) - y(1);
+    backward_error[0] = Hinv_y(0) - x(0);
+    backward_error[1] = Hinv_y(1) - x(1);
+}
+
+// Cost functor which computes symmetric geometric distance
+// used for homography matrix refinement.
+struct HomographySymmetricGeometricCostFunctor
+{
+    const Eigen::Vector2d x_;
+    const Eigen::Vector2d y_;
+
+    HomographySymmetricGeometricCostFunctor(const Eigen::Vector2d& x,
+                                            const Eigen::Vector2d& y)
+        : x_(std::move(x)), y_(std::move(y))
+    {
+    }
+
+    template <typename T>
+    bool operator()(const T* homography_parameters, T* residuals) const
+    {
+        using Mat3 = Eigen::Matrix<T, 3, 3>;
+        using Vec2 = Eigen::Matrix<T, 2, 1>;
+
+        Mat3 H(homography_parameters);
+        Vec2 x(T(x_(0)), T(x_(1)));
+        Vec2 y(T(y_(0)), T(y_(1)));
+
+        SymmetricGeometricDistanceTerms<T>(H, x, y, &residuals[0],
+                                           &residuals[2]);
+        return true;
+    }
+
+    static ceres::CostFunction* create(const Eigen::Vector2d& x,
+                                       const Eigen::Vector2d& y)
+    {
+        return new ceres::AutoDiffCostFunction<
+            HomographySymmetricGeometricCostFunctor,
+            Eigen::Vector2d::SizeAtCompileTime +
+                Eigen::Vector2d::SizeAtCompileTime,
+            Eigen::Matrix3d::SizeAtCompileTime>(
+            new HomographySymmetricGeometricCostFunctor(x, y));
+    }
+};
+
+BundleAdjustment::Summary BundleAdjustTwoViews(
     const TwoViewBundleAdjustmentOptions& options,
-    const std::vector<FeatureCorrespondence>& corrs, Camera* camera1,
-    Camera* camera2, std::vector<Eigen::Vector4d>* point3ds)
+    const std::vector<Feature2D2D>& corrs, Camera* camera1, Camera* camera2,
+    std::vector<Eigen::Vector4d>* point3ds)
 {
     CHECK_NOTNULL(camera1);
     CHECK_NOTNULL(camera2);
     CHECK_NOTNULL(point3ds);
     CHECK_EQ(point3ds->size(), corrs.size());
 
-    // Set problem options.
     ceres::Problem::Options problem_options;
-    ceres::Problem problem(problem_options);
+    ceres::Problem problem{problem_options};
 
     // Set solver options.
     ceres::Solver::Options solver_options;
@@ -270,12 +338,12 @@ BundleAdjustmentSummary BundleAdjustTwoViews(
     for (size_t i = 0; i < point3ds->size(); i++) {
         problem.AddResidualBlock(
             createReprojectionErrorCostFunction(
-                camera1->cameraIntrinsicsModel(), corrs[i].feature1.point_),
+                camera1->cameraIntrinsicsModel(), corrs[i].feature1.pos),
             nullptr, camera1->rExtrinsics(), camera1->rIntrinsics(),
             point3ds->at(i).data());
         problem.AddResidualBlock(
             createReprojectionErrorCostFunction(
-                camera2->cameraIntrinsicsModel(), corrs[i].feature2.point_),
+                camera2->cameraIntrinsicsModel(), corrs[i].feature2.pos),
             nullptr, camera2->rExtrinsics(), camera2->rIntrinsics(),
             point3ds->at(i).data());
 
@@ -285,38 +353,29 @@ BundleAdjustmentSummary BundleAdjustTwoViews(
 
     ceres::Solver::Summary solver_summary;
     ceres::Solve(solver_options, &problem, &solver_summary);
+
     LOG_IF(INFO, options.ba_options.verbose) << solver_summary.FullReport();
 
-    BundleAdjustmentSummary summary;
+    BundleAdjustment::Summary summary;
     summary.setup_time_in_seconds = 0.;
     summary.solve_time_in_seconds = solver_summary.total_time_in_seconds;
     summary.initial_cost = solver_summary.initial_cost;
     summary.final_cost = solver_summary.final_cost;
-
-    // This only indicates whether the optimization was successfully run and
-    // makes no guarantees on the quality or convergence.
     summary.success = solver_summary.termination_type != ceres::FAILURE;
 
     return summary;
 }
 
-BundleAdjustmentSummary BundleAdjustTwoViewsAngular(
-    const BundleAdjustmentOptions& options,
-    const std::vector<FeatureCorrespondence>& corrs, TwoViewInfo* info)
+BundleAdjustment::Summary BundleAdjustTwoViewsAngular(
+    const BundleAdjustment::Options& options,
+    const std::vector<Feature2D2D>& corrs, TwoViewInfo* info)
 {
     CHECK_NOTNULL(info);
 
-    BundleAdjustmentSummary summary;
+    BundleAdjustment::Summary summary;
 
-    // Set problem options.
     ceres::Problem::Options problem_options;
     ceres::Problem problem{problem_options};
-
-    // Set solver options.
-    ceres::Solver::Options solver_options;
-    baOptionsToCeresOptions(options, solver_options);
-    // Allow Ceres to determine the ordering.
-    solver_options.linear_solver_ordering.reset();
 
     // Add the relative rotation as a parameter block.
     constexpr int kParameterBlockSize{3};
@@ -330,46 +389,38 @@ BundleAdjustmentSummary BundleAdjustTwoViewsAngular(
     // Add all the epipolar constraints from feature matches.
     for (const auto& corr : corrs) {
         problem.AddResidualBlock(
-            AngularEpipolarError::create(corr.feature1.point_,
-                                         corr.feature2.point_),
+            AngularEpipolarError::create(corr.feature1.pos, corr.feature2.pos),
             nullptr, info->rotation.data(), info->position.data());
     }
-    // End setup time.
+
     summary.setup_time_in_seconds = 0.;
 
-    // Solve the problem.
-    ceres::Solver::Summary solver_summary;
-    ceres::Solve(solver_options, &problem, &solver_summary);
-    LOG_IF(INFO, options.verbose) << solver_summary.FullReport();
-
-    // Set the BundleAdjustmentSummary.
-    summary.solve_time_in_seconds = solver_summary.total_time_in_seconds;
-    summary.initial_cost = solver_summary.initial_cost;
-    summary.final_cost = solver_summary.final_cost;
-
-    // This only indicates whether the optimization was successfully run and
-    // makes no guarantees on the quality or convergence.
-    summary.success = solver_summary.termination_type != ceres::FAILURE;
-    return summary;
-}
-
-BundleAdjustmentSummary OptimizeFundamentalMatrix(
-    const BundleAdjustmentOptions& options,
-    const std::vector<FeatureCorrespondence>& corrs, Eigen::Matrix3d* F)
-{
-    CHECK_NOTNULL(F);
-
-    // Set problem options.
-    ceres::Problem::Options problem_options;
-    ceres::Problem problem{problem_options};
-
-    // Set solver options.
     ceres::Solver::Options solver_options;
     baOptionsToCeresOptions(options, solver_options);
     // Allow Ceres to determine the ordering.
     solver_options.linear_solver_ordering.reset();
 
-    // Add the fundamental matrix as a parameter block.
+    ceres::Solver::Summary solver_summary;
+    ceres::Solve(solver_options, &problem, &solver_summary);
+
+    LOG_IF(INFO, options.verbose) << solver_summary.FullReport();
+
+    summary.solve_time_in_seconds = solver_summary.total_time_in_seconds;
+    summary.initial_cost = solver_summary.initial_cost;
+    summary.final_cost = solver_summary.final_cost;
+    summary.success = solver_summary.termination_type != ceres::FAILURE;
+
+    return summary;
+}
+
+BundleAdjustment::Summary OptimizeFundamentalMatrix(
+    const BundleAdjustment::Options& options,
+    const std::vector<Feature2D2D>& corrs, Eigen::Matrix3d* F)
+{
+    CHECK_NOTNULL(F);
+
+    ceres::Problem::Options problem_options;
+    ceres::Problem problem{problem_options};
 
     auto* fundamental_parametrization =
         new ceres::AutoDiffLocalParameterization<
@@ -383,28 +434,74 @@ BundleAdjustmentSummary OptimizeFundamentalMatrix(
     // Add all the epipolar constraints from feature matches.
     for (const auto& corr : corrs) {
         problem.AddResidualBlock(
-            SampsonError::create(corr.feature1.point_, corr.feature2.point_),
-            nullptr, F->data());
+            SampsonError::create(corr.feature1.pos, corr.feature2.pos), nullptr,
+            F->data());
     }
-    // End setup time.
 
-    BundleAdjustmentSummary ba_summary;
+    ceres::Solver::Options solver_options;
+    baOptionsToCeresOptions(options, solver_options);
+    // Allow Ceres to determine the ordering.
+    solver_options.linear_solver_ordering.reset();
+
+    BundleAdjustment::Summary ba_summary;
     ba_summary.setup_time_in_seconds = 0.;
 
-    // Solve the problem.
     ceres::Solver::Summary solver_summary;
     ceres::Solve(solver_options, &problem, &solver_summary);
+
     LOG_IF(INFO, options.verbose) << solver_summary.FullReport();
 
-    // Set the BundleAdjustmentSummary.
     ba_summary.solve_time_in_seconds = solver_summary.total_time_in_seconds;
     ba_summary.initial_cost = solver_summary.initial_cost;
     ba_summary.final_cost = solver_summary.final_cost;
-
-    // This only indicates whether the optimization was successfully run and
-    // makes no guarantees on the quality or convergence.
     ba_summary.success = solver_summary.termination_type != ceres::FAILURE;
+
     return ba_summary;
+}
+
+BundleAdjustment::Summary OptimizeHomography(
+    const BundleAdjustment::Options& options,
+    const std::vector<Feature2D2D>& correspondences,
+    Eigen::Matrix3d* homography)
+{
+    CHECK_NOTNULL(homography);
+
+    ceres::Problem::Options problem_options;
+    problem_options.loss_function_ownership = ceres::DO_NOT_TAKE_OWNERSHIP;
+
+    ceres::Problem problem{problem_options};
+
+    auto loss = createLossFunction(options.loss_function_type,
+                                   options.robust_loss_width);
+    for (const auto& match : correspondences) {
+        auto* costFunc = new HomographySymmetricGeometricCostFunctor(
+            match.feature1.pos, match.feature2.pos);
+
+        problem.AddResidualBlock(new ceres::AutoDiffCostFunction<
+                                     HomographySymmetricGeometricCostFunctor,
+                                     4, // num_residuals
+                                     9>(costFunc),
+                                 loss.get(), homography->data());
+    }
+
+    ceres::Solver::Options solver_options;
+    baOptionsToCeresOptions(options, solver_options);
+    // Allow Ceres to determine the ordering.
+    solver_options.linear_solver_ordering.reset();
+
+    ceres::Solver::Summary solver_summary;
+    ceres::Solve(solver_options, &problem, &solver_summary);
+
+    LOG_IF(INFO, options.verbose) << solver_summary.FullReport();
+
+    (*homography) /= (*homography)(2, 2);
+    BundleAdjustment::Summary summary;
+    summary.solve_time_in_seconds = solver_summary.total_time_in_seconds;
+    summary.initial_cost = solver_summary.initial_cost;
+    summary.final_cost = solver_summary.final_cost;
+    summary.success = solver_summary.termination_type != ceres::FAILURE;
+
+    return summary;
 }
 
 } // namespace tl

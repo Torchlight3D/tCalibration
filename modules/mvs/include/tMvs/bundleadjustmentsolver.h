@@ -1,1 +1,0 @@
-#include "../../src/ba/bundle_adjustment_solver.h"

@@ -5,7 +5,7 @@
 #include <tMath/RANSAC/RansacCreator>
 #include <tMath/RANSAC/RansacModelEstimator>
 #include <tMvs/PnP/P4PFocalLengthDistortion>
-#include <tMvs/FeatureCorrespondence>
+#include <tMvs/Feature>
 
 namespace tl {
 
@@ -42,19 +42,19 @@ void DistortPoint(const Vector2d& point2d, double distortion,
 // correspondences. The feature correspondences should be normalized such that
 // the principal point is at (0, 0).
 class RadialDistUncalibratedAbsolutePoseEstimator
-    : public Estimator<FeatureCorrespondence2D3D,
-                       RadialDistUncalibratedAbsolutePose>
+    : public Estimator<Feature2D3D, RadialDistUncalibratedAbsolutePose>
 {
+    using Base = Estimator<Feature2D3D, RadialDistUncalibratedAbsolutePose>;
+
 public:
-    using Estimator<FeatureCorrespondence2D3D,
-                    RadialDistUncalibratedAbsolutePose>::Estimator;
+    using Base::Base;
 
     // 4 correspondences are needed to determine the absolute pose.
-    double SampleSize() const override { return 4; }
+    int SampleSize() const override { return 4; }
 
     // Estimates candidate absolute poses from correspondences.
     bool EstimateModel(
-        const std::vector<FeatureCorrespondence2D3D>& corres,
+        const std::vector<Feature2D3D>& corres,
         std::vector<RadialDistUncalibratedAbsolutePose>* poses) const override
     {
         const Vector2dList point2s{corres[0].feature, corres[1].feature,
@@ -89,7 +89,7 @@ public:
 
     // The error for a correspondences given an absolute pose. This is the
     // squared reprojection error.
-    double Error(const FeatureCorrespondence2D3D& corr,
+    double Error(const Feature2D3D& corr,
                  const RadialDistUncalibratedAbsolutePose& pose) const override
     {
         if (pose.translation[2] < 0.) {
@@ -121,7 +121,7 @@ private:
 
 bool EstimateRadialDistUncalibratedAbsolutePose(
     const SacParameters& sacParams, RansacType sacType,
-    const std::vector<FeatureCorrespondence2D3D>& corres,
+    const std::vector<Feature2D3D>& corres,
     const RadialDistUncalibratedAbsolutePoseMetaData& options,
     RadialDistUncalibratedAbsolutePose* pose, SacSummary* sacSummary)
 {

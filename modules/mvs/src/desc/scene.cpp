@@ -580,7 +580,7 @@ double Scene::calcViewReprojectionError(ViewId viewId, bool update,
         const auto* track = this->track(trackId);
         Eigen::Vector2d pt;
         view->camera().projectPoint(track->position(), pt, rvec, tvec);
-        const auto offset = (*feature).point_ - pt;
+        const auto offset = (*feature).pos - pt;
         const auto projectError = offset.norm();
         viewRPE += projectError;
 

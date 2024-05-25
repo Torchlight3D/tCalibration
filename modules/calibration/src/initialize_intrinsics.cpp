@@ -12,11 +12,11 @@
 #include <tCamera/DoubleSphereCameraModel>
 #include <tMath/Eigen/Utils>
 #include <tMath/RANSAC/RansacCreator>
-#include <tMath/RANSAC/SampleConsensusEstimator>
-#include <tMvs/EstimateCalibratedAbsolutePose>
-#include <tMvs/EstimateUncalibratedAbsolutePose>
-#include <tMvs/EstimateRadialDistortionUncalibratedAbsolutePose>
-#include <tMvs/FeatureCorrespondence>
+#include <tMath/RANSAC/SampleConsensus>
+#include <tMvs/PnP/EstimateCalibratedAbsolutePose>
+#include <tMvs/PnP/EstimateUncalibratedAbsolutePose>
+#include <tMvs/PnP/EstimateRadialDistortionUncalibratedAbsolutePose>
+#include <tMvs/Feature>
 #include <tVision/EigenCVUtils>
 
 namespace tl {
@@ -30,10 +30,10 @@ namespace {
 const size_t kMinCorrespondence{20};
 }
 
-bool initializePinholeCamera(
-    const std::vector<FeatureCorrespondence2D3D>& corrs,
-    const SacParameters& sacParams, SacSummary& sacSummary, Matrix3d& rotation,
-    Vector3d& position, double& focalLength)
+bool initializePinholeCamera(const std::vector<Feature2D3D>& corrs,
+                             const SacParameters& sacParams,
+                             SacSummary& sacSummary, Matrix3d& rotation,
+                             Vector3d& position, double& focalLength)
 {
     if (corrs.size() <= kMinCorrespondence) {
         LOG(ERROR) << "Not enough feature matching. "
@@ -92,7 +92,7 @@ bool initializePinholeCamera(
 }
 
 bool initializeRadialUndistortionCamera(
-    const std::vector<FeatureCorrespondence2D3D>& correspondences,
+    const std::vector<Feature2D3D>& correspondences,
     const SacParameters& sacParams, SacSummary& sacSummary, int imageWidth,
     Matrix3d& orienttion, Vector3d& position, double& focalLength,
     double& radialDistortion)
@@ -169,12 +169,13 @@ bool initializeRadialUndistortionCamera(
     return success;
 }
 
-bool initializeDoubleSphereModel(
-    const std::vector<FeatureCorrespondence2D3D>& corres,
-    const std::vector<int> board_ids, const cv::Size& board_size,
-    const SacParameters& ransac_params, const cv::Size& img_size,
-    SacSummary& ransac_summary, Matrix3d& rotation, Vector3d& position,
-    double& focal_length)
+bool initializeDoubleSphereModel(const std::vector<Feature2D3D>& corres,
+                                 const std::vector<int> board_ids,
+                                 const cv::Size& board_size,
+                                 const SacParameters& ransac_params,
+                                 const cv::Size& img_size,
+                                 SacSummary& ransac_summary, Matrix3d& rotation,
+                                 Vector3d& position, double& focal_length)
 {
     // Initialize the image center at the center of the image.
     eigen_map<int, Vector2d> id_to_corner;
@@ -240,7 +241,7 @@ bool initializeDoubleSphereModel(
             intrinsics->setParameter(DoubleSphereCameraModel::Xi, 0.5 * _xi);
             intrinsics->setParameter(DoubleSphereCameraModel::Alpha, 0.0);
 
-            std::vector<FeatureCorrespondence2D3D> new_corrs = corres;
+            auto new_corrs = corres;
             for (auto& corr : new_corrs) {
                 corr.feature = cam.pixelToNormalizedCoordinates(corr.feature)
                                    .hnormalized();

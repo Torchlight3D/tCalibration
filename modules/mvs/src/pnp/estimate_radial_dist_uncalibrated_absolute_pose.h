@@ -25,9 +25,9 @@ struct RadialDistUncalibratedAbsolutePoseMetaData
     double max_radial_distortion = -1e-5;
 };
 
-struct FeatureCorrespondence2D3D;
 struct SacParameters;
 struct SacSummary;
+struct Feature2D3D;
 
 // Estimates the uncalibrated absolute pose using the ransac variant of choice
 // (e.g. Ransac, Prosac, etc.). Apart from the focal length, a radial distortion
@@ -37,7 +37,7 @@ struct SacSummary;
 // the principal point is at (0, 0).
 bool EstimateRadialDistUncalibratedAbsolutePose(
     const SacParameters& params, RansacType type,
-    const std::vector<FeatureCorrespondence2D3D>& normalized_correspondences,
+    const std::vector<Feature2D3D>& normalized_correspondences,
     const RadialDistUncalibratedAbsolutePoseMetaData& meta_data,
     RadialDistUncalibratedAbsolutePose* absolute_pose,
     SacSummary* ransac_summary);

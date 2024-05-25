@@ -1,4 +1,4 @@
-﻿#include "bundle_adjustment_solver.h"
+﻿#include "bundleadjustment.h"
 
 #include <ceres/rotation.h>
 
@@ -9,14 +9,19 @@
 #include <tCamera/ReprojectionError>
 #include <tCore/ContainerUtils>
 #include <tMath/Solvers/LossFunction>
+#include <tMVS/Scene>
 
 #include "../residuals/inversereprojectionerror.h"
 
 namespace tl {
 
+using Eigen::Matrix3d;
+using Eigen::MatrixXd;
+
 namespace {
 
-void baOptionsToCeresOptions(const BundleAdjustmentOptions& ba_options,
+// TODO: Duplicate in BundleAdjustmentTwoViews
+void baOptionsToCeresOptions(const BundleAdjustment::Options& ba_options,
                              ceres::Solver::Options* ceres_options)
 {
     ceres_options->linear_solver_type = ba_options.linear_solver_type;
@@ -78,11 +83,10 @@ struct DepthPriorError
         ceres::AngleAxisRotatePoint(extrinsics + Camera::Orientation,
                                     adjusted_point.data(), rotated_point);
 
-        const T sqrt_information =
-            T(1. / ceres::sqrt(feature_.depth_prior_variance()));
+        const T sqrt_information = T(1. / sqrt(feature_.depthPriorVar));
 
         (*residual) =
-            sqrt_information * (rotated_point[2] - T(feature_.depth_prior()));
+            sqrt_information * (rotated_point[2] - T(feature_.depthPrior));
 
         return true;
     }
@@ -132,34 +136,86 @@ struct PositionError
     }
 };
 
-void BundleAdjuster::setCameraExtrinsicsParameterization()
+///------- BundleAdjustment::Impl starts from here
+class BundleAdjustment::Impl
 {
-    if (options_.constant_camera_orientation &&
-        options_.constant_camera_position) {
-        for (const auto& viewId : m_optimizedViewIds) {
-            setCameraExtrinsicsConstant(viewId);
-        }
-    }
-    else if (options_.constant_camera_orientation) {
-        for (const auto& viewId : m_optimizedViewIds) {
-            setCameraOrientationConstant(viewId);
-        }
-    }
-    else if (options_.constant_camera_position) {
-        for (const auto& viewId : m_optimizedViewIds) {
-            setCameraPositionConstant(viewId);
-        }
-    }
+public:
+    Impl();
 
-    // For orthographic cameras we set tz = 0
-    if (options_.orthographic_camera) {
-        for (const auto& viewId : m_optimizedViewIds) {
-            setTzConstant(viewId);
-        }
-    }
+    void init(const Options& options, Scene* scene);
+
+    void setCameraIntrinsicsParameterization();
+
+    void setCameraExtrinsicsConstant(ViewId id);
+    void setCameraPositionConstant(ViewId id);
+    void setCameraOrientationConstant(ViewId id);
+    void setTzConstant(ViewId id);
+    void setCameraExtrinsicsParameterization();
+
+    void setTrackConstant(TrackId id);
+    void setTrackVariable(TrackId id);
+    void setHomogeneousPointParametrization(TrackId id);
+
+    void setCameraSchurGroups(ViewId id);
+    void setTrackSchurGroup(TrackId id);
+
+    void addReprojectionErrorResidual(const Feature& feature, Camera* camera,
+                                      Track* track);
+    void addInvReprojectionErrorResidual(const Feature& feature,
+                                         const Eigen::Vector3d& ref_bearing,
+                                         Camera* camera_ref,
+                                         Camera* camera_other, Track* track);
+    void addPositionPriorErrorResidual(View* view, Camera* camera);
+    void addDepthPriorErrorResidual(const Feature& feature, Camera* camera,
+                                    Track* track);
+
+    CameraIntrinsics::Ptr intrinsicsOfCamera(CameraId id);
+
+public:
+    Options options_;
+    Scene* scene_;
+
+    std::unique_ptr<ceres::Problem> problem_;
+    ceres::Solver::Options solver_options_;
+
+    std::unique_ptr<ceres::LossFunction> loss_function_;
+    std::unique_ptr<ceres::LossFunction> depth_prior_loss_function_;
+
+    ceres::ParameterBlockOrdering* parameter_ordering_;
+
+    std::unordered_set<ViewId> m_optimizedViewIds;
+    std::unordered_set<TrackId> m_optimizedTrackIds;
+    std::unordered_set<CameraId> m_optimizedCameraIds;
+
+    // Intrinsics groups that have at least 1 camera marked as "const"
+    // during optimization. Only the intrinsics that have no optimized
+    // cameras are kept as constant during optimization.
+    std::unordered_set<CameraId> m_potentialConstantCameraIds;
+};
+
+BundleAdjustment::Impl::Impl() {}
+
+void BundleAdjustment::Impl::init(const Options& options, Scene* scene)
+{
+    options_ = options;
+
+    scene_ = scene;
+
+    loss_function_ = createLossFunction(options.loss_function_type,
+                                        options.robust_loss_width);
+    depth_prior_loss_function_ = createLossFunction(
+        options.loss_function_type, options.robust_loss_width_depth_prior);
+
+    ceres::Problem::Options problem_options;
+    problem_options.loss_function_ownership = ceres::DO_NOT_TAKE_OWNERSHIP;
+    problem_.reset(new ceres::Problem(problem_options));
+
+    // Set solver options.
+    baOptionsToCeresOptions(options, &solver_options_);
+    parameter_ordering_ = solver_options_.linear_solver_ordering.get();
 }
 
-void BundleAdjuster::setCameraIntrinsicsParameterization()
+void BundleAdjustment::Impl::setCameraIntrinsicsParameterization()
 {
     for (const auto& camId : m_optimizedCameraIds) {
         auto intrinsics = intrinsicsOfCamera(camId);
@@ -204,7 +260,7 @@ void BundleAdjuster::setCameraIntrinsicsParameterization()
         if (const_indices.size() == intrinsics->numParameters()) {
             problem_->SetParameterBlockConstant(parameters);
         }
-        else if (const_indices.size() > 0) {
+        else if (!const_indices.empty()) {
             auto* manifold = new ceres::SubsetManifold(
                 intrinsics->numParameters(), const_indices);
             problem_->SetManifold(parameters, manifold);
@@ -218,62 +274,75 @@ void BundleAdjuster::setCameraIntrinsicsParameterization()
             continue;
         }
 
-        auto camera_intrinsics = intrinsicsOfCamera(camId);
-        problem_->SetParameterBlockConstant(camera_intrinsics->rParameters());
+        const auto camera_intrinsics = intrinsicsOfCamera(camId);
+        problem_->SetParameterBlockConstant(camera_intrinsics->parameters());
     }
 }
 
-CameraIntrinsics::Ptr BundleAdjuster::intrinsicsOfCamera(CameraId camId)
+void BundleAdjustment::Impl::setCameraExtrinsicsConstant(ViewId id)
 {
-    const auto sharedCameraViewIds = scene_->sharedCameraViewIds(camId);
-    CHECK(!sharedCameraViewIds.empty());
-
-    // Use first viewId as representative
-    const auto viewId = *sharedCameraViewIds.begin();
-    return scene_->rView(viewId)->rCamera().cameraIntrinsics();
+    const auto& camera = scene_->view(id)->camera();
+    problem_->SetParameterBlockConstant(camera.extrinsics());
 }
 
-void BundleAdjuster::setCameraExtrinsicsConstant(ViewId viewId)
-{
-    auto* view = scene_->rView(viewId);
-    auto& camera = view->rCamera();
-    problem_->SetParameterBlockConstant(camera.rExtrinsics());
-}
-
-void BundleAdjuster::setCameraPositionConstant(ViewId viewId)
+void BundleAdjustment::Impl::setCameraPositionConstant(ViewId id)
 {
     const std::vector parameters{Camera::Position + 0, Camera::Position + 1,
                                  Camera::Position + 2};
     auto* manifold =
         new ceres::SubsetManifold(Camera::ExtrinsicsSize, parameters);
-    auto* view = scene_->rView(viewId);
-    auto& camera = view->rCamera();
+    auto& camera = scene_->rView(id)->rCamera();
     problem_->SetManifold(camera.rExtrinsics(), manifold);
 }
 
-void BundleAdjuster::setCameraOrientationConstant(ViewId viewId)
+void BundleAdjustment::Impl::setCameraOrientationConstant(ViewId id)
 {
     const std::vector parameters{Camera::Orientation + 0,
                                  Camera::Orientation + 1,
                                  Camera::Orientation + 2};
     auto* manifold =
         new ceres::SubsetManifold(Camera::ExtrinsicsSize, parameters);
-    auto* view = scene_->rView(viewId);
-    auto& camera = view->rCamera();
+    auto& camera = scene_->rView(id)->rCamera();
     problem_->SetManifold(camera.rExtrinsics(), manifold);
 }
 
-void BundleAdjuster::setTzConstant(ViewId viewId)
+void BundleAdjustment::Impl::setTzConstant(ViewId id)
 {
     const std::vector parameters{Camera::Position + 2};
     auto* manifold =
         new ceres::SubsetManifold(Camera::ExtrinsicsSize, parameters);
-    auto* view = scene_->rView(viewId);
-    auto& camera = view->rCamera();
+    auto& camera = scene_->rView(id)->rCamera();
     problem_->SetManifold(camera.rExtrinsics(), manifold);
 }
 
-void BundleAdjuster::setTrackConstant(TrackId trackId)
+void BundleAdjustment::Impl::setCameraExtrinsicsParameterization()
+{
+    if (options_.constant_camera_orientation &&
+        options_.constant_camera_position) {
+        for (const auto& viewId : m_optimizedViewIds) {
+            setCameraExtrinsicsConstant(viewId);
+        }
+    }
+    else if (options_.constant_camera_orientation) {
+        for (const auto& viewId : m_optimizedViewIds) {
+            setCameraOrientationConstant(viewId);
+        }
+    }
+    else if (options_.constant_camera_position) {
+        for (const auto& viewId : m_optimizedViewIds) {
+            setCameraPositionConstant(viewId);
+        }
+    }
+
+    // For orthographic cameras we set tz = 0
+    if (options_.orthographic_camera) {
+        for (const auto& viewId : m_optimizedViewIds) {
+            setTzConstant(viewId);
+        }
+    }
+}
+
+void BundleAdjustment::Impl::setTrackConstant(TrackId trackId)
 {
     const auto* track = scene_->track(trackId);
     if (options_.use_inverse_depth_parametrization) {
@@ -284,7 +353,7 @@ void BundleAdjuster::setTrackConstant(TrackId trackId)
     }
 }
 
-void BundleAdjuster::setTrackVariable(TrackId trackId)
+void BundleAdjustment::Impl::setTrackVariable(TrackId trackId)
 {
     auto* track = scene_->rTrack(trackId);
     if (options_.use_inverse_depth_parametrization) {
@@ -295,14 +364,14 @@ void BundleAdjuster::setTrackVariable(TrackId trackId)
     }
 }
 
-void BundleAdjuster::setHomogeneousPointParametrization(TrackId trackId)
+void BundleAdjustment::Impl::setHomogeneousPointParametrization(TrackId trackId)
 {
     auto* track = scene_->rTrack(trackId);
     auto* pointManifold = new ceres::SphereManifold<4>();
     problem_->SetManifold(track->rPosition().data(), pointManifold);
 }
 
-void BundleAdjuster::setCameraSchurGroups(ViewId viewId)
+void BundleAdjustment::Impl::setCameraSchurGroups(ViewId viewId)
 {
     constexpr int kIntrinsicsParameterGroup{1};
     constexpr int kExtrinsicsParameterGroup{2};
@@ -322,7 +391,7 @@ void BundleAdjuster::setCameraSchurGroups(ViewId viewId)
                                            kIntrinsicsParameterGroup);
 }
 
-void BundleAdjuster::setTrackSchurGroup(TrackId trackId)
+void BundleAdjustment::Impl::setTrackSchurGroup(TrackId trackId)
 {
     constexpr int kTrackParameterGroup{0};
 
@@ -339,20 +408,20 @@ void BundleAdjuster::setTrackSchurGroup(TrackId trackId)
     }
 }
 
-void BundleAdjuster::addReprojectionErrorResidual(const Feature& feature,
-                                                  Camera* camera, Track* track)
+void BundleAdjustment::Impl::addReprojectionErrorResidual(
+    const Feature& feature, Camera* camera, Track* track)
 {
     // Add the residual for the track to the problem. The shared intrinsics
     // parameter block will be set to constant after the loop if no
     // optimized cameras share the same camera intrinsics.
     problem_->AddResidualBlock(
         createReprojectionErrorCostFunction(camera->cameraIntrinsicsModel(),
-                                            feature.point_),
+                                            feature.pos),
         loss_function_.get(), camera->rExtrinsics(), camera->rIntrinsics(),
         track->rPosition().data());
 }
 
-void BundleAdjuster::addInvReprojectionErrorResidual(
+void BundleAdjustment::Impl::addInvReprojectionErrorResidual(
     const Feature& feature, const Eigen::Vector3d& ref_bearing,
     Camera* camera_ref, Camera* camera_other, Track* track)
 {
@@ -376,7 +445,8 @@ void BundleAdjuster::addInvReprojectionErrorResidual(
     }
 }
 
-void BundleAdjuster::addPositionPriorErrorResidual(View* view, Camera* camera)
+void BundleAdjustment::Impl::addPositionPriorErrorResidual(View* view,
+                                                           Camera* camera)
 {
     // Adds a position priors to the camera poses. This can for example be a
     // GPS position.
@@ -385,143 +455,148 @@ void BundleAdjuster::addPositionPriorErrorResidual(View* view, Camera* camera)
         nullptr, camera->rExtrinsics());
 }
 
-void BundleAdjuster::addDepthPriorErrorResidual(const Feature& feature,
-                                                Camera* camera, Track* track)
+void BundleAdjustment::Impl::addDepthPriorErrorResidual(const Feature& feature,
+                                                        Camera* camera,
+                                                        Track* track)
 {
     problem_->AddResidualBlock(
         DepthPriorError::create(feature), depth_prior_loss_function_.get(),
         camera->rExtrinsics(), track->rPosition().data());
 }
 
-///------- BundleAdjuster starts from here
-BundleAdjuster::BundleAdjuster(const BundleAdjustmentOptions& options,
-                               Scene* scene)
-    : options_(options), scene_(scene)
+CameraIntrinsics::Ptr BundleAdjustment::Impl::intrinsicsOfCamera(CameraId camId)
 {
-    CHECK_NOTNULL(scene);
+    const auto sharedCameraViewIds = scene_->sharedCameraViewIds(camId);
+    CHECK(!sharedCameraViewIds.empty());
 
-    loss_function_ = createLossFunction(options.loss_function_type,
-                                        options.robust_loss_width);
-    depth_prior_loss_function_ = createLossFunction(
-        options.loss_function_type, options.robust_loss_width_depth_prior);
-
-    ceres::Problem::Options problem_options;
-    problem_options.loss_function_ownership = ceres::DO_NOT_TAKE_OWNERSHIP;
-    problem_.reset(new ceres::Problem(problem_options));
-
-    // Set solver options.
-    baOptionsToCeresOptions(options, &solver_options_);
-    parameter_ordering_ = solver_options_.linear_solver_ordering.get();
+    // Use first viewId as representative
+    const auto viewId = *sharedCameraViewIds.begin();
+    return scene_->rView(viewId)->rCamera().cameraIntrinsics();
 }
 
-void BundleAdjuster::addView(ViewId viewId)
+///------- BundleAdjustment starts from here
+BundleAdjustment::BundleAdjustment(const Options& options, Scene* scene)
+    : d(std::make_unique<Impl>())
 {
-    auto* view = CHECK_NOTNULL(scene_->rView(viewId));
-    if (!view->estimated() || m_optimizedViewIds.contains(viewId)) {
+    CHECK_NOTNULL(scene);
+    d->init(options, scene);
+}
+
+BundleAdjustment::~BundleAdjustment() = default;
+
+void BundleAdjustment::addView(ViewId viewId)
+{
+    auto* view = CHECK_NOTNULL(d->scene_->rView(viewId));
+    if (!view->estimated() || d->m_optimizedViewIds.contains(viewId)) {
         return;
     }
 
-    m_optimizedViewIds.emplace(viewId);
+    d->m_optimizedViewIds.emplace(viewId);
 
-    setCameraSchurGroups(viewId);
+    d->setCameraSchurGroups(viewId);
 
-    m_optimizedCameraIds.emplace(scene_->cameraId(viewId));
+    d->m_optimizedCameraIds.emplace(d->scene_->cameraId(viewId));
 
     // Add residuals for all tracks in the view.
     auto& camera = view->rCamera();
     for (const auto& trackId : view->trackIds()) {
         const auto* feature = CHECK_NOTNULL(view->featureOf(trackId));
-        auto* track = CHECK_NOTNULL(scene_->rTrack(trackId));
+        auto* track = CHECK_NOTNULL(d->scene_->rTrack(trackId));
         // Only consider tracks with an estimated 3d point.
         if (!track->estimated()) {
             continue;
         }
 
         // Add the reprojection error to the optimization.
-        addReprojectionErrorResidual(*feature, &camera, track);
+        d->addReprojectionErrorResidual(*feature, &camera, track);
 
         // Add the point to group 0.
-        setTrackConstant(trackId);
+        d->setTrackConstant(trackId);
 
         // Add depth priors if available
-        if (options_.use_depth_priors && feature->depth_prior() != 0.) {
-            addDepthPriorErrorResidual(*feature, &camera, track);
+        if (d->options_.use_depth_priors && feature->depthPrior != 0.) {
+            d->addDepthPriorErrorResidual(*feature, &camera, track);
         }
     }
 
     // Add a position prior if available
-    if (options_.use_position_priors && view->hasPositionPrior()) {
-        addPositionPriorErrorResidual(view, &camera);
+    if (d->options_.use_position_priors && view->hasPositionPrior()) {
+        d->addPositionPriorErrorResidual(view, &camera);
     }
 }
 
-void BundleAdjuster::addTrack(TrackId trackId)
+void BundleAdjustment::addTrack(TrackId trackId)
 {
-    auto* track = CHECK_NOTNULL(scene_->rTrack(trackId));
-    if (!track->estimated() || m_optimizedTrackIds.contains(trackId)) {
+    auto* track = CHECK_NOTNULL(d->scene_->rTrack(trackId));
+    if (!track->estimated() || d->m_optimizedTrackIds.contains(trackId)) {
         return;
     }
 
-    m_optimizedTrackIds.emplace(trackId);
+    d->m_optimizedTrackIds.emplace(trackId);
 
     // Add all observations of the track to the problem.
     const auto& observedViewIds = track->viewIds();
     for (const auto& viewId : observedViewIds) {
-        auto* view = CHECK_NOTNULL(scene_->rView(viewId));
-        if (m_optimizedViewIds.contains(viewId) || !view->estimated()) {
+        auto* view = CHECK_NOTNULL(d->scene_->rView(viewId));
+        if (d->m_optimizedViewIds.contains(viewId) || !view->estimated()) {
             continue;
         }
 
         const auto* feature = CHECK_NOTNULL(view->featureOf(trackId));
         auto& camera = view->rCamera();
 
-        addReprojectionErrorResidual(*feature, &camera, track);
+        d->addReprojectionErrorResidual(*feature, &camera, track);
 
-        // Any camera that reaches this point was not added by AddView() and
+        // Any camera that reaches this point was not added by addView() and
         // so we want to mark it as constant.
-        setCameraExtrinsicsConstant(viewId);
+        d->setCameraExtrinsicsConstant(viewId);
 
         // Mark the camera intrinsics as "potentially constant." We only set
         // the parameter block to constant if the shared intrinsics are not
         // shared with cameras that are being optimized.
-        const auto camId = scene_->cameraId(viewId);
-        m_potentialConstantCameraIds.emplace(camId);
+        const auto camId = d->scene_->cameraId(viewId);
+        d->m_potentialConstantCameraIds.emplace(camId);
     }
 
-    setTrackVariable(trackId);
-    setTrackSchurGroup(trackId);
+    d->setTrackVariable(trackId);
+    d->setTrackSchurGroup(trackId);
 
-    if (options_.use_homogeneous_local_point_parametrization) {
-        setHomogeneousPointParametrization(trackId);
+    if (d->options_.use_homogeneous_local_point_parametrization) {
+        d->setHomogeneousPointParametrization(trackId);
     }
 }
 
-BundleAdjustmentSummary BundleAdjuster::optimize()
+void BundleAdjustment::setFixedView(ViewId id)
+{
+    d->setCameraExtrinsicsConstant(id);
+}
+
+BundleAdjustment::Summary BundleAdjustment::optimize()
 {
     // Set extrinsics parameterization of the camera poses. This will set
     // orientation and/or positions as constant if desired.
-    setCameraExtrinsicsParameterization();
+    d->setCameraExtrinsicsParameterization();
 
     // Set intrinsics group parameterization. This will control which of the
     // intrinsics parameters or optimized or held constant. Note that each
     // camera intrinsics group may be a different camera and/or a different
     // camera intrinsics model.
-    setCameraIntrinsicsParameterization();
+    d->setCameraIntrinsicsParameterization();
 
     // NOTE: Use the reverse BA order (i.e., using cameras then points) is a
     // good idea for inner iterations.
-    if (solver_options_.use_inner_iterations &&
-        !options_.use_inverse_depth_parametrization) {
-        solver_options_.inner_iteration_ordering.reset(
-            new ceres::ParameterBlockOrdering(*parameter_ordering_));
-        solver_options_.inner_iteration_ordering->Reverse();
+    if (d->solver_options_.use_inner_iterations &&
+        !d->options_.use_inverse_depth_parametrization) {
+        d->solver_options_.inner_iteration_ordering.reset(
+            new ceres::ParameterBlockOrdering(*d->parameter_ordering_));
+        d->solver_options_.inner_iteration_ordering->Reverse();
     }
 
     ceres::Solver::Summary ceres_summary;
-    ceres::Solve(solver_options_, problem_.get(), &ceres_summary);
-    LOG_IF(INFO, options_.verbose) << ceres_summary.FullReport();
+    ceres::Solve(d->solver_options_, d->problem_.get(), &ceres_summary);
+    LOG_IF(INFO, d->options_.verbose) << ceres_summary.FullReport();
 
-    BundleAdjustmentSummary ba_summary;
+    Summary ba_summary;
     ba_summary.setup_time_in_seconds =
         ceres_summary.preprocessor_time_in_seconds;
     ba_summary.solve_time_in_seconds = ceres_summary.total_time_in_seconds;
@@ -535,124 +610,172 @@ BundleAdjustmentSummary BundleAdjuster::optimize()
     return ba_summary;
 }
 
-bool BundleAdjuster::calcCovarianceForTrack(TrackId trackId,
-                                            Eigen::Matrix3d* covariance)
+bool BundleAdjustment::calcCovarianceForTrack(TrackId trackId,
+                                              Eigen::Matrix3d* covariance) const
 {
-    const auto* track = scene_->track(trackId);
-    *covariance = Eigen::Matrix3d::Identity();
+    // Default
+    *covariance = Matrix3d::Identity();
 
-    const double* position = track->position().data();
-
-    if (problem_->IsParameterBlockConstant(position) ||
-        !problem_->HasParameterBlock(position)) {
+    const auto* track = d->scene_->track(trackId);
+    const auto* position = track->position().data();
+    if (d->problem_->IsParameterBlockConstant(position) ||
+        !d->problem_->HasParameterBlock(position)) {
         return false;
     }
 
-    ceres::Covariance covariance_estimator{covariance_options_};
-    std::vector<std::pair<const double*, const double*>> covariance_blocks = {
-        std::make_pair(position, position)};
+    const std::vector covariance_blocks{std::make_pair(position, position)};
 
-    if (!covariance_estimator.Compute(covariance_blocks, problem_.get())) {
+    ceres::Covariance::Options opts;
+    ceres::Covariance estimator{opts};
+    if (!estimator.Compute(covariance_blocks, d->problem_.get())) {
         return false;
     }
 
-    covariance_estimator.GetCovarianceMatrixInTangentSpace(
-        {position}, (*covariance).data());
-    return true;
+    const std::vector parameter_blocks{position};
+    return estimator.GetCovarianceMatrixInTangentSpace(parameter_blocks,
+                                                       (*covariance).data());
 }
 
-bool BundleAdjuster::calcCovarianceForTracks(
+bool BundleAdjustment::calcCovarianceForTracks(
     const std::vector<TrackId>& trackIds,
-    std::map<TrackId, Eigen::Matrix3d>* covariances)
+    std::map<TrackId, Eigen::Matrix3d>* covariances) const
 {
-    std::vector<std::pair<const double*, const double*>> covariance_blocks;
+    // Default
+    covariances->clear();
+
     std::vector<TrackId> estTrackIds;
+    std::vector<std::pair<const double*, const double*>> covariance_blocks;
     for (const auto& trackId : trackIds) {
-        const auto* track = scene_->track(trackId);
-        const double* position = track->position().data();
-        if (problem_->IsParameterBlockConstant(position) ||
-            !problem_->HasParameterBlock(position)) {
+        const auto* track = d->scene_->track(trackId);
+        const auto* position = track->position().data();
+        if (d->problem_->IsParameterBlockConstant(position) ||
+            !d->problem_->HasParameterBlock(position)) {
             LOG(ERROR) << "There was a track that could not be found in the "
-                          "reconstruction or is set to fixed! "
+                          "scene or is set to fixed! "
                           "No covariance estimation possible.";
             return false;
         }
 
-        estTrackIds.push_back(trackId);
-        covariance_blocks.push_back(std::make_pair(position, position));
+        estTrackIds.emplace_back(trackId);
+        covariance_blocks.emplace_back(position, position);
     }
 
-    ceres::Covariance covariance_estimator{covariance_options_};
-    if (!covariance_estimator.Compute(covariance_blocks, problem_.get())) {
+    ceres::Covariance::Options opts;
+    ceres::Covariance estimator{opts};
+    if (!estimator.Compute(covariance_blocks, d->problem_.get())) {
         return false;
     }
 
     for (size_t i{0}; i < estTrackIds.size(); ++i) {
-        Eigen::Matrix3d cov;
-        covariance_estimator.GetCovarianceMatrixInTangentSpace(
-            {covariance_blocks[i].first}, cov.data());
-        covariances->insert(std::make_pair(estTrackIds[i], cov));
+        const std::vector parameter_blocks{covariance_blocks[i].first};
+        Matrix3d cov;
+        if (!estimator.GetCovarianceMatrixInTangentSpace(parameter_blocks,
+                                                         cov.data())) {
+            return false;
+        }
+        covariances->insert({estTrackIds[i], cov});
     }
 
     return true;
 }
 
-bool BundleAdjuster::calcCovarianceForView(ViewId viewId,
-                                           Matrix6d* covariance) const
+bool BundleAdjustment::calcCovarianceForView(ViewId viewId,
+                                             Matrix6d* covariance) const
 {
+    // Default
     *covariance = Matrix6d::Identity();
 
-    const double* extrinsics = scene_->view(viewId)->camera().extrinsics();
-    if (problem_->IsParameterBlockConstant(extrinsics) ||
-        !problem_->HasParameterBlock(extrinsics)) {
+    const auto* extrinsics = d->scene_->view(viewId)->camera().extrinsics();
+    if (d->problem_->IsParameterBlockConstant(extrinsics) ||
+        !d->problem_->HasParameterBlock(extrinsics)) {
         return false;
     }
 
-    ceres::Covariance covariance_estimator(covariance_options_);
-    std::vector<std::pair<const double*, const double*>> covariance_blocks = {
-        std::make_pair(extrinsics, extrinsics)};
-    if (!covariance_estimator.Compute(covariance_blocks, problem_.get())) {
+    const std::vector covariance_blocks{std::make_pair(extrinsics, extrinsics)};
+
+    ceres::Covariance::Options opts;
+    ceres::Covariance estimator{opts};
+    if (!estimator.Compute(covariance_blocks, d->problem_.get())) {
         return false;
     }
 
-    covariance_estimator.GetCovarianceMatrixInTangentSpace(
-        {extrinsics}, (*covariance).data());
-    return true;
+    const std::vector parameter_blocks{extrinsics};
+    return estimator.GetCovarianceMatrixInTangentSpace(parameter_blocks,
+                                                       (*covariance).data());
 }
 
-bool BundleAdjuster::calcCovarianceForViews(
+bool BundleAdjustment::calcCovarianceForViews(
     const std::vector<ViewId>& viewIds,
-    std::map<ViewId, Matrix6d>& covariances) const
+    std::map<ViewId, Matrix6d>* covariances) const
 {
-    std::vector<std::pair<const double*, const double*>> covariance_blocks;
+    // Default
+    covariances->clear();
+
     std::vector<ViewId> estViewIds;
+    std::vector<std::pair<const double*, const double*>> covariance_blocks;
     for (const auto& viewId : viewIds) {
-        const auto extrinsics = scene_->view(viewId)->camera().extrinsics();
-        if (problem_->IsParameterBlockConstant(extrinsics) ||
-            !problem_->HasParameterBlock(extrinsics)) {
+        const auto* extrinsics = d->scene_->view(viewId)->camera().extrinsics();
+        if (d->problem_->IsParameterBlockConstant(extrinsics) ||
+            !d->problem_->HasParameterBlock(extrinsics)) {
             LOG(ERROR) << "There was a view that could not be found in the "
-                          "reconstruction or is set to fixed! "
+                          "scene or is set to fixed! "
                           "No covariance estimation possible.";
             return false;
         }
 
-        estViewIds.push_back(viewId);
-        covariance_blocks.push_back(std::make_pair(extrinsics, extrinsics));
+        estViewIds.emplace_back(viewId);
+        covariance_blocks.emplace_back(extrinsics, extrinsics);
     }
 
-    ceres::Covariance covariance_estimator{covariance_options_};
-    if (!covariance_estimator.Compute(covariance_blocks, problem_.get())) {
+    ceres::Covariance::Options opts;
+    ceres::Covariance estimator{opts};
+    if (!estimator.Compute(covariance_blocks, d->problem_.get())) {
         return false;
     }
 
     for (size_t i{0}; i < estViewIds.size(); ++i) {
+        const std::vector parameter_blocks{covariance_blocks[i].first};
         Matrix6d cov;
-        covariance_estimator.GetCovarianceMatrixInTangentSpace(
-            {covariance_blocks[i].first}, cov.data());
-        covariances.insert(std::make_pair(estViewIds[i], cov));
+        if (!estimator.GetCovarianceMatrixInTangentSpace(parameter_blocks,
+                                                         cov.data())) {
+            return false;
+        }
+        covariances->insert({estViewIds[i], cov});
     }
 
     return true;
+}
+
+bool BundleAdjustment::calcCovarianceForCamera(
+    CameraId id, Eigen::MatrixXd* covariance) const
+{
+    // No default
+
+    const auto* camera = d->scene_->camera(id);
+    if (!camera) {
+        return false;
+    }
+
+    const auto* intrinsics = camera->intrinsics();
+    if (d->problem_->IsParameterBlockConstant(intrinsics) ||
+        !d->problem_->HasParameterBlock(intrinsics)) {
+        return false;
+    }
+
+    const std::vector covariance_blocks{std::make_pair(intrinsics, intrinsics)};
+
+    ceres::Covariance::Options opts;
+    ceres::Covariance estimator{opts};
+    if (!estimator.Compute(covariance_blocks, d->problem_.get())) {
+        return false;
+    }
+
+    const auto paramCount = camera->cameraIntrinsics()->numParameters();
+    *covariance = MatrixXd::Zero(paramCount, paramCount);
+    const std::vector parameter_blocks{intrinsics};
+
+    return estimator.GetCovarianceMatrixInTangentSpace(parameter_blocks,
+                                                       (*covariance).data());
 }
 
 } // namespace tl

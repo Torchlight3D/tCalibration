@@ -6,13 +6,13 @@
 
 #include <tCore/ContainerUtils>
 #include <tCore/TimeUtils>
-#include <tMath/RANSAC/SampleConsensusEstimator>
+#include <tMath/RANSAC/SampleConsensus>
 #include <tMath/Solvers/LossFunction>
 #include <tMvs/BundleAdjustment>
-#include <tMvs/EstimateCalibratedAbsolutePose>
-#include <tMvs/FeatureCorrespondence>
+#include <tMvs/Feature>
 #include <tMvs/Landmark>
 #include <tMvs/View>
+#include <tMvs/PnP/EstimateCalibratedAbsolutePose>
 #include <tTarget/CalibBoardBase>
 #include <tVision/EigenCVUtils>
 
@@ -29,8 +29,7 @@ public:
     void init(const Options& options);
 
     bool estimatePosePinhole(
-        ViewId viewId,
-        const std::vector<FeatureCorrespondence2D3D>& correspondences_undist,
+        ViewId viewId, const std::vector<Feature2D3D>& correspondences_undist,
         const std::vector<TrackId>& trackIds);
 
 public:
@@ -49,8 +48,7 @@ void CameraPoseCalibration::Impl::init(const Options& options)
 }
 
 bool CameraPoseCalibration::Impl::estimatePosePinhole(
-    ViewId viewId,
-    const std::vector<FeatureCorrespondence2D3D>& correspondences,
+    ViewId viewId, const std::vector<Feature2D3D>& correspondences,
     const std::vector<TrackId>& trackIds)
 {
     SacParameters ransacParams;
@@ -85,7 +83,7 @@ bool CameraPoseCalibration::Impl::estimatePosePinhole(
                             Feature(correspondences[inlier].feature));
     }
 
-    BundleAdjustmentOptions ba_opts;
+    BundleAdjustment::Options ba_opts;
     ba_opts.loss_function_type = LossFunctionType::Huber;
     ba_opts.robust_loss_width = 1.345;
     ba_opts.intrinsics_to_optimize = OptimizeIntrinsicsType::None;
@@ -161,7 +159,7 @@ bool CameraPoseCalibration::calibrate(const StampedTargetDetections& detections,
 
         const auto cornerCount = detection.cornerCount();
         std::vector<TrackId> obsTrackIds;
-        std::vector<FeatureCorrespondence2D3D> correspondences;
+        std::vector<Feature2D3D> correspondences;
         for (size_t i{0}; i < cornerCount; ++i) {
             const auto trackId = detection.cornerIds()[i];
             obsTrackIds.push_back(trackId);
@@ -173,7 +171,7 @@ bool CameraPoseCalibration::calibrate(const StampedTargetDetections& detections,
             const Eigen::Vector4d track =
                 d->m_scene->track(trackId)->position();
 
-            FeatureCorrespondence2D3D corr;
+            Feature2D3D corr;
             corr.world_point = track.hnormalized();
             corr.feature = undist_pt.head<2>();
             correspondences.push_back(corr);
@@ -230,7 +228,7 @@ bool CameraPoseCalibration::calibrate(const StampedTargetDetections& detections,
 
 void CameraPoseCalibration::optimizeAllPoses()
 {
-    BundleAdjustmentOptions ba_opts;
+    BundleAdjustment::Options ba_opts;
     ba_opts.loss_function_type = LossFunctionType::Huber;
     ba_opts.robust_loss_width = 1.345;
     ba_opts.intrinsics_to_optimize = OptimizeIntrinsicsType::None;
@@ -257,7 +255,7 @@ void CameraPoseCalibration::optimizeBoardPoints()
         }
     }
 
-    BundleAdjustmentOptions ba_opts;
+    BundleAdjustment::Options ba_opts;
     ba_opts.loss_function_type = LossFunctionType::Huber;
     ba_opts.robust_loss_width = 1.345;
     ba_opts.intrinsics_to_optimize = OptimizeIntrinsicsType::None;

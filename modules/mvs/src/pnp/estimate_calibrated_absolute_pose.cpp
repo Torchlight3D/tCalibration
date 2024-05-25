@@ -4,7 +4,7 @@
 #include <tMath/RANSAC/RansacCreator>
 #include <tMath/RANSAC/RansacModelEstimator>
 #include <tMvs/BundleAdjustment>
-#include <tMvs/FeatureCorrespondence>
+#include <tMvs/Feature>
 #include <tMvs/Landmark>
 #include <tMvs/PnP/DlsPnP>
 #include <tMvs/PnP/P3P>
@@ -13,49 +13,51 @@
 #include <tMvs/View>
 
 namespace tl {
+
+using Eigen::Vector2d;
+
 namespace {
 
 // An estimator for computing the absolute pose from 3 feature
 // correspondences. The feature correspondences should be normalized by the
 // focal length with the principal point at (0, 0).
 class CalibratedAbsolutePoseEstimator
-    : public Estimator<FeatureCorrespondence2D3D, CalibratedAbsolutePose>
+    : public Estimator<Feature2D3D, CalibratedAbsolutePose>
 {
+    using Base = Estimator<Feature2D3D, CalibratedAbsolutePose>;
+
 public:
     explicit CalibratedAbsolutePoseEstimator(PnPType type = PnPType::KNEIP)
-        : pnp_type_(type)
+        : Base(), pnp_type_(type)
     {
-        ba_opts_.max_num_iterations = 2;
-        ba_opts_.use_homogeneous_local_point_parametrization = false;
-        ba_opts_.intrinsics_to_optimize = OptimizeIntrinsicsType::None;
     }
 
     // 3 correspondences are needed to determine the absolute pose.
-    double SampleSize() const override { return 3; }
+    int SampleSize() const override { return 3; }
 
-    // Estimates candidate absolute poses from correspondences.
+    // Estimates candidate absolute poses from corrs.
     bool EstimateModel(
-        const std::vector<FeatureCorrespondence2D3D>& correspondences,
-        std::vector<CalibratedAbsolutePose>* absolute_poses) const override
+        const std::vector<Feature2D3D>& corrs,
+        std::vector<CalibratedAbsolutePose>* poses) const override
     {
-        Vector2dList features(3);
-        Vector3dList world_points(3);
+        Vector2dList imgPoints(3);
+        Vector3dList objPoints(3);
         for (int i = 0; i < 3; ++i) {
-            features[i] = correspondences[i].feature;
-            world_points[i] = correspondences[i].world_point;
+            imgPoints[i] = corrs[i].feature;
+            objPoints[i] = corrs[i].world_point;
         }
 
         Matrix3dList rotations;
         Vector3dList translations;
         switch (pnp_type_) {
             case PnPType::KNEIP: {
-                if (!P3P(features, world_points, rotations, translations)) {
+                if (!P3P(imgPoints, objPoints, rotations, translations)) {
                     return false;
                 }
             } break;
             case PnPType::DLS: {
                 QuaterniondList quats;
-                if (!DlsPnp(features, world_points, quats, translations)) {
+                if (!DlsPnp(imgPoints, objPoints, quats, translations)) {
                     return false;
                 }
 
@@ -65,7 +67,7 @@ public:
             } break;
             case PnPType::SQPnP: {
                 QuaterniondList quats;
-                if (!SQPnP(features, world_points, quats, translations)) {
+                if (!SQPnP(imgPoints, objPoints, quats, translations)) {
                     return false;
                 }
 
@@ -81,65 +83,68 @@ public:
             CalibratedAbsolutePose pose;
             pose.rotation = rotations[i];
             pose.position = -pose.rotation.transpose() * translations[i];
-            absolute_poses->push_back(pose);
+            poses->push_back(pose);
         }
 
-        return absolute_poses->size() > 0;
+        return !poses->empty();
     }
 
-    bool RefineModel(
-        const std::vector<FeatureCorrespondence2D3D>& correspondences,
-        CalibratedAbsolutePose* absolute_pose) const override
+    bool RefineModel(const std::vector<Feature2D3D>& corrs, double error,
+                     CalibratedAbsolutePose* pose) const override
     {
+        // Use input pose as initial guess
         Scene scene;
-        const auto viewId = scene.addView("0", 0, 0.0);
+        const auto viewId = scene.addView("0", 0., CameraId{0});
         auto* view = scene.rView(viewId);
+        auto& camera = view->rCamera();
+        camera.setOrientationFromRotationMatrix(pose->rotation);
+        camera.setPosition(pose->position);
         view->setEstimated(true);
 
-        auto& camera = view->rCamera();
-        camera.setOrientationFromRotationMatrix(absolute_pose->rotation);
-        camera.setPosition(absolute_pose->position);
-        for (const auto& corr : correspondences) {
+        // Setup Scene
+        for (const auto& corr : corrs) {
             const auto trackId = scene.addTrack();
             auto* track = scene.rTrack(trackId);
-            track->setEstimated(true);
             track->setPosition(corr.world_point.homogeneous());
-            scene.addFeature(viewId, trackId, Feature(corr.feature));
+            track->setEstimated(true);
+            scene.addFeature(viewId, trackId, Feature{corr.feature});
         }
 
-        BundleAdjustmentSummary ba_summary =
-            BundleAdjustView(ba_opts_, viewId, &scene);
+        BundleAdjustment::Options opts;
+        opts.max_num_iterations = 2;
+        opts.use_homogeneous_local_point_parametrization = false;
+        opts.intrinsics_to_optimize = OptimizeIntrinsicsType::None;
+        opts.loss_function_type = LossFunctionType::Huber;
+        opts.robust_loss_width = error * 1.5;
 
-        absolute_pose->position = camera.position();
-        absolute_pose->rotation = camera.orientationAsRotationMatrix();
-        return ba_summary.final_cost < ba_summary.initial_cost &&
-               ba_summary.success;
+        const auto summary = BundleAdjustView(opts, viewId, &scene);
+
+        pose->position = camera.position();
+        pose->rotation = camera.orientationAsRotationMatrix();
+
+        return summary.success && summary.final_cost < summary.initial_cost;
     }
 
     // The error for a correspondences given an absolute pose. This is the
     // squared reprojection error.
-    double Error(const FeatureCorrespondence2D3D& correspondence,
-                 const CalibratedAbsolutePose& absolute_pose) const override
+    double Error(const Feature2D3D& corr,
+                 const CalibratedAbsolutePose& pose) const override
     {
-        // The reprojected point is computed as R * (X - c) where R is the
-        // camera rotation, c is the position, and X is the 3D point.
-        const Eigen::Vector2d reprojected_feature =
-            (absolute_pose.rotation *
-             (correspondence.world_point - absolute_pose.position))
-                .hnormalized();
-        return (reprojected_feature - correspondence.feature).squaredNorm();
+        // x = R * (X - t)
+        const Vector2d reprojected =
+            (pose.rotation * (corr.world_point - pose.position)).hnormalized();
+        return (reprojected - corr.feature).squaredNorm();
     }
 
 private:
     PnPType pnp_type_;
-    BundleAdjustmentOptions ba_opts_;
 };
 
 } // namespace
 
 bool EstimateCalibratedAbsolutePose(
     const SacParameters& sac_params, RansacType ransac_type, PnPType pnp_type,
-    const std::vector<FeatureCorrespondence2D3D>& normalized_correspondences,
+    const std::vector<Feature2D3D>& normalized_correspondences,
     CalibratedAbsolutePose* absolute_pose, SacSummary* ransac_summary)
 {
     CalibratedAbsolutePoseEstimator estimator{pnp_type};

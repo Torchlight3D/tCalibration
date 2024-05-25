@@ -15,7 +15,7 @@ struct CalibratedAbsolutePose
     Eigen::Vector3d position;
 };
 
-struct FeatureCorrespondence2D3D;
+struct Feature2D3D;
 struct SacParameters;
 struct SacSummary;
 
@@ -28,7 +28,7 @@ struct SacSummary;
 // TODO: add other SAC algorithms
 bool EstimateCalibratedAbsolutePose(
     const SacParameters& ransacParams, RansacType ransacType, PnPType pnpType,
-    const std::vector<FeatureCorrespondence2D3D>& normalizedCorrespondences,
+    const std::vector<Feature2D3D>& normalizedCorrespondences,
     CalibratedAbsolutePose* absolutePose, SacSummary* summary);
 
 } // namespace tl
