@@ -6,7 +6,7 @@
 #include <tCamera/CameraMetaData>
 #include <tVision/Keypoint>
 
-#include "imagepairmatch.h"
+#include "stereo_view_info.h"
 
 namespace tl {
 

@@ -6,6 +6,9 @@
 #include <glog/logging.h>
 
 #include <tCamera/Camera>
+#include <tMvs/Types>
+
+#include "feature.h"
 
 namespace tl {
 
@@ -22,7 +25,7 @@ struct TwoViewInfo
     int num_verified_matches = 0;
 
     // Number of inliers based on homography estimation. This is useful for
-    // incremental SfM for choosing an initial view pair for the reconstruction.
+    // incremental SfM for choosing an initial view pair for the scene.
     int num_homography_inliers = 0;
 
     // The visibility score is computed based on the inlier features from 2-view
@@ -31,6 +34,8 @@ struct TwoViewInfo
     // image by the inliers. The visibility score here is the sum of the
     // visibility scores for each image.
     int visibility_score = 0;
+
+    double scale_estimate;
 
     void SwapCameras();
 };
@@ -76,5 +81,25 @@ void TwoViewInfoFromTwoCameras(const Camera& camera1, const Camera& camera2,
         info->position.normalize();
     }
 }
+
+struct ThreeViewInfo
+{
+    ViewId ids[3];
+    TwoViewInfo info12, info13, info23;
+};
+
+struct ImagePairMatch
+{
+    std::string image1;
+    std::string image2;
+
+    // If the matches are verified matches then the two view info contains the
+    // relative pose information between the images.
+    TwoViewInfo twoview_info;
+
+    // Feature locations in pixel coordinates. If the match is a verified match
+    // then this only contains inlier correspondences.
+    std::vector<Feature2D2D> correspondences;
+};
 
 } // namespace tl

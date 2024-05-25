@@ -78,8 +78,4 @@ void Track::setEstimated(bool est) { m_estimated = est; }
 
 bool Track::estimated() const { return m_estimated; }
 
-void Track::setError(double err) { m_error = err; }
-
-double Track::error() const { return m_error; }
-
 } // namespace tl

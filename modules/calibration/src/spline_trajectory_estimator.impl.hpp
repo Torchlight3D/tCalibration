@@ -990,7 +990,7 @@ void SplineTrajectoryEstimator<_T>::ConvertToTheiaRecon(Scene* recon_out)
         Sophus::SE3d T_w_c = T_w_i * T_i_c_;
 
         const auto newViewId =
-            recon_out->addView(std::to_string(time), CameraId{0}, time);
+            recon_out->addView(std::to_string(time), time, CameraId{0});
         auto* view = recon_out->rView(newViewId);
         view->setEstimated(true);
         auto& camera = view->rCamera();

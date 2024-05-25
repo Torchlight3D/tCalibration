@@ -250,7 +250,8 @@ void CameraImuCalibration::getScene(Scene& recon) const
         Sophus::SE3d pose;
         d->m_trajectory.poseAt(time, pose);
 
-        const auto viewId = recon.addView(std::to_string(time), 0, time);
+        const auto viewId =
+            recon.addView(std::to_string(time), time, kCameraLeftId);
         auto view = recon.rView(viewId);
         view->setEstimated(true);
 

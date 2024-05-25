@@ -582,7 +582,7 @@ ViewId CameraIntrinsicsCalibration::Impl::addViewToScene(
 {
     // Add view
     const auto viewName = mvs::makeUniqueViewName(camId, timestamp);
-    const auto viewId = m_scene->addView(viewName, camId, timestamp);
+    const auto viewId = m_scene->addView(viewName, timestamp, camId);
     if (viewId == kInvalidViewId) {
         return kInvalidViewId;
     }
@@ -639,7 +639,8 @@ void CameraIntrinsicsCalibration::Impl::removeViewsByReprojectionError(
 {
     std::map<ViewId, double> viewIdToRPE;
     for (const auto& viewId : m_scene->sharedCameraViewIds(camId)) {
-        const double viewRPE = m_scene->calcViewReprojectionError(viewId);
+        const double viewRPE =
+            m_scene->calcViewReprojectionError(viewId).value();
         if (viewRPE > maxRPE) {
             viewIdToRPE.insert({viewId, viewRPE});
         }
@@ -777,7 +778,8 @@ CameraIntrinsicsCalibration::Summary CameraIntrinsicsCalibration::calibrate(
 
     double avgViewRPE{0.};
     for (const auto& viewId : d->m_scene->sharedCameraViewIds(camId)) {
-        const double viewRPE = d->m_scene->calcViewReprojectionError(viewId);
+        const double viewRPE =
+            d->m_scene->calcViewReprojectionError(viewId).value();
         avgViewRPE += viewRPE;
         VLOG(-1) << "View " << viewId << " RPE: " << viewRPE;
     }

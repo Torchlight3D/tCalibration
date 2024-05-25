@@ -285,8 +285,11 @@ void StereoCameraCalibration::Impl::findInitialPose(
         for (size_t idx{0}; idx < rightViewIds.size(); ++idx) {
             const auto& rightViewId = rightViewIds[idx];
             const auto trackCnt = m_scene->view(rightViewId)->trackCount();
-            const double avgRPE = m_scene->calcViewReprojectionError(
-                rightViewId, false, &(rvecs_r[idx]), &(tvecs_r[idx]));
+            const double avgRPE =
+                m_scene
+                    ->calcViewReprojectionError(
+                        rightViewId, false, &(rvecs_r[idx]), &(tvecs_r[idx]))
+                    .value();
             pointCnt += trackCnt;
             rpe += avgRPE;
         }
@@ -332,8 +335,11 @@ void StereoCameraCalibration::Impl::testTransform(
         for (size_t i{0}; i < viewIds.size(); ++i) {
             const auto& viewId = viewIds[i];
             const auto trackCnt = m_scene->view(viewId)->trackCount();
-            const double avgRPE = m_scene->calcViewReprojectionError(
-                viewId, false, &(rvecs[i]), &(tvecs[i]));
+            const double avgRPE =
+                m_scene
+                    ->calcViewReprojectionError(viewId, false, &(rvecs[i]),
+                                                &(tvecs[i]))
+                    .value();
             pointCnt += trackCnt;
             rpe += (avgRPE * trackCnt);
         }
@@ -546,7 +552,7 @@ bool StereoCameraCalibration::calibrate()
         double avgViewRPE{0.};
         for (const auto& viewId : d->m_scene->sharedCameraViewIds(leftCamId)) {
             const double viewRPE =
-                d->m_scene->calcViewReprojectionError(viewId);
+                d->m_scene->calcViewReprojectionError(viewId).value();
             avgViewRPE += viewRPE;
             // VLOG(-1) << "View " << viewId << " RPE: " << viewRPE;
         }

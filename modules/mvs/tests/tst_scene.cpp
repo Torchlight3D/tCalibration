@@ -1,5 +1,4 @@
 #include <gtest/gtest.h>
-// #include <glog/logging.h>
 
 #include <tCore/ContainerUtils>
 #include <tMvs/Scene>
@@ -12,54 +11,63 @@ const std::vector<Feature> kFeatures{Feature(1., 1.), Feature(2., 2.),
                                      Feature(3., 3.)};
 } // namespace
 
-TEST(Reconstruction, ViewIdFromNameValid)
+TEST(Scene, ViewIdFromNameValid)
 {
     Scene scene;
-    const auto gtViewId = scene.addView(kViewNames[0], 0.);
-    const auto fromNameViewId = scene.viewIdFromName(kViewNames[0]);
-    EXPECT_EQ(gtViewId, fromNameViewId);
+    const auto viewId = scene.addView(kViewNames[0], 0.);
+    const auto viewIdFromName = scene.viewIdFromName(kViewNames[0]);
+    EXPECT_EQ(viewId, viewIdFromName);
 }
 
-TEST(Reconstruction, ViewIdFromNameInvalid)
+TEST(Scene, ViewIdFromNameInvalid)
 {
     Scene scene;
     EXPECT_EQ(scene.viewIdFromName(kViewNames[0]), kInvalidViewId);
 }
 
-TEST(Reconstruction, addView)
+TEST(Scene, AddView)
 {
     Scene scene;
-    const auto viewId = scene.addView(kViewNames[0], 0.0);
+    const auto viewId = scene.addView(kViewNames[0], 0.);
     EXPECT_NE(viewId, kInvalidViewId);
     EXPECT_EQ(scene.viewCount(), 1);
     EXPECT_EQ(scene.trackCount(), 0);
+    // FIXME:
+    // The intension is to test "Add view with same name and timestamp",
+    // however the logic is not correct for now.
     EXPECT_EQ(scene.addView(kViewNames[0], 0.), kInvalidViewId);
+    // The first default cameraId is 0
     EXPECT_EQ(scene.cameraId(viewId), 0);
 }
 
-TEST(Reconstruction, addViewWithCameraIntrinsicsGroup)
+TEST(Scene, AddViewWithSpecificCameraId)
 {
     Scene scene;
-    const CameraId camGroupId = 1;
-    const auto viewId = scene.addView(kViewNames[0], camGroupId, 0.);
+    constexpr CameraId camId{1};
+    const auto viewId = scene.addView(kViewNames[0], 0., camId);
     EXPECT_NE(viewId, kInvalidViewId);
     EXPECT_EQ(scene.viewCount(), 1);
     EXPECT_EQ(scene.trackCount(), 0);
     EXPECT_EQ(scene.cameraCount(), 1);
-    EXPECT_EQ(scene.cameraId(viewId), camGroupId);
-    EXPECT_EQ(scene.addView(kViewNames[0], 0.0), kInvalidViewId);
+    EXPECT_EQ(scene.cameraId(viewId), camId);
+
+    // FIXME:
+    // The intension is to test "Add view with same name and timestamp",
+    // however the logic is not correct for now.
+    EXPECT_EQ(scene.addView(kViewNames[0], 0.), kInvalidViewId);
 }
 
-TEST(Reconstruction, RemoveView)
+TEST(Scene, RemoveView)
 {
     Scene scene;
+    // Add 2 views with default camId parameter (different cameraId)
     const auto viewId1 = scene.addView(kViewNames[0], 0.);
     const auto viewId2 = scene.addView(kViewNames[1], 1.);
     EXPECT_EQ(scene.viewCount(), 2);
     EXPECT_EQ(scene.cameraCount(), 2);
 
-    const auto view1_group = scene.cameraId(viewId1);
-    const auto view2_group = scene.cameraId(viewId2);
+    // Remove the first cameraId
+    const auto camId1 = scene.cameraId(viewId1);
     EXPECT_TRUE(scene.removeView(viewId1));
     EXPECT_EQ(scene.viewCount(), 1);
     EXPECT_EQ(scene.viewIdFromName(kViewNames[0]), kInvalidViewId);
@@ -67,10 +75,11 @@ TEST(Reconstruction, RemoveView)
     EXPECT_EQ(scene.cameraId(viewId1), kInvalidCameraId);
     EXPECT_EQ(scene.cameraCount(), 1);
 
-    const auto viewIds = scene.sharedCameraViewIds(view1_group);
-    EXPECT_FALSE(std::find(viewIds.cbegin(), viewIds.cend(), viewId1) !=
-                 viewIds.cend());
+    const auto viewIds1 = scene.sharedCameraViewIds(camId1);
+    EXPECT_FALSE(con::Contains(viewIds1, viewId1));
 
+    // Remove the second cameraId
+    const auto camId2 = scene.cameraId(viewId2);
     EXPECT_TRUE(scene.removeView(viewId2));
     EXPECT_EQ(scene.viewCount(), 0);
     EXPECT_EQ(scene.viewIdFromName(kViewNames[1]), kInvalidViewId);
@@ -78,16 +87,14 @@ TEST(Reconstruction, RemoveView)
     EXPECT_EQ(scene.cameraId(viewId2), kInvalidCameraId);
     EXPECT_EQ(scene.cameraCount(), 0);
 
-    const auto view2_camera_intrinsics_group =
-        scene.sharedCameraViewIds(view2_group);
-    EXPECT_FALSE(std::find(viewIds.cbegin(), viewIds.cend(), viewId2) !=
-                 viewIds.cend());
+    const auto viewIds2 = scene.sharedCameraViewIds(camId2);
+    EXPECT_FALSE(con::Contains(viewIds2, viewId2));
 
     EXPECT_FALSE(scene.removeView(kInvalidViewId));
     EXPECT_FALSE(scene.removeView(viewId1));
 }
 
-TEST(Reconstruction, GetViewValid)
+TEST(Scene, GetViewValid)
 {
     Scene scene;
     const auto viewId = scene.addView(kViewNames[0], 0.);
@@ -100,9 +107,9 @@ TEST(Reconstruction, GetViewValid)
     EXPECT_NE(mutableView, nullptr);
 }
 
-TEST(Reconstruction, GetViewValidInvalid)
+TEST(Scene, GetViewValidInvalid)
 {
-    constexpr ViewId invalidViewId = 0;
+    constexpr ViewId invalidViewId{0};
 
     Scene scene;
     const auto constView = scene.view(invalidViewId);
@@ -112,24 +119,24 @@ TEST(Reconstruction, GetViewValidInvalid)
     EXPECT_EQ(mutableView, nullptr);
 }
 
-TEST(Reconstruction, GetViewsInCameraIntrinsicGroup)
+TEST(Scene, GetViewsFromCameraId)
 {
     constexpr double kFocalLength1{800.0};
     constexpr double kFocalLength2{1200.0};
 
     Scene scene;
-    const auto viewId1 = scene.addView(kViewNames[0], 0, 0.);
-    const auto camGroupId1 = scene.cameraId(viewId1);
+    const auto viewId1 = scene.addView(kViewNames[0], 0., CameraId{0});
+    const auto camId1 = scene.cameraId(viewId1);
 
     // Add a second view with to the same camera Id.
-    const auto viewId2 = scene.addView(kViewNames[1], camGroupId1, 1.);
-    const auto camGroupId2 = scene.cameraId(viewId2);
-    EXPECT_EQ(camGroupId1, camGroupId2);
+    const auto viewId2 = scene.addView(kViewNames[1], 1., camId1);
+    const auto camId2 = scene.cameraId(viewId2);
+    EXPECT_EQ(camId1, camId2);
 
     // Add a third view this is with a different camera Id.
-    const auto viewId3 = scene.addView(kViewNames[2], 2, 2.);
-    const auto camGroupId3 = scene.cameraId(viewId3);
-    EXPECT_NE(camGroupId1, camGroupId3);
+    const auto viewId3 = scene.addView(kViewNames[2], 2., CameraId{2});
+    const auto camId3 = scene.cameraId(viewId3);
+    EXPECT_NE(camId1, camId3);
     EXPECT_EQ(scene.cameraCount(), 2);
 
     // Change a value in view 1's camera intrinsics and ensure that it
@@ -141,25 +148,25 @@ TEST(Reconstruction, GetViewsInCameraIntrinsicGroup)
     EXPECT_EQ(camera1.focalLength(), camera2.focalLength());
     EXPECT_NE(camera1.focalLength(), camera3.focalLength());
 
-    // Alter the intrinsics through camera 2 and ensure that camera 1 is
-    //    updated and camera 3 is not.
+    // Alter the intrinsics through camera 2 and ensure that camera 1 is updated
+    // and camera 3 is not.
     camera2.setFocalLength(kFocalLength2);
     EXPECT_EQ(camera1.focalLength(), camera2.focalLength());
     EXPECT_NE(camera2.focalLength(), camera3.focalLength());
 }
 
-TEST(Reconstruction, CameraIntrinsicsGroupIds)
+TEST(Scene, CameraIds)
 {
     Scene scene;
     const auto viewId1 = scene.addView(kViewNames[0], 0.);
     const auto camId1 = scene.cameraId(viewId1);
 
     // Add a second view with to the same cameraId.
-    const auto viewId2 = scene.addView(kViewNames[1], camId1, 1.);
+    const auto viewId2 = scene.addView(kViewNames[1], 1., camId1);
     const auto camId2 = scene.cameraId(viewId2);
     EXPECT_EQ(camId1, camId2);
 
-    // Add a third view that is with a different cameraId.
+    // Add a third view with default cameraId, which would use a new camId
     const auto viewId3 = scene.addView(kViewNames[2], 2.);
     const auto camId3 = scene.cameraId(viewId3);
     EXPECT_NE(camId1, camId3);
@@ -169,25 +176,16 @@ TEST(Reconstruction, CameraIntrinsicsGroupIds)
     const auto camIds = scene.cameraIds();
     EXPECT_EQ(camIds.size(), 2);
 
-    EXPECT_TRUE(std::find(camIds.cbegin(), camIds.cend(), camId1) !=
-                camIds.cend());
-    EXPECT_TRUE(std::find(camIds.cbegin(), camIds.cend(), camId3) !=
-                camIds.cend());
+    EXPECT_TRUE(con::Contains(camIds, camId1));
+    EXPECT_TRUE(con::Contains(camIds, camId3));
 }
 
-TEST(Reconstruction, AddEmptyTrack)
-{
-    Scene scene;
-    const auto trackId = scene.addTrack();
-    EXPECT_NE(trackId, kInvalidTrackId);
-}
-
-TEST(Reconstruction, addFeatureValid)
+TEST(Scene, AddFeatureValid)
 {
     Scene scene;
 
-    const auto viewId1 = scene.addView(kViewNames[0], 0.0);
-    const auto viewId2 = scene.addView(kViewNames[1], 1.0);
+    const auto viewId1 = scene.addView(kViewNames[0], 0.);
+    const auto viewId2 = scene.addView(kViewNames[1], 1.);
     EXPECT_NE(viewId1, kInvalidViewId);
     EXPECT_NE(viewId2, kInvalidViewId);
 
@@ -216,12 +214,12 @@ TEST(Reconstruction, addFeatureValid)
     EXPECT_TRUE(track->viewIds().contains(viewId1));
 }
 
-TEST(Reconstruction, addFeatureInvalid)
+TEST(Scene, AddFeatureInvalid)
 {
     Scene scene;
 
-    const auto viewId1 = scene.addView(kViewNames[0], 0.0);
-    const auto viewId2 = scene.addView(kViewNames[1], 1.0);
+    const auto viewId1 = scene.addView(kViewNames[0], 0.);
+    const auto viewId2 = scene.addView(kViewNames[1], 1.);
     EXPECT_NE(viewId1, kInvalidViewId);
     EXPECT_NE(viewId2, kInvalidViewId);
 
@@ -236,38 +234,43 @@ TEST(Reconstruction, addFeatureInvalid)
     EXPECT_FALSE(scene.addFeature(viewId2, trackId, kFeatures[1]));
 }
 
-TEST(Reconstruction, addTrackValid)
+TEST(Scene, AddTrackEmpty)
+{
+    Scene scene;
+    const auto trackId = scene.addTrack();
+    EXPECT_NE(trackId, kInvalidTrackId);
+}
+
+TEST(Scene, AddTrackValid)
 {
     Scene scene;
 
-    const std::vector<std::pair<ViewId, Feature>> track{{0, kFeatures[0]},
-                                                        {1, kFeatures[1]}};
+    const Scene::TrackObservation obs{{0, kFeatures[0]}, {1, kFeatures[1]}};
     EXPECT_NE(scene.addView(kViewNames[0], 0.), kInvalidViewId);
     EXPECT_NE(scene.addView(kViewNames[1], 1.), kInvalidViewId);
 
-    const auto trackId = scene.addTrack(track);
+    const auto trackId = scene.addTrack(obs);
     EXPECT_NE(trackId, kInvalidTrackId);
     EXPECT_TRUE(scene.track(trackId));
     EXPECT_EQ(scene.trackCount(), 1);
 }
 
-TEST(Reconstruction, addTrackInvalid)
+TEST(Scene, AddTrackInvalid)
 {
     Scene scene;
 
     // Should fail with less than two views.
-    const std::vector<std::pair<ViewId, Feature>> invalidObs{{0, kFeatures[0]}};
-    EXPECT_NE(scene.addView(kViewNames[0], 0.0), kInvalidViewId);
+    const Scene::TrackObservation invalidObs{{0, kFeatures[0]}};
+    EXPECT_NE(scene.addView(kViewNames[0], 0.), kInvalidViewId);
     EXPECT_EQ(scene.addTrack(invalidObs), kInvalidTrackId);
     EXPECT_EQ(scene.trackCount(), 0);
 }
 
-TEST(Reconstruction, RemoveTrackValid)
+TEST(Scene, RemoveTrackValid)
 {
     Scene scene;
 
-    const std::vector<std::pair<ViewId, Feature>> track{{0, kFeatures[0]},
-                                                        {1, kFeatures[1]}};
+    const Scene::TrackObservation track{{0, kFeatures[0]}, {1, kFeatures[1]}};
 
     // Should be able to successfully remove the track.
     EXPECT_NE(scene.addView(kViewNames[0], 0.), kInvalidViewId);
@@ -276,7 +279,7 @@ TEST(Reconstruction, RemoveTrackValid)
     EXPECT_TRUE(scene.removeTrack(trackId));
 }
 
-TEST(Reconstruction, RemoveTrackInvalid)
+TEST(Scene, RemoveTrackInvalid)
 {
     Scene scene;
 
@@ -284,13 +287,13 @@ TEST(Reconstruction, RemoveTrackInvalid)
     EXPECT_FALSE(scene.removeTrack(kInvalidTrackId));
 }
 
-TEST(Reconstruction, GetTrackValid)
+TEST(Scene, GetTrackValid)
 {
     Scene scene;
-    const std::vector<std::pair<ViewId, Feature>> track{{0, kFeatures[0]},
-                                                        {1, kFeatures[1]}};
-    EXPECT_NE(scene.addView(kViewNames[0], 0.0), kInvalidViewId);
-    EXPECT_NE(scene.addView(kViewNames[1], 1.0), kInvalidViewId);
+
+    const Scene::TrackObservation track{{0, kFeatures[0]}, {1, kFeatures[1]}};
+    EXPECT_NE(scene.addView(kViewNames[0], 0.), kInvalidViewId);
+    EXPECT_NE(scene.addView(kViewNames[1], 1.), kInvalidViewId);
 
     const auto trackId = scene.addTrack(track);
     EXPECT_NE(trackId, kInvalidTrackId);
@@ -302,10 +305,11 @@ TEST(Reconstruction, GetTrackValid)
     EXPECT_NE(mutableTrack, nullptr);
 }
 
-TEST(Reconstruction, GetTrackInvalid)
+TEST(Scene, GetTrackInvalid)
 {
     Scene scene;
-    const std::vector<std::pair<ViewId, Feature>> track = {};
+
+    const Scene::TrackObservation track = {};
     const auto trackId = scene.addTrack(track);
     EXPECT_EQ(trackId, kInvalidTrackId);
 
@@ -316,7 +320,7 @@ TEST(Reconstruction, GetTrackInvalid)
     EXPECT_EQ(mutableTrack, nullptr);
 }
 
-TEST(Reconstruction, GetSubReconstruction)
+TEST(Scene, GetSubScene)
 {
     constexpr int kViewCount{100};
     constexpr int kTrackCount{1000};
@@ -330,9 +334,9 @@ TEST(Reconstruction, GetSubReconstruction)
     }
 
     for (int i{0}; i < kTrackCount; i++) {
-        std::vector<std::pair<ViewId, Feature>> track;
+        Scene::TrackObservation track;
         for (int j{0}; j < kNumObservationsPerTrack; j++) {
-            track.emplace_back((i + j) % kViewCount, Feature{});
+            track.insert({(i + j) % kViewCount, Feature{}});
         }
         const auto trackId = scene.addTrack(track);
         EXPECT_NE(trackId, kInvalidTrackId);

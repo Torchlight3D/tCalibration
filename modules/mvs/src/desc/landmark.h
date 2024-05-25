@@ -36,9 +36,6 @@ public:
     void setEstimated(bool est);
     bool estimated() const;
 
-    void setError(double err);
-    double error() const;
-
     /// Relationship
     void addView(ViewId viewId);
     bool removeView(ViewId viewId);
@@ -57,7 +54,6 @@ private:
     Eigen::VectorXf reference_descriptor_; // not used for now
     Eigen::Vector3i m_color;
     double m_invDepth;
-    double m_error;
     ViewId m_refViewId;
     bool m_estimated;
 };

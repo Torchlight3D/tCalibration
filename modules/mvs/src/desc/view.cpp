@@ -20,13 +20,13 @@ View::View(const std::string& name, double timestamp)
 
 const std::string& View::name() const { return m_name; }
 
+void View::setTimestamp(double timestamp) { m_timestamp = timestamp; }
+
+double View::timestamp() const { return m_timestamp; }
+
 const Camera& View::camera() const { return m_camera; }
 
 Camera& View::rCamera() { return m_camera; }
-
-void View::setEstimated(bool on) { m_estimated = on; }
-
-bool View::estimated() const { return m_estimated; }
 
 void View::setCameraMetaData(const CameraMetaData& meta)
 {
@@ -37,7 +37,45 @@ const CameraMetaData& View::cameraMetaData() const { return m_camMetaData; }
 
 CameraMetaData& View::rCameraMetaData() { return m_camMetaData; }
 
+void View::addFeature(TrackId id, const Feature& feature)
+{
+    m_trackIdToFeature.insert({id, feature});
+    m_featureToTrackId.insert({feature, id});
+}
+
+bool View::removeFeature(TrackId id)
+{
+    if (const auto feature = con::FindOrNull(m_trackIdToFeature, id)) {
+        return m_trackIdToFeature.erase(id) > 0 &&
+               m_featureToTrackId.erase(*feature) > 0;
+    }
+    return false;
+}
+
+const Feature* View::featureOf(TrackId id) const
+{
+    return con::FindOrNull(m_trackIdToFeature, id);
+}
+
+std::vector<Eigen::Vector2d> View::features() const
+{
+    std::vector<Vector2d> imgPoints;
+    imgPoints.reserve(m_trackIdToFeature.size());
+    for (const auto& [_, feat] : m_trackIdToFeature) {
+        imgPoints.push_back(feat.pos);
+    }
+    return imgPoints;
+}
+
 size_t View::featureCount() const { return m_trackIdToFeature.size(); }
+
+TrackId View::trackIdOf(const Feature& feature) const
+{
+    if (const auto id = con::FindOrNull(m_featureToTrackId, feature)) {
+        return *id;
+    }
+    return kInvalidTrackId;
+}
 
 std::vector<TrackId> View::trackIds() const
 {
@@ -51,37 +89,7 @@ std::vector<TrackId> View::trackIds() const
 
 size_t View::trackCount() const { return m_trackIdToFeature.size(); }
 
-const Feature* View::featureOf(int id) const
-{
-    return con::FindOrNull(m_trackIdToFeature, id);
-}
-
-int View::trackIdOf(const Feature& feature) const
-{
-    if (const auto id = con::FindOrNull(m_featureToTrackId, feature)) {
-        return *id;
-    }
-    return kInvalidTrackId;
-}
-
-void View::addFeature(TrackId trackId, const Feature& feature)
-{
-    m_trackIdToFeature.insert({trackId, feature});
-    m_featureToTrackId.insert({feature, trackId});
-}
-
-bool View::removeFeature(TrackId trackId)
-{
-    if (const auto feature = con::FindOrNull(m_trackIdToFeature, trackId)) {
-        return m_trackIdToFeature.erase(trackId) > 0 &&
-               m_featureToTrackId.erase(*feature) > 0;
-    }
-    return false;
-}
-
-void View::setTimestamp(double timestamp) { m_timestamp = timestamp; }
-
-double View::timestamp() const { return m_timestamp; }
+bool View::empty() const { return m_trackIdToFeature.empty(); }
 
 Vector3d View::position() const { return m_camera.position(); }
 
@@ -104,49 +112,42 @@ Matrix3d View::positionPriorSqrt() const { return m_posPriorSqrt; }
 
 bool View::hasPositionPrior() const { return m_hasPosPrior; }
 
-void View::setTrackError(TrackId id, double error)
-{
-    if (const auto found = con::FindOrNull(m_trackIdToFeature, id)) {
-        // Replace or create
-        m_trackIdToError[id] = error;
-    }
-}
-
-bool View::trackError(TrackId id, double& error) const
-{
-    if (const auto found = con::FindOrNull(m_trackIdToError, id)) {
-        error = *found;
-        return true;
-    }
-
-    return false;
-}
-
-double View::averageError() const
-{
-    double error{0.};
-    for (const auto& [_, err] : m_trackIdToError) {
-        error += err;
-    }
-    return error / trackCount();
-}
-
 void View::setTrackOffset(TrackId id, const Vector2d& offset)
 {
     if (const auto found = con::FindOrNull(m_trackIdToFeature, id)) {
-        // Replace or create
         m_trackIdToOffset[id] = offset;
     }
 }
 
-bool View::trackOffset(TrackId id, Vector2d& offset) const
+std::optional<Eigen::Vector2d> View::trackOffset(TrackId id) const
 {
     if (const auto found = con::FindOrNull(m_trackIdToOffset, id)) {
-        offset = *found;
-        return true;
+        return std::make_optional(*found);
     }
 
-    return false;
+    return {};
 }
+
+std::optional<double> View::trackError(TrackId id) const
+{
+    if (const auto offset = trackOffset(id); offset.has_value()) {
+        return std::make_optional(offset.value().norm());
+    }
+
+    return {};
+}
+
+double View::trackErrorMean() const
+{
+    auto error{0.};
+    for (const auto& [_, offset] : m_trackIdToOffset) {
+        error += offset.norm();
+    }
+    return error / trackCount();
+}
+
+void View::setEstimated(bool on) { m_estimated = on; }
+
+bool View::estimated() const { return m_estimated; }
 
 } // namespace tl

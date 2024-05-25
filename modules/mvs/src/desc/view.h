@@ -1,5 +1,7 @@
 ﻿#pragma once
 
+#include <optional>
+
 #include <tCamera/Camera>
 #include <tMvs/Types>
 
@@ -29,13 +31,14 @@ public:
 
     void addFeature(TrackId id, const Feature& feature);
     bool removeFeature(TrackId id);
+    const Feature* featureOf(TrackId id) const;
+    std::vector<Eigen::Vector2d> features() const;
     size_t featureCount() const;
 
-    const Feature* featureOf(TrackId id) const;
     TrackId trackIdOf(const Feature& feature) const;
-
     std::vector<TrackId> trackIds() const;
     size_t trackCount() const;
+    bool empty() const;
 
     Eigen::Vector3d position() const;
     Eigen::Vector3d orientationAsEuler() const;
@@ -46,11 +49,10 @@ public:
     Eigen::Matrix3d positionPriorSqrt() const;
     bool hasPositionPrior() const;
 
-    void setTrackError(TrackId id, double error);
-    bool trackError(TrackId id, double& error) const;
-    double averageError() const;
     void setTrackOffset(TrackId id, const Eigen::Vector2d& offset);
-    bool trackOffset(TrackId id, Eigen::Vector2d& offset) const;
+    std::optional<Eigen::Vector2d> trackOffset(TrackId id) const;
+    std::optional<double> trackError(TrackId id) const;
+    double trackErrorMean() const;
 
     void setEstimated(bool est);
     bool estimated() const;
@@ -65,7 +67,6 @@ private:
     std::unordered_map<Feature, TrackId> m_featureToTrackId;
 
     // For analysis and visualization
-    std::unordered_map<TrackId, double> m_trackIdToError;
     std::unordered_map<TrackId, Eigen::Vector2d> m_trackIdToOffset;
 
     // Prior on an absolute position (e.g. GPS), not used yet

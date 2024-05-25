@@ -186,7 +186,7 @@ bool CameraPoseCalibration::calibrate(const StampedTargetDetections& detections,
 
         // Add this view
         const auto viewName = mvs::makeUniqueViewName(camId, timestamp);
-        const auto viewId = d->m_scene->addView(viewName, camId, timestamp);
+        const auto viewId = d->m_scene->addView(viewName, timestamp, camId);
 
         // We only use the pose of the camera, and don't care about
         // intrinsics, so use default Pinhole camera
@@ -207,7 +207,8 @@ bool CameraPoseCalibration::calibrate(const StampedTargetDetections& detections,
             d->m_trackIdToObsCount[trackId] += 1;
         }
 
-        const double viewRPE = d->m_scene->calcViewReprojectionError(viewId);
+        const double viewRPE =
+            d->m_scene->calcViewReprojectionError(viewId).value();
         if (viewRPE > d->m_maxRPE) {
             LOG(INFO) << "Removing view " << viewId
                       << ": "

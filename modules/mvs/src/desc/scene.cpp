@@ -1,41 +1,21 @@
 ﻿#include "scene.h"
 
 #include <glog/logging.h>
+
 #include <tCore/ContainerUtils>
+#include <tMath/Eigen/Utils>
 
 namespace tl {
 
+using Eigen::ArrayXd;
+using Eigen::ArrayXi;
+using Eigen::Matrix3d;
+using Eigen::Matrix3Xd;
+using Eigen::Quaterniond;
+using Eigen::Vector2d;
+using Eigen::Vector3d;
+
 namespace {
-
-bool checkDuplicateViewsInTrack(
-    const std::vector<std::pair<int, Feature>>& tracks)
-{
-    std::vector<ViewId> viewIds;
-    viewIds.reserve(tracks.size());
-    for (const auto& [id, _] : tracks) {
-        viewIds.push_back(id);
-    }
-
-    std::sort(viewIds.begin(), viewIds.end());
-    return std::adjacent_find(viewIds.begin(), viewIds.end()) != viewIds.end();
-}
-
-void transformPoint(const Eigen::Matrix3d& rmat, const Eigen::Vector3d& tvec,
-                    double scale, Eigen::Vector3d& point)
-{
-    point = scale * rmat * point + tvec;
-}
-
-void transformCamera(const Eigen::Matrix3d& rmat, const Eigen::Vector3d& tvec,
-                     double scale, Camera& camera)
-{
-    const auto camOrientation = camera.orientationAsRotationMatrix();
-    camera.setOrientationFromRotationMatrix(camOrientation * rmat.transpose());
-
-    Eigen::Vector3d cam_pos = camera.position();
-    transformPoint(rmat, tvec, scale, cam_pos);
-    camera.setPosition(cam_pos);
-}
 
 } // namespace
 
@@ -44,33 +24,32 @@ Scene::Scene() : m_nextTrackId(0), m_nextViewId(0), m_nextCamId(0) {}
 
 Scene::~Scene() = default;
 
-ViewId Scene::addView(const std::string& name, double timestamp)
-{
-    const auto viewId = addView(name, m_nextCamId, timestamp);
-    ++m_nextCamId;
-    return viewId;
-}
-
-ViewId Scene::addView(const std::string& name, CameraId camId, double timestamp)
+ViewId Scene::addView(const std::string& name, double timestamp, CameraId camId)
 {
     if (name.empty()) {
-        LOG(WARNING) << "Failed to add view to scene: View name is empty.";
+        LOG(WARNING) << "Failed to add view to scene: "
+                        "View name is empty.";
         return kInvalidViewId;
     }
 
     if (m_nameToViewId.contains(name)) {
-        LOG(WARNING) << "Failed to add view to scene: View name(" << name
-                     << ") already exists.";
+        LOG(WARNING) << "Failed to add view to scene: "
+                        "View name ("
+                     << name << ") already exists.";
         return kInvalidViewId;
     }
 
     // FIXME: If exist, the existed ones should have same camId. It's impossible
     // to capture in more than one place at the same time.
-    //    if (ContainsKey(m_timestampToViewIds, timestamp)) {
-    //        LOG(WARNING) << "Failed to add view to scene: View timestamp("
-    //                     << timestamp << ") already exists.";
-    //        return kInvalidViewId;
-    //    }
+    // if (m_timestampToViewIds.contains(timestamp)) {
+    //     LOG(WARNING) << "Failed to add view to scene: View timestamp("
+    //                  << timestamp << ") already exists.";
+    //     return kInvalidViewId;
+    // }
+
+    if (camId == kInvalidCameraId) {
+        camId = m_nextCamId++;
+    }
 
     View view{name, timestamp};
 
@@ -79,23 +58,23 @@ ViewId Scene::addView(const std::string& name, CameraId camId, double timestamp)
     // intrinsics to the same underlying intrinsics.
     if (!sharedViewIds.empty()) {
         // Any view is fine, they share the same intrinsics.
-        const auto viewId = *sharedViewIds.begin();
-        const auto& camera = con::FindOrDie(m_viewIdToView, viewId).camera();
+        const auto& camera =
+            con::FindOrDie(m_viewIdToView, *sharedViewIds.begin()).camera();
         view.rCamera().setCameraIntrinsics(camera.cameraIntrinsics());
     }
 
     view.setTimestamp(timestamp);
 
     // Add the view relationships
-    m_viewIdToView.emplace(m_nextViewId, view);
-    m_nameToViewId.emplace(name, m_nextViewId);
-    m_timestampToViewIds[timestamp].insert(m_nextViewId);
+    const auto viewId = m_nextViewId++;
+    m_viewIdToView.emplace(viewId, view);
+    m_nameToViewId.emplace(name, viewId);
+    m_timestampToViewIds[timestamp].insert(viewId);
     // Add this view to the camera intrinsics group, and vice versa.
-    m_viewIdToCamId.emplace(m_nextViewId, camId);
-    m_camIdToViewIds[camId].emplace(m_nextViewId);
+    m_viewIdToCamId.emplace(viewId, camId);
+    m_camIdToViewIds[camId].emplace(viewId);
 
-    ++m_nextViewId;
-    return m_nextViewId - 1;
+    return viewId;
 }
 
 bool Scene::removeView(ViewId viewId)
@@ -170,8 +149,17 @@ int Scene::viewCount() const { return static_cast<int>(m_viewIdToView.size()); }
 
 int Scene::viewCount(CameraId id) const
 {
-    const auto sharedCamViewIds = sharedCameraViewIds(id);
-    return sharedCamViewIds.size();
+    if (!m_camIdToViewIds.contains(id)) {
+        return 0;
+    }
+    return m_camIdToViewIds.at(id).size();
+}
+
+int Scene::estimatedViewCount() const
+{
+    return std::count_if(
+        m_viewIdToView.cbegin(), m_viewIdToView.cend(),
+        [](const auto& item) { return item.second.estimated(); });
 }
 
 ViewId Scene::viewIdFromName(const std::string& name) const
@@ -192,6 +180,29 @@ std::vector<ViewId> Scene::viewIds() const
         ids.push_back(id);
     }
     return ids;
+}
+
+std::vector<ViewId> Scene::estimatedViewIds() const
+{
+    std::vector<ViewId> ids;
+    ids.reserve(m_viewIdToView.size());
+    for (const auto& [id, view] : m_viewIdToView) {
+        if (view.estimated()) {
+            ids.push_back(id);
+        }
+    }
+    return ids;
+}
+
+std::vector<ViewId> Scene::sharedCameraViewIds(CameraId id) const
+{
+    const auto viewIds =
+        con::FindWithDefault(m_camIdToViewIds, id, std::set<ViewId>());
+    if (viewIds.empty()) {
+        return {};
+    }
+
+    return {viewIds.begin(), viewIds.end()};
 }
 
 CameraId Scene::cameraId(ViewId id) const
@@ -219,17 +230,6 @@ std::vector<CameraId> Scene::cameraIds() const
     return ids;
 }
 
-std::vector<ViewId> Scene::sharedCameraViewIds(CameraId id) const
-{
-    const auto viewIds =
-        con::FindWithDefault(m_camIdToViewIds, id, std::set<ViewId>());
-    if (viewIds.empty()) {
-        return {};
-    }
-
-    return {viewIds.begin(), viewIds.end()};
-}
-
 int Scene::cameraCount() const
 {
     return static_cast<int>(m_camIdToViewIds.size());
@@ -247,14 +247,13 @@ CameraId Scene::pairCameraIdOf(CameraId id) const
 
 TrackId Scene::addTrack()
 {
-    const auto trackId = m_nextTrackId;
-    CHECK(!m_trackIdToTrack.contains(trackId))
-        << "Track already exists: Id " << trackId;
+    const auto id = m_nextTrackId;
+    CHECK(!m_trackIdToTrack.contains(id)) << "Track already exists: Id " << id;
 
     Track track;
-    m_trackIdToTrack.emplace(trackId, track);
+    m_trackIdToTrack.emplace(id, track);
     ++m_nextTrackId;
-    return trackId;
+    return id;
 }
 
 void Scene::addTrack(TrackId id)
@@ -265,60 +264,21 @@ void Scene::addTrack(TrackId id)
     m_trackIdToTrack.emplace(id, track);
 }
 
-bool Scene::addFeature(ViewId viewId, TrackId trackId, const Feature& feature)
+TrackId Scene::addTrack(const TrackObservation& trackObservation)
 {
-    CHECK(m_viewIdToView.contains(viewId))
-        << "View does not exist. AddObservation may only be used to add "
-           "observations to an existing view.";
-    CHECK(m_trackIdToTrack.contains(trackId))
-        << "Track does not exist. AddObservation may only be used to add "
-           "observations to an existing track.";
-
-    auto* view = con::FindOrNull(m_viewIdToView, viewId);
-    auto* track = con::FindOrNull(m_trackIdToTrack, trackId);
-    if (view->featureOf(trackId)) {
-        LOG(WARNING) << "Cannot add a new observation of track " << trackId
-                     << " because the view already contains an observation of "
-                        "the track.";
-        return false;
-    }
-
-    const std::unordered_set<int>& views_observing_track = track->viewIds();
-    if (views_observing_track.contains(viewId)) {
-        LOG(WARNING) << "Cannot add a new observation of track " << trackId
-                     << " because the track is already observed by view "
-                     << viewId;
-        return false;
-    }
-
-    view->addFeature(trackId, feature);
-    track->addView(viewId);
-    return true;
-}
-
-int Scene::addTrack(
-    const std::vector<std::pair<ViewId, Feature>>& viewIdToFeature)
-{
-    if (viewIdToFeature.size() < 2) {
+    if (trackObservation.size() < 2) {
         LOG(WARNING) << "A landmark must have at least 2 observations ("
-                     << viewIdToFeature.size()
+                     << trackObservation.size()
                      << " were given). Cannot add landmark to the scene";
-        return kInvalidTrackId;
-    }
-
-    if (checkDuplicateViewsInTrack(viewIdToFeature)) {
-        LOG(WARNING)
-            << "Cannot add a track that contains the same view twice to "
-               "the reconstruction.";
         return kInvalidTrackId;
     }
 
     const auto trackId = m_nextTrackId;
     CHECK(!m_trackIdToTrack.contains(trackId))
-        << "The reconstruction already contains a track with id: " << trackId;
+        << "The scene already contains a track with id: " << trackId;
 
     Track track;
-    for (const auto& [viewId, feature] : viewIdToFeature) {
+    for (const auto& [viewId, feature] : trackObservation) {
         // Make sure the view exists in the model.
         CHECK(m_viewIdToView.contains(viewId))
             << "Cannot add a track with containing an observation in view id "
@@ -375,18 +335,6 @@ Track* Scene::rTrack(TrackId id)
     return con::FindOrNull(m_trackIdToTrack, id);
 }
 
-int Scene::trackCount() const
-{
-    return static_cast<int>(m_trackIdToTrack.size());
-}
-
-std::unordered_map<TrackId, Track> Scene::tracks() const
-{
-    return m_trackIdToTrack;
-}
-
-std::unordered_map<ViewId, View> Scene::views() const { return m_viewIdToView; }
-
 std::vector<TrackId> Scene::trackIds() const
 {
     std::vector<TrackId> ids;
@@ -397,39 +345,242 @@ std::vector<TrackId> Scene::trackIds() const
     return ids;
 }
 
+std::vector<TrackId> Scene::estimatedTrackIds() const
+{
+    std::vector<TrackId> ids;
+    ids.reserve(m_trackIdToTrack.size());
+    for (const auto& [id, track] : m_trackIdToTrack) {
+        if (track.estimated()) {
+            ids.push_back(id);
+        }
+    }
+    return ids;
+}
+
+std::vector<TrackId> Scene::trackIdsInViews(
+    const std::vector<ViewId>& viewIds) const
+{
+    if (viewIds.empty()) {
+        return {};
+    }
+
+    auto trackIdsInView = [this](ViewId id) -> std::vector<TrackId> {
+        if (!m_viewIdToView.contains(id)) {
+            return {};
+        }
+
+        return m_viewIdToView.at(id).trackIds();
+    };
+
+    auto commonTrackIds = trackIdsInView(viewIds.front());
+
+    if (viewIds.size() == 1) {
+        return commonTrackIds;
+    }
+
+    std::sort(commonTrackIds.begin(), commonTrackIds.end());
+
+    std::vector<TrackId> buffer;
+    for (const auto& viewId : viewIds) {
+        if (commonTrackIds.empty()) {
+            break;
+        }
+
+        buffer.clear();
+
+        auto trackIds = trackIdsInView(viewId);
+        std::sort(trackIds.begin(), trackIds.end());
+
+        std::set_intersection(commonTrackIds.cbegin(), commonTrackIds.cend(),
+                              trackIds.cbegin(), trackIds.cend(),
+                              std::back_inserter(buffer));
+        std::swap(commonTrackIds, buffer);
+    }
+
+    return commonTrackIds;
+}
+
+std::vector<Eigen::Vector3d> Scene::tracksInView(ViewId viewId) const
+{
+    if (!m_viewIdToView.contains(viewId)) {
+        return {};
+    }
+
+    const auto trackIdsInView = m_viewIdToView.at(viewId).trackIds();
+
+    std::vector<Vector3d> objPoints;
+    objPoints.reserve(trackIdsInView.size());
+    for (const auto& trackId : trackIdsInView) {
+        if (m_trackIdToTrack.contains(trackId)) {
+            objPoints.push_back(
+                m_trackIdToTrack.at(trackId).position().hnormalized());
+        }
+    }
+
+    return objPoints;
+}
+
+int Scene::trackCount() const
+{
+    return static_cast<int>(m_trackIdToTrack.size());
+}
+
+int Scene::estimatedTrackCount() const
+{
+    return std::count_if(
+        m_trackIdToTrack.cbegin(), m_trackIdToTrack.cend(),
+        [](const auto& item) { return item.second.estimated(); });
+}
+
+int Scene::setUnderconstrainedViewsToUnestimated()
+{
+    constexpr int kMinNumTracks = 3;
+
+    int num_underconstrained_views = 0;
+    // Set all underconstrained views to be unestimated.
+    for (const auto& viewId : viewIds()) {
+        auto* view = CHECK_NOTNULL(rView(viewId));
+        if (!view->estimated()) {
+            continue;
+        }
+
+        // Count the number of estimated views observing it.
+        int estimatedTrackCount = 0;
+        for (const auto& trackId : view->trackIds()) {
+            if (track(trackId)->estimated()) {
+                ++estimatedTrackCount;
+            }
+            if (estimatedTrackCount >= kMinNumTracks) {
+                break;
+            }
+        }
+
+        if (estimatedTrackCount < kMinNumTracks) {
+            view->setEstimated(false);
+            ++num_underconstrained_views;
+        }
+    }
+
+    return num_underconstrained_views;
+}
+
+int Scene::setUnderconstrainedTracksToUnestimated()
+{
+    constexpr int kMinNumViews = 2;
+
+    int num_underconstrained_tracks = 0;
+    // Set all underconstrained tracks to be unestimated.
+    for (const TrackId track_id : trackIds()) {
+        Track* track = CHECK_NOTNULL(rTrack(track_id));
+        if (!track->estimated()) {
+            continue;
+        }
+
+        // Count the number of estimated views observing it.
+        int num_estimated_views = 0;
+        for (const ViewId view_id : track->viewIds()) {
+            if (view(view_id)->estimated()) {
+                ++num_estimated_views;
+            }
+            if (num_estimated_views >= kMinNumViews) {
+                break;
+            }
+        }
+
+        if (num_estimated_views < kMinNumViews) {
+            track->setEstimated(false);
+            ++num_underconstrained_tracks;
+        }
+    }
+
+    return num_underconstrained_tracks;
+}
+
+void Scene::setUnestimated()
+{
+    // Set tracks as unestimated.
+    for (const auto& id : trackIds()) {
+        if (auto* track = rTrack(id); track->estimated()) {
+            track->setEstimated(false);
+        }
+    }
+
+    // Set views as unestimated.
+    for (const auto& id : viewIds()) {
+        if (auto* view = rView(id); view->estimated()) {
+            view->setEstimated(false);
+        }
+    }
+}
+
+bool Scene::addFeature(ViewId viewId, TrackId trackId, const Feature& feature)
+{
+    CHECK(m_viewIdToView.contains(viewId))
+        << "View does not exist. AddObservation may only be used to add "
+           "observations to an existing view.";
+    CHECK(m_trackIdToTrack.contains(trackId))
+        << "Track does not exist. AddObservation may only be used to add "
+           "observations to an existing track.";
+
+    auto* view = con::FindOrNull(m_viewIdToView, viewId);
+    auto* track = con::FindOrNull(m_trackIdToTrack, trackId);
+    if (view->featureOf(trackId)) {
+        LOG(WARNING) << "Cannot add a new observation of track " << trackId
+                     << " because the view already contains an observation of "
+                        "the track.";
+        return false;
+    }
+
+    const auto& observedViewIds = track->viewIds();
+    if (observedViewIds.contains(viewId)) {
+        LOG(WARNING) << "Cannot add a new observation of track " << trackId
+                     << " because the track is already observed by view "
+                     << viewId;
+        return false;
+    }
+
+    view->addFeature(trackId, feature);
+    track->addView(viewId);
+    return true;
+}
+
 void Scene::normalize()
 {
+    auto findMedianPoint = [](const std::vector<Eigen::Vector3d>& points) {
+        const Eigen::Map<const Matrix3Xd> P(points[0].data(), 3, points.size());
+        std::vector<double> x{P.row(0).data(),
+                              P.row(0).data() + P.row(0).size()};
+        std::vector<double> y{P.row(1).data(),
+                              P.row(1).data() + P.row(1).size()};
+        std::vector<double> z{P.row(2).data(),
+                              P.row(2).data() + P.row(2).size()};
+        const auto x_med = con::FindMedian(x);
+        const auto y_med = con::FindMedian(y);
+        const auto z_med = con::FindMedian(z);
+        return Vector3d{x_med, y_med, z_med};
+    };
+
     // First normalize the position so that the marginal median of the camera
     // positions is at the origin.
-    std::vector<std::vector<double>> camera_positions(3);
-    Eigen::Vector3d median_camera_position;
-    const auto& viewIds = this->viewIds();
-    for (const auto& view_id : viewIds) {
-        const View* view = this->view(view_id);
-        if (!view || !view->estimated()) {
-            continue;
+    std::vector<Vector3d> positions;
+    const auto viewIds = this->viewIds();
+    for (const auto& viewId : viewIds) {
+        if (const auto* view = this->view(viewId); view && view->estimated()) {
+            positions.push_back(view->camera().position());
         }
-
-        const Eigen::Vector3d point = view->camera().position();
-        camera_positions[0].push_back(point[0]);
-        camera_positions[1].push_back(point[1]);
-        camera_positions[2].push_back(point[2]);
     }
-    median_camera_position(0) = con::FindMedian(camera_positions[0]);
-    median_camera_position(1) = con::FindMedian(camera_positions[1]);
-    median_camera_position(2) = con::FindMedian(camera_positions[2]);
-    transform(Eigen::Matrix3d::Identity(), -median_camera_position, 1.0);
+
+    const auto t_med = findMedianPoint(positions);
+    transform(Matrix3d::Identity(), -t_med);
 
     // Get the estimated track ids.
-    const auto& tempTrackIds = this->trackIds();
+    const auto tempTrackIds = this->trackIds();
     std::vector<TrackId> trackIds;
     trackIds.reserve(tempTrackIds.size());
-    for (const auto& track_id : tempTrackIds) {
-        const auto track = this->track(track_id);
-        if (!track || !track->estimated()) {
-            continue;
+    for (const auto& id : tempTrackIds) {
+        if (const auto track = this->track(id); track && track->estimated()) {
+            trackIds.emplace_back(id);
         }
-        trackIds.emplace_back(track_id);
     }
 
     if (trackIds.empty()) {
@@ -437,62 +588,53 @@ void Scene::normalize()
     }
 
     // Compute the marginal median of the 3D points.
-    std::vector<std::vector<double>> points(3);
-    Eigen::Vector3d median;
+    std::vector<Vector3d> points;
     for (const auto& id : trackIds) {
         const auto track = this->track(id);
-        const Eigen::Vector3d point = track->position().hnormalized();
-        points[0].push_back(point[0]);
-        points[1].push_back(point[1]);
-        points[2].push_back(point[2]);
+        points.push_back(track->position().hnormalized());
     }
-    median(0) = con::FindMedian(points[0]);
-    median(1) = con::FindMedian(points[1]);
-    median(2) = con::FindMedian(points[2]);
+
+    const auto pt_med = findMedianPoint(points);
 
     // Find the median absolute deviation of the points from the median.
     std::vector<double> distance_to_median;
     distance_to_median.reserve(trackIds.size());
     for (const auto& id : trackIds) {
         const auto track = this->track(id);
-        const Eigen::Vector3d point = track->position().hnormalized();
-        distance_to_median.emplace_back((point - median).lpNorm<1>());
+        const Vector3d point = track->position().hnormalized();
+        distance_to_median.emplace_back((point - pt_med).lpNorm<1>());
     }
 
-    // This will scale the reconstruction so that the median absolute deviation
-    // of the points is 100.
-    const double scale = 100.0 / con::FindMedian(distance_to_median);
-    transform(Eigen::Matrix3d::Identity(), Eigen::Vector3d::Zero(), scale);
+    // This will scale the scene so that the median absolute deviation of the
+    // points is 100.
+    const auto scale = 100. / con::FindMedian(distance_to_median);
+    transform(Matrix3d::Identity(), Vector3d::Zero(), scale);
 
     // Most images are taken relatively upright with the x-direction of the
     // image parallel to the ground plane. We can solve for the transformation
     // that tries to best align the x-directions to the ground plane by finding
     // the null vector of the covariance matrix of per-camera x-directions.
-    Eigen::Matrix3d correlation = Eigen::Matrix3d::Zero();
+    Matrix3d correlation = Matrix3d::Zero();
     for (const auto& viewId : viewIds) {
-        const auto* view = this->view(viewId);
-        if (!view || !view->estimated()) {
-            continue;
+        if (const auto* view = this->view(viewId); view && view->estimated()) {
+            const Vector3d x =
+                view->camera().orientationAsRotationMatrix().transpose() *
+                Vector3d::UnitX();
+            correlation += x * x.transpose();
         }
-
-        const auto& camera = view->camera();
-        const Eigen::Vector3d x =
-            camera.orientationAsRotationMatrix().transpose() *
-            Eigen::Vector3d{1.0, 0.0, 0.0};
-        correlation += x * x.transpose();
     }
 
     // The up-direction is computed as the null vector of the covariance matrix.
-    Eigen::JacobiSVD<Eigen::Matrix3d> svd{correlation, Eigen::ComputeFullV};
-    const Eigen::Vector3d plane_normal = svd.matrixV().rightCols<1>();
+    Eigen::JacobiSVD<Matrix3d> svd{correlation, Eigen::ComputeFullV};
+    const Vector3d planeNormal = svd.matrixV().rightCols<1>();
 
     // We want the coordinate system to be such that the cameras lie on the x-z
     // plane with the y vector pointing up. Thus, the plane normal should be
     // equal to the positive y-direction.
-    Eigen::Matrix3d rotation = Eigen::Quaterniond::FromTwoVectors(
-                                   plane_normal, Eigen::Vector3d(0, 1, 0))
-                                   .toRotationMatrix();
-    transform(rotation, Eigen::Vector3d::Zero(), 1.0);
+    const Matrix3d rotation =
+        Quaterniond::FromTwoVectors(planeNormal, Vector3d::UnitY())
+            .toRotationMatrix();
+    transform(rotation, Vector3d::Zero());
 }
 
 void Scene::extractSubScene(const std::unordered_set<ViewId>& subViewIds,
@@ -545,81 +687,324 @@ void Scene::extractSubScene(const std::unordered_set<ViewId>& subViewIds,
         newTrack.rPosition() = track->position();
 
         // The new track should only contain observations from views in the
-        // subreconstruction. We perform a set intersection to find these views.
-        const auto& observingViewIds = track->viewIds();
+        // sub scene. We perform a set intersection to find these views.
+        const auto& observedViewIds = track->viewIds();
         const auto commonViewIds =
-            con::ContainerIntersection(subViewIds, observingViewIds);
+            con::ContainerIntersection(subViewIds, observedViewIds);
 
         // Add the common views to the new track.
         for (const auto& viewId : commonViewIds) {
             newTrack.addView(viewId);
         }
 
-        // Set the track in the subreconstruction.
+        // Set the track in the sub scene.
         subScene->m_trackIdToTrack.emplace(trackId, newTrack);
     }
 }
 
-double Scene::calcViewReprojectionError(ViewId viewId, bool update,
-                                        const Eigen::Vector3d* rvec,
-                                        const Eigen::Vector3d* tvec)
+std::optional<double> Scene::calcViewReprojectionError(
+    ViewId viewId, bool update, const Eigen::Vector3d* rvec,
+    const Eigen::Vector3d* tvec)
 {
+    if (!m_viewIdToView.contains(viewId)) {
+        return {};
+    }
+
     auto* view = this->rView(viewId);
 
-    struct LandmarkError
-    {
-        Eigen::Vector2d offset;
-        double reprojectError;
-    };
-
-    std::unordered_map<TrackId, LandmarkError> landmarkErrors;
-
-    double viewRPE{0.};
+    std::unordered_map<TrackId, Vector2d> offsets;
+    auto viewRpe{0.};
     for (const auto& trackId : view->trackIds()) {
         const auto* feature = view->featureOf(trackId);
         const auto* track = this->track(trackId);
-        Eigen::Vector2d pt;
+        Vector2d pt;
         view->camera().projectPoint(track->position(), pt, rvec, tvec);
         const auto offset = (*feature).pos - pt;
-        const auto projectError = offset.norm();
-        viewRPE += projectError;
 
-        landmarkErrors.insert(
-            {trackId, {.offset = offset, .reprojectError = projectError}});
+        viewRpe += offset.norm();
+        offsets.insert({trackId, offset});
     }
-    viewRPE /= view->trackCount();
+    viewRpe /= view->trackCount();
 
-    // TODO: Useless? Now used by analysis and visualization.
     if (update) {
-        for (const auto& [trackId, landmarkError] : landmarkErrors) {
-            view->setTrackError(trackId, landmarkError.reprojectError);
-            view->setTrackOffset(trackId, landmarkError.offset);
-            auto* track = this->rTrack(trackId);
-            track->setError(landmarkError.reprojectError);
+        for (const auto& [trackId, offset] : offsets) {
+            view->setTrackOffset(trackId, offset);
         }
     }
 
-    return viewRPE;
+    return std::make_optional(viewRpe);
 }
 
-void Scene::transform(const Eigen::Matrix3d& rmat, const Eigen::Vector3d& tvec,
+std::optional<double> Scene::calcRpeRMS(const Eigen::Vector3d* rvec,
+                                        const Eigen::Vector3d* tvec) const
+{
+    if (m_viewIdToView.empty()) {
+        return {};
+    }
+
+    auto rpeRMS{0.};
+    auto trackCount{0};
+    for (const auto& [viewId, view] : m_viewIdToView) {
+        for (const auto& trackId : view.trackIds()) {
+            const auto* feature = view.featureOf(trackId);
+            const auto* track = this->track(trackId);
+            Vector2d pt;
+            view.camera().projectPoint(track->position(), pt, rvec, tvec);
+
+            rpeRMS += ((*feature).pos - pt).squaredNorm();
+        }
+        trackCount += view.trackCount();
+    }
+    rpeRMS = std::sqrt(rpeRMS / trackCount);
+
+    return std::make_optional(rpeRMS);
+}
+
+std::optional<double> Scene::calcViewRpeRMS(ViewId viewId,
+                                            const Eigen::Vector3d* rvec,
+                                            const Eigen::Vector3d* tvec,
+                                            bool update)
+{
+    if (!m_viewIdToView.contains(viewId)) {
+        return {};
+    }
+
+    auto* view = this->rView(viewId);
+    if (view->empty()) {
+        return {};
+    }
+
+    const auto trackIds = view->trackIds();
+    const auto trackCount = trackIds.size();
+
+    std::vector<Vector2d> offsets;
+    offsets.reserve(trackCount);
+    auto rpeRMS{0.};
+    for (const auto& trackId : view->trackIds()) {
+        const auto* feature = view->featureOf(trackId);
+        const auto* track = this->track(trackId);
+        Vector2d pt;
+        view->camera().projectPoint(track->position(), pt, rvec, tvec);
+        const auto offset = (*feature).pos - pt;
+
+        rpeRMS += offset.squaredNorm();
+        offsets.push_back(offset);
+    }
+    rpeRMS = std::sqrt(rpeRMS / trackCount);
+
+    if (update) {
+        for (size_t i{0}; i < trackCount; ++i) {
+            view->setTrackOffset(trackIds[i], offsets[i]);
+        }
+    }
+
+    return std::make_optional(rpeRMS);
+}
+
+std::optional<double> Scene::calcRpeMean(const Eigen::Vector3d* rvec,
+                                         const Eigen::Vector3d* tvec) const
+{
+    if (m_viewIdToView.empty()) {
+        return {};
+    }
+
+    auto rpeMean{0.};
+    auto trackCount{0};
+    for (const auto& [viewId, view] : m_viewIdToView) {
+        for (const auto& trackId : view.trackIds()) {
+            const auto* feature = view.featureOf(trackId);
+            const auto* track = this->track(trackId);
+            Vector2d pt;
+            view.camera().projectPoint(track->position(), pt, rvec, tvec);
+
+            rpeMean += ((*feature).pos - pt).norm();
+        }
+        trackCount += view.trackCount();
+    }
+    rpeMean /= trackCount;
+
+    return std::make_optional(rpeMean);
+}
+
+std::optional<double> Scene::calcViewRpeMean(ViewId viewId,
+                                             const Eigen::Vector3d* rvec,
+                                             const Eigen::Vector3d* tvec,
+                                             bool update)
+{
+    if (!m_viewIdToView.contains(viewId)) {
+        return {};
+    }
+
+    auto* view = this->rView(viewId);
+    if (view->empty()) {
+        return {};
+    }
+
+    const auto trackIds = view->trackIds();
+    const auto trackCount = trackIds.size();
+
+    std::vector<Vector2d> offsets;
+    offsets.reserve(trackCount);
+    auto rpeMean{0.};
+    for (const auto& trackId : trackIds) {
+        const auto* feature = view->featureOf(trackId);
+        const auto* track = this->track(trackId);
+        Vector2d pt;
+        view->camera().projectPoint(track->position(), pt, rvec, tvec);
+        const auto offset = (*feature).pos - pt;
+
+        rpeMean += offset.norm();
+        offsets.push_back(offset);
+    }
+    rpeMean /= trackCount;
+
+    if (update) {
+        for (size_t i{0}; i < trackCount; ++i) {
+            view->setTrackOffset(trackIds[i], offsets[i]);
+        }
+    }
+
+    return std::make_optional(rpeMean);
+}
+
+std::optional<double> Scene::calcAverageViewRpeMean(
+    const Eigen::Vector3d* rvec, const Eigen::Vector3d* tvec) const
+{
+    if (m_viewIdToView.empty()) {
+        return {};
+    }
+
+    std::vector<int> trackCounts;
+    std::vector<double> rpeMeans;
+    for (const auto& [viewId, view] : m_viewIdToView) {
+        if (view.empty()) {
+            continue;
+        }
+
+        auto rpeMean{0.};
+        for (const auto& trackId : view.trackIds()) {
+            const auto* feature = view.featureOf(trackId);
+            const auto* track = this->track(trackId);
+            Vector2d pt;
+            view.camera().projectPoint(track->position(), pt, rvec, tvec);
+
+            rpeMean += ((*feature).pos - pt).norm();
+        }
+        const auto trackCount = view.trackCount();
+        rpeMean /= trackCount;
+
+        trackCounts.push_back(trackCount);
+        rpeMeans.push_back(rpeMean);
+    }
+
+    const ArrayXd W =
+        Eigen::Map<ArrayXi>(trackCounts.data(), trackCounts.size())
+            .cast<double>();
+    const Eigen::Map<ArrayXd> V(rpeMeans.data(), rpeMeans.size());
+
+    const auto res = ((W / W.sum()) * V).sum();
+
+    return std::make_optional(res);
+}
+
+std::optional<double> Scene::calcRpeMedian(const Eigen::Vector3d* rvec,
+                                           const Eigen::Vector3d* tvec) const
+{
+    if (m_viewIdToView.empty()) {
+        return {};
+    }
+
+    std::vector<double> norms;
+    for (const auto& [viewId, view] : m_viewIdToView) {
+        for (const auto& trackId : view.trackIds()) {
+            const auto* feature = view.featureOf(trackId);
+            const auto* track = this->track(trackId);
+            Vector2d pt;
+            view.camera().projectPoint(track->position(), pt, rvec, tvec);
+
+            norms.emplace_back(((*feature).pos - pt).norm());
+        }
+    }
+
+    const auto rpeMedian = con::FindMedian(norms);
+
+    return std::make_optional(rpeMedian);
+}
+
+std::optional<double> Scene::calcViewRpeMedian(ViewId viewId,
+                                               const Eigen::Vector3d* rvec,
+                                               const Eigen::Vector3d* tvec,
+                                               bool update)
+{
+    if (!m_viewIdToView.contains(viewId)) {
+        return {};
+    }
+
+    auto* view = this->rView(viewId);
+    if (view->empty()) {
+        return {};
+    }
+
+    const auto trackIds = view->trackIds();
+    const auto trackCount = trackIds.size();
+
+    std::vector<Vector2d> offsets;
+    std::vector<double> norms;
+    offsets.reserve(trackCount);
+    norms.reserve(trackCount);
+    for (const auto& trackId : view->trackIds()) {
+        const auto* feature = view->featureOf(trackId);
+        const auto* track = this->track(trackId);
+        Vector2d pt;
+        view->camera().projectPoint(track->position(), pt, rvec, tvec);
+        const auto offset = (*feature).pos - pt;
+
+        offsets.push_back(offset);
+        norms.push_back(offset.norm());
+    }
+
+    const auto rpeMedian = con::FindMedian(norms);
+
+    if (update) {
+        for (size_t i{0}; i < trackCount; ++i) {
+            view->setTrackOffset(trackIds[i], offsets[i]);
+        }
+    }
+
+    return std::make_optional(rpeMedian);
+}
+
+void Scene::transform(const Eigen::Matrix3d& R, const Eigen::Vector3d& t,
                       double scale)
 {
     for (const auto& viewId : viewIds()) {
-        auto* view = rView(viewId);
-        if (view->estimated()) {
-            transformCamera(rmat, tvec, scale, view->rCamera());
+        if (auto* view = rView(viewId); view->estimated()) {
+            view->rCamera().transform(R, t, scale);
         }
     }
 
     for (const auto& trackId : trackIds()) {
-        auto* track = rTrack(trackId);
-        if (track->estimated()) {
-            Eigen::Vector3d point = track->position().hnormalized();
-            transformPoint(rmat, tvec, scale, point);
+        if (auto* track = rTrack(trackId); track->estimated()) {
+            Vector3d point = track->position().hnormalized();
+            math::transformPoint(R, t, scale, point);
             track->rPosition() = point.homogeneous();
         }
     }
+}
+
+std::ostream& operator<<(std::ostream& os, const Scene& scene)
+{
+    return os << "\n"
+                 "Scene infos:"
+                 "\n"
+                 "View count: "
+              << scene.viewCount()
+              << "; "
+                 "Identical Camera count: "
+              << scene.cameraCount()
+              << "\n"
+                 "Landmark count: "
+              << scene.trackCount();
 }
 
 } // namespace tl
