@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -28,7 +28,6 @@
 //
 // Author: sameeragarwal@google.com (Sameer Agarwal)
 
-// clang-format off
 #include "function_sample.h"
 
 #include "stringprintf.h"
@@ -76,4 +75,3 @@ std::string FunctionSample::ToDebugString() const {
 }
 
 }  // namespace ceres::internal
-// clang-format on

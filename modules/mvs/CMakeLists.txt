@@ -19,7 +19,6 @@ file(GLOB_RECURSE MVS_SOURCES
     src/desc/*.cpp
     src/pnp/*.cpp
     src/pnp/**/*.cpp
-    src/pnp/**/*.cc
     src/residuals/*.cpp
 )
 

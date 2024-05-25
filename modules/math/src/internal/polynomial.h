@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -29,10 +29,6 @@
 // Author: moll.markus@arcor.de (Markus Moll)
 //         sameeragarwal@google.com (Sameer Agarwal)
 
-// WARNING: copy from ceres::internal (v2.1.0)
-// DONT change unless you know what's going on
-
-// clang-format off
 #ifndef CERES_INTERNAL_POLYNOMIAL_SOLVER_H_
 #define CERES_INTERNAL_POLYNOMIAL_SOLVER_H_
 
@@ -124,4 +120,3 @@ CERES_NO_EXPORT void MinimizeInterpolatingPolynomial(
 #include "ceres/internal/reenable_warnings.h"
 
 #endif  // CERES_INTERNAL_POLYNOMIAL_SOLVER_H_
-// clang-format on

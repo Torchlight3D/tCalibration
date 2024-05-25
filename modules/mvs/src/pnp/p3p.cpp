@@ -1,13 +1,12 @@
 ﻿#include "p3p.h"
 
 #include <algorithm>
-#include <complex>
 #include <cmath>
 
 #include <Eigen/Dense>
 #include <glog/logging.h>
 
-#include "impl/polynomial.h"
+#include <tMath/Polynomial>
 
 namespace tl {
 
