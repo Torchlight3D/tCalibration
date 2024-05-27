@@ -1,8 +1,9 @@
 #include "undistort.h"
 
-#include <opencv2/imgproc.hpp>
+#include <format>
 
-#include "logger.h"
+#include <opencv2/imgproc.hpp>
+#include <glog/logging.h>
 
 Undistort::Undistort(const cv::Rect &r)
     : centre(r.width / 2, r.height / 2),
@@ -13,47 +14,55 @@ Undistort::Undistort(const cv::Rect &r)
 {
 }
 
-cv::Point Undistort::transform_pixel(int col, int row)
-{
-    cv::Point2d tp = transform_point(double(col), double(row));
-    return cv::Point(lrint(tp.x), lrint(tp.y));
-}
+void Undistort::setRectilinearEquivalent(bool on) { rectilinear = on; }
+
+bool Undistort::rectilinearEquivalent() const { return rectilinear; }
+
+void Undistort::setMaxVal(const cv::Point2d &max) { max_val = max; }
+
+const cv::Point2d &Undistort::maxVal() const { return max_val; }
+
+void Undistort::setAllowCrop(bool crop) { allow_crop = crop; }
+
+bool Undistort::allowCrop() const { return allow_crop; }
 
 // find closest point in radmap lookup table, then apply
 // quadratic interpolation to refine the value
-cv::Point2d Undistort::transform_point(double c, double r)
+cv::Point2d Undistort::transform_point(const cv::Point2d &point)
 {
-    double px = (c + offset.x - centre.x);
-    double py = (r + offset.y - centre.y);
+    const auto p = point + offset - centre;
+    // Convert to half-pixel spacing to match how radmap was built
+    const auto rad = 2. * cv::norm(p);
 
-    double rad = 2 * sqrt(px * px + py * py); // convert to half-pixel spacing
-                                              // to match how radmap was built
-    int rad_f = (int)rad;
+    auto rad_f = static_cast<int>(rad);
 
-    if (rad_f > (int)radmap.size() - 3) {
-        // this should only happen if we call transform_point before
-        // unmap, which should not happen
+    // This should only happen if we call transformPoint before unmap
+    if (rad_f > static_cast<int>(radmap.size()) - 3) {
         if (radmap.empty()) {
-            logger.error("%s\n",
-                         "Warning: radmap not initialized in transform_point. "
-                         "Calling build_radmap, but fix the code!");
+            LOG(WARNING) << "Radmap not initialized. "
+                            "Trying to build radmap.";
             build_radmap();
         }
         else {
-            logger.error("Warning: radmap range exceeded in transform_point. "
-                         "Clamping (rad-%lf, rad_f=%d)\n",
-                         rad, rad_f);
+            LOG(WARNING) << std::format("Radmap range exceeded."
+                                        "Clamping (rad={}, rad_f={})",
+                                        rad, rad_f);
             rad_f = (int)radmap.size() - 3;
         }
     }
 
+    // Quadratic interpolation through half-pixel spaced points
+
+    auto &v0 = radmap[rad_f];
+    auto &v1 = radmap[rad_f + 1];
+    auto &v2 = radmap[rad_f + 2];
+    const cv::Point3d v{v0, v1, v2};
+
+    auto fc = v0;
+    auto fb = cv::Point3d{-1.5, 2., -0.5}.dot(v);
+    auto fa = cv::Point3d{0.5, -1., 0.5}.dot(v);
+
     double w = rad - rad_f;
-    // quadratic interpolation through half-pixel spaced points
-    double fc = radmap[rad_f];
-    double fb =
-        -1.5 * radmap[rad_f] + 2 * radmap[rad_f + 1] - 0.5 * radmap[rad_f + 2];
-    double fa =
-        0.5 * radmap[rad_f] - radmap[rad_f + 1] + 0.5 * radmap[rad_f + 2];
     double rad_d = 2 * (fa * w * w + fb * w + fc);
 
     // avoid divide-by-zero
@@ -61,20 +70,19 @@ cv::Point2d Undistort::transform_point(double c, double r)
         return centre;
     }
 
-    return cv::Point2d(px, py) * (rad_d / rad) + centre - offset;
+    return point * (rad_d / rad) + centre - offset;
 }
 
 void Undistort::build_radmap()
 {
     radmap.clear();
-    double maxrad =
-        1.1 *
-        sqrt(centre.x * centre.x +
-             centre.y *
-                 centre.y); // TODO: add better support for non-centered CoD
+
+    // TODO: add better support for non-centered CoD
+    double maxrad = 1.1 * cv::norm(centre);
     for (int rad = 0; rad <= 2 * (maxrad + 2); rad++) { // half-pixel spacing
-        cv::Point2d tp = slow_transform_point(centre.x + 0.5 * rad, centre.y);
-        double rd = norm(tp - cv::Point2d(centre.x, centre.y));
+        const auto tp =
+            slow_transform_point(centre + cv::Point2d{0.5 * rad, 0.});
+        double rd = cv::norm(tp - centre);
         radmap.push_back(rd);
     }
 }
@@ -92,11 +100,12 @@ cv::Mat Undistort::unmap_base(const cv::Mat &in_src, cv::Mat &rawimg,
     centre.x = src.cols / 2;
     centre.y = src.rows / 2;
 
-    logger.debug("Padding with %d left/right pixels, %d top/bottom pixels\n",
-                 pad_left, pad_top);
+    LOG(INFO) << std::format(
+        "Padding with {} left/right pixels, %d top/bottom pixels", pad_left,
+        pad_top);
 
     if (pad_left > 0 || pad_top > 0) {
-        logger.debug("%s\n", "Padding distorted/Bayer image.");
+        LOG(INFO) << "Padding distorted/Bayer image.";
         cv::Mat rcopy = rawimg.clone();
         cv::copyMakeBorder(rcopy, rawimg, pad_top, pad_top, pad_left, pad_left,
                            cv::BORDER_CONSTANT, cv::Scalar::all(0));
@@ -109,7 +118,7 @@ cv::Mat Undistort::unmap_base(const cv::Mat &in_src, cv::Mat &rawimg,
     cv::Mat map_y(src.rows, src.cols, CV_32FC1);
 
     cv::Mat blurred;
-    cv::blur(src, blurred, cv::Size(3, 3));
+    cv::blur(src, blurred, cv::Size{3, 3});
 
     cv::Point2d prev;
     for (int r = 0; r < src.rows; r++) {
@@ -122,7 +131,7 @@ cv::Mat Undistort::unmap_base(const cv::Mat &in_src, cv::Mat &rawimg,
             // add some blurring to suppress noise before magnification
             // this avoids the edges becoming so rough that the rectangle
             // test on the undistorted image fails
-            double stretch = norm(prev - tp);
+            double stretch = cv::norm(prev - tp);
             if (stretch > 0.9) {
                 blurred.at<uint16_t>(r, c) = src.at<uint16_t>(r, c);
             }
@@ -137,6 +146,7 @@ cv::Mat Undistort::unmap_base(const cv::Mat &in_src, cv::Mat &rawimg,
             prev = tp;
         }
     }
+
     cv::Mat timg;
     cv::remap(blurred, timg, map_x, map_y, cv::INTER_LINEAR,
               cv::BORDER_CONSTANT, cv::Scalar::all(0));
@@ -152,60 +162,54 @@ void Undistort::estimate_padding(const cv::Mat &src, int &pad_left,
     // (say 20 pixels) this becomes the cut-off on the longest edge, which also
     // defines the short edge cut-off
 
-    const double src_w = 80;  // pixels
-    const double dest_w = 20; // do not try to expand beyond this
+    constexpr double src_w = 80.;  // pixels
+    constexpr double dest_w = 20.; // do not try to expand beyond this
 
-    cv::Point2d extreme = inverse_transform_point(1, 1);
+    cv::Point2d extreme = inverse_transform_point(cv::Point2d{1., 1.});
 
     if (!allow_crop) {
-        pad_left = extreme.x < 0 ? -ceil(extreme.x) : 0;
-        pad_top = extreme.y < 0 ? -ceil(extreme.y) : 0;
-        logger.debug("extreme: %lf, %lf. pad_left=%d, pad_top=%d\n", extreme.x,
-                     extreme.y, pad_left, pad_top);
+        pad_left = extreme.x < 0. ? -std::ceil(extreme.x) : 0.;
+        pad_top = extreme.y < 0. ? -std::ceil(extreme.y) : 0.;
+        LOG(WARNING) << std::format("extreme: {}, {}. pad_left={}, pad_top={}",
+                                    extreme.x, extreme.y, pad_left, pad_top);
         return;
     }
 
-    cv::Point2d sdir(1, 0);
-    if (src.rows > src.cols) {
-        sdir = cv::Point2d(0, 1);
-    }
+    const auto sdir =
+        src.rows > src.cols ? cv::Point2d{0., 1.} : cv::Point2d{1., 0.};
 
     const double rad_min = centre.ddot(sdir);
-    double rad_max = centre.ddot(sdir) - extreme.ddot(sdir);
-    cv::Point2d dir = centre * (1.0 / norm(centre));
+    const double rad_max = centre.ddot(sdir) - extreme.ddot(sdir);
+    cv::Point2d dir = centre * (1. / cv::norm(centre));
     double rad = rad_min;
     // rather sweep along the top and left edges (but still measure radially?)
     for (; rad <= rad_max; rad += 10.0) {
-        cv::Point2d p;
-        if (sdir.x == 1.0) {
-            p = cv::Point2d(centre.x - rad, 0);
-        }
-        else {
-            p = cv::Point2d(0, centre.y - rad);
-        }
+        const auto p = sdir.x == 1. ? cv::Point2d{centre.x - rad, 0.}
+                                    : cv::Point2d{0., centre.y - rad};
         cv::Point2d p2 = p - src_w * dir;
+        cv::Point2d tp = slow_transform_point(p);
+        cv::Point2d tp2 = slow_transform_point(p2);
 
-        cv::Point2d tp = slow_transform_point(p.x, p.y);
-        cv::Point2d tp2 = slow_transform_point(p2.x, p2.y);
-        double dist = norm(tp2 - tp);
-        if (dist < dest_w)
+        if (const auto dist = cv::norm(tp2 - tp); dist < dest_w) {
             break;
+        }
     }
-    if (sdir.x == 1.0) {
+
+    if (sdir.x == 1.) {
         pad_left = std::max(-(centre.x - rad - src_w), 0.0);
-        cv::Point2d fwd = slow_transform_point(-pad_left, 0);
+        cv::Point2d fwd = slow_transform_point(cv::Point{-pad_left, 0});
         pad_top = fwd.y + src_w;
     }
     else {
         pad_top = std::max(-(centre.y - rad - src_w), 0.0);
-        cv::Point2d fwd = slow_transform_point(0, -pad_top);
+        cv::Point2d fwd = slow_transform_point(cv::Point{0, -pad_top});
         pad_left = fwd.x + src_w;
     }
 }
 
-void Undistort::apply_padding(std::vector<cv::Mat> &images)
+void Undistort::apply_padding(std::vector<cv::Mat> &images) const
 {
-    if (last_padding.x > 0 || last_padding.y > 0) {
+    if (last_padding.x > 0. || last_padding.y > 0.) {
         for (const auto &image : images) {
             cv::Mat rcopy = image.clone();
             cv::copyMakeBorder(rcopy, image, last_padding.y, last_padding.y,
@@ -214,11 +218,3 @@ void Undistort::apply_padding(std::vector<cv::Mat> &images)
         }
     }
 }
-
-bool Undistort::rectilinear_equivalent() const { return rectilinear; }
-
-void Undistort::set_rectilinear_equivalent(bool b) { rectilinear = b; }
-
-void Undistort::set_max_val(const cv::Point2d &maxv) { max_val = maxv; }
-
-void Undistort::set_allow_crop(bool crop) { allow_crop = crop; }

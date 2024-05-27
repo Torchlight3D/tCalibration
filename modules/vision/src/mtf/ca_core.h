@@ -5,7 +5,7 @@
 class Ca_core
 {
 public:
-    Ca_core(Mtf_core& mtf_core) : mtf_core(mtf_core) {}
+    explicit Ca_core(Mtf_core& mtf_core) : mtf_core(mtf_core) {}
 
     void set_rgb_channels(std::vector<cv::Mat> in_channels);
 

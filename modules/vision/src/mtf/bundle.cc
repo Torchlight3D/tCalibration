@@ -5,11 +5,14 @@
 #include "common_types.h"
 #include "ellipse.h"
 
-Bundle_adjuster::Bundle_adjuster(Vector2dList& img_points,
-                                 Vector3dList& world_points, Eigen::Vector3d& t,
-                                 cv::Mat in_rod_angles, double distortion,
-                                 double w, double fid_diameter,
-                                 double img_scale)
+using Eigen::Vector2d;
+using Eigen::Vector3d;
+
+Bundle_adjuster::Bundle_adjuster(std::vector<Eigen::Vector2d>& img_points,
+                                 std::vector<Eigen::Vector3d>& world_points,
+                                 Eigen::Vector3d& t, cv::Mat in_rod_angles,
+                                 double distortion, double w,
+                                 double fid_diameter, double img_scale)
     : img_points(img_points),
       world_points(world_points),
       rot_mat(3, 3, CV_64FC1),
@@ -144,7 +147,7 @@ double Bundle_adjuster::evaluate(const Eigen::VectorXd& v, double penalty)
 
     double finit = 1.0 / initial[7];
     double fr = 1.0 / v[7];
-    double fd = fabs(1.0 / v[7] - finit);
+    double fd = std::abs(1. / v[7] - finit);
     return rmse +
            penalty *
                ((fr < focal_lower ? (fr - focal_lower) * (fr - focal_lower)
@@ -209,8 +212,8 @@ void Bundle_adjuster::nelder_mead(double ftol, int& num_evals)
                 inhi = i;
             }
         }
-        double rtol = 2.0 * fabs(ny[ihi] - ny[ilo]) /
-                      (fabs(ny[ihi]) + fabs(ny[ilo]) + epsilon);
+        double rtol = 2.0 * std::abs(ny[ihi] - ny[ilo]) /
+                      (std::abs(ny[ihi]) + std::abs(ny[ilo]) + epsilon);
         if (rtol < ftol) {
             std::swap(ny[0], ny[ilo]);
             for (size_t i = 0; i < (size_t)np[0].size(); i++) {

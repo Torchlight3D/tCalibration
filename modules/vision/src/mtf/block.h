@@ -20,7 +20,7 @@ public:
     };
 
     Block();
-    Block(const Mrectangle &in_rect);
+    explicit Block(const Mrectangle &in_rect);
 
     void set_snr(size_t edge_number, const Snr &snr);
     const Snr &get_snr(size_t edge_number) const;

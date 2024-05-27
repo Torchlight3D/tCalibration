@@ -336,8 +336,9 @@ void Tiffsniff::read_icc_profile(off_t offset)
             if (tag.tag_signature == 0x77747074) { // media white point
                 std::vector<double> wp =
                     read_xyztype_entry(icc_tag_offset, tag.element_size);
-                if (fabs(wp[1] - 1.0) <
-                    1e-6) { // only if it looks like a valid illuminant
+
+                // only if it looks like a valid illuminant
+                if (std::abs(wp[1] - 1.) < 1e-6) {
                     logger.debug("white point is %lg, %lg, %lg\n", wp[0], wp[1],
                                  wp[2]);
                 }
@@ -345,6 +346,7 @@ void Tiffsniff::read_icc_profile(off_t offset)
 
             fin->seekg(fpos); // return to ICC IFD
         }
+
         if (!found_trc) {
             logger.error("%s\n", "Warning: image contains ICC profile, but no "
                                  "TRC curve was found.");

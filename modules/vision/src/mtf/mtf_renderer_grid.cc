@@ -6,6 +6,26 @@
 #include "grid_interpolator.h"
 #include "mtf50_edge_quality_rating.h"
 
+namespace {
+
+double predict(const std::vector<Eigen::VectorXd>& solutions, int irow,
+               int icol, int width, double row, double col)
+{
+    const Eigen::VectorXd& sol = solutions[irow * width + icol];
+    double pred = sol[0] + sol[1] * row + sol[2] * col + sol[3] * row * col +
+                  sol[4] * row * row + sol[5] * col * col;
+
+    return pred;
+}
+
+// TODO: Duplicated code
+double angular_diff(double a, double b)
+{
+    return acos(cos(a) * cos(b) + sin(a) * sin(b));
+}
+
+} // namespace
+
 class Grid_functor_mtf : public Grid_functor
 {
 public:
@@ -83,7 +103,7 @@ void Mtf_renderer_grid::set_gnuplot_warning(bool gnuplot)
 
 void Mtf_renderer_grid::set_sparse_chart(bool s) { sparse_chart = s; }
 
-bool Mtf_renderer_grid::gnuplot_failed() { return gnuplot_failure; }
+bool Mtf_renderer_grid::gnuplot_failed() const { return gnuplot_failure; }
 
 void Mtf_renderer_grid::render(const std::vector<Block>& blocks)
 {
@@ -342,20 +362,4 @@ void Mtf_renderer_grid::render(const std::vector<Block>& blocks)
     }
 
     delete[] buffer;
-}
-
-double Mtf_renderer_grid::predict(const std::vector<Eigen::VectorXd>& solutions,
-                                  int irow, int icol, int width, double row,
-                                  double col) const
-{
-    const Eigen::VectorXd& sol = solutions[irow * width + icol];
-    double pred = sol[0] + sol[1] * row + sol[2] * col + sol[3] * row * col +
-                  sol[4] * row * row + sol[5] * col * col;
-
-    return pred;
-}
-
-double Mtf_renderer_grid::angular_diff(double a, double b)
-{
-    return acos(cos(a) * cos(b) + sin(a) * sin(b));
 }

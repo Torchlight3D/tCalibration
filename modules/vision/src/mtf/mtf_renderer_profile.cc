@@ -5,6 +5,41 @@
 #include "logger.h"
 #include "mtf_core.h"
 
+namespace {
+
+inline double angular_diff(double a, double b)
+{
+    return std::acos(std::cos(a) * std::cos(b) + std::sin(a) * std::sin(b));
+}
+
+double IQR(const std::vector<double> &counts, int start, int end)
+{
+    std::vector<double> sorted;
+    start = std::max(0, start);
+    end = std::min(counts.size() - 1, size_t(end));
+    for (size_t i = start; i < size_t(end); i++) {
+        sorted.push_back(counts[i]);
+    }
+
+    std::sort(sorted.begin(), sorted.end());
+    return sorted[lrint(sorted.size() * 0.75)] -
+           sorted[lrint(sorted.size() * 0.25)];
+}
+
+double median(const std::vector<double> &counts, int start, int end)
+{
+    std::vector<double> sorted;
+    start = std::max(0, start);
+    end = std::min(counts.size() - 1, size_t(end));
+    for (size_t i = start; i < size_t(end); i++) {
+        sorted.push_back(counts[i]);
+    }
+    std::sort(sorted.begin(), sorted.end());
+    return sorted[lrint(sorted.size() * 0.5)];
+}
+
+} // namespace
+
 Mtf_renderer_profile::Mtf_renderer_profile(const std::string &img_filename,
                                            const std::string &wdir,
                                            const std::string &prof_fname,
@@ -38,8 +73,8 @@ void Mtf_renderer_profile::render(const std::vector<Block> &blocks)
         }
     }
 
-    if (blocks.size() < 10 ||
-        valid_blocks < 40) { // probably not a valid image for profiles
+    // probably not a valid image for profiles
+    if (blocks.size() < 10 || valid_blocks < 40) {
         return;
     }
 
@@ -192,7 +227,7 @@ void Mtf_renderer_profile::render(const std::vector<Block> &blocks)
     min_dist = 1e50;
     i = 0;
     for (auto it = row_max.begin(); it != row_max.end(); ++it) {
-        double dist = fabs(it->first - ref_edge_position);
+        double dist = std::abs(it->first - ref_edge_position);
         if (dist < min_dist) {
             min_dist = dist;
             mean_mtf50_at_ref_edge = med_filt_mtf[i++];
@@ -282,12 +317,7 @@ void Mtf_renderer_profile::set_gnuplot_warning(bool gnuplot)
     gnuplot_warning = gnuplot;
 }
 
-bool Mtf_renderer_profile::gnuplot_failed() { return gnuplot_failure; }
-
-double Mtf_renderer_profile::angular_diff(double a, double b)
-{
-    return acos(cos(a) * cos(b) + sin(a) * sin(b));
-}
+bool Mtf_renderer_profile::gnuplot_failed() const { return gnuplot_failure; }
 
 bool Mtf_renderer_profile::test_for_bimodal_distribution(
     const std::map<int, double> &data)
@@ -335,33 +365,6 @@ bool Mtf_renderer_profile::test_for_bimodal_distribution(
     double last_segment = median(counts, min_end, nbins);
 
     return middle_segment <= first_segment && middle_segment <= last_segment;
-}
-
-double Mtf_renderer_profile::IQR(const std::vector<double> &counts, int start,
-                                 int end)
-{
-    std::vector<double> sorted;
-    start = std::max(0, start);
-    end = std::min(counts.size() - 1, size_t(end));
-    for (size_t i = start; i < size_t(end); i++) {
-        sorted.push_back(counts[i]);
-    }
-    sort(sorted.begin(), sorted.end());
-    return sorted[lrint(sorted.size() * 0.75)] -
-           sorted[lrint(sorted.size() * 0.25)];
-}
-
-double Mtf_renderer_profile::median(const std::vector<double> &counts,
-                                    int start, int end)
-{
-    std::vector<double> sorted;
-    start = std::max(0, start);
-    end = std::min(counts.size() - 1, size_t(end));
-    for (size_t i = start; i < size_t(end); i++) {
-        sorted.push_back(counts[i]);
-    }
-    std::sort(sorted.begin(), sorted.end());
-    return sorted[lrint(sorted.size() * 0.5)];
 }
 
 void Mtf_renderer_profile::extract_row_maxima(std::map<int, double> &row_max,

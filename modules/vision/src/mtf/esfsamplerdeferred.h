@@ -1,7 +1,9 @@
 #pragma once
 
-#include "esf_sampler.h"
+#include "esfsampler.h"
 #include "undistort.h"
+
+namespace tl {
 
 class EsfDeferredSampler : public EsfSampler
 {
@@ -18,12 +20,13 @@ public:
 
 protected:
     cv::Point2d bracket_minimum(double t0, const cv::Point2d& l,
-                                const cv::Point2d& p, const cv::Point2d& pt);
+                                const cv::Point2d& p,
+                                const cv::Point2d& pt) const;
     cv::Point2d derivative(double t0, const cv::Point2d& l,
-                           const cv::Point2d& p);
-    double quadmin(const cv::Point2d& a, const cv::Point2d& b,
-                   const cv::Point2d& c);
+                           const cv::Point2d& p) const;
 
 private:
     Undistort* undistort_{nullptr};
 };
+
+} // namespace tl

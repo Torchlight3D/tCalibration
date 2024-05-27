@@ -18,8 +18,5 @@ public:
                      std::vector<double>& filtered);
 
 private:
-    double quantile(const std::vector<double>& d, double q);
-
-private:
     double pixel_size;
 };

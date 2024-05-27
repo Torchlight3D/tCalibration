@@ -6,50 +6,45 @@ Undistort_equiangular::Undistort_equiangular(const cv::Rect& r, double f,
 {
 }
 
-cv::Point2d Undistort_equiangular::slow_transform_point(double col, double row)
+cv::Point2d Undistort_equiangular::slow_transform_point(
+    const cv::Point2d& point) const
 {
-    double px = (col + offset.x - centre.x) * pitch;
-    double py = (row + offset.y - centre.y) * pitch;
-    double rd = sqrt(px * px + py * py); // radial distance in mm
+    const auto pt = (point + offset - centre) * pitch;
+    // radial distance in mm
+    const auto rd = cv::norm(pt);
 
-    if (rd == 0) {
-        return {centre.x - offset.x, centre.y - offset.y};
+    if (rd == 0.) {
+        return centre - offset;
     }
 
-    double theta = atan(rd / f);
+    double theta = std::atan(rd / f);
     double ru = theta * f;
 
-    px = px * ru / rd / pitch + centre.x - offset.x;
-    py = py * ru / rd / pitch + centre.y - offset.y;
-
-    return {px, py};
+    return pt * (ru / rd / pitch) + centre - offset;
 }
 
-cv::Point2d Undistort_equiangular::inverse_transform_point(double col,
-                                                           double row)
+cv::Point2d Undistort_equiangular::inverse_transform_point(
+    const cv::Point2d& point) const
 {
-    double px = (col + offset.x - centre.x) * pitch;
-    double py = (row + offset.y - centre.y) * pitch;
-    double ru = sqrt(px * px + py * py); // radial distance in mm
+    const auto pt = (point + offset - centre) * pitch;
+    // radial distance in mm
+    double ru = cv::norm(pt);
 
-    if (ru == 0) {
-        return {centre.x - offset.x, centre.y - offset.y};
+    if (ru == 0.) {
+        return centre - offset;
     }
 
     double theta = ru / f;
-    double rd = tan(theta) * f;
+    double rd = std::tan(theta) * f;
 
-    px = px * rd / ru / pitch + centre.x - offset.x;
-    py = py * rd / ru / pitch + centre.y - offset.y;
-
-    return {px, py};
+    return pt * (rd / ru / pitch) + centre - offset;
 }
 
 // NOTE: second parameter is the raw Bayer image, which must also be padded out
 cv::Mat Undistort_equiangular::unmap(const cv::Mat& in_src, cv::Mat& rawimg)
 {
-    int pad_left = 0;
-    int pad_top = 0;
+    int pad_left{0};
+    int pad_top{0};
     estimate_padding(in_src, pad_left, pad_top);
 
     // TODO: perform some sanity checking ...

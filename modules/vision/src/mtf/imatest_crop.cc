@@ -48,7 +48,7 @@ bool robust_line(const std::vector<cv::Point2d>& points, double il_thresh,
                 double rmse = 0;
                 for (size_t k = 0; k < points.size(); k++) {
                     double pred = points[k].x * b + a;
-                    double e = fabs(pred - points[k].y);
+                    double e = std::abs(pred - points[k].y);
                     if (e < il_thresh) {
                         n++;
                         rmse += e * e;

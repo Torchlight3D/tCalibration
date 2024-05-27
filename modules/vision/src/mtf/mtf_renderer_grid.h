@@ -58,16 +58,9 @@ public:
     void render(const std::vector<Block>& blocks) override;
 
     void set_gnuplot_warning(bool gnuplot);
+    bool gnuplot_failed() const;
 
     void set_sparse_chart(bool s);
-
-    bool gnuplot_failed();
-
-private:
-    double predict(const std::vector<Eigen::VectorXd>& solutions, int irow,
-                   int icol, int width, double row, double col) const;
-
-    static double angular_diff(double a, double b);
 
 private:
     std::string wdir;

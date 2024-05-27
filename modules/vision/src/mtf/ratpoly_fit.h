@@ -5,7 +5,7 @@
 class Sample
 {
 public:
-    Sample(double x, double y, double weight, double yweight = 1)
+    Sample(double x, double y, double weight, double yweight = 1.)
         : x(x), y(y), weight(weight), yweight(yweight)
     {
     }
@@ -22,73 +22,34 @@ class Ratpoly_fit
 {
 public:
     Ratpoly_fit(const std::vector<Sample>& data, int order_n, int order_m,
-                bool silent = false)
-        : data(data),
-          order_n(order_n),
-          order_m(order_m),
-          base_value(1.0),
-          ysf(1),
-          pscale(0.1),
-          silent(silent),
-          evaluation_count(0)
-    {
-    }
+                bool silent = false);
 
-    virtual int dimension() { return (order_n + 1 + order_m); }
+    virtual int dimension() const;
 
-    inline double rpeval(const Eigen::VectorXd& v, double x)
-    {
-        double top_val = v[0];
-        double p = x;
-        for (int n = 1; n <= order_n; n++) {
-            top_val += cheb(n, p) * v[n];
-        }
-        double bot_val = base_value;
-        p = x;
-        for (int m = 0; m < order_m; m++) {
-            bot_val += cheb(m + 1, p) * v[m + order_n + 1];
-        }
+    double rpeval(const Eigen::VectorXd& v, double x) const;
 
-        return top_val / bot_val;
-    }
-
-    inline Eigen::VectorXd rp_deriv(const Eigen::VectorXd& v, double x,
-                                    double& f)
-    {
-        // if x falls on a pole, we are in trouble
-        // and should probably just return the zero vector?
-
-        // TODO: we can probably combine this function with rp_deriv_eval ??
-
-        Eigen::VectorXd dp = Eigen::VectorXd::Zero(v.rows());
-        Eigen::VectorXd dq = Eigen::VectorXd::Zero(v.rows());
-
-        double top_val = v[0];
-        dp[0] = 1;
-        for (int n = 1; n <= order_n; n++) {
-            dp[n] = cheb(n, x);
-            top_val += cheb(n, x) * v[n];
-        }
-        double bot_val = base_value;
-        for (int m = 0; m < order_m; m++) {
-            dq[m + order_n + 1] = cheb(m + 1, x);
-            bot_val += cheb(m + 1, x) * v[m + order_n + 1];
-        }
-
-        double den = bot_val * bot_val;
-        if (den < 1e-12) {
-            return Eigen::VectorXd::Zero(v.rows());
-        }
-
-        f = top_val / bot_val;
-        den = 1.0 / den;
-
-        return (dp * bot_val - top_val * dq) * den;
-    }
+    Eigen::VectorXd rp_deriv(const Eigen::VectorXd& v, double x,
+                             double& f) const;
 
     const std::vector<Sample>& get_data() const { return data; }
 
-    inline double cheb(int order, double x)
+    double evaluate(Eigen::VectorXd& v);
+    Eigen::VectorXd evaluate_derivative(Eigen::VectorXd& v);
+    Eigen::VectorXd gauss_newton_direction(Eigen::VectorXd& v,
+                                           Eigen::VectorXd& deriv,
+                                           double& fsse);
+    Eigen::VectorXd gauss_newton_armijo(Eigen::VectorXd& v);
+    double peak(const Eigen::VectorXd& v) const;
+    bool has_poles(const Eigen::VectorXd& v) const;
+
+    inline double scale(double x) const { return (x - xs_min) * xs_scale; }
+
+    inline double unscale(double x) const { return x / xs_scale + xs_min; }
+
+    unsigned long long evaluations() const { return evaluation_count; }
+
+    // TODO: static
+    inline double cheb(int order, double x) const
     {
         double y = 0;
         switch (order) {
@@ -121,15 +82,7 @@ public:
         return y;
     }
 
-    double evaluate(Eigen::VectorXd& v);
-    Eigen::VectorXd evaluate_derivative(Eigen::VectorXd& v);
-    Eigen::VectorXd gauss_newton_direction(Eigen::VectorXd& v,
-                                           Eigen::VectorXd& deriv,
-                                           double& fsse);
-    Eigen::VectorXd gauss_newton_armijo(Eigen::VectorXd& v);
-    double peak(const Eigen::VectorXd& v);
-    bool has_poles(const Eigen::VectorXd& v);
-
+public:
     const std::vector<Sample>& data;
     int order_n;
     int order_m;
@@ -141,12 +94,6 @@ public:
 
     double xs_min;
     double xs_scale;
-
-    inline double scale(double x) const { return (x - xs_min) * xs_scale; }
-
-    inline double unscale(double x) const { return x / xs_scale + xs_min; }
-
-    unsigned long long evaluations() { return evaluation_count; }
 
 protected:
     unsigned long long evaluation_count;

@@ -1,11 +1,15 @@
 #pragma once
 
-#include "esf_sampler.h"
+#include <array>
 
-class EsfLineSampler : public EsfSampler
+#include "esfsampler.h"
+
+namespace tl {
+
+class EsfQuadSampler : public EsfSampler
 {
 public:
-    explicit EsfLineSampler(double max_dot,
+    explicit EsfQuadSampler(double max_dot,
                             Bayer::cfa_mask_t cfa_mask = Bayer::ALL,
                             double border_width = 0.);
 
@@ -14,4 +18,10 @@ public:
                 const std::map<int, scanline>& scanset, double& edge_length,
                 const cv::Mat& geom_img, const cv::Mat& sampling_img,
                 Bayer::cfa_mask_t cfa_mask = Bayer::DEFAULT) override;
+
+protected:
+    static std::vector<double> quad_tangency(const cv::Point2d& p,
+                                             const std::array<double, 3>& qp);
 };
+
+} // namespace tl

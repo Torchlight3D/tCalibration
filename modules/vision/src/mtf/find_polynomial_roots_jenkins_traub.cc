@@ -190,7 +190,7 @@ void FindQuadraticPolynomialRoots(const VectorXd& polynomial, VectorXd* real,
     const double b = polynomial(1);
     const double c = polynomial(2);
     const double D = b * b - 4 * a * c;
-    const double sqrt_D = sqrt(fabs(D));
+    const double sqrt_D = std::sqrt(std::abs(D));
     if (real != nullptr) {
         real->setZero(2);
     }

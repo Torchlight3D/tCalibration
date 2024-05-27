@@ -16,11 +16,11 @@ static inline double local_kernel(double x, double alpha, double scale)
     constexpr double c = 1.0 / 16.0;
     double ss = alpha * scale;
     const double norm = 1 - fastexp(-ss * c);
-    if (fabs(x) < c) {
-        double base = 2 - 2 * fastexp(-ss * c) * cosh(ss * x);
-        return base / (2 * sinh(ss * c) * norm);
+    if (std::abs(x) < c) {
+        double base = 2 - 2 * fastexp(-ss * c) * std::cosh(ss * x);
+        return base / (2 * std::sinh(ss * c) * norm);
     }
-    return fastexp(-ss * fabs(x)) / norm;
+    return fastexp(-ss * std::abs(x)) / norm;
 }
 
 // Note: this is the generic version of the kernel function that we end up
@@ -105,7 +105,8 @@ int EsfModelKernel::build_esf(std::vector<Ordered_point>& ordered,
                         constexpr double start_factor = 1;
                         constexpr double end_factor = 0.01;
                         double alpha =
-                            (fabs(double(b - fft_size2)) / twidth - lwidth) /
+                            (std::abs(double(b - fft_size2)) / twidth -
+                             lwidth) /
                             (bwidth - lwidth);
                         double sfactor =
                             start_factor * (1 - alpha) + end_factor * alpha;
@@ -230,13 +231,13 @@ void EsfModelKernel::compute_mtf_corrections()
 
     for (int i = 0; i < c_fft_size; i++) {
         double x = (i - c_fft_size / 2) / (16 * 8.0);
-        fft_buffer[i] = fabs(x) <= 0.625 ? kernel(x) : 0;
+        fft_buffer[i] = std::abs(x) <= 0.625 ? kernel(x) : 0;
     }
 
     afft.realfft(fft_buffer.data());
 
     std::vector<double> correction(w.size());
-    double n0 = fabs(fft_buffer[0]);
+    double n0 = std::abs(fft_buffer[0]);
     correction[0] = 1.0;
     for (int i = 1; i < NYQUIST_FREQ * 4; i++) {
         correction[i] =

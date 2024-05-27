@@ -4,6 +4,75 @@
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
 
+namespace {
+
+} // namespace
+
+Ratpoly_fit::Ratpoly_fit(const std::vector<Sample>& data, int order_n,
+                         int order_m, bool silent)
+    : data(data),
+      order_n(order_n),
+      order_m(order_m),
+      base_value(1.),
+      ysf(1.),
+      pscale(0.1),
+      silent(silent),
+      evaluation_count(0)
+{
+}
+
+int Ratpoly_fit::dimension() const { return (order_n + 1 + order_m); }
+
+double Ratpoly_fit::rpeval(const Eigen::VectorXd& v, double x) const
+{
+    double top_val = v[0];
+    double p = x;
+    for (int n = 1; n <= order_n; n++) {
+        top_val += cheb(n, p) * v[n];
+    }
+    double bot_val = base_value;
+    p = x;
+    for (int m = 0; m < order_m; m++) {
+        bot_val += cheb(m + 1, p) * v[m + order_n + 1];
+    }
+
+    return top_val / bot_val;
+}
+
+Eigen::VectorXd Ratpoly_fit::rp_deriv(const Eigen::VectorXd& v, double x,
+                                      double& f) const
+{
+    // if x falls on a pole, we are in trouble
+    // and should probably just return the zero vector?
+
+    // TODO: we can probably combine this function with rp_deriv_eval ??
+
+    Eigen::VectorXd dp = Eigen::VectorXd::Zero(v.rows());
+    Eigen::VectorXd dq = Eigen::VectorXd::Zero(v.rows());
+
+    double top_val = v[0];
+    dp[0] = 1;
+    for (int n = 1; n <= order_n; n++) {
+        dp[n] = cheb(n, x);
+        top_val += cheb(n, x) * v[n];
+    }
+    double bot_val = base_value;
+    for (int m = 0; m < order_m; m++) {
+        dq[m + order_n + 1] = cheb(m + 1, x);
+        bot_val += cheb(m + 1, x) * v[m + order_n + 1];
+    }
+
+    double den = bot_val * bot_val;
+    if (den < 1e-12) {
+        return Eigen::VectorXd::Zero(v.rows());
+    }
+
+    f = top_val / bot_val;
+    den = 1. / den;
+
+    return (dp * bot_val - top_val * dq) * den;
+}
+
 double Ratpoly_fit::evaluate(VectorXd& v)
 {
     double err = 0;
@@ -69,8 +138,8 @@ VectorXd Ratpoly_fit::gauss_newton_armijo(VectorXd& v)
             next = v + alpha * pk;
         }
 
-        double stepsize = pk.array().abs().maxCoeff() * fabs(alpha);
-        if (stepsize < 5e-8) {
+        if (double stepsize = pk.array().abs().maxCoeff() * std::abs(alpha);
+            stepsize < 5e-8) {
             break;
         }
         v = next;
@@ -78,7 +147,7 @@ VectorXd Ratpoly_fit::gauss_newton_armijo(VectorXd& v)
     return v;
 }
 
-double Ratpoly_fit::peak(const VectorXd& v)
+double Ratpoly_fit::peak(const VectorXd& v) const
 {
     double xmin = 1e50;
     double xmax = -1e50;
@@ -122,7 +191,7 @@ double Ratpoly_fit::peak(const VectorXd& v)
     return 0.5 * (upper + lower);
 }
 
-bool Ratpoly_fit::has_poles(const VectorXd& v)
+bool Ratpoly_fit::has_poles(const VectorXd& v) const
 {
     double xmin = 1e50;
     double xmax = -1e50;

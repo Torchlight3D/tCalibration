@@ -2,6 +2,16 @@
 
 #include "logger.h"
 
+namespace {
+
+inline double quantile(const std::vector<double>& d, double q)
+{
+    size_t idx = (int)floor(d.size() * q);
+    return d[idx];
+}
+
+} // namespace
+
 Mtf_renderer_stats::Mtf_renderer_stats(bool lpmm_mode, double pixel_size)
     : pixel_size(lpmm_mode ? pixel_size : 1)
 {
@@ -72,8 +82,8 @@ void Mtf_renderer_stats::render(const std::vector<Mtf_profile_sample>& samples)
 void Mtf_renderer_stats::print_stats(std::vector<double>& unfiltered,
                                      std::vector<double>& filtered)
 {
-    sort(filtered.begin(), filtered.end());
-    sort(unfiltered.begin(), unfiltered.end());
+    std::sort(filtered.begin(), filtered.end());
+    std::sort(unfiltered.begin(), unfiltered.end());
 
     logger.info("    Quantiles ->                   %5d%% %5d%% %5d%% "
                 "%5d%% %5d%%\n",
@@ -99,10 +109,4 @@ void Mtf_renderer_stats::print_stats(std::vector<double>& unfiltered,
                 quantile(filtered, 0.75) * pixel_size,
                 quantile(filtered, 0.95) * pixel_size,
                 (unsigned int)filtered.size());
-}
-
-double Mtf_renderer_stats::quantile(const std::vector<double>& d, double q)
-{
-    size_t idx = (int)floor(d.size() * q);
-    return d[idx];
 }

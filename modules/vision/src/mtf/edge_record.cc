@@ -16,6 +16,7 @@ void Edge_record::pool_edges(Edge_record& a, Edge_record& b)
         m.points[i].second = a.points[i].second - a.centroid.y;
         m.weights[i] = a.weights[i];
     }
+
     size_t as = a.points.size();
     for (size_t i = 0; i < b.points.size(); i++) {
         m.points[i + as].first = b.points[i].first - b.centroid.x;
@@ -34,15 +35,15 @@ bool Edge_record::compatible(const Edge_record& b)
 {
     double Z;
 
-    if (fabs(slope) > 2) {
-        Z = (1.0 / slope - 1.0 / b.slope) / sqrt(sB * sB + b.sB * b.sB);
+    if (std::abs(slope) > 2) {
+        Z = (1. / slope - 1. / b.slope) / sqrt(sB * sB + b.sB * b.sB);
     }
     else {
         Z = (slope - b.slope) / sqrt(sB * sB + b.sB * b.sB);
     }
 
-    return fabs(Z) <
-           1.66; // ~90% confidence interval on t-distribution with ~80 dof
+    // ~90% confidence interval on t-distribution with ~80 dof
+    return std::abs(Z) < 1.66;
 }
 
 double Edge_record::relative_orientation(const Edge_record& b)
@@ -50,7 +51,7 @@ double Edge_record::relative_orientation(const Edge_record& b)
     cv::Point2d d1(cos(angle), sin(angle));
     cv::Point2d d2(cos(b.angle), sin(b.angle));
 
-    return fabs(d1.x * d2.x + d1.y * d2.y);
+    return std::abs(d1.x * d2.x + d1.y * d2.y);
 }
 
 void Edge_record::add_point(double x, double y, double gx, double gy)
@@ -110,7 +111,7 @@ std::pair<double, double> Edge_record::compute_eigenvector_angle()
     assert(l >= 0);
 
     double ev[2];
-    if (fabs(covxy) > 1e-10) {
+    if (std::abs(covxy) > 1e-10) {
         ev[0] = l - covyy;
         ev[1] = covxy;
         slope = ev[0] / ev[1]; // TODO: check this?
@@ -130,8 +131,8 @@ std::pair<double, double> Edge_record::compute_eigenvector_angle()
 
     angle = atan2(-ev[0], ev[1]);
 
-    return std::make_pair(std::sqrt(std::max(fabs(l1), fabs(l2))),
-                          std::sqrt(std::min(fabs(l1), fabs(l2))));
+    return std::make_pair(std::sqrt(std::max(std::abs(l1), std::abs(l2))),
+                          std::sqrt(std::min(std::abs(l1), std::abs(l2))));
 }
 
 bool Edge_record::reduce()
@@ -207,13 +208,15 @@ bool Edge_record::reduce()
     total_weight = csum;
     int p10idx = 0;
     for (size_t i = 1; i < histo.size(); i++) {
-        if (fabs(histo[i] - 0.1 * csum) < fabs(histo[p10idx] - 0.1 * csum)) {
+        if (std::abs(histo[i] - 0.1 * csum) <
+            std::abs(histo[p10idx] - 0.1 * csum)) {
             p10idx = i;
         }
     }
     int p90idx = histo.size() - 1;
     for (size_t i = histo.size() - 2; i > 0; i--) {
-        if (fabs(histo[i] - 0.9 * csum) < fabs(histo[p90idx] - 0.9 * csum)) {
+        if (std::abs(histo[i] - 0.9 * csum) <
+            std::abs(histo[p90idx] - 0.9 * csum)) {
             p90idx = i;
         }
     }
@@ -225,8 +228,8 @@ bool Edge_record::reduce()
     lower -= span * 0.7;
     upper += span * 0.7;
 
-    lower = std::max(double(rise_lower5p + lower5p) / 16.0 - 16.0, lower);
-    upper = std::min(double(rise_upper5p + upper5p) / 16.0 - 16.0, upper);
+    lower = std::max(double(rise_lower5p + lower5p) / 16. - 16., lower);
+    upper = std::min(double(rise_upper5p + upper5p) / 16. - 16., upper);
 
     // trim weights to 10%-90% region?
     for (size_t i = 0; i < points.size(); i++) {
@@ -236,7 +239,7 @@ bool Edge_record::reduce()
         double dot = dx * dir.x + dy * dir.y;
         weights[i] = 0;
         if (dot >= lower && dot <= upper) {
-            weights[i] = SQR(SQR(inweights[i])) * (1.0 / (10.0 + fabs(dot)));
+            weights[i] = SQR(SQR(inweights[i])) * (1. / (10. + std::abs(dot)));
         }
     }
     dims = compute_eigenvector_angle();

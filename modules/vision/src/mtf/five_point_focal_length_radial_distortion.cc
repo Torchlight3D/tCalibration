@@ -255,7 +255,7 @@ bool FivePointFocalLengthRadialDistortion(
             // If the y image coordinate is too small, use the equation from the
             // second row.
             const double eps = 0.1;
-            if (fabs(feature_vectors[j].y()) < eps) {
+            if (std::abs(feature_vectors[j].y()) < eps) {
                 const double x_projection =
                     candidate_proj.row(0).dot(world_points[j].homogeneous());
                 row12_constraint.row(j)

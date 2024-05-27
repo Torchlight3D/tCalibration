@@ -22,9 +22,6 @@ int next_pow2(uint32_t x)
 
 } // namespace
 
-// Reference:
-// D. Bradley, G. Roth. ACM Journal of Graphics Tools. 2007. Vol 12, No. 2:
-// 13-21.
 void bradley_adaptive_threshold(const cv::Mat& cvimg, cv::Mat& out,
                                 double threshold, int S)
 {
@@ -97,9 +94,6 @@ void bradley_adaptive_threshold(const cv::Mat& cvimg, cv::Mat& out,
     delete[] integralImg;
 }
 
-// Reference:
-// Efficient Implementation of Local Adaptive Thresholding Techniques Using
-// Integral Images, F. Shafait, D. Keysers, T.M. Breuel, ...
 void sauvola_adaptive_threshold(const cv::Mat& cvimg, cv::Mat& out,
                                 double threshold, int S)
 {

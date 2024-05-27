@@ -12,6 +12,11 @@ file(GLOB CALIBTARGET_INTERNAL_HEADERS
 file(GLOB CALIBTARGET_SOURCES
     src/*.cpp
     src/mtf/*.cc
+    src/mtf/esfsampler.cpp
+    src/mtf/esfsamplerdeferred.cpp
+    src/mtf/esfsamplerline.cpp
+    src/mtf/esfsamplerpiecewisequad.cpp
+    src/mtf/esfsamplerquad.cpp
     src/target/*.cpp
     src/target/apriltag_mit/*.cc
 )
@@ -68,6 +73,8 @@ target_link_libraries(${IMGPROC_TARGET_NAME}
         ${NS_PREFIX}::Core
         ${NS_PREFIX}::Math
         json
+    PRIVATE
+        magic_enum
 )
 
 install(

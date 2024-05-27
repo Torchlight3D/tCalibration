@@ -1,55 +1,53 @@
-
 #include <assert.h>
-#include <stdio.h>
-#include <math.h>
-#include <string>
-#include <string.h>
 #include <locale.h>
+#include <math.h>
+#include <stdio.h>
+#include <string.h>
 
-#include "include/tclap/CmdLine.h"
+#include <string>
 
 #include <opencv2/imgcodecs/imgcodecs.hpp>
 
-#include "include/logger.h"
+#include "logger.h"
 Logger logger;
 
-#include "include/common_types.h"
-#include "include/thresholding.h"
-#include "include/mtf_core.h"
-#include "include/mtf_core_tbb_adaptor.h"
-#include "include/output_version.h"
-#include "include/ca_core.h"
-#include "include/ca_core_tbb_adaptor.h"
-#include "include/mtf_renderer_annotate.h"
-#include "include/mtf_renderer_profile.h"
-#include "include/mtf_renderer_mfprofile.h"
-#include "include/mtf_renderer_grid.h"
-#include "include/mtf_renderer_print.h"
-#include "include/mtf_renderer_stats.h"
-#include "include/mtf_renderer_sfr.h"
-#include "include/mtf_renderer_esf.h"
-#include "include/mtf_renderer_edges.h"
-#include "include/mtf_renderer_lensprofile.h"
-#include "include/mtf_renderer_chart_orientation.h"
-#include "include/mtf_renderer_focus.h"
-#include "include/ca_renderer_print.h"
-#include "include/ca_renderer_grid.h"
-#include "include/distance_scale.h"
-#include "include/auto_crop.h"
-#include "include/imatest_crop.h"
-#include "include/bayer.h"
-#include "include/demosaic.h"
-#include "include/stride_range.h"
-#include "include/distortion_optimizer.h"
-#include "include/undistort_rectilinear.h"
-#include "include/undistort_equiangular.h"
-#include "include/undistort_stereographic.h"
-#include "include/esf_sampler.h"
-#include "include/tiffsniff.h"
-#include "include/display_profile.h"
-#include "include/esf_model_kernel.h"
-#include "include/esf_model_loess.h"
-#include "include/job_metadata.h"
+#include "common_types.h"
+#include "thresholding.h"
+#include "mtf_core.h"
+#include "mtf_core_tbb_adaptor.h"
+#include "output_version.h"
+#include "ca_core.h"
+#include "ca_core_tbb_adaptor.h"
+#include "mtf_renderer_annotate.h"
+#include "mtf_renderer_profile.h"
+#include "mtf_renderer_mfprofile.h"
+#include "mtf_renderer_grid.h"
+#include "mtf_renderer_print.h"
+#include "mtf_renderer_stats.h"
+#include "mtf_renderer_sfr.h"
+#include "mtf_renderer_esf.h"
+#include "mtf_renderer_edges.h"
+#include "mtf_renderer_lensprofile.h"
+#include "mtf_renderer_chart_orientation.h"
+#include "mtf_renderer_focus.h"
+#include "ca_renderer_print.h"
+#include "ca_renderer_grid.h"
+#include "distance_scale.h"
+#include "auto_crop.h"
+#include "imatest_crop.h"
+#include "bayer.h"
+#include "demosaic.h"
+#include "stride_range.h"
+#include "distortion_optimizer.h"
+#include "undistort_rectilinear.h"
+#include "undistort_equiangular.h"
+#include "undistort_stereographic.h"
+#include "esfsampler.h"
+#include "tiffsniff.h"
+#include "display_profile.h"
+#include "esf_model_kernel.h"
+#include "esf_model_loess.h"
+#include "job_metadata.h"
 #include "config.h"
 
 void print_version_info()
@@ -89,7 +87,7 @@ int main(int argc, char** argv)
                                "Input image is linear 8-bit (default for 8-bit "
                                "is assumed to be sRGB gamma corrected)",
                                cmd, false);
-    TCLAP::SwitchArg tc_print("r", "raw", "Print raw MTF50 values", cmd, false);
+    TCLAP::SwitchArg tc_print("r", "raw",   "Print raw MTF50 values", cmd, false);
     TCLAP::SwitchArg tc_edges(
         "q", "edges", "Print raw MTF50 values, grouped by edge location", cmd,
         false);

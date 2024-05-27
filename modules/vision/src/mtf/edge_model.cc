@@ -44,7 +44,7 @@ void Edge_model::add_point(double x, double y, double weight,
     double par = delta.ddot(direction);
 
     double pred_perp = coeff[0] * par * par + coeff[1] * par + coeff[2];
-    if (fabs(perp - pred_perp) < distance_threshold) {
+    if (std::abs(perp - pred_perp) < distance_threshold) {
         int ipar = rint(par) + par_bias;
         if (ipar >= 0 && ipar < (int)points.size()) {
             points[ipar].push_back(cv::Point3d(x, y, weight));
@@ -130,15 +130,15 @@ void Edge_model::estimate_ridge()
     // trim the edges if necessary
     size_t lower_idx = 1;
     while (lower_idx < est_ridge.size() / 4 &&
-           fabs(pnorm(est_ridge[lower_idx] - est_ridge[lower_idx - 1]) -
-                mean_delta) > 2 * sdev_delta) {
+           std::abs(pnorm(est_ridge[lower_idx] - est_ridge[lower_idx - 1]) -
+                    mean_delta) > 2 * sdev_delta) {
         lower_idx++;
     }
 
     size_t upper_idx = est_ridge.size() - 1;
     while (upper_idx > 3 * est_ridge.size() / 4 &&
-           fabs(pnorm(est_ridge[upper_idx] - est_ridge[upper_idx - 1]) -
-                mean_delta) > 2 * sdev_delta) {
+           std::abs(pnorm(est_ridge[upper_idx] - est_ridge[upper_idx - 1]) -
+                    mean_delta) > 2 * sdev_delta) {
         upper_idx--;
     }
 
@@ -190,9 +190,9 @@ cv::Point3d Edge_model::line_deviation()
             max_recon = cv::Point2d(par, pred);
         }
     }
-    if (fabs(max_recon.x - min_recon.x) != 0) {
-        cv::Point3d deviation_rise_run(0, fabs(max_recon.y - min_recon.y),
-                                       fabs(max_recon.x - min_recon.x));
+    if (std::abs(max_recon.x - min_recon.x) != 0) {
+        cv::Point3d deviation_rise_run(0, std::abs(max_recon.y - min_recon.y),
+                                       std::abs(max_recon.x - min_recon.x));
         deviation_rise_run.x = deviation_rise_run.y / deviation_rise_run.z;
         return deviation_rise_run;
     }
@@ -211,7 +211,7 @@ void Edge_model::release_points() { points.clear(); }
 
 double Edge_model::pnorm(const cv::Point2d& dir) const
 {
-    return fabs(normal.ddot(dir));
+    return std::abs(normal.ddot(dir));
 }
 
 void Edge_model::fit_quad_to_ridge()
@@ -233,7 +233,7 @@ void Edge_model::fit_quad_to_ridge()
     // scale the x values to improve the condition number
     double span = (ridge.back() - centroid).ddot(direction) -
                   (ridge.front() - centroid).ddot(direction);
-    double x_scale = fabs(span) * 0.5 / sqrt(0.5);
+    double x_scale = std::abs(span) * 0.5 / std::sqrt(0.5);
 
     for (size_t i = 0; i < ridge.size(); i++) {
         cv::Point2d delta = ridge[i] - centroid;
@@ -263,7 +263,7 @@ void Edge_model::fit_quad_to_ridge()
                    -D[0][1] * (D[1][0] * D[2][2] - D[1][2] * D[2][0]) +
                    D[0][2] * (D[1][0] * D[2][1] - D[1][1] * D[2][0]);
 
-    if (fabs(det_D) < 1e-12) {
+    if (std::abs(det_D) < 1e-12) {
         logger.debug("%s\n", "Weird. Quadratic fit failed on ridge fitting");
         coeffs_invalidated = true;
         return;

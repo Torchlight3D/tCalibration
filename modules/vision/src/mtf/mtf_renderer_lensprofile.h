@@ -12,20 +12,14 @@ public:
         const cv::Mat& img, const std::vector<double>& in_resolution,
         int gnuplot_width, bool lpmm_mode = false, double pixel_size = 1.0);
 
-    void set_sparse_chart(bool s);
-
-    void set_fixed_size(bool f);
-
     void render(const std::vector<Block>& blocks) override;
+
+    void set_sparse_chart(bool s);
+    void set_fixed_size(bool f);
 
     void lsfit(const std::vector<Ordered_point>& in_data,
                std::vector<Ordered_point>& recon,
                std::vector<Ordered_point>& spread, int recon_samples = 64);
-
-private:
-    double angle_reduce(double x);
-
-    double polyeval(double x, const std::vector<double>& a) const;
 
 private:
     std::string wdir;

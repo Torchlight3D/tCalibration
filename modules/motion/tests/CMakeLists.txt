@@ -1,4 +1,4 @@
-set(IMU_TEST_TARGET imu_test)
+set(IMU_TEST_TARGET motion_test)
 
 add_executable(${IMU_TEST_TARGET})
 

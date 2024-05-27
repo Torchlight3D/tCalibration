@@ -82,12 +82,13 @@ static std::vector<double> binned_lsf(std::vector<Ordered_point>& ordered)
 
     // apply Masaoka's interpolation method to take care of zero-count bins
     for (int idx = 0; idx < (int)lsf.size(); idx++) {
-        if (fabs(lsf[idx] - missing) < 1e-6) {
+        if (std::abs(lsf[idx] - missing) < 1e-6) {
             int prev_present = idx - 1;
             int next_present = idx;
-            while (fabs(lsf[next_present] - missing) < 1e-6) {
+            while (std::abs(lsf[next_present] - missing) < 1e-6) {
                 next_present++;
             }
+
             int j;
             for (j = prev_present + 1; j < next_present - 1; j++) {
                 lsf[j] = lsf[prev_present];
@@ -138,7 +139,7 @@ double estimate_centroid(const std::vector<double>& a)
         sqsum += x * x * a[i] * w;
         wsum += a[i] * w;
     }
-    double var = std::min(256.0, std::max(1.0, fabs(sqsum / wsum)));
+    double var = std::min(256.0, std::max(1., std::abs(sqsum / wsum)));
 
     double delta_centroid = 50;
     size_t iters = 0;
@@ -155,7 +156,7 @@ double estimate_centroid(const std::vector<double>& a)
         }
         delta_centroid = centroid_x - sum / wsum;
         centroid_x = sum / wsum;
-    } while (fabs(delta_centroid) > 1e-3 && iters++ < 10);
+    } while (std::abs(delta_centroid) > 1e-3 && iters++ < 10);
 
     return centroid_x;
 }
@@ -198,7 +199,7 @@ void Ca_core::calculate_ca(Block& block)
         dir = dir * (1.0 / norm(dir));
         double delta = dir.dot(block.get_normal(k));
 
-        if (fabs(delta) > angle_threshold || mtf_core.is_single_roi() ||
+        if (std::abs(delta) > angle_threshold || mtf_core.is_single_roi() ||
             allow_all_edges) { // only process CA on tangential edges, unless we
                                // override this behaviour explicitly
             double green_centroid = estimate_centroid(green_lsf[k]);
@@ -207,7 +208,7 @@ void Ca_core::calculate_ca(Block& block)
 
             // choose the correct sign for CA shift, depending on edge
             // orientation
-            if (fabs(delta) > angle_threshold && delta < 0) {
+            if (std::abs(delta) > angle_threshold && delta < 0) {
                 red_ca *= -1;
                 blue_ca *= -1;
             }
@@ -234,12 +235,11 @@ void Ca_core::extract_rgb_lsf_bayer(Block& block, const cv::Mat& img,
         dir = dir * (1.0 / norm(dir));
         double delta = dir.dot(block.get_normal(k));
 
+        // only process CA on tangential edges, unless we override this
+        // behaviour explicitly
         if (!block.get_edge_valid(k) ||
-            (fabs(delta) <= angle_threshold &&
-             !(mtf_core.is_single_roi() ||
-               allow_all_edges))) { // only process CA on tangential edges,
-                                    // unless we override this behaviour
-                                    // explicitly
+            (std::abs(delta) <= angle_threshold &&
+             !(mtf_core.is_single_roi() || allow_all_edges))) {
             continue;
         }
 
@@ -283,12 +283,11 @@ void Ca_core::extract_rgb_lsf(Block& block, const cv::Mat& img,
         dir = dir * (1.0 / norm(dir));
         double delta = dir.dot(block.get_normal(k));
 
+        // only process CA on tangential edges, unless we override this
+        // behaviour explicitly
         if (!block.get_edge_valid(k) ||
-            (fabs(delta) <= angle_threshold &&
-             !(mtf_core.is_single_roi() ||
-               allow_all_edges))) { // only process CA on tangential edges,
-                                    // unless we override this behaviour
-                                    // explicitly
+            (std::abs(delta) <= angle_threshold &&
+             !(mtf_core.is_single_roi() || allow_all_edges))) {
             continue;
         }
 

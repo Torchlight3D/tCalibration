@@ -2,11 +2,19 @@
 
 #include <opencv2/calib3d.hpp>
 
+#include <tCore/Math>
+
 #include "bundle.h"
 #include "fiducial_positions.h"
 #include "five_point_focal_length_radial_distortion.h"
 #include "logger.h"
 #include "point_helpers.h"
+
+using Eigen::Matrix3d;
+using Eigen::Vector2d;
+using Eigen::Vector3d;
+
+using Matrix34d = Eigen::Matrix<double, 3, 4>;
 
 namespace {
 
@@ -106,7 +114,7 @@ bool t_intersect(double &pix, double &piy, double v1x, double v1y, double d1x,
 {
     double denom = (d2y * d1x - d2x * d1y);
 
-    if (fabs(denom) < 1e-11) {
+    if (std::abs(denom) < 1e-11) {
         // this happens when the lines are parallel
         // the caller handles this correctly by not
         // adding an additional intersection point
@@ -308,8 +316,8 @@ void Distance_scale::construct(Mtf_core &mtf_core, bool pose_based,
 
             page_scale_factor = fiducial_scale_factor[min_fid_coding];
 
-            Vector2dList ba_img_points;
-            Vector3dList ba_world_points;
+            std::vector<Vector2d> ba_img_points;
+            std::vector<Vector3d> ba_world_points;
             logger.debug("principal point = (%lf, %lf)\n", prin.x, prin.y);
             for (const auto &[_, e] : by_code) {
                 if (!e->valid) {
@@ -345,40 +353,26 @@ void Distance_scale::construct(Mtf_core &mtf_core, bool pose_based,
                     ba_world_points.back()[2]));
             }
 
-            using Matrix34d = Eigen::Matrix<double, 3, 4>;
-            using Matrix34dList = std::vector<Matrix34d>;
-            Matrix34dList projection_matrices;
+            std::vector<Matrix34d> projection_matrices;
             std::vector<std::vector<double>> radial_distortions;
             cv::Mat rot_matrix = cv::Mat(3, 3, CV_64FC1);
             cv::Mat rod_angles = cv::Mat(3, 1, CV_64FC1);
             Eigen::MatrixXd P;
 
-            class Solution
+            struct Solution
             {
-            public:
-                Solution(double bpe = 0., Eigen::MatrixXd proj = {},
-                         double distort = 0, std::vector<int> inlier_list = {},
-                         double f = 1)
-                    : bpe(bpe),
-                      proj(proj),
-                      distort(distort),
-                      inlier_list(inlier_list),
-                      f(f)
-                {
-                }
+                double bpe = 0.;
+                Eigen::MatrixXd proj = Eigen::MatrixXd::Zero();
+                double distort = 0.;
+                std::vector<int> inlier_list = {};
+                double f = 1.;
 
                 bool operator<(const Solution &b) const { return bpe < b.bpe; }
-
-                double bpe;
-                Eigen::MatrixXd proj;
-                double distort;
-                std::vector<int> inlier_list;
-                double f;
             };
 
             std::vector<Solution> solutions;
-            Vector2dList feature_points(5);
-            Vector3dList world_points(5);
+            std::vector<Vector2d> feature_points(5);
+            std::vector<Vector3d> world_points(5);
 
             enumerate_combinations(ba_img_points.size(), 5);
 
@@ -412,7 +406,7 @@ void Distance_scale::construct(Mtf_core &mtf_core, bool pose_based,
                     double r3n = (K.block<1, 3>(2, 0)).norm();
                     double w = sqrt((r3n * r3n) / (r1n * r1n));
 
-                    Eigen::MatrixXd RM = K.block<3, 3>(0, 0);
+                    Matrix3d RM = K.block<3, 3>(0, 0);
                     RM.row(2) /= w;
                     RM /= RM.row(0).norm();
 
@@ -427,8 +421,8 @@ void Distance_scale::construct(Mtf_core &mtf_core, bool pose_based,
                     double rot_err = 0;
                     for (int rr = 0; rr < 3; rr++) {
                         for (int cc = 0; cc < 3; cc++) {
-                            rot_err += fabs(rot_matrix.at<double>(rr, cc) -
-                                            RM(rr, cc));
+                            rot_err += std::abs(rot_matrix.at<double>(rr, cc) -
+                                                RM(rr, cc));
                         }
                     }
 
@@ -437,10 +431,9 @@ void Distance_scale::construct(Mtf_core &mtf_core, bool pose_based,
                                   // lengths on a 36 mm wide sensor
                         std::vector<double> residuals;
 
-                        Eigen::Matrix3d RMM(RM);
+                        Matrix3d RMM(RM);
                         RMM.row(2) *= w;
-                        Eigen::VectorXd TV =
-                            K.col(3) / K.block<1, 3>(0, 0).norm();
+                        Vector3d TV = K.col(3) / K.block<1, 3>(0, 0).norm();
 
                         // TODO: technically, we could re-run the five-point
                         // solver with eccentricity correction but since
@@ -448,26 +441,22 @@ void Distance_scale::construct(Mtf_core &mtf_core, bool pose_based,
                         // that for the final bundle adjustment
 
                         // COP in world coordinates
-                        Eigen::Vector3d ec_cop = TV;
+                        Vector3d ec_cop = TV;
                         // undo focal length scaling of z-component
                         ec_cop[2] /= w;
 
                         std::vector<int> inliers;
                         for (size_t i = 0; i < ba_img_points.size(); i++) {
-                            Eigen::Vector3d bp = RMM * ba_world_points[i] + TV;
-                            bp /= bp[2];
+                            Vector2d bp =
+                                (RMM * ba_world_points[i] + TV).hnormalized();
 
                             // NB: note the sign of the distortion
-                            double rad =
-                                1 - radial_distortions[i][0] *
-                                        (bp[0] * bp[0] + bp[1] * bp[1]);
+                            double rad = 1. - radial_distortions[i][0] *
+                                                  bp.squaredNorm();
                             bp /= rad;
 
-                            double err = (ba_img_points[i] -
-                                          Eigen::Vector2d(bp[0], bp[1]))
-                                             .norm();
-
-                            if (err * img_scale < inlier_threshold * 0.5) {
+                            if (auto err = (ba_img_points[i] - bp).norm();
+                                err * img_scale < inlier_threshold * 0.5) {
                                 residuals.push_back(err);
                                 inliers.push_back(i);
                             }
@@ -609,8 +598,8 @@ void Distance_scale::construct(Mtf_core &mtf_core, bool pose_based,
             // remove focal length from last row
             P.row(2) /= w;
 
-            Eigen::MatrixXd RM = P.block<3, 3>(0, 0);
-            Eigen::Vector3d Pcop = P.col(3);
+            Matrix3d RM = P.block<3, 3>(0, 0);
+            Vector3d Pcop = P.col(3);
 
             if (user_focal_ratio > 0) {
                 w = 1.0 / user_focal_ratio;
@@ -628,8 +617,8 @@ void Distance_scale::construct(Mtf_core &mtf_core, bool pose_based,
             }
             cv::Rodrigues(rot_matrix, rod_angles);
 
-            Vector2dList inlier_feature_points(inliers.size());
-            Vector3dList inlier_world_points(inliers.size());
+            std::vector<Vector2d> inlier_feature_points(inliers.size());
+            std::vector<Vector3d> inlier_world_points(inliers.size());
 
             for (size_t k = 0; k < inliers.size(); k++) {
                 inlier_feature_points[k] = ba_img_points[inliers[k]];
@@ -668,13 +657,13 @@ void Distance_scale::construct(Mtf_core &mtf_core, bool pose_based,
                 ba.focal_upper = focal_ratio_max * 1.1;
                 // TODO: a bit crude ...
                 ba.focal_mode_constraint =
-                    acos(fabs(RM(2, 2))) / M_PI * 180 < 15 ? 1.0 : 0.0;
+                    acos(std::abs(RM(2, 2))) / M_PI * 180 < 15 ? 1.0 : 0.0;
             }
             else {
                 ba.focal_lower = user_focal_ratio / 1.1;
                 ba.focal_upper = user_focal_ratio * 1.1;
                 ba.focal_mode_constraint =
-                    acos(fabs(RM(2, 2))) / M_PI * 180 < 15 ? 1.0 : 0.0;
+                    acos(std::abs(RM(2, 2))) / M_PI * 180 < 15 ? 1.0 : 0.0;
             }
 
             logger.debug("focal mode = %lf, f=%lf\n", ba.focal_mode_constraint,
@@ -711,18 +700,18 @@ void Distance_scale::construct(Mtf_core &mtf_core, bool pose_based,
             focal_length = 1.0 / w;
 
             // prepare for backprojection
-            Eigen::Matrix3d K;
+            Matrix3d K;
             K << 1, 0, 0, 0, 1, 0, 0, 0, 1.0 / focal_length;
 
             invP = (K * rotation).inverse();
 
             // prepare for forward and backward projection transforms
             fwdP = K * rotation;
-            fwdT = Eigen::Vector3d(translation[0], translation[1],
-                                   translation[2] / focal_length);
+            fwdT = Vector3d(translation[0], translation[1],
+                            translation[2] / focal_length);
 
-            cop = Eigen::Vector3d(translation[0], translation[1],
-                                  translation[2] / focal_length);
+            cop = Vector3d(translation[0], translation[1],
+                           translation[2] / focal_length);
             cop = -invP * cop;
 
             centre_depth = backproject(zero.x, zero.y)[2];
@@ -805,10 +794,10 @@ void Distance_scale::construct(Mtf_core &mtf_core, bool pose_based,
             int bot_i = lblock.get_edge_index(Block::BOTTOM);
             int left_i = lblock.get_edge_index(Block::LEFT);
             int right_i = lblock.get_edge_index(Block::RIGHT);
-            if (fabs(idx_x - 0.5) < fabs(idx_y - 0.5)) {
+            if (std::abs(idx_x - 0.5) < std::abs(idx_y - 0.5)) {
                 // outer rows arranged in columns
-                if (fabs(lblock.get_edge_centroid(top_i).y - median.y) <
-                    fabs(lblock.get_edge_centroid(bot_i).y - median.y)) {
+                if (std::abs(lblock.get_edge_centroid(top_i).y - median.y) <
+                    std::abs(lblock.get_edge_centroid(bot_i).y - median.y)) {
                     // chart is upside down
                     std::swap(top_i, bot_i);
                     std::swap(left_i, right_i);
@@ -819,8 +808,8 @@ void Distance_scale::construct(Mtf_core &mtf_core, bool pose_based,
                 std::swap(bot_i, right_i);
                 std::swap(top_i, left_i);
 
-                if (fabs(lblock.get_edge_centroid(top_i).x - median.x) <
-                    fabs(lblock.get_edge_centroid(bot_i).x - median.x)) {
+                if (std::abs(lblock.get_edge_centroid(top_i).x - median.x) <
+                    std::abs(lblock.get_edge_centroid(bot_i).x - median.x)) {
                     // chart is upside down
                     std::swap(top_i, bot_i);
                     std::swap(left_i, right_i);
@@ -831,8 +820,8 @@ void Distance_scale::construct(Mtf_core &mtf_core, bool pose_based,
             longitudinal = normalize(lblock.get_edge_centroid(bot_i) -
                                      lblock.get_edge_centroid(top_i));
             zero = lblock.get_edge_centroid(bot_i);
-            double block_width = norm(lblock.get_edge_centroid(right_i) -
-                                      lblock.get_edge_centroid(left_i));
+            double block_width = cv::norm(lblock.get_edge_centroid(right_i) -
+                                          lblock.get_edge_centroid(left_i));
 
             // assume central block is 62 mm wide
             chart_scale = 62.0 / block_width;
@@ -897,19 +886,19 @@ Eigen::Vector3d Distance_scale::backproject(double pixel_x,
 {
     cv::Point2d ic = normalize_img_coords(pixel_x, pixel_y);
 
-    Eigen::Vector3d dv(ic.x, ic.y, 1.0);
+    Vector3d dv(ic.x, ic.y, 1.0);
     dv = invP * dv;
     dv /= dv.norm();
 
     double s = (1 - cop[2]) / dv[2];
-    Eigen::Vector3d ip = cop + s * dv;
+    Vector3d ip = cop + s * dv;
 
     // now we have ip in world coordinates, but we actually want it in
     // camera coordinates
 
     // z-axis sign?
     ip = rotation * ip +
-         Eigen::Vector3d(translation[0], translation[1], -translation[2]);
+         Vector3d(translation[0], translation[1], -translation[2]);
 
     return ip;
 }
@@ -917,16 +906,15 @@ Eigen::Vector3d Distance_scale::backproject(double pixel_x,
 void Distance_scale::estimate_depth_img_coords(double pixel_x, double pixel_y,
                                                double &depth) const
 {
-    Eigen::Vector3d bp = backproject(pixel_x, pixel_y);
+    Vector3d bp = backproject(pixel_x, pixel_y);
     depth = bp[2] - centre_depth;
 }
 
 void Distance_scale::estimate_depth_world_coords(double world_x, double world_y,
                                                  double &depth) const
 {
-    Eigen::Vector3d bp =
-        rotation * Eigen::Vector3d(world_x, world_y, 0) +
-        Eigen::Vector3d(translation[0], translation[1], -translation[2]);
+    Vector3d bp = rotation * Vector3d(world_x, world_y, 0) +
+                  Vector3d(translation[0], translation[1], -translation[2]);
 
     depth = bp[2] - centre_depth;
 }
@@ -936,12 +924,12 @@ cv::Point2d Distance_scale::estimate_world_coords(double pixel_x,
 {
     cv::Point2d ic = normalize_img_coords(pixel_x, pixel_y);
 
-    Eigen::Vector3d dv(ic.x, ic.y, 1.0);
+    Vector3d dv(ic.x, ic.y, 1.0);
     dv = invP * dv;
     dv /= dv.norm();
 
     double s = (1 - cop[2]) / dv[2];
-    Eigen::Vector3d ip = cop + s * dv;
+    Vector3d ip = cop + s * dv;
 
     // ip[2] (=z) will always be in the plane
     return {ip[0], ip[1]};
@@ -950,12 +938,10 @@ cv::Point2d Distance_scale::estimate_world_coords(double pixel_x,
 cv::Point2d Distance_scale::world_to_image(double world_x, double world_y,
                                            double world_z) const
 {
-    Eigen::Vector3d bp =
-        fwdP * Eigen::Vector3d(world_x, world_y, world_z) + fwdT;
+    Vector2d bp =
+        (fwdP * Vector3d(world_x, world_y, world_z) + fwdT).hnormalized();
 
-    bp /= bp[2];
-
-    double rad = 1 + distortion * (bp[0] * bp[0] + bp[1] * bp[1]);
+    double rad = 1 + distortion * bp.squaredNorm();
     bp /= rad;
     bp *= img_scale;
 
@@ -967,7 +953,7 @@ cv::Point2d Distance_scale::world_to_image(double world_x, double world_y,
 
 double Distance_scale::get_normal_angle_z() const
 {
-    return acos(fabs(rotation(2, 2))) / M_PI * 180;
+    return tl::math::radToDeg(std::acos(std::abs(rotation(2, 2))));
 }
 
 double Distance_scale::get_normal_angle_y() const
@@ -976,8 +962,8 @@ double Distance_scale::get_normal_angle_y() const
     // what the chart orientation is relative to the sensor,
     // i.e., a 90-degree rotation of the chart (or sensor)
     // is already factored out
-    double yrot = std::max(fabs(rotation(0, 1)), fabs(rotation(1, 1)));
-    return acos(yrot) / M_PI * 180;
+    return tl::math::radToDeg(std::acos(
+        std::max(std::abs(rotation(0, 1)), std::abs(rotation(1, 1)))));
 }
 
 void Distance_scale::enumerate_combinations(int n, int k)

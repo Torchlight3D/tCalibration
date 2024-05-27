@@ -83,8 +83,8 @@ void Mtf_renderer_chart_orientation::render(const std::vector<Block>&)
     draw.curve(curve, c_green, 2, c_green);
 
     // in landscape orientation, dy > dy on the y axis
-    bool landscape = fabs(curve.front().y - curve.back().y) >
-                     fabs(curve.front().x - curve.back().x);
+    bool landscape = std::abs(curve.front().y - curve.back().y) >
+                     std::abs(curve.front().x - curve.back().x);
     bool flipped = false;
     if (landscape) {
         flipped = curve.front().y < curve.back().y;
@@ -116,61 +116,61 @@ void Mtf_renderer_chart_orientation::render(const std::vector<Block>&)
     double e_roll = distance_scale.roll_angle / M_PI * 180;
     double e_pitch = distance_scale.pitch_angle / M_PI * 180;
     double e_yaw = distance_scale.yaw_angle / M_PI * 180;
-    if (fabs(e_roll - 90) < fabs(e_roll)) {
+    if (std::abs(e_roll - 90) < std::abs(e_roll)) {
         e_roll -= 90;
         e_pitch = distance_scale.yaw_angle / M_PI * 180;
         e_yaw = -distance_scale.pitch_angle / M_PI * 180;
     }
     else {
-        if (fabs(e_roll + 90) < fabs(e_roll)) {
+        if (std::abs(e_roll + 90) < std::abs(e_roll)) {
             e_roll += 90;
             e_pitch = distance_scale.yaw_angle / M_PI * 180;
             e_yaw = -distance_scale.pitch_angle / M_PI * 180;
         }
     }
 
-    draw.arc_with_arrow(0, 10, fabs(xmax), c_lred, (e_pitch < 0) ^ flipped);
-    draw.arc_with_arrow(1, 10, fabs(ymax), c_lgreen, (e_yaw < 0) ^ flipped);
-    draw.arc_with_arrow(2, 10, fabs(zmax), c_lblue, (e_roll < 0) ^ flipped);
+    draw.arc_with_arrow(0, 10, std::abs(xmax), c_lred, (e_pitch < 0) ^ flipped);
+    draw.arc_with_arrow(1, 10, std::abs(ymax), c_lgreen, (e_yaw < 0) ^ flipped);
+    draw.arc_with_arrow(2, 10, std::abs(zmax), c_lblue, (e_roll < 0) ^ flipped);
 
     if (flipped) {
         if (landscape) {
             draw.text_block_ra(xmax * draw.psf, ymax * draw.psf,
                                zmax * draw.psf, c_lblue, "Roll=%.2lf",
-                               fabs(e_roll));
+                               std::abs(e_roll));
             draw.text_block_ra(xmax * draw.psf, 15 * draw.psf, 0, c_lgreen,
-                               "Yaw=%.2lf", fabs(e_yaw));
+                               "Yaw=%.2lf", std::abs(e_yaw));
             draw.text_block(10 * draw.psf, (ymax + 20) * draw.psf, 0, c_lred,
-                            "Pitch=%.2lf", fabs(e_pitch));
+                            "Pitch=%.2lf", std::abs(e_pitch));
         }
         else {
             draw.text_block_ra(xmax * draw.psf, (ymax + 20) * draw.psf,
                                zmax * draw.psf, c_lblue, "Roll=%.2lf",
-                               fabs(e_roll));
+                               std::abs(e_roll));
             draw.text_block((xmax + 15) * draw.psf, 10 * draw.psf, 0, c_lgreen,
-                            "Yaw=%.2lf", fabs(e_yaw));
+                            "Yaw=%.2lf", std::abs(e_yaw));
             draw.text_block_ra(10 * draw.psf, ymax * draw.psf, 0, c_lred,
-                               "Pitch=%.2lf", fabs(e_pitch));
+                               "Pitch=%.2lf", std::abs(e_pitch));
         }
     }
     else {
         if (landscape) {
             draw.text_block((xmax + 20) * draw.psf, ymax * draw.psf,
                             zmax * draw.psf, c_lblue, "Roll=%.2lf",
-                            fabs(e_roll));
+                            std::abs(e_roll));
             draw.text_block(xmax * draw.psf, 10 * draw.psf, 0, c_lgreen,
-                            "Yaw=%.2lf", fabs(e_yaw));
+                            "Yaw=%.2lf", std::abs(e_yaw));
             draw.text_block_ra(10 * draw.psf, (ymax + 20) * draw.psf, 0, c_lred,
-                               "Pitch=%.2lf", fabs(e_pitch));
+                               "Pitch=%.2lf", std::abs(e_pitch));
         }
         else {
             draw.text_block(xmax * draw.psf, (ymax + 20) * draw.psf,
                             zmax * draw.psf, c_lblue, "Roll=%.2lf",
-                            fabs(e_roll));
+                            std::abs(e_roll));
             draw.text_block_ra((xmax + 20) * draw.psf, 10 * draw.psf, 0,
-                               c_lgreen, "Yaw=%.2lf", fabs(e_yaw));
+                               c_lgreen, "Yaw=%.2lf", std::abs(e_yaw));
             draw.text_block(10 * draw.psf, ymax * draw.psf, 0, c_lred,
-                            "Pitch=%.2lf", fabs(e_pitch));
+                            "Pitch=%.2lf", std::abs(e_pitch));
         }
     }
 

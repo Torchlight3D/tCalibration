@@ -1,37 +1,43 @@
 #pragma once
 
 #include <opencv2/core/mat.hpp>
-#include <opencv2/core/types.hpp>
 
 class Undistort
 {
 public:
     explicit Undistort(const cv::Rect& rect);
+    virtual ~Undistort() = default;
 
-    cv::Point transform_pixel(int col, int row);
+    /// Properties
+    void setRectilinearEquivalent(bool on);
+    bool rectilinearEquivalent() const;
 
-    // This function interpolates radmap
-    cv::Point2d transform_point(double px, double py);
-    inline auto transform_point(const cv::Point2d& p)
-    {
-        return transform_point(p.x, p.y);
-    }
+    void setMaxVal(const cv::Point2d& maxv);
+    const cv::Point2d& maxVal() const;
+
+    void setAllowCrop(bool crop);
+    bool allowCrop() const;
 
     // the "real" forward transformation, which could be slow
-    virtual cv::Point2d slow_transform_point(double px, double py) = 0;
-    virtual cv::Point2d inverse_transform_point(double px, double py) = 0;
+    virtual cv::Point2d slow_transform_point(
+        const cv::Point2d& point) const = 0;
+    virtual cv::Point2d inverse_transform_point(
+        const cv::Point2d& point) const = 0;
 
     virtual cv::Mat unmap(const cv::Mat& src, cv::Mat& rawimg) = 0;
 
-    bool rectilinear_equivalent() const;
+    // This function interpolates radmap
+    cv::Point2d transform_point(const cv::Point2d& p);
+    inline auto transform_point(double px, double py)
+    {
+        return transform_point(cv::Point2d{px, py});
+    }
+    inline auto transform_pixel(int col, int row)
+    {
+        return transform_point(cv::Point{col, row});
+    }
 
-    void set_rectilinear_equivalent(bool b);
-
-    void set_max_val(const cv::Point2d& maxv);
-
-    void set_allow_crop(bool crop);
-
-    void apply_padding(std::vector<cv::Mat>& images);
+    void apply_padding(std::vector<cv::Mat>& images) const;
 
 public:
     cv::Point2d centre;

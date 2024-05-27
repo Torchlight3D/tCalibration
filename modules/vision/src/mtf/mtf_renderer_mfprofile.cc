@@ -72,30 +72,30 @@ void Mtf_renderer_mfprofile::render(
     merged.resize(merged.rows + 100);
 
     // TODO: find a way to sample the values for display purposes?
-    //    for (size_t i = 1; i < points.size(); i += 3) {
-    //        Point2d d = points[i].p - zero;
-    //        Point2d coord(d.x * longitudinal.x + d.y * longitudinal.y,
-    //                      d.x * transverse.x + d.y * transverse.y);
+    // for (size_t i = 1; i < points.size(); i += 3) {
+    //     cv::Point2d d = points[i].p - zero;
+    //     cv::Point2d coord(d.x * longitudinal.x + d.y * longitudinal.y,
+    //                       d.x * transverse.x + d.y * transverse.y);
 
-    //        if (fabs(coord.x - cpx) > covxx * radxf ||
-    //            fabs(coord.y - cpy) > covyy * radyf) {
-    //            continue; // point was excluded
-    //        }
+    //     if (std::abs(coord.x - cpx) > covxx * radxf ||
+    //         std::abs(coord.y - cpy) > covyy * radyf) {
+    //         continue; // point was excluded
+    //     }
 
-    //        int baseline = 0;
-    //        char buffer[1024];
-    //        sprintf(buffer, "%03d", (int)lrint(points[i].mtf * 1000));
-    //        cv::Size ts = cv::getTextSize(buffer, cv::FONT_HERSHEY_SIMPLEX,
-    //        0.5, 1,
-    //                                      &baseline);
-    //        cv::Point to(-ts.width / 2, ts.height / 2);
-    //        to.x += points[i].p.x;
-    //        to.y += points[i].p.y;
-    //        cv::putText(merged, buffer, to, cv::FONT_HERSHEY_SIMPLEX, 0.5,
-    //                    CV_RGB(20, 20, 20), 2.5, CV_AA);
-    //        cv::putText(merged, buffer, to, cv::FONT_HERSHEY_SIMPLEX, 0.5,
-    //                    CV_RGB(50, 255, 255), 1, CV_AA);
-    //    }
+    //     int baseline = 0;
+    //     char buffer[1024];
+    //     sprintf(buffer, "%03d", (int)lrint(points[i].mtf * 1000));
+    //     cv::Size ts = cv::getTextSize(buffer, cv::FONT_HERSHEY_SIMPLEX, 0.5,
+    //     1,
+    //                                   &baseline);
+    //     cv::Point to(-ts.width / 2, ts.height / 2);
+    //     to.x += points[i].p.x;
+    //     to.y += points[i].p.y;
+    //     cv::putText(merged, buffer, to, cv::FONT_HERSHEY_SIMPLEX, 0.5,
+    //                 CV_RGB(20, 20, 20), 2, cv::LINE_AA);
+    //     cv::putText(merged, buffer, to, cv::FONT_HERSHEY_SIMPLEX, 0.5,
+    //                 CV_RGB(50, 255, 255), 1, cv::LINE_AA);
+    // }
 
     draw_curve(merged, pf.ridge_peaks, cv::Scalar(30, 30, 255), 2, true);
     draw_curve(merged, pf.ridge, cv::Scalar(30, 255, 30), 3);

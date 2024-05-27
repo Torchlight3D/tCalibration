@@ -1,6 +1,8 @@
 #pragma once
 
-#include "esf_sampler_quad.h"
+#include "esfsamplerquad.h"
+
+namespace tl {
 
 class EsfPiecewiseQuadSampler : public EsfQuadSampler
 {
@@ -16,5 +18,8 @@ public:
                 Bayer::cfa_mask_t cfa_mask = Bayer::DEFAULT) override;
 
 protected:
-    std::vector<double> piecewise_quadfit(const std::vector<cv::Point2d>& pts);
+    std::vector<double> piecewise_quadfit(
+        const std::vector<cv::Point2d>& pts) const;
 };
+
+} // namespace tl

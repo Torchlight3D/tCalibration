@@ -332,7 +332,7 @@ Mrectangle::Mrectangle(const std::vector<double>& in_thetas,
             for (size_t k = 0; k < 4; k++) {
                 cv::Point2d v(points[i].x - centroids[k].x,
                               points[i].y - centroids[k].y);
-                double dist = fabs(v.ddot(normals[k]));
+                double dist = std::abs(v.ddot(normals[k]));
                 if (dist < min_dist) {
                     min_dist = dist;
                     min_edge = k;
@@ -410,7 +410,7 @@ Mrectangle::Mrectangle(const std::vector<double>& in_thetas,
 
                 // only update the normal if we have x-y correlation
                 cv::Point2d ev;
-                if (fabs(covxy[k]) > 1e-10) {
+                if (std::abs(covxy[k]) > 1e-10) {
                     ev.x = l - covyy[k];
                     ev.y = covxy[k];
                     ev *= 1.0 / norm(ev);
@@ -450,7 +450,7 @@ Mrectangle::Mrectangle(const std::vector<double>& in_thetas,
                 }
                 else {
                     x_scale[k] =
-                        fabs(extrema[k].y - extrema[k].x) * 0.5 / sqrt(0.5);
+                        std::abs(extrema[k].y - extrema[k].x) * 0.5 / sqrt(0.5);
                 }
 
                 // catch the case where only one point is associated with this
@@ -509,7 +509,7 @@ Mrectangle::Mrectangle(const std::vector<double>& in_thetas,
                     D[k][0][2] *
                         (D[k][1][0] * D[k][2][1] - D[k][1][1] * D[k][2][0]);
 
-                if (fabs(det_D) < 1e-12) {
+                if (std::abs(det_D) < 1e-12) {
                     valid = false;
                     return;
                 }
@@ -556,7 +556,7 @@ Mrectangle::Mrectangle(const std::vector<double>& in_thetas,
                     double recon_perp = quad_coeffs[k][0] * par * par +
                                         quad_coeffs[k][1] * par +
                                         quad_coeffs[k][2];
-                    double err = fabs(recon_perp - delta.ddot(normals[k]));
+                    double err = std::abs(recon_perp - delta.ddot(normals[k]));
                     if (err < min_err) {
                         min_err = err;
                         best_edge = k;
@@ -602,10 +602,10 @@ Mrectangle::Mrectangle(const std::vector<double>& in_thetas,
 
             int violation_count = 0;
             for (size_t k = 0; k < 4; k++) {
-                if (fabs(max_recon[k].x - min_recon[k].x) != 0) {
+                if (std::abs(max_recon[k].x - min_recon[k].x) != 0) {
                     cv::Point3d deviation(
-                        0.0, fabs(max_recon[k].y - min_recon[k].y),
-                        fabs(max_recon[k].x - min_recon[k].x));
+                        0., std::abs(max_recon[k].y - min_recon[k].y),
+                        std::abs(max_recon[k].x - min_recon[k].x));
                     double slope = deviation.x = deviation.y / deviation.z;
                     line_deviation[k] = deviation;
                     if (slope > quad_slope_thresh) {
@@ -627,7 +627,8 @@ Mrectangle::Mrectangle(const std::vector<double>& in_thetas,
             for (size_t k1 = 0; k1 < 3; k1++) {
                 for (size_t k2 = k1 + 1; k2 < 4; k2++) {
                     double dot = normals[k1].ddot(normals[k2]);
-                    if (fabs(dot) < 0.86603) { // exclude near-parallel lines
+                    // exclude near-parallel lines
+                    if (std::abs(dot) < 0.86603) {
                         cv::Point2d isect(0.0, 0.0);
                         bool result =
                             intersect(centroids[k1], normals[k1], centroids[k2],
@@ -749,7 +750,7 @@ bool Mrectangle::intersect(const cv::Point2d& p1, const cv::Point2d& d1,
 
     double det = (a1 * b2 - a2 * b1);
 
-    if (fabs(det) < 1e-12) {
+    if (std::abs(det) < 1e-12) {
         // lines are actually parallel. this is impossible?
         logger.debug("Warning: determinant near-zero: %s, %d\n", __FILE__,
                      __LINE__);

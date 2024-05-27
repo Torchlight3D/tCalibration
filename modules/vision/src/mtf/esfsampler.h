@@ -4,29 +4,29 @@
 
 #include <opencv2/core/mat.hpp>
 
-#include "ordered_point.h"
 #include "bayer.h"
 #include "edge_model.h"
+#include "ordered_point.h"
 #include "scanline.h"
+
+namespace tl {
+
+enum EsfSamplerType
+{
+    Line,
+    Quad,
+    PiecewiseQuad,
+    Deferred
+};
 
 class EsfSampler
 {
 public:
-    enum esf_sampler_t
-    {
-        LINE = 0,
-        QUAD,
-        PIECEWISE_QUAD,
-        DEFERRED
-    };
-
-    // TODO: Use magic_enum
-    static esf_sampler_t from_string(const std::string &s);
-    const static std::array<std::string, 4> esf_sampler_names;
-
     EsfSampler(double max_dot, Bayer::cfa_mask_t cfa_mask = Bayer::ALL,
                double max_edge_length = 1e6, double border_width = 0.);
 
+    // TODO:
+    // 1. Change parameters order
     virtual void sample(Edge_model &edge_model,
                         std::vector<Ordered_point> &local_ordered,
                         const std::map<int, scanline> &scanset,
@@ -40,3 +40,5 @@ protected:
     double max_edge_length;
     double border_width;
 };
+
+} // namespace tl

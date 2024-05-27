@@ -5,20 +5,19 @@
 
 #include "block.h"
 
-class Ridge
+struct Ridge
 {
-public:
-    Ridge(const std::vector<cv::Point2d>& ridge, const cv::Point2d& centroid,
-          const cv::Point2d& normal, double weight = 0)
-        : ridge(ridge), centroid(centroid), normal(normal), weight(weight)
-    {
-    }
-
     std::vector<cv::Point2d> ridge;
     cv::Point2d centroid;
     cv::Point2d normal;
-    double weight;
-    double residual = 0;
+    double weight = 0.;
+    double residual = 0.;
+
+    Ridge(const std::vector<cv::Point2d>& ridge, const cv::Point2d& centroid,
+          const cv::Point2d& normal, double weight = 0.)
+        : ridge(ridge), centroid(centroid), normal(normal), weight(weight)
+    {
+    }
 };
 
 class Distortion_optimizer

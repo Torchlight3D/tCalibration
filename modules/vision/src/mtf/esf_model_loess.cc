@@ -9,9 +9,9 @@
 // this kernel is not used (at all) when calculating MTF corrections
 static inline double local_kernel(double d, double alpha, double w = 0.125)
 {
-    if (fabs(d) < w)
-        return 1.0;
-    return fastexp(-fabs(fabs(d) - w) * alpha);
+    if (std::abs(d) < w)
+        return 1.;
+    return fastexp(-std::abs(std::abs(d) - w) * alpha);
 }
 
 static double interpolate(double cnr,
@@ -46,9 +46,11 @@ static void local_moving_average_smoother(std::vector<double>& smoothed,
 {
     if (width < 1)
         return;
+
     width = std::min(width, 32);
     if (left_trans - fft_left <= 1)
         return;
+
     if (fft_right - right_trans <= 1)
         return;
 
@@ -172,18 +174,18 @@ int EsfModelLoss::build_esf(std::vector<Ordered_point>& ordered,
             weights[b] = 0;
         }
         else {
-            if (fabs(mid) < 0.125 * twidth + model_switch_bias) {
+            if (std::abs(mid) < 0.125 * twidth + model_switch_bias) {
                 Eigen::MatrixXd design(npts, order + 1);
                 Eigen::VectorXd v(npts);
 
                 double fw = 0.125;
-                if (fabs(mid) >= 0.125 * 0.5 * twidth) {
+                if (std::abs(mid) >= 0.125 * 0.5 * twidth) {
                     fw = 0.250;
                 }
 
                 size_t row = 0;
                 for (auto it = left_it; it != right_it; it++, row++) {
-                    double d = fabs(it->first - mid);
+                    double d = std::abs(it->first - mid);
                     double w = local_kernel(d, alpha, fw);
 
                     double x = (it->first - mid) / (0.5 * loess_span);
@@ -202,8 +204,9 @@ int EsfModelLoss::build_esf(std::vector<Ordered_point>& ordered,
                     design(row, 5) = w * (16 * x5 - 20 * x3 + 5 * x);
                     design(row, 6) = w * (32 * x6 - 48 * x4 + 18 * x2 - 1);
                 }
+
                 const double phi =
-                    (fabs(mid) > 0.75 * twidth * 0.125) ? ridge_parm : 5e-8;
+                    (std::abs(mid) > 0.75 * twidth * 0.125) ? ridge_parm : 5e-8;
                 Eigen::VectorXd sol =
                     (design.transpose() * design +
                      phi * Eigen::MatrixXd::Identity(order + 1, order + 1))
@@ -226,17 +229,17 @@ int EsfModelLoss::build_esf(std::vector<Ordered_point>& ordered,
                 constexpr double mid_span = 1.0;
                 constexpr double max_span = 1.5;
                 double span = min_span;
-                if (fabs(mid) >= upper_thresh) {
+                if (std::abs(mid) >= upper_thresh) {
                     span = max_span;
                 }
                 else {
-                    if (fabs(mid) >= mid_thresh) {
-                        double t = (fabs(mid) - mid_thresh) /
+                    if (std::abs(mid) >= mid_thresh) {
+                        double t = (std::abs(mid) - mid_thresh) /
                                    (upper_thresh - mid_thresh);
                         span = mid_span + t * (max_span - mid_span);
                     }
                     else {
-                        double t = (fabs(mid) - lower_thresh) /
+                        double t = (std::abs(mid) - lower_thresh) /
                                    (mid_thresh - lower_thresh);
                         span = min_span + t * (mid_span - min_span);
                     }
@@ -248,6 +251,7 @@ int EsfModelLoss::build_esf(std::vector<Ordered_point>& ordered,
                 for (auto it = left_it; it != right_it; it++) {
                     sum += it->second;
                 }
+
                 if (right_it - left_it > 0) {
                     mean[b] = sum / double(right_it - left_it);
                     weights[b] = 1.0;

@@ -102,7 +102,7 @@ retry:
             mean[b] += ordered[i].second * w;
             weights[b] += w;
 
-            if (std::fabs(mid) <= double(sample_histo_size) / 16.0) {
+            if (std::abs(mid) <= double(sample_histo_size) / 16.0) {
                 int hist_idx =
                     (ordered[i].first + double(sample_histo_size) / 16.0) * 8;
                 if (hist_idx >= 0 && hist_idx < (int)sample_histo_size) {
@@ -158,7 +158,7 @@ retry:
             sx2 += j * j;
         }
         slopes[idx] = sxy / (sx2);
-        if (fabs(slopes[idx]) > fabs(slopes[peak_slope_idx]) &&
+        if (std::abs(slopes[idx]) > std::abs(slopes[peak_slope_idx]) &&
             idx > fft_left + pw && idx < fft_right - pw - 1) {
             peak_slope_idx = idx;
         }
@@ -178,18 +178,18 @@ retry:
     // compute central peak magnitude and sign
     double central_peak = 0;
     for (int w = -16; w <= 16; w++) {
-        if (fabs(slopes[fft_size2 + w]) > fabs(central_peak)) {
+        if (std::abs(slopes[fft_size2 + w]) > std::abs(central_peak)) {
             central_peak = slopes[fft_size2 + w];
         }
     }
 
-    double peak_threshold =
-        fabs(central_peak * 0.001); // must be negative by at least a little bit
+    // must be negative by at least a little bit
+    double peak_threshold = std::abs(central_peak * 0.001);
     // scan for significant slope sign change
     bool clipped = false;
     for (int idx = fft_size2 - 16; idx >= fft_left + 4; idx--) {
         if (slopes[idx] * central_peak < 0 &&
-            fabs(slopes[idx]) > peak_threshold) {
+            std::abs(slopes[idx]) > peak_threshold) {
             // check if a fair number of the remaining slopes are also negative
             // (relative to peak)
             int below = 0;
@@ -198,11 +198,13 @@ retry:
             for (int j = idx; j >= fft_left; j--) {
                 if (slopes[j] * central_peak < 0) {
                     below++;
-                    maxdev = std::max(maxdev, fabs(slopes[j]));
+                    maxdev = std::max(maxdev, std::abs(slopes[j]));
                 }
                 scount++;
             }
-            if ((below > scount * 0.4 && maxdev / fabs(central_peak) > 0.25) ||
+
+            if ((below > scount * 0.4 &&
+                 maxdev / std::abs(central_peak) > 0.25) ||
                 (below > 0.9 * scount && scount > 16)) {
                 fft_left = std::min(idx, fft_size2 - 2 * 8);
                 clipped = true;
@@ -212,7 +214,7 @@ retry:
     }
     for (int idx = fft_size2 + 16; idx < fft_right - 4; idx++) {
         if (slopes[idx] * central_peak < 0 &&
-            fabs(slopes[idx]) > peak_threshold) {
+            std::abs(slopes[idx]) > peak_threshold) {
             // check if a fair number of the remaining slopes are also negative
             // (relative to peak)
             int below = 0;
@@ -221,11 +223,12 @@ retry:
             for (int j = idx; j < fft_right; j++) {
                 if (slopes[j] * central_peak < 0) {
                     below++;
-                    maxdev = std::max(maxdev, fabs(slopes[j]));
+                    maxdev = std::max(maxdev, std::abs(slopes[j]));
                 }
                 scount++;
             }
-            if ((below > scount * 0.4 && maxdev / fabs(central_peak) > 0.25) ||
+            if ((below > scount * 0.4 &&
+                 maxdev / std::abs(central_peak) > 0.25) ||
                 (below > 0.9 * scount && scount > 16)) {
                 fft_right = std::max(idx, fft_size2 + 2 * 8);
                 clipped = true;
@@ -272,25 +275,27 @@ retry:
         double smoothed = (sampled[idx - 2] + sampled[idx - 1] + sampled[idx] +
                            sampled[idx + 1] + sampled[idx + 2]) /
                           5.0;
-        if (fabs((smoothed - dark) - 0.1 * (bright - dark)) < p10err) {
+        if (std::abs((smoothed - dark) - 0.1 * (bright - dark)) < p10err) {
             p10idx = idx;
-            p10err = fabs((smoothed - dark) - 0.1 * (bright - dark));
+            p10err = std::abs((smoothed - dark) - 0.1 * (bright - dark));
         }
-        if (fabs((smoothed - dark) - 0.9 * (bright - dark)) < p90err) {
+        if (std::abs((smoothed - dark) - 0.9 * (bright - dark)) < p90err) {
             p90idx = idx;
-            p90err = fabs((smoothed - dark) - 0.9 * (bright - dark));
+            p90err = std::abs((smoothed - dark) - 0.9 * (bright - dark));
         }
     }
+
     // we know that mtf50 ~ 1/(p90idx - p10idx) * (1/samples_per_pixel)
     double rise_dist =
-        std::max(double(4), fabs(double(p10idx - p90idx)) * 0.125);
+        std::max(double(4), std::abs(double(p10idx - p90idx)) * 0.125);
     if (p10idx < p90idx) {
         std::swap(p10idx, p90idx);
     }
+
     p10idx += 4 + 2 * lrint(rise_dist); // advance at least one more full pixel
     p90idx -= 4 + 2 * lrint(rise_dist);
-    twidth = std::max(fabs(double(p10idx - fft_size2)),
-                      fabs(double(p90idx - fft_size2)));
+    twidth = std::max(std::abs(double(p10idx - fft_size2)),
+                      std::abs(double(p90idx - fft_size2)));
 
     // Contrast-to-Noise-Ratio (CNR), effectively SNR for the S-E method
     // Only the esf_model_loess currently uses this, but to good effect

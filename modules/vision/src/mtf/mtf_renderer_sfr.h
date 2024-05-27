@@ -14,8 +14,4 @@ public:
     std::string ofname;
     bool lpmm_mode;
     double pixel_size;
-
-private:
-    // TODO: Duplicated code
-    double angle_reduce(double x);
 };

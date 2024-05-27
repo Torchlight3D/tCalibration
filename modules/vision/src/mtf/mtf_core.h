@@ -8,7 +8,7 @@
 #include "component_labelling.h"
 #include "ellipse.h"
 #include "esf_model.h"
-#include "esf_sampler.h"
+#include "esfsampler.h"
 #include "gradient.h"
 #include "mtf_profile_sample.h"
 #include "rectangle.h"
@@ -82,7 +82,7 @@ public:
     const std::vector<std::pair<cv::Point2d, cv::Point2d>> &get_sliding_edges()
         const;
 
-    EsfSampler *get_esf_sampler() const;
+    tl::EsfSampler *get_esf_sampler() const;
 
     Bayer::cfa_pattern_t get_cfa_pattern() const;
 
@@ -125,7 +125,7 @@ private:
     Undistort *undistort = nullptr;
     bool ridges_only;
     size_t mtf_width = 2 * NYQUIST_FREQ;
-    EsfSampler *esf_sampler = nullptr;
+    tl::EsfSampler *esf_sampler = nullptr;
     double mtf_contrast = 0.5; // target MTF contrast, e.g., 0.5 -> MTF50
     std::unique_ptr<EsfModel> esf_model;
     std::vector<std::pair<cv::Point2d, cv::Point2d>> sliding_edges;

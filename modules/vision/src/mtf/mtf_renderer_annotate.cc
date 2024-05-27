@@ -35,8 +35,8 @@ static std::vector<double> calculate_edge_lengths(const Block& block)
             for (size_t j = 0; j < 4; j++) {
                 cv::Point2d delta = block.get_edge_centroid(k) - base[j];
                 double dist = delta.dot(n[j]) / (n[j].dot(n[j]));
-                if (fabs(dist) < min_dist) {
-                    min_dist = fabs(dist);
+                if (std::abs(dist) < min_dist) {
+                    min_dist = std::abs(dist);
                     min_j = j;
                 }
             }

@@ -47,19 +47,21 @@ Distortion_optimizer::Distortion_optimizer(const std::vector<Block>& in_blocks,
                 cv::Point2d cent = block.get_edge_centroid(k);
                 cv::Point2d normal = block.get_normal(k);
                 cv::Point2d radial(cent.x - prin.x, cent.y - prin.y);
-                if (norm(radial) > 1e-6) {
+                if (cv::norm(radial) > 1e-6) {
                     radial *= 1.0 / (norm(radial));
-                    double w = fabs(radial.ddot(normal));
+                    double w = std::abs(radial.ddot(normal));
 
                     // edge angle < 80 degrees w.r.t. radial direction
                     if (w > 0.17365) {
-                        double wrad = norm(cent - prin) / radius_norm;
+                        double wrad = cv::norm(cent - prin) / radius_norm;
                         ridges.push_back(Ridge(downsample(block.get_ridge(k)),
                                                block.get_edge_centroid(k),
                                                block.get_normal(k), w));
                         maxrad = std::max(wrad, maxrad);
-                        max_val.x = std::max(max_val.x, fabs(cent.x - prin.x));
-                        max_val.y = std::max(max_val.y, fabs(cent.y - prin.y));
+                        max_val.x =
+                            std::max(max_val.x, std::abs(cent.x - prin.x));
+                        max_val.y =
+                            std::max(max_val.y, std::abs(cent.y - prin.y));
                     }
                 }
             }
@@ -201,7 +203,7 @@ double Distortion_optimizer::model_not_invertible(const Eigen::VectorXd& v)
     const double r14 = r12 * r12;
 
     constexpr double kThreshold = 3.;
-    if (fabs(k1) > kThreshold || fabs(k2) > kThreshold) {
+    if (std::abs(k1) > kThreshold || std::abs(k2) > kThreshold) {
         return 1.0;
     }
 
@@ -270,7 +272,7 @@ double Distortion_optimizer::medcouple(std::vector<float>& x)
 
 double weight_penalty(double x)
 {
-    x = fabs(x);
+    x = std::abs(x);
     if (x > 0.05)
         return 0.01;
     if (x < 0.005)
@@ -294,8 +296,8 @@ double Distortion_optimizer::evaluate(const Eigen::VectorXd& v, double penalty)
         // estimate edge length to establish scale
         cv::Point2d first_point = inv_warp(edge.ridge.front(), v);
         cv::Point2d last_point = inv_warp(edge.ridge.back(), v);
-        double scale = std::max(fabs((first_point - cent).ddot(dir)),
-                                fabs((last_point - cent).ddot(dir)));
+        double scale = std::max(std::abs((first_point - cent).ddot(dir)),
+                                std::abs((last_point - cent).ddot(dir)));
 
         double sum_x = 0;
         double sum_y = 0;
@@ -409,8 +411,8 @@ void Distortion_optimizer::nelder_mead(double ftol, int& num_evals)
                 inhi = i;
             }
         }
-        double rtol = 2.0 * fabs(ny[ihi] - ny[ilo]) /
-                      (fabs(ny[ihi]) + fabs(ny[ilo]) + epsilon);
+        double rtol = 2. * std::abs(ny[ihi] - ny[ilo]) /
+                      (std::abs(ny[ihi]) + std::abs(ny[ilo]) + epsilon);
         if (rtol < ftol) {
             std::swap(ny[0], ny[ilo]);
             for (size_t i = 0; i < (size_t)np[0].size(); i++) {
@@ -418,6 +420,7 @@ void Distortion_optimizer::nelder_mead(double ftol, int& num_evals)
             }
             break;
         }
+
         if (num_evals >= max_allowed_iterations) {
             nelder_mead_failed = true;
             return;
@@ -426,8 +429,8 @@ void Distortion_optimizer::nelder_mead(double ftol, int& num_evals)
 
         double ytry = try_solution(psum, ihi, -1.0);
         if (ytry <= ny[ilo]) {
-            ytry = try_solution(psum, ihi,
-                                2.0); // expansion should also be modified
+            // expansion should also be modified
+            ytry = try_solution(psum, ihi, 2.0);
         }
         else {
             if (ytry >= ny[inhi]) {

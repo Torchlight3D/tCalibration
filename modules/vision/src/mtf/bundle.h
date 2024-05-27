@@ -3,13 +3,11 @@
 #include <Eigen/Dense>
 #include <opencv2/core/mat.hpp>
 
-using Vector2dList = std::vector<Eigen::Vector2d>;
-using Vector3dList = std::vector<Eigen::Vector3d>;
-
 class Bundle_adjuster
 {
 public:
-    Bundle_adjuster(Vector2dList& img_points, Vector3dList& world_points,
+    Bundle_adjuster(std::vector<Eigen::Vector2d>& img_points,
+                    std::vector<Eigen::Vector3d>& world_points,
                     Eigen::Vector3d& t, cv::Mat in_rod_angles,
                     double distortion, double w, double fid_diameter,
                     double img_scale = 1.);
@@ -33,8 +31,8 @@ public:
     bool optimization_failure() const;
 
 public:
-    const Vector2dList& img_points;
-    const Vector3dList& world_points;
+    const std::vector<Eigen::Vector2d>& img_points;
+    const std::vector<Eigen::Vector3d>& world_points;
     cv::Mat rot_mat;
     cv::Mat rod_angles;
     Eigen::VectorXd best_sol;
