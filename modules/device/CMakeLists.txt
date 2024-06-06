@@ -20,9 +20,9 @@ target_sources(${DEVICE_TARGET_NAME}
 
 # OpenCV, apt default 4.2. TODO: Duplicated code.
 if(MSVC)
-    set(OpenCV_DIR ${ACTIVE_DEPENDS_PREFIX}/opencv/4.9.0x)
+    set(OpenCV_DIR ${ACTIVE_DEPENDS_PREFIX}/opencv/4.10.0x)
 elseif()
-    set(OpenCV_DIR ${ACTIVE_DEPENDS_PREFIX}/opencv/4.9.0x/lib/cmake/opencv4)
+    set(OpenCV_DIR ${ACTIVE_DEPENDS_PREFIX}/opencv/4.10.0x/lib/cmake/opencv4)
 endif()
 set(OpenCVModules
     core
