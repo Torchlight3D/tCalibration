@@ -4,9 +4,7 @@
 
 #include <opencv2/core/mat.hpp>
 
-#include <tTarget/Types>
-
-#include "target_detection.h"
+#include "targetdetection.h"
 
 namespace tl {
 

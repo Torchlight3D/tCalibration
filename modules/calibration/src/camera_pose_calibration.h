@@ -1,16 +1,14 @@
 ﻿#pragma once
 
-#include <Eigen/Geometry>
 #include <opencv2/core/types.hpp>
 
-#include <tTarget/TargetDetection>
 #include <tCamera/Camera>
 #include <tMvs/Scene>
+#include <tVision/Target/TargetDetection>
 
 namespace tl {
 
 class CalibBoardBase;
-struct Observation;
 
 class CameraPoseCalibration
 {

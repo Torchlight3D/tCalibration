@@ -13,8 +13,8 @@
 #include <tMvs/Landmark>
 #include <tMvs/View>
 #include <tMvs/PnP/EstimateCalibratedAbsolutePose>
-#include <tTarget/CalibBoardBase>
 #include <tVision/EigenCVUtils>
+#include <tVision/Target/CalibBoardBase>
 
 #include "util_scene.h"
 

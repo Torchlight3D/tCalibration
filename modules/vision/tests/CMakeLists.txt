@@ -5,6 +5,12 @@ add_executable(${IMGPROC_TEST_TARGET})
 target_sources(${IMGPROC_TEST_TARGET}
     PRIVATE
         tst_distortion.cpp
+        # Target
+        tst_apriltag.cpp
+        # tst_caltag.cpp
+        tst_checkergrid.cpp
+        tst_circlegrid.cpp
+        # tst_multiboard.cpp
 )
 
 set(GTest_DIR ${ACTIVE_DEPENDS_PREFIX}/googletest/1.14.0/lib/cmake/GTest)

@@ -18,9 +18,8 @@
 #include <tMotion/ImuIntrinsics>
 #include <tMotion/ImuNoise>
 #include <tMotion/SplineErrorWeighting>
-#include <tTarget/ChessBoard>
-#include <tTarget/KalibrAprilTagBoard>
 #include <tVision/BlurDetection>
+#include <tVision/Target/KalibrAprilTagBoard>
 
 #include "StereoModuleData.h"
 

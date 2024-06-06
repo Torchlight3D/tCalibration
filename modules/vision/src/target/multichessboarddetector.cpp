@@ -1,4 +1,4 @@
-﻿#include "multi_checker_board_detector.h"
+﻿#include "multichessboarddetector.h"
 
 #include <numeric>
 

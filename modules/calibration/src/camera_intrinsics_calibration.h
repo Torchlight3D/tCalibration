@@ -2,10 +2,9 @@
 
 #include <string>
 
-#include <tTarget/TargetDetection>
 #include <tCamera/CameraIntrinsics>
-#include <tMvs/Types>
 #include <tMvs/Scene>
+#include <tVision/Target/TargetDetection>
 
 namespace tl {
 

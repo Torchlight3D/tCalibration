@@ -3,8 +3,8 @@
 #include <memory>
 
 #include <tCalibration/CameraIntrinsicsCalibration>
-#include <tTarget/CalibBoardBase>
 #include <tMvs/Scene>
+#include <tVision/Target/CalibBoardBase>
 
 namespace tl {
 

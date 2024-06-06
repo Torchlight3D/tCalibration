@@ -69,7 +69,6 @@ add_subdirectory(math)
 add_subdirectory(motion)
 add_subdirectory(camera)
 add_subdirectory(vision)
-add_subdirectory(target)
 add_subdirectory(mvs)
 add_subdirectory(calibration)
 

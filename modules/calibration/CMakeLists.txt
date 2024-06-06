@@ -68,7 +68,6 @@ target_link_libraries(${CALIBRATION_TARGET_NAME}
         ${NS_PREFIX}::Math
         ${NS_PREFIX}::Motion
         ${NS_PREFIX}::Mvs
-        ${NS_PREFIX}::Target # not public link
         ${NS_PREFIX}::Vision
         fmt::fmt
         Sophus::Sophus

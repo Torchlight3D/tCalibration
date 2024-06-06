@@ -6,12 +6,12 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 
-#include <tCore/TimeUtils>
 #include <tCore/Timer>
+#include <tCore/TimeUtils>
 #include <tCalibration/CameraIntrinsicsCalibration>
 #include <tCalibration/StereoCameraCalibration>
-#include <tTarget/KalibrAprilTagBoard>
-#include <tTarget/Chessboard>
+#include <tVision/Target/Chessboard>
+#include <tVision/Target/KalibrAprilTagBoard>
 
 namespace fs = std::filesystem;
 using namespace tl;
