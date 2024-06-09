@@ -21,8 +21,8 @@
 
 namespace tl {
 
-constexpr auto pi = std::numbers::pi;
-constexpr auto pi_f = std::numbers::pi_v<float>;
+inline constexpr auto pi = std::numbers::pi;
+inline constexpr auto pi_f = std::numbers::pi_v<float>;
 
 template <typename T>
 inline constexpr T two_pi_ = T(2) * std::numbers::pi_v<T>;
@@ -41,6 +41,12 @@ inline constexpr T half_pi_ = T(0.5) * std::numbers::pi_v<T>;
 
 inline constexpr auto half_pi = half_pi_<double>;
 inline constexpr auto half_pi_f = half_pi_<float>;
+
+inline constexpr auto sqrt3 = std::numbers::sqrt3;
+inline constexpr auto sqrt3_f = std::numbers::sqrt3_v<float>;
+
+inline constexpr auto sqrt2 = std::numbers::sqrt2;
+inline constexpr auto sqrt2_f = std::numbers::sqrt2_v<float>;
 
 inline constexpr auto kMaxDouble = std::numeric_limits<double>::max();
 inline constexpr auto kMinDouble = std::numeric_limits<double>::min();

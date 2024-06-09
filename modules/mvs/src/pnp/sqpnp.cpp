@@ -7,8 +7,6 @@
 
 namespace tl {
 
-using std::numbers::sqrt3;
-
 namespace {
 
 using NearestRotationMatrixFinder =
