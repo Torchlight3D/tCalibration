@@ -2,6 +2,7 @@
 
 #include "codec.h"
 
+namespace tl {
 class EncoderGrayCode : public Encoder
 {
 public:
@@ -27,3 +28,5 @@ public:
 private:
     std::vector<cv::Mat> frames;
 };
+
+} // namespace tl

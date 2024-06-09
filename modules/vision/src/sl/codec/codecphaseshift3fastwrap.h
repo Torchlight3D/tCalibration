@@ -2,6 +2,7 @@
 
 #include "codec.h"
 
+namespace tl {
 class EncoderPhaseShift3FastWrap : public Encoder
 {
 public:
@@ -27,3 +28,4 @@ public:
 private:
     std::vector<cv::Mat> frames;
 };
+} // namespace tl

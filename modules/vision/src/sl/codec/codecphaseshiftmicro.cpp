@@ -2,19 +2,21 @@
 
 #include <opencv2/imgproc.hpp>
 
-#include <tMath/MathBase>
+#include <tCore/ContainerUtils>
+#include <tCore/Math>
 
-#include "cvtools.h"
 #include "pstools.h"
 
+namespace tl {
+
 namespace {
-constexpr unsigned int F = 10;
-// constexpr float frequencies[] = {32.54f, 30.f,   30.44f, 30.68f,
-//                                  34.04f, 34.34f, 35.99f};
-// constexpr float frequencies[] = {74.f, 70.f, 71.f, 72.f, 73.f,
-//                                  75.f, 76.f, 77.f, 78.f, 79.f};
-constexpr float frequencies[] = {75.02f, 70.f,   71.32f, 72.47f, 73.72f,
-                                 76.23f, 77.35f, 78.4f,  79.22f, 80.f};
+// constexpr float frequencies[]{32.54f, 30.f,   30.44f, 30.68f,
+//                               34.04f, 34.34f, 35.99f};
+// constexpr float frequencies[]{74.f, 70.f, 71.f, 72.f, 73.f,
+//                               75.f, 76.f, 77.f, 78.f, 79.f};
+constexpr float frequencies[]{75.02f, 70.f,   71.32f, 72.47f, 73.72f,
+                              76.23f, 77.35f, 78.4f,  79.22f, 80.f};
+constexpr auto F = con::ArraySize(frequencies);
 } // namespace
 
 // Encoder
@@ -25,6 +27,7 @@ EncoderPhaseShiftMicro::EncoderPhaseShiftMicro(unsigned int _screenCols,
 {
     // Set N
     N = F + 2;
+    patterns.reserve(N);
 
     // Precompute encoded patterns
 
@@ -32,10 +35,9 @@ EncoderPhaseShiftMicro::EncoderPhaseShiftMicro(unsigned int _screenCols,
     for (unsigned int i = 0; i < 3; i++) {
         float phase = -2.0 * pi_f / 3.0 * i;
         float pitch = frequencies[0];
-        cv::Mat patternI(1, 1, CV_8U);
-        patternI = pstools::computePhaseVector(screenCols, phase, pitch);
-        patternI = patternI.t();
-        patterns.push_back(patternI);
+        cv::Mat pattern;
+        pstools::calcPhaseVector(screenCols, 1, phase, pitch, pattern);
+        patterns.push_back(pattern);
     }
 
     // Additional frequency patterns
@@ -44,20 +46,10 @@ EncoderPhaseShiftMicro::EncoderPhaseShiftMicro(unsigned int _screenCols,
         if (i % 2)
             phase = pi_f;
         float pitch = frequencies[i];
-        cv::Mat patternI;
-        patternI = pstools::computePhaseVector(screenCols, phase, pitch);
-        patternI = patternI.t();
-        patterns.push_back(patternI);
+        cv::Mat pattern;
+        pstools::calcPhaseVector(screenCols, 1, phase, pitch, pattern);
+        patterns.push_back(pattern);
     }
-
-#if 0
-        for(unsigned int i=0; i<patterns.size(); i++){
-            std::stringstream fileNameStream;
-            fileNameStream << "pattern_" << std::setw(2) << std::setfill('0') << i << ".bmp";
-            cv::imwrite(fileNameStream.str(), patterns[i]);
-        }
-
-#endif
 }
 
 cv::Mat EncoderPhaseShiftMicro::getEncodingPattern(unsigned int depth) const
@@ -73,12 +65,12 @@ DecoderPhaseShiftMicro::DecoderPhaseShiftMicro(unsigned int _screenCols,
 {
     N = F + 2;
 
-    frames.resize(N);
+    _frames.resize(N);
 }
 
 void DecoderPhaseShiftMicro::setFrame(unsigned int depth, cv::Mat frame)
 {
-    frames[depth] = frame;
+    _frames[depth] = frame;
 }
 
 void DecoderPhaseShiftMicro::decodeFrames(cv::Mat &up, cv::Mat &vp,
@@ -93,8 +85,8 @@ void DecoderPhaseShiftMicro::decodeFrames(cv::Mat &up, cv::Mat &vp,
 
     //    mask = shading > 25;
 
-    int rows = frames[0].rows;
-    int cols = frames[0].cols;
+    int rows = _frames[0].rows;
+    int cols = _frames[0].cols;
 
     // Construct system of equations
     cv::Mat Mmicro(F + 2, F + 2, CV_32F, cv::Scalar(0.0));
@@ -110,7 +102,7 @@ void DecoderPhaseShiftMicro::decodeFrames(cv::Mat &up, cv::Mat &vp,
 
     cv::Mat Rmicro(F + 2, rows * cols, CV_32F);
     for (unsigned int i = 0; i < F + 2; i++) {
-        frames[i].reshape(0, 1).copyTo(Rmicro.row(i));
+        _frames[i].reshape(0, 1).copyTo(Rmicro.row(i));
     }
 
     // Solve
@@ -129,8 +121,6 @@ void DecoderPhaseShiftMicro::decodeFrames(cv::Mat &up, cv::Mat &vp,
         cv::divide(Ufact.row(i + 1), amp, CosSin.row(i));
     }
 
-    //    cvtools::writeMat(CosSin, "CosSin.mat", "CosSin");
-
     // Reference CosSin values
     cv::Mat RefCosSin(F + 1, screenCols, CV_32F);
     for (unsigned int i = 0; i < screenCols; i++) {
@@ -142,8 +132,6 @@ void DecoderPhaseShiftMicro::decodeFrames(cv::Mat &up, cv::Mat &vp,
         }
     }
 
-    //    cvtools::writeMat(RefCosSin, "RefCosSin.mat", "RefCosSin");
-
     // Find best match value
     cv::Mat upCueMatch(1, rows * cols, CV_32F);
     cv::Mat bestDistMatch(1, rows * cols, CV_32F);
@@ -151,8 +139,8 @@ void DecoderPhaseShiftMicro::decodeFrames(cv::Mat &up, cv::Mat &vp,
         int bestMatch = -1;
         float bestDist = INFINITY;
         for (unsigned int j = 0; j < screenCols; j++) {
-            //            float dist = cv::norm(CosSin.col(i) -
-            //            RefCosSin.col(j), cv::NORM_L2SQR);
+            // float dist =
+            //     cv::norm(CosSin.col(i) - RefCosSin.col(j), cv::NORM_L2SQR);
             float dist = 0.0;
             for (unsigned int k = 0; k < F + 1; k++) {
                 float diff = CosSin.at<float>(k, i) - RefCosSin.at<float>(k, j);
@@ -170,12 +158,12 @@ void DecoderPhaseShiftMicro::decodeFrames(cv::Mat &up, cv::Mat &vp,
     cv::Mat upCue = upCueMatch.reshape(0, rows);
 
     bestDistMatch = bestDistMatch.reshape(0, rows);
-    cvtools::writeMat(bestDistMatch, "bestDistMatch.mat", "bestDistMatch");
 
     upCue *= (2 * pi_f) / screenCols;
-    up = pstools::getPhase(frames[0], frames[2], frames[1]);
+    pstools::phaseFromThreeFrames(_frames, up);
     up = pstools::unwrapWithCue(up, upCue, screenCols / frequencies[0]);
     up *= screenCols / (2 * pi_f);
     // up = upCue;
-    //     cvtools::writeMat(up, "up.mat", "up");
 }
+
+} // namespace tl

@@ -1,16 +1,18 @@
 #include "codecphaseshift3directlight.h"
 
-#include <tMath/MathBase>
+#include <tCore/Math>
 
 #include <opencv2/imgproc.hpp>
 
+namespace tl {
 // Encoder
 EncoderPhaseShift3DirectLight::EncoderPhaseShift3DirectLight(
     unsigned int _screenCols, unsigned int _screenRows, CodecDir _dir)
     : Encoder(_screenCols, _screenRows, _dir)
 {
     // Set N
-    this->N = 3;
+    N = 3;
+    patterns.reserve(N);
 
     // Precompute encoded patterns
 
@@ -57,7 +59,7 @@ void DecoderPhaseShift3DirectLight::decodeFrames(cv::Mat &up, cv::Mat &vp,
     cv::Mat_<float> I3(frames[2]);
 
     // One function call approach
-    cv::phase(2.0 * I2 - I1 - I3, sqrt(3.0) * (I3 - I1), up);
+    cv::phase(2.0 * I2 - I1 - I3, sqrt3_f * (I3 - I1), up);
     up *= screenCols / (2.0 * pi_f);
 
     cv::Mat modulation(shading.size(), CV_32F);
@@ -74,3 +76,4 @@ void DecoderPhaseShift3DirectLight::decodeFrames(cv::Mat &up, cv::Mat &vp,
     //    cv::Mat element = cv::getStructuringElement(cv::MORPH_ELLIPSE,
     //    cv::Size(7,7)); cv::erode(mask, mask, element);
 }
+} // namespace tl

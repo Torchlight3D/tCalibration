@@ -2,9 +2,11 @@
 
 #include <opencv2/core.hpp>
 
-#include <tMath/MathBase>
+#include <tCore/Math>
 
 #include "pstools.h"
+
+namespace tl {
 
 namespace {
 constexpr unsigned int kNumPhases = 16;
@@ -16,52 +18,51 @@ EncoderCalibration::EncoderCalibration(unsigned int _screenCols,
                                        unsigned int _screenRows, CodecDir _dir)
     : Encoder(_screenCols, _screenRows, _dir)
 {
-    // Set N
     if (dir == CodecDirBoth)
         N = 12;
     else
         N = 6;
 
-    // Precompute encoded patterns
+    patterns.reserve(N);
 
+    // Precompute encoded patterns
     if (dir & CodecDirHorizontal) {
         // Horizontally encoding patterns
-        for (unsigned int i = 0; i < 3; i++) {
-            float phase = 2.0 * pi_f / 3.0 * i;
+        for (int i = 0; i < 3; i++) {
+            float phase = 2.f * pi_f / 3.f * i;
             float pitch = (float)screenCols / (float)kNumPhases;
-            cv::Mat patternI(1, 1, CV_8U);
-            patternI = pstools::computePhaseVector(screenCols, phase, pitch);
-            patternI = patternI.t();
-            patterns.push_back(patternI);
+            cv::Mat pattern;
+            pstools::calcPhaseVector(screenCols, 1, phase, pitch, pattern);
+            patterns.push_back(pattern);
         }
 
         // Phase cue patterns
-        for (unsigned int i = 0; i < 3; i++) {
-            float phase = 2.0 * pi_f / 3.0 * i;
+        for (int i = 0; i < 3; i++) {
+            float phase = 2.f * pi_f / 3.f * i;
             float pitch = screenCols;
-            cv::Mat patternI;
-            patternI = pstools::computePhaseVector(screenCols, phase, pitch);
-            patternI = patternI.t();
-            patterns.push_back(patternI);
+            cv::Mat pattern;
+            pstools::calcPhaseVector(screenCols, 1, phase, pitch, pattern);
+            patterns.push_back(pattern);
         }
     }
+
     if (dir & CodecDirVertical) {
         // Precompute vertically encoding patterns
         for (unsigned int i = 0; i < 3; i++) {
             float phase = 2.0 * pi_f / 3.0 * i;
             float pitch = (float)screenRows / (float)kNumPhases;
-            cv::Mat patternI;
-            patternI = pstools::computePhaseVector(screenRows, phase, pitch);
-            patterns.push_back(patternI);
+            cv::Mat pattern;
+            pstools::calcPhaseVector(screenRows, 0, phase, pitch, pattern);
+            patterns.push_back(pattern);
         }
 
         // Precompute vertically phase cue patterns
         for (unsigned int i = 0; i < 3; i++) {
             float phase = 2.0 * pi_f / 3.0 * i;
             float pitch = screenRows;
-            cv::Mat patternI;
-            patternI = pstools::computePhaseVector(screenRows, phase, pitch);
-            patterns.push_back(patternI);
+            cv::Mat pattern;
+            pstools::calcPhaseVector(screenRows, 0, phase, pitch, pattern);
+            patterns.push_back(pattern);
         }
     }
 }
@@ -81,40 +82,45 @@ DecoderCalibration::DecoderCalibration(unsigned int _screenCols,
     else
         N = 6;
 
-    frames.resize(N);
+    _frames.resize(N);
 }
 
 void DecoderCalibration::setFrame(unsigned int depth, cv::Mat frame)
 {
-    frames[depth] = frame;
+    _frames[depth] = frame;
 }
 
 void DecoderCalibration::decodeFrames(cv::Mat &up, cv::Mat &vp, cv::Mat &mask,
                                       cv::Mat &shading) const
 {
     if (dir & CodecDirHorizontal) {
-        std::vector<cv::Mat> framesHorz(frames.begin(), frames.begin() + 6);
+        const std::vector<cv::Mat> frames(_frames.begin(), _frames.begin() + 3);
+        pstools::phaseFromThreeFrames(frames, up);
 
-        // Horizontal decoding
-        up = pstools::getPhase(framesHorz[0], framesHorz[1], framesHorz[2]);
-        cv::Mat upCue =
-            pstools::getPhase(framesHorz[3], framesHorz[4], framesHorz[5]);
+        const std::vector<cv::Mat> framesCue(_frames.begin() + 3,
+                                             _frames.begin() + 6);
+        cv::Mat upCue;
+        pstools::phaseFromThreeFrames(framesCue, upCue);
+
         up = pstools::unwrapWithCue(up, upCue, kNumPhases);
         up *= screenCols / (2 * pi_f);
     }
-    if (dir & CodecDirVertical) {
-        std::vector<cv::Mat> framesVert(frames.end() - 6, frames.end());
 
-        // Vertical decoding
-        vp = pstools::getPhase(framesVert[0], framesVert[1], framesVert[2]);
-        cv::Mat vpCue =
-            pstools::getPhase(framesVert[3], framesVert[4], framesVert[5]);
+    if (dir & CodecDirVertical) {
+        const std::vector<cv::Mat> frames(_frames.end() - 6, _frames.end() - 3);
+        pstools::phaseFromThreeFrames(frames, vp);
+
+        const std::vector<cv::Mat> framesCue(_frames.end() - 3, _frames.end());
+        cv::Mat vpCue;
+        pstools::phaseFromThreeFrames(framesCue, vpCue);
         vp = pstools::unwrapWithCue(vp, vpCue, kNumPhases);
         vp *= screenRows / (2 * pi_f);
     }
 
     // Calculate modulation
-    shading = pstools::getMagnitude(frames[0], frames[1], frames[2]);
+    pstools::magnitudeFromThreeFrames(_frames, shading);
 
     mask = shading > 10;
 }
+
+} // namespace tl

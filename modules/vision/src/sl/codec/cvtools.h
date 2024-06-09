@@ -11,23 +11,22 @@ std::vector<cv::Point2f> applyHomTransform(const cv::Matx33f &T,
                                            const std::vector<cv::Point2f> &ps);
 std::vector<size_t> findNearestNeighborsAngleSorted(
     const cv::KeyPoint queryPoint, const std::vector<cv::KeyPoint> searchPoints,
-    const int N);
+    int N);
 cv::Mat fitHomography(std::vector<cv::Point2f> q1, std::vector<cv::Point2f> q2,
                       float &ssd);
 bool findPartialCirclesGrid(const cv::Mat &im, std::vector<cv::Point2f> &q,
-                            std::vector<cv::Point3f> &Q,
-                            const float circleSpacing);
+                            std::vector<cv::Point3f> &Q, float circleSpacing);
 void phaseCorrelate(const cv::Mat &im1, const cv::Mat &im2, float &scale,
                     float &angle, cv::Point2f &shift);
 cv::Mat logPolar(const cv::Mat &image, float scale);
 void initDistortMap(const cv::Matx33f cameraMatrix,
                     const cv::Vec<float, 5> distCoeffs, const cv::Size size,
                     cv::Mat &map1, cv::Mat &map2);
-cv::Mat diamondDownsample(cv::Mat &pattern);
 
-void imagesc(const char *windowName, cv::Mat im);
+// Downsample a texture which was created in virtual column/row space for a
+// diamond pixel array projector
+void diamondDownsample(cv::InputArray src, cv::OutputArray dst);
+
 cv::Mat histimage(cv::Mat histogram);
 
-void writeMat(cv::Mat const &mat, const char *filename,
-              const char *varName = "A", bool bgr2rgb = true);
 } // namespace cvtools

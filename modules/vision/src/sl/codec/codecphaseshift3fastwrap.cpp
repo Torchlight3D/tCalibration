@@ -2,9 +2,11 @@
 
 #include <opencv2/imgproc.hpp>
 
-#include <tMath/MathBase>
+#include <tCore/Math>
 
 #include "pstools.h"
+
+namespace tl {
 
 // Encoder
 EncoderPhaseShift3FastWrap::EncoderPhaseShift3FastWrap(unsigned int _screenCols,
@@ -14,14 +16,15 @@ EncoderPhaseShift3FastWrap::EncoderPhaseShift3FastWrap(unsigned int _screenCols,
 {
     // Set N
     N = 3;
+    patterns.reserve(N);
 
     // Precompute encoded patterns
     for (unsigned int i = 0; i < N; i++) {
         float phase = 2.0 * pi_f / float(N) * i;
         float pitch = screenCols;
-        cv::Mat patternI =
-            pstools::computePhaseVector(screenCols, phase, pitch);
-        patterns.push_back(patternI.t());
+        cv::Mat pattern;
+        pstools::calcPhaseVector(screenCols, 1, phase, pitch, pattern);
+        patterns.push_back(pattern);
     }
 }
 
@@ -89,8 +92,6 @@ void DecoderPhaseShift3FastWrap::decodeFrames(cv::Mat &up, cv::Mat &vp,
         }
     }
 
-    //    cvtools::writeMat(up, "up.mat");
-
     up *= screenCols / (2 * pi_f);
 
     cv::GaussianBlur(up, up, cv::Size(0, 0), 3, 3);
@@ -104,10 +105,12 @@ void DecoderPhaseShift3FastWrap::decodeFrames(cv::Mat &up, cv::Mat &vp,
     mask.create(shading.size(), cv::DataType<bool>::type);
     mask = (shading > 15) & (shading < 254);
 
-    //    cv::Mat edges;
-    //    cv::Sobel(up, edges, -1, 1, 1, 7);
-    //    edges = abs(edges) < 500;
-    //    cv::erode(edges, edges, cv::Mat());
+    // cv::Mat edges;
+    // cv::Sobel(up, edges, -1, 1, 1, 7);
+    // edges = abs(edges) < 500;
+    // cv::erode(edges, edges, cv::Mat());
 
-    //    mask = mask & edges;
+    // mask = mask & edges;
 }
+
+} // namespace tl

@@ -2,10 +2,12 @@
 
 #include <opencv2/imgproc.hpp>
 
-#include <tMath/MathBase>
+#include <tCore/Math>
 
 #include "phaseunwrap.h"
 #include "pstools.h"
+
+namespace tl {
 
 namespace {
 constexpr unsigned int nPhases = 4;
@@ -27,9 +29,9 @@ EncoderPhaseShift3Unwrap::EncoderPhaseShift3Unwrap(unsigned int _screenCols,
     for (unsigned int i = 0; i < 3; i++) {
         float phase = 2.0 * pi_f / 3.0 * i;
         float pitch = (float)screenCols / (float)nPhases;
-        cv::Mat patternI(1, 1, CV_8U);
-        patternI = pstools::computePhaseVector(screenCols, phase, pitch);
-        patterns.push_back(patternI.t());
+        cv::Mat pattern;
+        pstools::calcPhaseVector(screenCols, 1, phase, pitch, pattern);
+        patterns.push_back(pattern);
     }
 }
 
@@ -58,10 +60,10 @@ void DecoderPhaseShift3Unwrap::decodeFrames(cv::Mat &up, cv::Mat &vp,
                                             cv::Mat &shading) const
 {
     // Calculate multiple phase image
-    up = pstools::getPhase(frames[0], frames[1], frames[2]);
+    pstools::phaseFromThreeFrames(frames, up);
 
     // Calculate modulation
-    shading = pstools::getMagnitude(frames[0], frames[1], frames[2]);
+    pstools::magnitudeFromThreeFrames(frames, shading);
 
     // Create mask from modulation image
     mask = shading > 25;
@@ -72,21 +74,13 @@ void DecoderPhaseShift3Unwrap::decodeFrames(cv::Mat &up, cv::Mat &vp,
     // Blurred quality map
     cv::GaussianBlur(quality, quality, cv::Size(0, 0), 3, 3);
 
-    // cvtools::imshow("quality", quality, 0, 0);
-    // cvtools::writeMat(quality, "quality.mat", "quality");
-
     std::vector<float> thresholds =
         phaseunwrap::computethresholds(quality, mask);
 
-    //    for(int i=0; i<3; i++)
-    //        std::cout << thresholds[i] << " ";
-    //    std::cout << std::endl;
-    // cvtools::writeMat(up, "up.mat", "up");
-    //    // Unwrap absolute phase
     phaseunwrap::unwrap(up, quality, mask, thresholds);
-    // cvtools::writeMat(up, "up.mat", "up");
-    // cvtools::writeMat(mask, "mask.mat", "mask");
 
     up += 3.0 * 2.0 * pi_f;
     up *= screenCols / (2.0 * pi_f * nPhases);
 }
+
+} // namespace tl

@@ -2,25 +2,26 @@
 
 #include <opencv2/imgproc.hpp>
 
-#include <tMath/MathBase>
+#include <tCore/Math>
 
 #include "pstools.h"
 
+namespace tl {
 // Encoder
 EncoderPhaseShift4::EncoderPhaseShift4(unsigned int _screenCols,
                                        unsigned int _screenRows, CodecDir _dir)
     : Encoder(_screenCols, _screenRows, _dir)
 {
-    // Set N
     N = 4;
+    patterns.reserve(N);
 
     // Precompute encoded patterns
     for (unsigned int i = 0; i < N; i++) {
         float phase = 2.0 * pi_f / float(N) * i;
         float pitch = screenCols;
-        cv::Mat patternI =
-            pstools::computePhaseVector(screenCols, phase, pitch);
-        patterns.push_back(patternI.t());
+        cv::Mat pattern;
+        pstools::calcPhaseVector(screenCols, 1, phase, pitch, pattern);
+        patterns.push_back(pattern);
     }
 }
 
@@ -75,3 +76,5 @@ void DecoderPhaseShift4::decodeFrames(cv::Mat &up, cv::Mat &vp, cv::Mat &mask,
     shading = X1;
     shading.convertTo(shading, CV_8U);
 }
+
+} // namespace tl

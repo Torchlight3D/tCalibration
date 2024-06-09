@@ -3,9 +3,11 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 
-#include <tMath/MathBase>
+#include <tCore/Math>
 
 #include "pstools.h"
+
+namespace tl {
 
 namespace {
 constexpr unsigned int nPhaseX = 24;
@@ -27,6 +29,7 @@ EncoderPhaseShiftModulated::EncoderPhaseShiftModulated(unsigned int _screenCols,
     // Set N
     // N = Ny * (Nx+Ncue);
     N = Ny * Nx + Ncue;
+    patterns.reserve(N);
 
     // Precompute encoded patterns
 
@@ -92,10 +95,9 @@ EncoderPhaseShiftModulated::EncoderPhaseShiftModulated(unsigned int _screenCols,
     for (unsigned int i = 0; i < Ncue; i++) {
         float phase = 2.0 * pi_f / Ncue * i;
         float pitch = screenCols;
-        cv::Mat patternI;
-        patternI = pstools::computePhaseVector(screenCols, phase, pitch);
-        patternI = patternI.t();
-        patterns.push_back(patternI);
+        cv::Mat pattern;
+        pstools::calcPhaseVector(screenCols, 1, phase, pitch, pattern);
+        patterns.push_back(pattern);
     }
 
 #if 0
@@ -172,9 +174,7 @@ void DecoderPhaseShiftModulated::decodeFrames(cv::Mat &up, cv::Mat &vp,
     //    cv::Mat upX0 = pstools::getMagnitude(frames[0], frames[1], frames[2]);
     //    cv::Mat upX1 = pstools::getMagnitude(frames[3], frames[4], frames[5]);
     //    cv::Mat upX2 = pstools::getMagnitude(frames[6], frames[7], frames[8]);
-    ////cvtools::writeMat(upX0, "upX0.mat", "upX0");
-    ////cvtools::writeMat(upX1, "upX1.mat", "upX1");
-    ////cvtools::writeMat(upX2, "upX2.mat", "upX2");
+
     //    up = pstools::getPhase(upX0, upX1, upX2);
     std::vector<cv::Mat> framesPhase(framesX.begin(), framesX.end());
     // std::vector<cv::Mat> framesPhase(framesX.begin(), framesX.end() - Ncue);
@@ -196,8 +196,8 @@ void DecoderPhaseShiftModulated::decodeFrames(cv::Mat &up, cv::Mat &vp,
 
     // Threshold modulation image for mask
     mask = shading > 20;
-    // cvtools::writeMat(mask, "mask.mat");
     //    cv::Mat edges;
     //    cv::Sobel(up, edges, -1, 1, 1, 7);
     //    edges = abs(edges) < 200;
 }
+} // namespace tl

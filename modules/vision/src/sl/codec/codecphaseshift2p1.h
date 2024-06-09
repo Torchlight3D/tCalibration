@@ -2,6 +2,8 @@
 
 #include "codec.h"
 
+namespace tl {
+
 class EncoderPhaseShift2p1 : public Encoder
 {
 public:
@@ -32,3 +34,5 @@ private:
     std::vector<cv::Point2d> shiftHistory;
     cv::Mat_<float> *lastShading;
 };
+
+} // namespace tl

@@ -1,5 +1,7 @@
 #include "codecfactory.h"
 
+#include <memory>
+
 #include "codecfastratio.h"
 #include "codecgraycode.h"
 #include "codecphaseshift2p1.h"
@@ -13,7 +15,7 @@
 #include "codecphaseshiftmodulated.h"
 #include "codecphaseshiftnstep.h"
 
-#include <memory>
+namespace tl {
 
 std::unique_ptr<Encoder> EncoderFactory::NewEncoder(CodecType type,
                                                     unsigned int screenResX,
@@ -132,3 +134,5 @@ std::unique_ptr<Decoder> DecoderFactory::NewDecoder(CodecType type,
 
     return decoder;
 }
+
+} // namespace tl

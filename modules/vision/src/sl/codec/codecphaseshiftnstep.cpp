@@ -2,10 +2,11 @@
 
 #include <opencv2/imgproc.hpp>
 
-#include <tMath/MathBase>
+#include <tCore/Math>
 
 #include "pstools.h"
 
+namespace tl {
 namespace {
 constexpr unsigned int nPhases = 24;
 constexpr unsigned int nSteps = 9;
@@ -21,6 +22,7 @@ EncoderPhaseShiftNStep::EncoderPhaseShiftNStep(unsigned int _screenCols,
     N = nSteps + 3;
     if (dir == CodecDirBoth)
         N *= 2;
+    patterns.reserve(N);
 
     // Precompute encoded patterns
 
@@ -29,9 +31,9 @@ EncoderPhaseShiftNStep::EncoderPhaseShiftNStep(unsigned int _screenCols,
         for (unsigned int i = 0; i < nSteps; i++) {
             float phase = 2.0 * pi_f / nSteps * i;
             float pitch = (float)screenCols / (float)nPhases;
-            cv::Mat patternI(1, 1, CV_8U);
-            patternI = pstools::computePhaseVector(screenCols, phase, pitch);
-            patterns.push_back(patternI.t());
+            cv::Mat patternI;
+            pstools::calcPhaseVector(screenCols, 1, phase, pitch, patternI);
+            patterns.push_back(patternI);
         }
 
         // Phase cue patterns
@@ -39,17 +41,18 @@ EncoderPhaseShiftNStep::EncoderPhaseShiftNStep(unsigned int _screenCols,
             float phase = 2.0 * pi_f / 3.0 * i;
             float pitch = screenCols;
             cv::Mat patternI;
-            patternI = pstools::computePhaseVector(screenCols, phase, pitch);
-            patterns.push_back(patternI.t());
+            pstools::calcPhaseVector(screenCols, 1, phase, pitch, patternI);
+            patterns.push_back(patternI);
         }
     }
+
     if (dir & CodecDirVertical) {
         // Precompute vertically encoding patterns
         for (unsigned int i = 0; i < nSteps; i++) {
             float phase = 2.0 * pi_f / nSteps * i;
             float pitch = (float)screenRows / (float)nPhases;
             cv::Mat patternI;
-            patternI = pstools::computePhaseVector(screenRows, phase, pitch);
+            pstools::calcPhaseVector(screenRows, 1, phase, pitch, patternI);
             patterns.push_back(patternI);
         }
 
@@ -58,7 +61,7 @@ EncoderPhaseShiftNStep::EncoderPhaseShiftNStep(unsigned int _screenCols,
             float phase = 2.0 * pi_f / 3.0 * i;
             float pitch = screenRows;
             cv::Mat patternI;
-            patternI = pstools::computePhaseVector(screenRows, phase, pitch);
+            pstools::calcPhaseVector(screenRows, 1, phase, pitch, patternI);
             patterns.push_back(patternI);
         }
     }
@@ -89,12 +92,12 @@ DecoderPhaseShiftNStep::DecoderPhaseShiftNStep(unsigned int _screenCols,
     if (dir == CodecDirBoth)
         N *= 2;
 
-    frames.resize(N);
+    _frames.resize(N);
 }
 
 void DecoderPhaseShiftNStep::setFrame(unsigned int depth, cv::Mat frame)
 {
-    frames[depth] = frame;
+    _frames[depth] = frame;
 }
 
 void DecoderPhaseShiftNStep::decodeFrames(cv::Mat &up, cv::Mat &vp,
@@ -103,51 +106,57 @@ void DecoderPhaseShiftNStep::decodeFrames(cv::Mat &up, cv::Mat &vp,
     std::vector<cv::Mat> fIcomp;
 
     if (dir & CodecDirHorizontal) {
-        std::vector<cv::Mat> framesHorz(frames.begin(),
-                                        frames.begin() + nSteps);
-        std::vector<cv::Mat> framesHorzCue(frames.begin() + nSteps,
-                                           frames.begin() + nSteps + 3);
-
-        // Horizontal decoding
-        fIcomp = pstools::getDFTComponents(framesHorz);
+        const std::vector<cv::Mat> frames{_frames.begin(),
+                                          _frames.begin() + nSteps};
+        fIcomp = pstools::getDFTComponents(frames);
         cv::phase(fIcomp[2], -fIcomp[3], up);
-        cv::Mat upCue = pstools::getPhase(framesHorzCue[0], framesHorzCue[1],
-                                          framesHorzCue[2]);
+
+        const std::vector<cv::Mat> framesCue{_frames.begin() + nSteps,
+                                             _frames.begin() + nSteps + 3};
+        cv::Mat upCue;
+        pstools::phaseFromThreeFrames(framesCue, upCue);
+
         up = pstools::unwrapWithCue(up, upCue, nPhases);
         up *= screenCols / (2 * pi_f);
 
         // cv::GaussianBlur(up, up, cv::Size(0,0), 1, 1);
     }
-    if (dir & CodecDirVertical) {
-        std::vector<cv::Mat> framesVert(frames.end() - nSteps - 3,
-                                        frames.end() - 3);
-        std::vector<cv::Mat> framesVertCue(frames.end() - 3, frames.end());
 
-        // Vertical decoding
-        fIcomp = pstools::getDFTComponents(framesVert);
+    if (dir & CodecDirVertical) {
+        const std::vector<cv::Mat> frames(_frames.end() - nSteps - 3,
+                                          _frames.end() - 3);
+
+        fIcomp = pstools::getDFTComponents(frames);
         cv::phase(fIcomp[2], -fIcomp[3], vp);
-        cv::Mat vpCue = pstools::getPhase(framesVertCue[0], framesVertCue[1],
-                                          framesVertCue[2]);
+
+        const std::vector<cv::Mat> framesCue(_frames.end() - 3, _frames.end());
+        cv::Mat vpCue;
+        pstools::phaseFromThreeFrames(framesCue, vpCue);
+
         vp = pstools::unwrapWithCue(vp, vpCue, nPhases);
         vp *= screenCols / (2 * pi_f);
     }
 
-    std::vector<cv::Mat> framesMain(frames.begin(), frames.begin() + nSteps);
-    fIcomp = pstools::getDFTComponents(framesMain);
-    cv::magnitude(fIcomp[2], -fIcomp[3], shading);
+    {
+        const std::vector<cv::Mat> frames(_frames.begin(),
+                                          _frames.begin() + nSteps);
+        fIcomp = pstools::getDFTComponents(frames);
+        cv::magnitude(fIcomp[2], -fIcomp[3], shading);
 
-    shading.convertTo(shading, CV_8U, 2.0 / nSteps);
+        shading.convertTo(shading, CV_8U, 2.0 / nSteps);
+    }
 
     // Threshold on energies
     mask = shading > 20;
 
-    //    // Threshold on gradient of phase
-    //    cv::Mat edges;
-    //    cv::Sobel(up, edges, -1, 1, 1, 7);
-
-    //    edges = abs(edges) < 500;
-    ////    cv::Mat strel = cv::getStructuringElement(cv::MORPH_ELLIPSE,
-    /// cv::Size(3,3)); /    cv::erode(edges, edges, strel);
-
-    //    mask = mask & edges;
+    // Threshold on gradient of phase
+    // cv::Mat edges;
+    // cv::Sobel(up, edges, -1, 1, 1, 7);
+    // edges = abs(edges) < 500;
+    // cv::Mat strel =
+    //     cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(3, 3));
+    // cv::erode(edges, edges, strel);
+    // mask = mask & edges;
 }
+
+} // namespace tl

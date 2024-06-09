@@ -2,58 +2,66 @@
 
 #include <opencv2/core.hpp>
 
+#include <tCore/Math>
+
+namespace tl {
+
 namespace pstools {
 
-// Cosine function vector (3-channel)
-cv::Mat computePhaseVector(unsigned int length, float phase, float pitch)
+void calcPhaseVector(int length, int direction, float phase, float pitch,
+                     cv::OutputArray _vec)
 {
-    cv::Mat phaseVector(length, 1, CV_8UC3);
+    using Pixel = cv::Vec3b;
 
-    const float pi = M_PI;
+    _vec.create(direction == Vertical ? length : 1, direction ? 1 : length,
+                CV_8UC3);
 
-    // Loop through vector
-    for (int i = 0; i < phaseVector.rows; i++) {
-        // Amplitude of channels
-        float amp = 0.5 * (1 + cos(2 * pi * i / pitch - phase));
-        phaseVector.at<cv::Vec3b>(i, 0) =
-            cv::Vec3b(255.0 * amp, 255.0 * amp, 255.0 * amp);
-    }
-
-    return phaseVector;
+    auto vec = _vec.getMat();
+    vec.forEach<Pixel>([direction, phase, pitch](Pixel& px, const int pos[2]) {
+        const auto& i = pos[direction];
+        const auto amp =
+            0.5f * (1.f + std::cos(2.f * pi_f * i / pitch - phase));
+        px = Pixel(255 * amp, 255 * amp, 255 * amp);
+    });
 }
 
-// Absolute phase from 3 frames
-cv::Mat getPhase(const cv::Mat I1, const cv::Mat I2, const cv::Mat I3)
+void phaseFromThreeFrames(cv::InputArrayOfArrays _frames, cv::OutputArray phase)
 {
-    cv::Mat_<float> I1_(I1);
-    cv::Mat_<float> I2_(I2);
-    cv::Mat_<float> I3_(I3);
+    CV_Assert(_frames.isMatVector());
 
-    cv::Mat phase;
+    std::vector<cv::Mat> frames;
+    _frames.getMatVector(frames);
+    CV_Assert(frames.size() >= 3);
 
-    // One call approach
-    cv::phase(2.0 * I1_ - I3_ - I2_, sqrt(3.0) * (I2_ - I3_), phase);
-    return phase;
+    const auto& I1 = frames[0];
+    const auto& I2 = frames[1];
+    const auto& I3 = frames[2];
+
+    cv::phase(2.f * I1 - I3 - I2, sqrt3_f * (I2 - I3), phase);
 }
 
-// Absolute magnitude from 3 frames
-cv::Mat getMagnitude(const cv::Mat I1, const cv::Mat I2, const cv::Mat I3)
+void magnitudeFromThreeFrames(cv::InputArrayOfArrays _frames,
+                              cv::OutputArray magnitude)
 {
-    cv::Mat_<float> I1_(I1);
-    cv::Mat_<float> I2_(I2);
-    cv::Mat_<float> I3_(I3);
+    CV_Assert(_frames.isMatVector());
 
-    cv::Mat magnitude;
+    std::vector<cv::Mat> frames;
+    _frames.getMatVector(frames);
+    CV_Assert(frames.size() >= 3);
 
-    // One call approach
-    cv::magnitude(2.0 * I1_ - I2_ - I3_, sqrt(3.0) * (I2_ - I3_), magnitude);
-    magnitude.convertTo(magnitude, CV_8U);
+    const auto& I1 = frames[0];
+    const auto& I2 = frames[1];
+    const auto& I3 = frames[2];
 
-    return magnitude;
+    cv::Mat mag;
+    cv::magnitude(2.f * I1 - I2 - I3, sqrt3_f * (I2 - I3), mag);
+
+    // QUEST: Why???
+    mag.convertTo(magnitude, CV_8U);
 }
 
 // Absolute phase and magnitude from N frames
-std::vector<cv::Mat> getDFTComponents(const std::vector<cv::Mat> frames)
+std::vector<cv::Mat> getDFTComponents(const std::vector<cv::Mat>& frames)
 {
     unsigned int N = frames.size();
 
@@ -81,17 +89,15 @@ std::vector<cv::Mat> getDFTComponents(const std::vector<cv::Mat> frames)
 cv::Mat unwrapWithCue(const cv::Mat up, const cv::Mat upCue,
                       unsigned int nPhases)
 {
-    const float pi = M_PI;
-
     // Determine number of jumps
-    cv::Mat P = (upCue * nPhases - up) / (2 * pi);
+    cv::Mat P = (upCue * nPhases - up) / (2 * pi_f);
 
     // Round to integers
     P.convertTo(P, CV_8U);
     P.convertTo(P, CV_32F);
 
     // Add to phase
-    cv::Mat upUnwrapped = up + P * 2 * pi;
+    cv::Mat upUnwrapped = up + P * 2 * pi_f;
 
     // Scale to range [0; 2pi]
     upUnwrapped *= 1.0 / nPhases;
@@ -100,3 +106,5 @@ cv::Mat unwrapWithCue(const cv::Mat up, const cv::Mat upCue,
 }
 
 } // namespace pstools
+
+} // namespace tl

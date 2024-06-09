@@ -2,27 +2,31 @@
 
 #include <opencv2/core.hpp>
 
+#include <tCore/Math>
+
 #define VAL_UNWRAPPED -1.0
+
+namespace tl {
 
 namespace phaseunwrap {
 
+namespace {
 // Wrap differences of wrapped phase
 float wrapphasedifference(float ph1, float ph2)
 {
-    const float pi = M_PI;
-
     // Estimates the true gradient by wrapping the differences of wrapped phase
-    float innerDiff = (ph1 - ph2) / (2.0 * pi);
+    float innerDiff = (ph1 - ph2) / (2.0 * pi_f);
 
     if (innerDiff > 0.5)
         return innerDiff - 1.0;
-    else if (innerDiff < -0.5)
+    if (innerDiff < -0.5)
         return innerDiff + 1.0;
-    else
-        return innerDiff;
+
+    return innerDiff;
 }
 
-// Create quality map
+} // namespace
+
 cv::Mat createqualitymap(const cv::Mat phase, const cv::Mat mask)
 {
     // Clear whole quality map
@@ -36,10 +40,10 @@ cv::Mat createqualitymap(const cv::Mat phase, const cv::Mat mask)
             // If this pixel should be processed
             if (mask.at<bool>(r, c) == true) {
                 // Compute wrapped phase differences
-                up = std::fabs(wrapphasedifference(phase.at<float>(r, c),
-                                                   phase.at<float>(r - 1, c)));
-                down = std::fabs(wrapphasedifference(phase.at<float>(r + 1, c),
-                                                     phase.at<float>(r, c)));
+                up = std::abs(wrapphasedifference(phase.at<float>(r, c),
+                                                  phase.at<float>(r - 1, c)));
+                down = std::abs(wrapphasedifference(phase.at<float>(r + 1, c),
+                                                    phase.at<float>(r, c)));
                 left = std::fabs(wrapphasedifference(
                     phase.at<float>(r, c), phase.at<float>(r, c - 1)));
                 right = std::fabs(wrapphasedifference(phase.at<float>(r, c + 1),
@@ -224,7 +228,7 @@ void unwrap(cv::Mat phase, cv::Mat quality, cv::Mat mask,
             // set mask for this pixel
             if (quality.at<float>(r, c) == VAL_UNWRAPPED) {
                 // Unwrap this pixel's phase
-                phase.at<float>(r, c) += phOffset.at<float>(r, c) * 2.0 * M_PI;
+                phase.at<float>(r, c) += phOffset.at<float>(r, c) * 2.0 * pi_f;
                 mask.at<bool>(r, c) = true;
             }
             else {
@@ -237,3 +241,5 @@ void unwrap(cv::Mat phase, cv::Mat quality, cv::Mat mask,
 }
 
 } // namespace phaseunwrap
+
+} // namespace tl

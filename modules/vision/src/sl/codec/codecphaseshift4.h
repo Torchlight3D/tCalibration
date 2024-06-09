@@ -2,6 +2,8 @@
 
 #include "codec.h"
 
+namespace tl {
+
 class EncoderPhaseShift4 : public Encoder
 {
 public:
@@ -27,3 +29,5 @@ public:
 private:
     std::vector<cv::Mat> frames;
 };
+
+} // namespace tl

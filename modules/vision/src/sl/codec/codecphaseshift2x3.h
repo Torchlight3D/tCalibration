@@ -2,6 +2,7 @@
 
 #include "codec.h"
 
+namespace tl {
 class EncoderPhaseShift2x3 : public Encoder
 {
 public:
@@ -27,5 +28,6 @@ public:
                       cv::Mat &shading) const override;
 
 private:
-    std::vector<cv::Mat> frames;
+    std::vector<cv::Mat> _frames;
 };
+} // namespace tl

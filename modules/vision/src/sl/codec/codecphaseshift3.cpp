@@ -2,10 +2,11 @@
 
 #include <opencv2/imgproc.hpp>
 
-#include <tMath/MathBase>
+#include <tCore/Math>
 
 #include "pstools.h"
 
+namespace tl {
 // Encoder
 EncoderPhaseShift3::EncoderPhaseShift3(unsigned int _screenCols,
                                        unsigned int _screenRows, CodecDir _dir)
@@ -13,6 +14,7 @@ EncoderPhaseShift3::EncoderPhaseShift3(unsigned int _screenCols,
 {
     // Set N
     N = 3;
+    patterns.reserve(N);
 
     // Precompute encoded patterns
 
@@ -20,10 +22,9 @@ EncoderPhaseShift3::EncoderPhaseShift3(unsigned int _screenCols,
         float phase = 2.0 * pi_f / float(N) * i;
         float pitch = screenCols;
 
-        //        cv::Mat patternI = pstools::computePhaseVector(screenCols,
-        //        phase, pitch);
+        // cv::Mat pattern;
+        // pstools::calcPhaseVector(screenCols, 1, phase, pitch, pattern);
 
-        // Loop through vector
         cv::Mat phaseVector(screenCols, 1, CV_32F);
         for (int i = 0; i < phaseVector.rows; i++) {
             // Amplitude of channels
@@ -36,10 +37,10 @@ EncoderPhaseShift3::EncoderPhaseShift3(unsigned int _screenCols,
         // Repeat pattern
         phaseVector = cv::repeat(phaseVector, screenRows, 1);
 
-        //        // Add noise
-        //        cv::Mat noise(phaseVector.size(), CV_32F);
-        //        cv::randn(noise, 0.0, 0.05);
-        //        phaseVector += noise;
+        // Add noise
+        // cv::Mat noise(phaseVector.size(), CV_32F);
+        // cv::randn(noise, 0.0, 0.05);
+        // phaseVector += noise;
 
         phaseVector.convertTo(phaseVector, CV_8U, 255.0);
 
@@ -72,21 +73,17 @@ void DecoderPhaseShift3::setFrame(unsigned int depth, cv::Mat frame)
 void DecoderPhaseShift3::decodeFrames(cv::Mat &up, cv::Mat &vp, cv::Mat &mask,
                                       cv::Mat &shading) const
 {
-    up = pstools::getPhase(frames[0], frames[1], frames[2]);
-
-    //    cvtools::writeMat(frames[0], "frames[0].mat");
-    //    cvtools::writeMat(frames[1], "frames[1].mat");
-    //    cvtools::writeMat(frames[2], "frames[2].mat");
+    pstools::phaseFromThreeFrames(frames, up);
 
     up *= screenCols / (2 * pi_f);
 
-    //    cv::Mat upCopy = up.clone();
-    //    cv::bilateralFilter(upCopy, up, 7, 500, 400);
+    // cv::Mat upCopy = up.clone();
+    // cv::bilateralFilter(upCopy, up, 7, 500, 400);
     cv::GaussianBlur(up, up, cv::Size(0, 0), 3, 3);
 
-    shading = pstools::getMagnitude(frames[0], frames[1], frames[2]);
+    pstools::magnitudeFromThreeFrames(frames, shading);
 
-    cv::Mat avg = 0.333 * frames[0] + 0.333 * frames[1] + 0.333 * frames[2];
+    cv::Mat avg = (frames[0] + frames[1] + frames[2]) / 3.f;
 
     // Create mask from modulation image and erode
     mask.create(shading.size(), cv::DataType<bool>::type);
@@ -104,6 +101,7 @@ void DecoderPhaseShift3::decodeFrames(cv::Mat &up, cv::Mat &vp, cv::Mat &mask,
     cv::Mat edgesUp = abs(dx) + abs(dy);
     //    cv::magnitude(dx, dy, edgesUp);
 
-    // cvtools::writeMat(edges, "edges.mat", "edges");
     mask = mask & (edgesUp < 80);
 }
+
+} // namespace tl

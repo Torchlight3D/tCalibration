@@ -2,6 +2,8 @@
 
 #include "codec.h"
 
+namespace tl {
+
 class EncoderPhaseShiftMicro : public Encoder
 {
 public:
@@ -25,5 +27,7 @@ public:
                       cv::Mat &shading) const override;
 
 private:
-    std::vector<cv::Mat> frames;
+    std::vector<cv::Mat> _frames;
 };
+
+} // namespace tl

@@ -2,9 +2,11 @@
 
 #include <opencv2/imgproc.hpp>
 
-#include <tMath/MathBase>
+#include <tCore/Math>
 
 #include "pstools.h"
+
+namespace tl {
 
 namespace {
 constexpr unsigned int nPhases = 16;
@@ -17,8 +19,8 @@ EncoderPhaseShiftDescatter::EncoderPhaseShiftDescatter(unsigned int _screenCols,
                                                        CodecDir _dir)
     : Encoder(_screenCols, _screenRows, _dir)
 {
-    // Set N
     N = 6;
+    patterns.reserve(N);
 
     // Precompute encoded patterns
 
@@ -46,10 +48,9 @@ EncoderPhaseShiftDescatter::EncoderPhaseShiftDescatter(unsigned int _screenCols,
     for (unsigned int i = 0; i < 3; i++) {
         float phase = 2.0 * pi_f / 3.0 * i;
         float pitch = screenCols;
-        cv::Mat patternI;
-        patternI = pstools::computePhaseVector(screenCols, phase, pitch);
-        patternI = patternI.t();
-        patterns.push_back(patternI);
+        cv::Mat pattern;
+        pstools::calcPhaseVector(screenCols, 1, phase, pitch, pattern);
+        patterns.push_back(pattern);
     }
 }
 
@@ -66,12 +67,12 @@ DecoderPhaseShiftDescatter::DecoderPhaseShiftDescatter(unsigned int _screenCols,
 {
     N = 6;
 
-    frames.resize(N);
+    _frames.resize(N);
 }
 
 void DecoderPhaseShiftDescatter::setFrame(unsigned int depth, cv::Mat frame)
 {
-    frames[depth] = frame;
+    _frames[depth] = frame;
 }
 
 static cv::Mat unwrap(const cv::Mat up, const cv::Mat upCue,
@@ -97,40 +98,40 @@ void DecoderPhaseShiftDescatter::decodeFrames(cv::Mat &up, cv::Mat &vp,
                                               cv::Mat &mask,
                                               cv::Mat &shading) const
 {
-    std::vector<cv::Mat> framesHorz(frames.begin(), frames.begin() + 6);
+    const std::vector<cv::Mat> frames(_frames.begin(), _frames.begin() + 3);
+    pstools::phaseFromThreeFrames(frames[0], up);
 
-    // Horizontal decoding
+    const std::vector<cv::Mat> framesCue(_frames.begin() + 3,
+                                         _frames.begin() + 6);
+    cv::Mat upCue;
+    pstools::phaseFromThreeFrames(framesCue, upCue);
 
-    up = pstools::getPhase(framesHorz[0], framesHorz[1], framesHorz[2]);
-
-    cv::Mat upCue =
-        pstools::getPhase(framesHorz[3], framesHorz[4], framesHorz[5]);
     up = unwrap(up, upCue, nPhases);
     up *= screenCols / (2 * pi_f);
 
     // cv::GaussianBlur(up, up, cv::Size(0,0), 3, 3);
 
     // Calculate modulation
-    shading = pstools::getMagnitude(frames[0], frames[1], frames[2]);
-    // cvtools::writeMat(shading, "shading.mat");
-    //  Threshold modulation image for mask
-    mask = shading > 25;
-    // cvtools::writeMat(mask, "mask.mat");
-    //     cv::Mat edges;
-    //     cv::Sobel(up, edges, -1, 1, 1, 7);
-    //     edges = abs(edges) < 200;
+    pstools::magnitudeFromThreeFrames(_frames, shading);
 
-    //    cv::Mat strel = cv::getStructuringElement(cv::MORPH_ELLIPSE,
-    //    cv::Size(3,3)); cv::dilate(edges, edges, strel); strel =
-    //    cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(6,6));
-    //    cv::erode(edges, edges, cv::Mat());
+    // Threshold modulation image for mask
+    mask = shading > 25;
+    // cv::Mat edges;
+    // cv::Sobel(up, edges, -1, 1, 1, 7);
+    // edges = abs(edges) < 200;
+
+    // cv::Mat strel =
+    //     cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(3, 3));
+    // cv::dilate(edges, edges, strel);
+    // strel = cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(6, 6));
+    // cv::erode(edges, edges, cv::Mat());
 
     cv::Mat dx, dy;
     cv::Sobel(up, dx, -1, 1, 0, 3);
     cv::Sobel(up, dy, -1, 0, 1, 3);
     cv::Mat edges;
     cv::magnitude(dx, dy, edges);
-    // cvtools::writeMat(edges, "edges.mat", "edges");
     mask = mask & (edges < 200);
-    // cvtools::writeMat(mask, "mask.mat");
 }
+
+} // namespace tl

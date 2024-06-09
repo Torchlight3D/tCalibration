@@ -4,6 +4,8 @@
 
 #include <opencv2/imgproc.hpp>
 
+namespace tl {
+
 namespace {
 constexpr unsigned int Nhorz = 10;
 constexpr unsigned int Nvert = 6;
@@ -217,8 +219,6 @@ void DecoderGrayCode::decodeFrames(cv::Mat &up, cv::Mat &vp, cv::Mat &mask,
         }
     }
 
-    //    cvtools::writeMat(up, "up.mat", "up");
-
     if (dir & CodecDirVertical) {
         std::vector<cv::Mat> framesVert(framesBinary.end() - Nvert,
                                         framesBinary.end());
@@ -239,3 +239,5 @@ void DecoderGrayCode::decodeFrames(cv::Mat &up, cv::Mat &vp, cv::Mat &mask,
         }
     }
 }
+
+} // namespace tl

@@ -2,6 +2,7 @@
 
 #include <opencv2/imgproc.hpp>
 
+namespace tl {
 // Encoder
 EncoderFastRatio::EncoderFastRatio(unsigned int _screenCols,
                                    unsigned int _screenRows, CodecDir _dir)
@@ -55,16 +56,8 @@ void DecoderFastRatio::decodeFrames(cv::Mat &up, cv::Mat &vp, cv::Mat &mask,
     cv::Mat_<float> I2(frames[1]);
     cv::Mat_<float> I3(frames[2]);
 
-    //        cvtools::writeMat(I1, "I1.mat");
-    //        cvtools::writeMat(I2, "I2.mat");
-    //        cvtools::writeMat(I3, "I3.mat");
-
     up = (I3 - I1) / (I2 - I1);
     up = (up + 1.0) / 2.0;
-
-    //    cvtools::writeMat(frames[0], "frames[0].mat");
-    //    cvtools::writeMat(frames[1], "frames[1].mat");
-    //    cvtools::writeMat(frames[2], "frames[2].mat");
 
     up *= screenCols;
 
@@ -87,3 +80,5 @@ void DecoderFastRatio::decodeFrames(cv::Mat &up, cv::Mat &vp, cv::Mat &mask,
 
     //    mask = mask & edges;
 }
+
+} // namespace tl

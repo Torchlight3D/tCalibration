@@ -4,9 +4,11 @@
 
 #include <opencv2/imgproc.hpp>
 
-#include <tMath/MathBase>
+#include <tCore/Math>
 
 #include "pstools.h"
+
+namespace tl {
 
 // Encoder
 EncoderPhaseShift2p1::EncoderPhaseShift2p1(unsigned int _screenCols,
@@ -14,23 +16,20 @@ EncoderPhaseShift2p1::EncoderPhaseShift2p1(unsigned int _screenCols,
                                            CodecDir _dir)
     : Encoder(_screenCols, _screenRows, _dir)
 {
-    // Set N
     N = 3;
+    patterns.reserve(N);
 
     // Precompute encoded patterns
-
-    // 0 deg
-    cv::Mat patternI = pstools::computePhaseVector(screenCols, 0.0, screenCols);
-    patterns.push_back(patternI.t());
-
-    // 90 deg
-    patternI = pstools::computePhaseVector(screenCols, pi_f / 2.0, screenCols);
-    patterns.push_back(patternI.t());
+    constexpr auto kDirection = pstools::Horizontal;
+    for (const auto &deg : {0.f, 90.f}) {
+        cv::Mat pattern;
+        pstools::calcPhaseVector(screenCols, kDirection, pi_f * (deg / 180.f),
+                                 screenCols, pattern);
+        patterns.push_back(pattern);
+    }
 
     // Flat image
-    patternI.create(5, 5, CV_8UC3);
-    patternI.setTo(0.5 * 255.0);
-    patterns.push_back(patternI);
+    patterns.push_back(cv::Mat(5, 5, CV_8UC3, cv::Scalar::all(127)));
 }
 
 cv::Mat EncoderPhaseShift2p1::getEncodingPattern(unsigned int depth) const
@@ -68,8 +67,6 @@ void DecoderPhaseShift2p1::setFrame(unsigned int depth, cv::Mat frame)
 void DecoderPhaseShift2p1::decodeFrames(cv::Mat &up, cv::Mat &vp, cv::Mat &mask,
                                         cv::Mat &shading) const
 {
-    const float pi = M_PI;
-
     cv::Mat_<float> I1(frames[0]);
     cv::Mat_<float> I2(frames[1]);
     cv::Mat_<float> I3(frames[2]);
@@ -98,7 +95,7 @@ void DecoderPhaseShift2p1::decodeFrames(cv::Mat &up, cv::Mat &vp, cv::Mat &mask,
     cv::getRectSubPix(I2Copy, I2.size(), center2, I2);
 
     cv::phase(I1 - I3, I2 - I3, up);
-    up *= screenCols / (2 * pi);
+    up *= screenCols / (2 * pi_f);
 
     cv::GaussianBlur(up, up, cv::Size(0, 0), 3, 3);
 
@@ -106,8 +103,6 @@ void DecoderPhaseShift2p1::decodeFrames(cv::Mat &up, cv::Mat &vp, cv::Mat &mask,
     cv::magnitude(I1 - I3, I2 - I3, mag);
 
     shading = 2.0 * frames[2];
-
-    //    cvtools::writeMat(shading, "shading.mat");
 
     // Create mask from modulation image and erode
     mask.create(shading.size(), cv::DataType<bool>::type);
@@ -118,7 +113,6 @@ void DecoderPhaseShift2p1::decodeFrames(cv::Mat &up, cv::Mat &vp, cv::Mat &mask,
     //    cv::calcOpticalFlowSF(I1, I2, flow, 1, 3, 1);
     //    cv::Ptr<cv::DenseOpticalFlow> tvl1flow = cv::createOptFlow_DualTVL1();
     //    tvl1flow->calc(I1, I2, flow);
-    //    cvtools::writeMat(flow, "flow.mat", "flow");
 
     std::cout << shift << std::endl;
 
@@ -142,3 +136,5 @@ void DecoderPhaseShift2p1::decodeFrames(cv::Mat &up, cv::Mat &vp, cv::Mat &mask,
 
     mask = mask & (edgesShading < 100) & (edgesUp < 130);
 }
+
+} // namespace tl
