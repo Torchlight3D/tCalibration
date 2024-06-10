@@ -1,4 +1,4 @@
-﻿#include "pinhole_camera_model.h"
+﻿#include "pinholecameramodel.h"
 
 #include <tCamera/CameraMatrixUtils>
 

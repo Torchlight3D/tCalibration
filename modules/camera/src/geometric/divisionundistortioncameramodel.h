@@ -1,8 +1,6 @@
 ﻿#pragma once
 
-#include <ceres/ceres.h>
-
-#include "camera_intrinsics.h"
+#include "cameraintrinsics.h"
 
 namespace tl {
 
@@ -156,12 +154,12 @@ bool DivisionUndistortionCameraModel::distortImpl(T k, const T* pt_u, T* pt_d)
     // If the denominator is nearly zero then we can evaluate the distorted
     // coordinates as k or r_u^2 goes to zero. Both evaluate to the identity.
     const T kVerySmallNumber(1e-15);
-    if (ceres::abs(denom) < kVerySmallNumber || inner_sqrt < T(0)) {
+    if (abs(denom) < kVerySmallNumber || inner_sqrt < T(0)) {
         pt_d[0] = pt_u[0];
         pt_d[1] = pt_u[1];
     }
     else {
-        const T scale = (T(1) - ceres::sqrt(inner_sqrt)) / denom;
+        const T scale = (T(1) - sqrt(inner_sqrt)) / denom;
         pt_d[0] = pt_u[0] * scale;
         pt_d[1] = pt_u[1] * scale;
     }

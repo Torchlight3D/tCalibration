@@ -1,4 +1,4 @@
-#include "omnidirectional_camera_model.h"
+#include "omnidirectionalcameramodel.h"
 
 #include <tCamera/CameraMatrixUtils>
 

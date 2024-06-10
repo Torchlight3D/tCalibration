@@ -1,8 +1,6 @@
 #pragma once
 
-#include <ceres/ceres.h>
-
-#include "camera_intrinsics.h"
+#include "cameraintrinsics.h"
 
 namespace tl {
 
@@ -158,7 +156,7 @@ bool OmnidirectionalCameraModel::pixelToSpace(const T* intrinsics, const T* px,
     }
     else {
         pt[2] = T(1) - xi * (rho2 + T(1)) /
-                           (xi + ceres::sqrt(T(1) + (T(1) - xi * xi) * rho2));
+                           (xi + sqrt(T(1) + (T(1) - xi * xi) * rho2));
     }
 
     return true;

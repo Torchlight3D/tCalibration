@@ -1,4 +1,4 @@
-﻿#include "pinhole_radial_tangential_camera_model.h"
+﻿#include "pinholeradialtangentialcameramodel.h"
 
 #include <tCamera/CameraMatrixUtils>
 

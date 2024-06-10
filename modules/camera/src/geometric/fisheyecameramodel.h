@@ -1,8 +1,8 @@
 ﻿#pragma once
 
-#include <ceres/ceres.h>
+#include <Eigen/Eigenvalues>
 
-#include "camera_intrinsics.h"
+#include "cameraintrinsics.h"
 
 namespace tl {
 
@@ -251,8 +251,8 @@ bool FisheyeCameraModel::undistortPoint(const T* intrinsics, const T* pt_d,
         pt_u[0] = 1. / scale * pt_d[0];
         pt_u[1] = 1. / scale * pt_d[1];
 
-        if (ceres::abs(pt_u[0] - prev_pt_u[0]) < kUndistortionEpsilon &&
-            ceres::abs(pt_u[1] - prev_pt_u[1]) < kUndistortionEpsilon) {
+        if (abs(pt_u[0] - prev_pt_u[0]) < kUndistortionEpsilon &&
+            abs(pt_u[1] - prev_pt_u[1]) < kUndistortionEpsilon) {
             break;
         }
     }
@@ -268,11 +268,11 @@ void FisheyeCameraModel::undistortBackproject(const T* intrinsics,
     const T& k3 = intrinsics[K3];
     const T& k4 = intrinsics[K4];
 
-    const auto pt_d_norm = ceres::sqrt(pt_d[0] * pt_d[0] + pt_d[1] * pt_d[1]);
+    const auto pt_d_norm = sqrt(pt_d[0] * pt_d[0] + pt_d[1] * pt_d[1]);
 
     static const T kVerySmallNumber = T(1e-10);
     const auto phi =
-        pt_d_norm < kVerySmallNumber ? T(0) : ceres::atan2(pt_d[1], pt_d[0]);
+        pt_d_norm < kVerySmallNumber ? T(0) : atan2(pt_d[1], pt_d[0]);
 
     // FIXME: The logic here is actually a nested if condition
     int npow = 9;

@@ -1,8 +1,6 @@
 ﻿#pragma once
 
-#include <ceres/ceres.h>
-
-#include "camera_intrinsics.h"
+#include "cameraintrinsics.h"
 
 namespace tl {
 
@@ -126,7 +124,7 @@ bool ExtendedUnifiedCameraModel::distortPoint(const T* intrinsics,
 
     const T rr = xx + yy;
     const T rho2 = beta * rr + zz;
-    const T rho = ceres::sqrt(rho2);
+    const T rho = sqrt(rho2);
 
     const T norm = alpha * rho + (T(1.) - alpha) * pt_u[2];
     pt_d[0] = T(0.);
@@ -167,12 +165,12 @@ bool ExtendedUnifiedCameraModel::undistortPoint(const T* intrinsics,
     }
 
     const T tmp1 = (T(1) - alpha * alpha * beta * rr);
-    const T tmp_sqrt = ceres::sqrt(T(1) - (alpha - gamma) * beta * rr);
+    const T tmp_sqrt = sqrt(T(1) - (alpha - gamma) * beta * rr);
     const T tmp2 = (alpha * tmp_sqrt + gamma);
 
     const T k = tmp1 / tmp2;
 
-    T norm = ceres::sqrt(rr + k * k);
+    T norm = sqrt(rr + k * k);
     if (norm < T(1e-12)) {
         norm = T(1e-12);
     }

@@ -1,4 +1,4 @@
-﻿#include "extended_unified_camera_model.h"
+﻿#include "extendedunifiedcameramodel.h"
 
 #include <tCamera/CameraMatrixUtils>
 

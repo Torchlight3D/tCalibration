@@ -1,4 +1,4 @@
-﻿#include "fisheye_camera_model.h"
+﻿#include "fisheyecameramodel.h"
 
 #include <tCamera/CameraMatrixUtils>
 

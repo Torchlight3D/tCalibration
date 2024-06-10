@@ -1,4 +1,4 @@
-#include "orthographic_camera_model.h"
+#include "orthographiccameramodel.h"
 
 #include <tCamera/CameraMatrixUtils>
 

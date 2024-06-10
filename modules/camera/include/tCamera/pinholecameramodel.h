@@ -1,1 +1,1 @@
-#include "../../src/geometric/pinhole_camera_model.h"
+#include "../../src/geometric/pinholecameramodel.h"

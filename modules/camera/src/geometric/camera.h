@@ -2,7 +2,7 @@
 
 #include <tMath/Eigen/Types>
 
-#include "camera_intrinsics.h"
+#include "cameraintrinsics.h"
 
 namespace tl {
 

@@ -2,7 +2,7 @@
 
 #include <Eigen/Core>
 
-#include "camera_intrinsics.h"
+#include "cameraintrinsics.h"
 
 namespace ceres {
 class CostFunction;

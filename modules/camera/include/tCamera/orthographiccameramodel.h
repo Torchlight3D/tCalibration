@@ -1,1 +1,1 @@
-#include "../../src/geometric/orthographic_camera_model.h"
+#include "../../src/geometric/orthographiccameramodel.h"

@@ -1,8 +1,6 @@
 ﻿#pragma once
 
-#include <ceres/ceres.h>
-
-#include "camera_intrinsics.h"
+#include "cameraintrinsics.h"
 
 namespace tl {
 
@@ -171,8 +169,8 @@ bool PinholeCameraModel::undistortPoint(const T* intrinsics, const T* pt_d,
         pt_u[0] = pt_d[0] / rd;
         pt_u[1] = pt_d[1] / rd;
 
-        if (ceres::abs(pt_u[0] - prev_pt_u[0]) < kUndistortionEpsilon &&
-            ceres::abs(pt_u[1] - prev_pt_u[1]) < kUndistortionEpsilon) {
+        if (abs(pt_u[0] - prev_pt_u[0]) < kUndistortionEpsilon &&
+            abs(pt_u[1] - prev_pt_u[1]) < kUndistortionEpsilon) {
             break;
         }
     }

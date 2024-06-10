@@ -1,4 +1,4 @@
-﻿#include "fov_camera_model.h"
+﻿#include "fovcameramodel.h"
 
 #include <tCamera/CameraMatrixUtils>
 
