@@ -30,7 +30,7 @@ bool initUndistortRectifyMap(const Camera& left, const Camera& right,
     cv::eigen2cv(t, tvec);
 
     switch (left.cameraIntrinsicsModel()) {
-        case CameraIntrinsics::Type::Omnidirectional: {
+        case CameraIntrinsicsType::Omnidirectional: {
             cv::Mat R1, R2;
             cv::omnidir::stereoRectify(rmat, tvec, R1, R2);
 
@@ -75,7 +75,7 @@ bool initUndistortRectifyMap(const Camera& left, const Camera& right,
                                                  flags);
             return true;
         } break;
-        case CameraIntrinsics::Type::Fisheye: {
+        case CameraIntrinsicsType::Fisheye: {
             auto leftParams = static_cast<const FisheyeCameraModel*>(
                 left.cameraIntrinsics().get());
             // clang-format off
@@ -113,7 +113,7 @@ bool initUndistortRectifyMap(const Camera& left, const Camera& right,
 
             return true;
         } break;
-        case CameraIntrinsics::Type::PinholeRadialTangential: {
+        case CameraIntrinsicsType::PinholeRadialTangential: {
             auto leftParams =
                 static_cast<const PinholeRadialTangentialCameraModel*>(
                     left.cameraIntrinsics().get());

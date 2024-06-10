@@ -191,7 +191,7 @@ bool CameraPoseCalibration::calibrate(const StampedTargetDetections& detections,
         // We only use the pose of the camera, and don't care about
         // intrinsics, so use default Pinhole camera
         auto& cam = d->m_scene->rView(viewId)->rCamera();
-        cam.setCameraIntrinsicsModel(CameraIntrinsics::Type::Pinhole);
+        cam.setCameraIntrinsicsModel(CameraIntrinsicsType::Pinhole);
         cam.setFocalLength(1.);
         cam.setPrincipalPoint(0., 0.);
         cam.setImageSize(1., 1.);

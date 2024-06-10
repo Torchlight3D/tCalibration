@@ -12,7 +12,7 @@ TEST(ExtendedUnifiedCameraModel, InternalParameterGettersAndSetters)
 {
     ExtendedUnifiedCameraModel camera;
     // Check type
-    EXPECT_EQ(camera.type(), CameraIntrinsics::Type::ExtendedUnified);
+    EXPECT_EQ(camera.type(), CameraIntrinsicsType::ExtendedUnified);
 
     // Check that default values are set
     EXPECT_EQ(camera.focalLength(), 1.0);
@@ -126,25 +126,25 @@ TEST(ExtendedUnifiedCameraModel, SetFromCameraMetaData)
     TestCameraSetFromMeta(meta);
 }
 
-TEST(ExtendedUnifiedCameraModel, constantParameterIndices)
+TEST(ExtendedUnifiedCameraModel, fixedParameterIndices)
 {
     using _Type = OptimizeIntrinsicsType;
 
     ExtendedUnifiedCameraModel camera;
     std::vector<int> indices;
 
-    indices = camera.constantParameterIndices(_Type::None);
+    indices = camera.fixedParameterIndices(_Type::None);
     EXPECT_EQ(indices.size(), camera.numParameters());
 
     // Focal length
-    indices = camera.constantParameterIndices(_Type::FocalLength);
+    indices = camera.fixedParameterIndices(_Type::FocalLength);
     EXPECT_EQ(indices.size(), camera.numParameters() - 1);
     for (const auto& index : indices) {
         EXPECT_NE(index, ExtendedUnifiedCameraModel::Fx);
     }
 
     // Principal point
-    indices = camera.constantParameterIndices(_Type::PrincipalPoint);
+    indices = camera.fixedParameterIndices(_Type::PrincipalPoint);
     EXPECT_EQ(indices.size(), camera.numParameters() - 2);
     for (const auto& index : indices) {
         EXPECT_NE(index, ExtendedUnifiedCameraModel::Cx);
@@ -152,21 +152,21 @@ TEST(ExtendedUnifiedCameraModel, constantParameterIndices)
     }
 
     // Aspect ratio
-    indices = camera.constantParameterIndices(_Type::AspectRatio);
+    indices = camera.fixedParameterIndices(_Type::AspectRatio);
     EXPECT_EQ(indices.size(), camera.numParameters() - 1);
     for (const auto& index : indices) {
         EXPECT_NE(index, ExtendedUnifiedCameraModel::YX);
     }
 
     // Skew
-    indices = camera.constantParameterIndices(_Type::Skew);
+    indices = camera.fixedParameterIndices(_Type::Skew);
     EXPECT_EQ(indices.size(), camera.numParameters() - 1);
     for (const auto& index : indices) {
         EXPECT_NE(index, ExtendedUnifiedCameraModel::Skew);
     }
 
     // Radial distortion
-    indices = camera.constantParameterIndices(_Type::RadialDistortion);
+    indices = camera.fixedParameterIndices(_Type::RadialDistortion);
     EXPECT_EQ(indices.size(), camera.numParameters() - 2);
     for (const auto& index : indices) {
         EXPECT_NE(index, ExtendedUnifiedCameraModel::Alpha);

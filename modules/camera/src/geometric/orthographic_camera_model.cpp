@@ -4,12 +4,8 @@
 
 namespace tl {
 
-OrthographicCameraModel::OrthographicCameraModel() : CameraIntrinsics()
+OrthographicCameraModel::OrthographicCameraModel() : Parent()
 {
-    parameters_.resize(IntrinsicsSize);
-    setFocalLength(1.);
-    setAspectRatio(1.);
-    setPrincipalPoint(0., 0.);
     setParameter(Skew, 0.);
     setParameter(K1, 0.);
     setParameter(K2, 0.);
@@ -17,7 +13,7 @@ OrthographicCameraModel::OrthographicCameraModel() : CameraIntrinsics()
 
 void OrthographicCameraModel::setFromMetaData(const CameraMetaData& meta)
 {
-    CameraIntrinsics::setFromMetaData(meta);
+    Parent::setFromMetaData(meta);
 
     if (meta.skew.is_set) {
         setParameter(Skew, meta.skew.value[0]);
@@ -31,7 +27,7 @@ void OrthographicCameraModel::setFromMetaData(const CameraMetaData& meta)
 
 CameraMetaData OrthographicCameraModel::toMetaData() const
 {
-    auto meta = CameraIntrinsics::toMetaData();
+    auto meta = Parent::toMetaData();
     meta.skew.is_set = true;
     meta.skew.value[0] = skew();
     meta.radial_distortion.is_set = true;
@@ -41,37 +37,34 @@ CameraMetaData OrthographicCameraModel::toMetaData() const
     return meta;
 }
 
-int OrthographicCameraModel::numParameters() const { return IntrinsicsSize; }
+void OrthographicCameraModel::setSkew(double skew) { params_[Skew] = skew; }
 
-void OrthographicCameraModel::setSkew(double skew) { parameters_[Skew] = skew; }
-
-double OrthographicCameraModel::skew() const { return parameters_[Skew]; }
+double OrthographicCameraModel::skew() const { return params_[Skew]; }
 
 void OrthographicCameraModel::setRadialDistortion(double k1, double k2)
 {
-    parameters_[K1] = k1;
-    parameters_[K2] = k2;
+    params_[K1] = k1;
+    params_[K2] = k2;
 }
 
 double OrthographicCameraModel::radialDistortion1() const
 {
-    return parameters_[K1];
+    return params_[K1];
 }
 
 double OrthographicCameraModel::radialDistortion2() const
 {
-    return parameters_[K2];
+    return params_[K2];
 }
 
-std::vector<int> OrthographicCameraModel::constantParameterIndices(
+std::vector<int> OrthographicCameraModel::fixedParameterIndices(
     OptimizeIntrinsicsType flags) const
 {
-    // All parameters
     if (flags == OptimizeIntrinsicsType::All) {
         return {};
     }
 
-    auto indices = CameraIntrinsics::constantParameterIndices(flags);
+    auto indices = Parent::fixedParameterIndices(flags);
     if ((flags & OptimizeIntrinsicsType::Skew) ==
         OptimizeIntrinsicsType::None) {
         indices.emplace_back(Skew);
@@ -86,20 +79,14 @@ std::vector<int> OrthographicCameraModel::constantParameterIndices(
 
 Eigen::Matrix3d OrthographicCameraModel::calibrationMatrix() const
 {
-    return intrinsicsToCalibrationMatrix(parameters_[Fx], parameters_[Skew],
-                                         parameters_[YX], parameters_[Cx],
-                                         parameters_[Cy]);
-}
-
-bool OrthographicCameraModel::isValid() const
-{
-    return CameraIntrinsics::isValid();
+    return intrinsicsToCalibrationMatrix(fx(), params_[Skew], aspectRatio(),
+                                         cx(), cy());
 }
 
 std::string OrthographicCameraModel::toLog() const
 {
     std::ostringstream oss;
-    oss << CameraIntrinsics::toLog()
+    oss << Parent::toLog()
         << "\n"
            "Skew: "
         << skew()

@@ -4,12 +4,8 @@
 
 namespace tl {
 
-OmnidirectionalCameraModel::OmnidirectionalCameraModel() : CameraIntrinsics()
+OmnidirectionalCameraModel::OmnidirectionalCameraModel() : Parent()
 {
-    parameters_.resize(IntrinsicsSize);
-    setFocalLength(1.);
-    setAspectRatio(1.);
-    setPrincipalPoint(0., 0.);
     setParameter(Xi, 1.);
     setParameter(K1, 0.);
     setParameter(K2, 0.);
@@ -19,7 +15,7 @@ OmnidirectionalCameraModel::OmnidirectionalCameraModel() : CameraIntrinsics()
 
 void OmnidirectionalCameraModel::setFromMetaData(const CameraMetaData& meta)
 {
-    CameraIntrinsics::setFromMetaData(meta);
+    Parent::setFromMetaData(meta);
 
     if (meta.radial_distortion.is_set) {
         setParameter(K1, meta.radial_distortion.value[0]);
@@ -35,7 +31,7 @@ void OmnidirectionalCameraModel::setFromMetaData(const CameraMetaData& meta)
 
 CameraMetaData OmnidirectionalCameraModel::toMetaData() const
 {
-    auto meta = CameraIntrinsics::toMetaData();
+    auto meta = Parent::toMetaData();
     meta.radial_distortion.is_set = true;
     meta.radial_distortion.value[0] = radialDistortion1();
     meta.radial_distortion.value[1] = radialDistortion2();
@@ -48,51 +44,49 @@ CameraMetaData OmnidirectionalCameraModel::toMetaData() const
     return meta;
 }
 
-int OmnidirectionalCameraModel::numParameters() const { return IntrinsicsSize; }
-
 void OmnidirectionalCameraModel::setMirrorDistortion(double xi)
 {
-    parameters_[Xi] = xi;
+    params_[Xi] = xi;
 }
 
 double OmnidirectionalCameraModel::mirrorDistortion() const
 {
-    return parameters_[Xi];
+    return params_[Xi];
 }
 
 void OmnidirectionalCameraModel::setRadialDistortion(double k1, double k2)
 {
-    parameters_[K1] = k1;
-    parameters_[K2] = k2;
+    params_[K1] = k1;
+    params_[K2] = k2;
 }
 
 double OmnidirectionalCameraModel::radialDistortion1() const
 {
-    return parameters_[K1];
+    return params_[K1];
 }
 
 double OmnidirectionalCameraModel::radialDistortion2() const
 {
-    return parameters_[K2];
+    return params_[K2];
 }
 
 void OmnidirectionalCameraModel::setTangentialDistortion(double p1, double p2)
 {
-    parameters_[P1] = p1;
-    parameters_[P2] = p2;
+    params_[P1] = p1;
+    params_[P2] = p2;
 }
 
 double OmnidirectionalCameraModel::tangentialDistortion1() const
 {
-    return parameters_[P1];
+    return params_[P1];
 }
 
 double OmnidirectionalCameraModel::tangentialDistortion2() const
 {
-    return parameters_[P2];
+    return params_[P2];
 }
 
-std::vector<int> OmnidirectionalCameraModel::constantParameterIndices(
+std::vector<int> OmnidirectionalCameraModel::fixedParameterIndices(
     OptimizeIntrinsicsType flags) const
 {
     if (flags == OptimizeIntrinsicsType::All) {
@@ -130,15 +124,10 @@ std::vector<int> OmnidirectionalCameraModel::constantParameterIndices(
     return indices;
 }
 
-bool OmnidirectionalCameraModel::isValid() const
-{
-    return CameraIntrinsics::isValid() && (xi() < 2. && xi() > 1.4);
-}
-
 std::string OmnidirectionalCameraModel::toLog() const
 {
     std::ostringstream oss;
-    oss << CameraIntrinsics::toLog()
+    oss << Parent::toLog()
         << "\n"
            "Mirror distortion (xi): "
         << xi()

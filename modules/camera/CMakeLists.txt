@@ -34,8 +34,8 @@ target_link_libraries(${CAMERA_TARGET_NAME}
     PUBLIC
         ${NS_PREFIX}::Core
         ${NS_PREFIX}::Math
-    PRIVATE
         magic_enum
+    PRIVATE
 )
 
 if(USE_CAMODOCAL)

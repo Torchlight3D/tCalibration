@@ -4,16 +4,12 @@
 
 namespace tl {
 
-FOVCameraModel::FOVCameraModel() : CameraIntrinsics()
+FovCameraModel::FovCameraModel() : Parent()
 {
-    parameters_.resize(IntrinsicsSize);
-    setFocalLength(1.0);
-    setAspectRatio(1.0);
-    setPrincipalPoint(0.0, 0.0);
-    setParameter(Omega, FOVCameraModel::kDefaultOmega);
+    setParameter(Omega, kDefaultOmega);
 }
 
-void FOVCameraModel::setFromMetaData(const CameraMetaData& meta)
+void FovCameraModel::setFromMetaData(const CameraMetaData& meta)
 {
     // NOTE: Don't call parent method on purpose
     if (meta.focal_length.is_set) {
@@ -44,25 +40,23 @@ void FOVCameraModel::setFromMetaData(const CameraMetaData& meta)
     }
 }
 
-CameraMetaData FOVCameraModel::toMetaData() const
+CameraMetaData FovCameraModel::toMetaData() const
 {
-    auto meta = CameraIntrinsics::toMetaData();
+    auto meta = Parent::toMetaData();
     meta.radial_distortion.is_set = true;
     meta.radial_distortion.value[0] = radialDistortion1();
 
     return meta;
 }
 
-int FOVCameraModel::numParameters() const { return IntrinsicsSize; }
-
-void FOVCameraModel::setRadialDistortion(double omega)
+void FovCameraModel::setRadialDistortion(double omega)
 {
-    parameters_[Omega] = omega;
+    params_[Omega] = omega;
 }
 
-double FOVCameraModel::radialDistortion1() const { return parameters_[Omega]; }
+double FovCameraModel::radialDistortion1() const { return params_[Omega]; }
 
-std::vector<int> FOVCameraModel::constantParameterIndices(
+std::vector<int> FovCameraModel::fixedParameterIndices(
     OptimizeIntrinsicsType flags) const
 {
     // All parameters
@@ -70,7 +64,7 @@ std::vector<int> FOVCameraModel::constantParameterIndices(
         return {};
     }
 
-    auto indices = CameraIntrinsics::constantParameterIndices(flags);
+    auto indices = Parent::fixedParameterIndices(flags);
     if ((flags & OptimizeIntrinsicsType::RadialDistortion) ==
         OptimizeIntrinsicsType::None) {
         indices.emplace_back(Omega);
@@ -78,12 +72,10 @@ std::vector<int> FOVCameraModel::constantParameterIndices(
     return indices;
 }
 
-bool FOVCameraModel::isValid() const { return CameraIntrinsics::isValid(); }
-
-std::string FOVCameraModel::toLog() const
+std::string FovCameraModel::toLog() const
 {
     std::ostringstream oss;
-    oss << CameraIntrinsics::toLog()
+    oss << Parent::toLog()
         << "\n"
            "Radial distortion (omega): "
         << omega();

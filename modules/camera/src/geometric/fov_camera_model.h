@@ -13,12 +13,14 @@ namespace tl {
 // Reference:
 
 // FIXME: Use FovCameraModel
-class FOVCameraModel final : public CameraIntrinsics
+class FovCameraModel final : public CameraIntrinsics_<FovCameraModel, 5>
 {
-public:
-    FOVCameraModel();
+    using Parent = CameraIntrinsics_<FovCameraModel, 5>;
 
-    constexpr Type type() const override { return Type::Fov; }
+public:
+    FovCameraModel();
+
+    inline static constexpr auto kType = CameraIntrinsicsType::Fov;
 
     void setFromMetaData(const CameraMetaData& meta) override;
     CameraMetaData toMetaData() const override;
@@ -31,64 +33,29 @@ public:
 
         IntrinsicsSize,
     };
-    int numParameters() const override;
+    static_assert(kNumParameters == IntrinsicsSize);
 
     inline static constexpr auto kDefaultOmega{0.75};
     void setRadialDistortion(double omega);
     double radialDistortion1() const;
     inline auto omega() const { return radialDistortion1(); }
 
-    std::vector<int> constantParameterIndices(
+    std::vector<int> fixedParameterIndices(
         OptimizeIntrinsicsType flags) const override;
-
-    bool isValid() const override;
 
     // ---------------------- Point Mapping --------------------------------
     //
     template <typename T>
-    static bool spaceToPixel(const T* intrinsics, const T* point, T* pixel);
+    static bool spaceToPixel(const T* params, const T* point, T* pixel);
 
     template <typename T>
-    static bool pixelToSpace(const T* intrinsics, const T* pixel, T* point);
+    static bool pixelToSpace(const T* params, const T* pixel, T* point);
 
     template <typename T>
-    static bool isUnprojectable(const T* intrinsics, const T* pixel);
+    static bool distortPoint(const T* params, const T* pixel, T* distorted);
 
     template <typename T>
-    static bool distort(const T* intrinsics, const T* undistorted,
-                        T* distorted);
-
-    template <typename T>
-    static bool undistort(const T* intrinsics, const T* distorted,
-                          T* undistorted);
-
-    Eigen::Vector2d spaceToImage(const Eigen::Vector3d& point) const override
-    {
-        Eigen::Vector2d pixel;
-        spaceToPixel(parameters(), point.data(), pixel.data());
-        return pixel;
-    }
-
-    Eigen::Vector3d imageToSpace(const Eigen::Vector2d& pixel) const override
-    {
-        Eigen::Vector3d point;
-        pixelToSpace(parameters(), pixel.data(), point.data());
-        return point;
-    }
-
-    Eigen::Vector2d distort(const Eigen::Vector2d& undistorted) const override
-    {
-        Eigen::Vector2d distorted;
-        distort(parameters(), undistorted.data(), distorted.data());
-        return distorted;
-    }
-
-    Eigen::Vector2d undistort(const Eigen::Vector2d& distorted) const override
-    {
-        Eigen::Vector2d undistorted;
-        undistort(parameters(), distorted.data(), undistorted.data());
-        return undistorted;
-    }
+    static bool undistortPoint(const T* params, const T* pixel, T* undistorted);
 
 protected:
     std::string toLog() const override;
@@ -97,7 +64,7 @@ protected:
 /// ---------------------- Implementation -----------------------------------
 ///
 template <typename T>
-bool FOVCameraModel::spaceToPixel(const T* intrinsics, const T* pt, T* px)
+bool FovCameraModel::spaceToPixel(const T* intrinsics, const T* pt, T* px)
 {
     // Normalize
     const T& depth = pt[2];
@@ -105,7 +72,7 @@ bool FOVCameraModel::spaceToPixel(const T* intrinsics, const T* pt, T* px)
 
     // Apply distortion
     T px_d[2];
-    FOVCameraModel::distort(intrinsics, px_norm, px_d);
+    distortPoint(intrinsics, px_norm, px_d);
 
     // Apply calibration parameters to transform normalized units into pixels.
     const T& fx = intrinsics[Fx];
@@ -121,7 +88,7 @@ bool FOVCameraModel::spaceToPixel(const T* intrinsics, const T* pt, T* px)
 }
 
 template <typename T>
-bool FOVCameraModel::pixelToSpace(const T* intrinsics, const T* px, T* pt)
+bool FovCameraModel::pixelToSpace(const T* intrinsics, const T* px, T* pt)
 {
     const T& fx = intrinsics[Fx];
     const T& y_x = intrinsics[YX];
@@ -133,21 +100,14 @@ bool FOVCameraModel::pixelToSpace(const T* intrinsics, const T* px, T* pt)
     pt_d[0] = (px[0] - cx) / fx;
     pt_d[1] = (px[1] - cy) / fy;
 
-    FOVCameraModel::undistort(intrinsics, pt_d, pt);
+    undistortPoint(intrinsics, pt_d, pt);
     pt[2] = T(1.);
 
     return true;
 }
 
 template <typename T>
-bool FOVCameraModel::isUnprojectable(const T* intrinsics, const T* pixel)
-{
-    // FIXME: complete here
-    return true;
-}
-
-template <typename T>
-bool FOVCameraModel::distort(const T* intrinsics, const T* pt_u, T* pt_d)
+bool FovCameraModel::distortPoint(const T* intrinsics, const T* pt_u, T* pt_d)
 {
     static const T kVerySmallNumber(1e-3);
 
@@ -199,7 +159,7 @@ bool FOVCameraModel::distort(const T* intrinsics, const T* pt_u, T* pt_d)
 }
 
 template <typename T>
-bool FOVCameraModel::undistort(const T* intrinsics, const T* pt_d, T* pt_u)
+bool FovCameraModel::undistortPoint(const T* intrinsics, const T* pt_d, T* pt_u)
 {
     const T& omega = intrinsics[Omega];
     const T omega_2 = omega * omega;

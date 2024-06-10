@@ -11,8 +11,9 @@ class CostFunction;
 
 namespace tl {
 
+// TODO: Use auto registration
 ceres::CostFunction* createInvReprojectionPoseErrorCostFunction(
-    CameraIntrinsics::Type type, const Feature& feature,
+    CameraIntrinsicsType type, const Feature& feature,
     const Eigen::Vector3d& ref_bearing);
 
-}
+} // namespace tl

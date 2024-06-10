@@ -4,6 +4,7 @@
 
 namespace tl {
 
+// TODO: Change yx to fy, which is more intuitive
 Eigen::Matrix3d intrinsicsToCalibrationMatrix(double fx, double skew,
                                               double y_x, double cx, double cy);
 

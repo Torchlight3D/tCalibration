@@ -12,7 +12,7 @@ TEST(PinholeCameraModel, InternalParameterGettersAndSetters)
 {
     PinholeCameraModel camera;
     // Check type
-    EXPECT_EQ(camera.type(), CameraIntrinsics::Type::Pinhole);
+    EXPECT_EQ(camera.type(), CameraIntrinsicsType::Pinhole);
 
     // Check that default values are set
     EXPECT_EQ(camera.focalLength(), 1.0);
@@ -126,25 +126,25 @@ TEST(PinholeCameraModel, SetFromCameraMetaData)
     TestCameraSetFromMeta(meta);
 }
 
-TEST(PinholeCameraModel, constantParameterIndices)
+TEST(PinholeCameraModel, ConstantParameterIndices)
 {
     using _Type = OptimizeIntrinsicsType;
 
     PinholeCameraModel camera;
     std::vector<int> indices;
 
-    indices = camera.constantParameterIndices(_Type::None);
+    indices = camera.fixedParameterIndices(_Type::None);
     EXPECT_EQ(indices.size(), camera.numParameters());
 
     // Focal length
-    indices = camera.constantParameterIndices(_Type::FocalLength);
+    indices = camera.fixedParameterIndices(_Type::FocalLength);
     EXPECT_EQ(indices.size(), camera.numParameters() - 1);
     for (const auto& index : indices) {
         EXPECT_NE(index, PinholeCameraModel::Fx);
     }
 
     // Principal point
-    indices = camera.constantParameterIndices(_Type::PrincipalPoint);
+    indices = camera.fixedParameterIndices(_Type::PrincipalPoint);
     EXPECT_EQ(indices.size(), camera.numParameters() - 2);
     for (const auto& index : indices) {
         EXPECT_NE(index, PinholeCameraModel::Cx);
@@ -152,21 +152,21 @@ TEST(PinholeCameraModel, constantParameterIndices)
     }
 
     // Aspect ratio
-    indices = camera.constantParameterIndices(_Type::AspectRatio);
+    indices = camera.fixedParameterIndices(_Type::AspectRatio);
     EXPECT_EQ(indices.size(), camera.numParameters() - 1);
     for (const auto& index : indices) {
         EXPECT_NE(index, PinholeCameraModel::YX);
     }
 
     // Skew
-    indices = camera.constantParameterIndices(_Type::Skew);
+    indices = camera.fixedParameterIndices(_Type::Skew);
     EXPECT_EQ(indices.size(), camera.numParameters() - 1);
     for (const auto& index : indices) {
         EXPECT_NE(index, PinholeCameraModel::Skew);
     }
 
     // Radial distortion
-    indices = camera.constantParameterIndices(_Type::RadialDistortion);
+    indices = camera.fixedParameterIndices(_Type::RadialDistortion);
     EXPECT_EQ(indices.size(), camera.numParameters() - 2);
     for (const auto& index : indices) {
         EXPECT_NE(index, PinholeCameraModel::K1);
@@ -174,7 +174,7 @@ TEST(PinholeCameraModel, constantParameterIndices)
     }
 
     // Tangential distortion
-    indices = camera.constantParameterIndices(_Type::TangentialDistortion);
+    indices = camera.fixedParameterIndices(_Type::TangentialDistortion);
     EXPECT_EQ(indices.size(), camera.numParameters());
 }
 
@@ -274,7 +274,7 @@ TEST(PinholeRadialTangentialCameraModel, InternalParameterGettersAndSetters)
 {
     PinholeRadialTangentialCameraModel camera;
     // Check type
-    EXPECT_EQ(camera.type(), CameraIntrinsics::Type::PinholeRadialTangential);
+    EXPECT_EQ(camera.type(), CameraIntrinsicsType::PinholeRadialTangential);
 
     // Check that default values are set
     EXPECT_EQ(camera.focalLength(), 1.0);
@@ -423,18 +423,18 @@ TEST(PinholeRadialTangentialCameraModel, GetSubsetFromOptimizeIntrinsicsType)
     PinholeRadialTangentialCameraModel camera;
     std::vector<int> indices;
 
-    indices = camera.constantParameterIndices(_Type::None);
+    indices = camera.fixedParameterIndices(_Type::None);
     EXPECT_EQ(indices.size(), camera.numParameters());
 
     // Test that optimizing for focal length works correctly.
-    indices = camera.constantParameterIndices(_Type::FocalLength);
+    indices = camera.fixedParameterIndices(_Type::FocalLength);
     EXPECT_EQ(indices.size(), camera.numParameters() - 1);
     for (const auto& index : indices) {
         EXPECT_NE(index, PinholeRadialTangentialCameraModel::Fx);
     }
 
     // Test that optimizing for principal_points works correctly.
-    indices = camera.constantParameterIndices(_Type::PrincipalPoint);
+    indices = camera.fixedParameterIndices(_Type::PrincipalPoint);
     EXPECT_EQ(indices.size(), camera.numParameters() - 2);
     for (const auto& index : indices) {
         EXPECT_NE(index, PinholeRadialTangentialCameraModel::Cx);
@@ -442,21 +442,21 @@ TEST(PinholeRadialTangentialCameraModel, GetSubsetFromOptimizeIntrinsicsType)
     }
 
     // Test that optimizing for aspect ratio works correctly.
-    indices = camera.constantParameterIndices(_Type::AspectRatio);
+    indices = camera.fixedParameterIndices(_Type::AspectRatio);
     EXPECT_EQ(indices.size(), camera.numParameters() - 1);
     for (const auto& index : indices) {
         EXPECT_NE(index, PinholeRadialTangentialCameraModel::YX);
     }
 
     // Test that optimizing for skew works correctly.
-    indices = camera.constantParameterIndices(_Type::Skew);
+    indices = camera.fixedParameterIndices(_Type::Skew);
     EXPECT_EQ(indices.size(), camera.numParameters() - 1);
     for (const auto& index : indices) {
         EXPECT_NE(index, PinholeRadialTangentialCameraModel::Skew);
     }
 
     // Test that optimizing for radial distortion works correctly.
-    indices = camera.constantParameterIndices(_Type::RadialDistortion);
+    indices = camera.fixedParameterIndices(_Type::RadialDistortion);
     EXPECT_EQ(indices.size(), camera.numParameters() - 3);
     for (const auto& index : indices) {
         EXPECT_NE(index, PinholeRadialTangentialCameraModel::K1);
@@ -466,7 +466,7 @@ TEST(PinholeRadialTangentialCameraModel, GetSubsetFromOptimizeIntrinsicsType)
 
     // Test that optimizing for tangential distortion does not optimize any
     // parameters.
-    indices = camera.constantParameterIndices(_Type::TangentialDistortion);
+    indices = camera.fixedParameterIndices(_Type::TangentialDistortion);
     EXPECT_EQ(indices.size(), camera.numParameters() - 2);
     for (const auto& index : indices) {
         EXPECT_NE(index, PinholeRadialTangentialCameraModel::T1);

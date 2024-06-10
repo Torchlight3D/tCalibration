@@ -19,7 +19,7 @@ Camera fromCocCamera(const camodocal::Camera::ConstPtr coc_camera)
     meta.image_height = coc_camera->imageHeight();
 
     switch (coc_camera->modelType()) {
-        using Type = CameraIntrinsics::Type;
+        using Type = CameraIntrinsicsType;
         using cocType = camodocal::Camera::ModelType;
 
         case cocType::KANNALA_BRANDT: {

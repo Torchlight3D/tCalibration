@@ -26,12 +26,14 @@ namespace tl {
 //   p *= d;
 //   p = K * p;
 //
-class PinholeCameraModel final : public CameraIntrinsics
+class PinholeCameraModel final : public CameraIntrinsics_<PinholeCameraModel, 7>
 {
+    using Parent = CameraIntrinsics_<PinholeCameraModel, 7>;
+
 public:
     PinholeCameraModel();
 
-    constexpr Type type() const override { return Type::Pinhole; }
+    inline static constexpr auto kType = CameraIntrinsicsType::Pinhole;
 
     void setFromMetaData(const CameraMetaData& meta) override;
     CameraMetaData toMetaData() const override;
@@ -46,7 +48,7 @@ public:
 
         IntrinsicsSize,
     };
-    int numParameters() const override;
+    static_assert(kNumParameters == IntrinsicsSize);
 
     void setSkew(double skew);
     double skew() const;
@@ -57,12 +59,10 @@ public:
     inline auto k1() const { return radialDistortion1(); }
     inline auto k2() const { return radialDistortion2(); }
 
-    std::vector<int> constantParameterIndices(
+    std::vector<int> fixedParameterIndices(
         OptimizeIntrinsicsType flags) const override;
 
     Eigen::Matrix3d calibrationMatrix() const override;
-
-    bool isValid() const override;
 
     // ---------------------- Point Mapping --------------------------------
     //
@@ -73,49 +73,20 @@ public:
     static bool pixelToSpace(const T* intrinsics, const T* pixel, T* point);
 
     template <typename T>
-    static bool isUnprojectable(const T* intrinsics, const T* pixel);
+    static bool distortPoint(const T* intrinsics, const T* undistort,
+                             T* distorted);
 
     template <typename T>
-    static bool distort(const T* intrinsics, const T* undistort, T* distorted);
-
-    template <typename T>
-    static bool undistort(const T* intrinsics, const T* distort,
-                          T* undistorted);
-
-    template <typename T>
-    static void calcDistortion(const T* intrinsics, const T* undistort,
-                               T* radialDistortion);
-
-    Eigen::Vector2d spaceToImage(const Eigen::Vector3d& point) const override
-    {
-        Eigen::Vector2d pixel;
-        spaceToPixel(parameters(), point.data(), pixel.data());
-        return pixel;
-    }
-
-    Eigen::Vector3d imageToSpace(const Eigen::Vector2d& pixel) const override
-    {
-        Eigen::Vector3d point;
-        pixelToSpace(parameters(), pixel.data(), point.data());
-        return point;
-    }
-
-    Eigen::Vector2d distort(const Eigen::Vector2d& undistorted) const override
-    {
-        Eigen::Vector2d distorted;
-        distort(parameters(), undistorted.data(), distorted.data());
-        return distorted;
-    }
-
-    Eigen::Vector2d undistort(const Eigen::Vector2d& distorted) const override
-    {
-        Eigen::Vector2d undistorted;
-        undistort(parameters(), distorted.data(), undistorted.data());
-        return undistorted;
-    }
+    static bool undistortPoint(const T* intrinsics, const T* distort,
+                               T* undistorted);
 
 protected:
     std::string toLog() const override;
+
+private:
+    template <typename T>
+    static void calcDistortion(const T* intrinsics, const T* undistort,
+                               T* radialDistortion);
 };
 
 /// -------------------------- Implementation -------------------------------
@@ -129,7 +100,7 @@ bool PinholeCameraModel::spaceToPixel(const T* intrinsics, const T* pt, T* px)
 
     // Apply radial distortion.
     T pt_d[2];
-    PinholeCameraModel::distort(intrinsics, normalized_pt, pt_d);
+    distortPoint(intrinsics, normalized_pt, pt_d);
 
     // Apply calibration parameters to transform normalized units into pixels.
     const T& fx = intrinsics[Fx];
@@ -161,20 +132,15 @@ bool PinholeCameraModel::pixelToSpace(const T* intrinsics, const T* px, T* pt)
     pt_d[0] = (px[0] - cx - pt_d[1] * skew) / fx;
 
     // Undo the radial distortion.
-    PinholeCameraModel::undistort(intrinsics, pt_d, pt);
+    undistortPoint(intrinsics, pt_d, pt);
     pt[2] = T(1);
 
     return true;
 }
 
 template <typename T>
-bool PinholeCameraModel::isUnprojectable(const T* intrinsics, const T* pixel)
-{
-    return true;
-}
-
-template <typename T>
-bool PinholeCameraModel::distort(const T* intrinsics, const T* pt_u, T* pt_d)
+bool PinholeCameraModel::distortPoint(const T* intrinsics, const T* pt_u,
+                                      T* pt_d)
 {
     T rd;
     calcDistortion(intrinsics, pt_u, &rd);
@@ -186,7 +152,8 @@ bool PinholeCameraModel::distort(const T* intrinsics, const T* pt_u, T* pt_d)
 }
 
 template <typename T>
-bool PinholeCameraModel::undistort(const T* intrinsics, const T* pt_d, T* pt_u)
+bool PinholeCameraModel::undistortPoint(const T* intrinsics, const T* pt_d,
+                                        T* pt_u)
 {
     constexpr int kIterations{100};
     const T kUndistortionEpsilon = T(1e-10);

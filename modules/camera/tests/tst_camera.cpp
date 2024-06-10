@@ -50,7 +50,7 @@ TEST(Camera, InternalParameterGettersAndSetters)
 
     // Make sure the default intrinsics are sets for pinhole cameras.
     PinholeCameraModel pinhole_intrinsics;
-    EXPECT_EQ(camera.cameraIntrinsicsModel(), CameraIntrinsics::Type::Pinhole);
+    EXPECT_EQ(camera.cameraIntrinsicsModel(), CameraIntrinsicsType::Pinhole);
     for (int i = 0; i < intrinsics->numParameters(); i++) {
         EXPECT_EQ(intrinsics->parameter(i), pinhole_intrinsics.parameter(i));
     }
@@ -120,7 +120,7 @@ TEST(Camera, SetFromCameraMetaData)
 
     Camera camera;
     camera.setFromMetaData(meta);
-    EXPECT_EQ(camera.cameraIntrinsicsModel(), CameraIntrinsics::Type::Pinhole);
+    EXPECT_EQ(camera.cameraIntrinsicsModel(), CameraIntrinsicsType::Pinhole);
     EXPECT_EQ(camera.imageWidth(), meta.image_width);
     EXPECT_EQ(camera.imageHeight(), meta.image_height);
 
@@ -128,18 +128,18 @@ TEST(Camera, SetFromCameraMetaData)
     // Set the meta for intrinsics model to Pinhole.
     meta.camera_intrinsics_model_type = "Pinhole";
     camera.setFromMetaData(meta);
-    EXPECT_EQ(camera.cameraIntrinsicsModel(), CameraIntrinsics::Type::Pinhole);
+    EXPECT_EQ(camera.cameraIntrinsicsModel(), CameraIntrinsicsType::Pinhole);
 
     // Set the meta for intrinsics model to PinholeRadialTangential.
     meta.camera_intrinsics_model_type = "PinholeRadialTangential";
     camera.setFromMetaData(meta);
     EXPECT_EQ(camera.cameraIntrinsicsModel(),
-              CameraIntrinsics::Type::PinholeRadialTangential);
+              CameraIntrinsicsType::PinholeRadialTangential);
 
     // Set the meta for intrinsics model to Fisheye.
     meta.camera_intrinsics_model_type = "Fisheye";
     camera.setFromMetaData(meta);
-    EXPECT_EQ(camera.cameraIntrinsicsModel(), CameraIntrinsics::Type::Fisheye);
+    EXPECT_EQ(camera.cameraIntrinsicsModel(), CameraIntrinsicsType::Fisheye);
 }
 
 void ReprojectionTest(const Camera& camera)
@@ -197,12 +197,12 @@ TEST(Camera, SetCameraIntrinsicsType)
     constexpr double kFocalLength = 100.0;
 
     Camera camera;
-    EXPECT_EQ(camera.cameraIntrinsicsModel(), CameraIntrinsics::Type::Pinhole);
+    EXPECT_EQ(camera.cameraIntrinsicsModel(), CameraIntrinsicsType::Pinhole);
     // Set a camera intrinsics parameter.
     camera.setFocalLength(kFocalLength);
     // Set the camera intrinsics type to be the same as it currently is. This
     // should produce a no-op and the focal length value should be preserved.
-    camera.setCameraIntrinsicsModel(CameraIntrinsics::Type::Pinhole);
+    camera.setCameraIntrinsicsModel(CameraIntrinsicsType::Pinhole);
     EXPECT_EQ(camera.focalLength(), kFocalLength);
-    EXPECT_EQ(camera.cameraIntrinsicsModel(), CameraIntrinsics::Type::Pinhole);
+    EXPECT_EQ(camera.cameraIntrinsicsModel(), CameraIntrinsicsType::Pinhole);
 }

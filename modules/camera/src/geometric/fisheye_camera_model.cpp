@@ -4,12 +4,8 @@
 
 namespace tl {
 
-FisheyeCameraModel::FisheyeCameraModel() : CameraIntrinsics()
+FisheyeCameraModel::FisheyeCameraModel() : Parent()
 {
-    parameters_.resize(IntrinsicsSize);
-    setFocalLength(1.);
-    setAspectRatio(1.);
-    setPrincipalPoint(0., 0.);
     setParameter(Skew, 0.);
     setParameter(K1, 0.);
     setParameter(K2, 0.);
@@ -57,7 +53,7 @@ void FisheyeCameraModel::setFromMetaData(const CameraMetaData& meta)
 
 CameraMetaData FisheyeCameraModel::toMetaData() const
 {
-    auto meta = CameraIntrinsics::toMetaData();
+    auto meta = Parent::toMetaData();
     meta.skew.is_set = true;
     meta.skew.value[0] = skew();
     meta.radial_distortion.is_set = true;
@@ -69,30 +65,28 @@ CameraMetaData FisheyeCameraModel::toMetaData() const
     return meta;
 }
 
-int FisheyeCameraModel::numParameters() const { return IntrinsicsSize; }
+void FisheyeCameraModel::setSkew(double skew) { params_[Skew] = skew; }
 
-void FisheyeCameraModel::setSkew(double skew) { parameters_[Skew] = skew; }
-
-double FisheyeCameraModel::skew() const { return parameters_[Skew]; }
+double FisheyeCameraModel::skew() const { return params_[Skew]; }
 
 void FisheyeCameraModel::setRadialDistortion(double k1, double k2, double k3,
                                              double k4)
 {
-    parameters_[K1] = k1;
-    parameters_[K2] = k2;
-    parameters_[K3] = k3;
-    parameters_[K4] = k4;
+    params_[K1] = k1;
+    params_[K2] = k2;
+    params_[K3] = k3;
+    params_[K4] = k4;
 }
 
-double FisheyeCameraModel::radialDistortion1() const { return parameters_[K1]; }
+double FisheyeCameraModel::radialDistortion1() const { return params_[K1]; }
 
-double FisheyeCameraModel::radialDistortion2() const { return parameters_[K2]; }
+double FisheyeCameraModel::radialDistortion2() const { return params_[K2]; }
 
-double FisheyeCameraModel::radialDistortion3() const { return parameters_[K3]; }
+double FisheyeCameraModel::radialDistortion3() const { return params_[K3]; }
 
-double FisheyeCameraModel::radialDistortion4() const { return parameters_[K4]; }
+double FisheyeCameraModel::radialDistortion4() const { return params_[K4]; }
 
-std::vector<int> FisheyeCameraModel::constantParameterIndices(
+std::vector<int> FisheyeCameraModel::fixedParameterIndices(
     OptimizeIntrinsicsType flags) const
 {
     // All parameters
@@ -100,7 +94,7 @@ std::vector<int> FisheyeCameraModel::constantParameterIndices(
         return {};
     }
 
-    auto indices = CameraIntrinsics::constantParameterIndices(flags);
+    auto indices = Parent::fixedParameterIndices(flags);
     if ((flags & OptimizeIntrinsicsType::Skew) ==
         OptimizeIntrinsicsType::None) {
         indices.emplace_back(Skew);
@@ -117,17 +111,14 @@ std::vector<int> FisheyeCameraModel::constantParameterIndices(
 
 Eigen::Matrix3d FisheyeCameraModel::calibrationMatrix() const
 {
-    return intrinsicsToCalibrationMatrix(parameters_[Fx], parameters_[Skew],
-                                         parameters_[YX], parameters_[Cx],
-                                         parameters_[Cy]);
+    return intrinsicsToCalibrationMatrix(fx(), params_[Skew], aspectRatio(),
+                                         cx(), cy());
 }
-
-bool FisheyeCameraModel::isValid() const { return CameraIntrinsics::isValid(); }
 
 std::string FisheyeCameraModel::toLog() const
 {
     std::ostringstream oss;
-    oss << CameraIntrinsics::toLog()
+    oss << Parent::toLog()
         << "\n"
            "Skew: "
         << skew()

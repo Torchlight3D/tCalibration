@@ -84,8 +84,8 @@ TEST(IoTest, VioWriteCompatiblity)
 
     io::CalibMetaData meta;
 
-    Camera left{CameraIntrinsics::Type::Omnidirectional};
-    Camera right{CameraIntrinsics::Type::Omnidirectional};
+    Camera left{CameraIntrinsicsType::Omnidirectional};
+    Camera right{CameraIntrinsicsType::Omnidirectional};
     ImuIntrinsics acc_intri;
     ImuIntrinsics gyr_intri;
     ImuNoise acc_noise;

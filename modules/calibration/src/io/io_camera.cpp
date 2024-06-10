@@ -63,9 +63,9 @@ YAML::Node toCamOdoCalYamlNode(const Camera& camera, const std::string& name)
     YAML::Node root;
     root[key::kCameraIntrinsicsType_coc] = [type]() -> std::string {
         switch (type) {
-            case CameraIntrinsics::Type::Fisheye:
+            case CameraIntrinsicsType::Fisheye:
                 return kFisheyeTypeName_coc;
-            case CameraIntrinsics::Type::Omnidirectional:
+            case CameraIntrinsicsType::Omnidirectional:
                 return kOmnidirectionalTypeName_coc;
             default: // TODO: Other models are different too
                 return std::string{magic_enum::enum_name(type)};
@@ -77,7 +77,7 @@ YAML::Node toCamOdoCalYamlNode(const Camera& camera, const std::string& name)
 
     // Parmaters
     switch (type) {
-        case CameraIntrinsics::Type::Fisheye: {
+        case CameraIntrinsicsType::Fisheye: {
             if (const auto fisheye =
                     dynamic_cast<FisheyeCameraModel*>(intrinsics.get())) {
                 YAML::Node projNode;
@@ -93,7 +93,7 @@ YAML::Node toCamOdoCalYamlNode(const Camera& camera, const std::string& name)
                 root[key::kProjectionParams] = projNode;
             }
         } break;
-        case CameraIntrinsics::Type::Omnidirectional: {
+        case CameraIntrinsicsType::Omnidirectional: {
             if (const auto omni = dynamic_cast<OmnidirectionalCameraModel*>(
                     intrinsics.get())) {
                 YAML::Node mirrorNode;
@@ -134,17 +134,17 @@ bool fromCamOdoCalYamlNode(const YAML::Node& node, Camera& camera)
         return false;
     }
 
-    const auto type = [&typeNode]() -> std::optional<CameraIntrinsics::Type> {
+    const auto type = [&typeNode]() -> std::optional<CameraIntrinsicsType> {
         const auto typeName = typeNode.as<std::string>();
 
         if (!typeName.compare(kFisheyeTypeName_coc)) {
-            return CameraIntrinsics::Type::Fisheye;
+            return CameraIntrinsicsType::Fisheye;
         }
         if (!typeName.compare(kOmnidirectionalTypeName_coc)) {
-            return CameraIntrinsics::Type::Omnidirectional;
+            return CameraIntrinsicsType::Omnidirectional;
         }
 
-        return magic_enum::enum_cast<CameraIntrinsics::Type>(typeName);
+        return magic_enum::enum_cast<CameraIntrinsicsType>(typeName);
     }();
 
     if (!type.has_value()) {
@@ -163,7 +163,7 @@ bool fromCamOdoCalYamlNode(const YAML::Node& node, Camera& camera)
     // Parameters, Assume all the keys exist
     auto intrinsics = camera.cameraIntrinsics();
     switch (type.value()) {
-        case CameraIntrinsics::Type::Fisheye: {
+        case CameraIntrinsicsType::Fisheye: {
             const auto projNode = node[key::kProjectionParams];
             intrinsics->setParameter(FisheyeCameraModel::K1,
                                      projNode[key::kK2].as<double>());
@@ -182,7 +182,7 @@ bool fromCamOdoCalYamlNode(const YAML::Node& node, Camera& camera)
             intrinsics->setParameter(FisheyeCameraModel::Cy,
                                      projNode[key::kV0].as<double>());
         } break;
-        case CameraIntrinsics::Type::Omnidirectional: {
+        case CameraIntrinsicsType::Omnidirectional: {
             const auto mirrorNode = node[key::kMirrorParams];
             intrinsics->setParameter(OmnidirectionalCameraModel::Xi,
                                      mirrorNode[key::kXi].as<double>());
@@ -281,7 +281,7 @@ bool CameraConverter::decode(const Node& node, tl::Camera& camera)
     const auto typeName =
         intriNode[key::kCameraIntrinsicsType].as<std::string>();
     const auto type =
-        magic_enum::enum_cast<tl::CameraIntrinsics::Type>(typeName);
+        magic_enum::enum_cast<tl::CameraIntrinsicsType>(typeName);
     if (!type.has_value()) {
         return false;
     }

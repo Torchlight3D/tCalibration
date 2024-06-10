@@ -12,12 +12,14 @@ namespace tl {
 // Explanation:
 //
 // Reference:
-class FisheyeCameraModel final : public CameraIntrinsics
+class FisheyeCameraModel final : public CameraIntrinsics_<FisheyeCameraModel, 9>
 {
+    using Parent = CameraIntrinsics_<FisheyeCameraModel, 9>;
+
 public:
     FisheyeCameraModel();
 
-    constexpr Type type() const override { return Type::Fisheye; }
+    inline static constexpr auto kType = CameraIntrinsicsType::Fisheye;
 
     void setFromMetaData(const CameraMetaData& meta) override;
     CameraMetaData toMetaData() const override;
@@ -35,7 +37,7 @@ public:
 
         IntrinsicsSize,
     };
-    int numParameters() const override;
+    static_assert(kNumParameters == IntrinsicsSize);
 
     void setSkew(double skew);
     double skew() const;
@@ -50,78 +52,40 @@ public:
     inline auto k3() const { return radialDistortion3(); }
     inline auto k4() const { return radialDistortion4(); }
 
-    std::vector<int> constantParameterIndices(
+    std::vector<int> fixedParameterIndices(
         OptimizeIntrinsicsType flags) const override;
 
     Eigen::Matrix3d calibrationMatrix() const override;
 
-    bool isValid() const override;
-
     // --------------------- Point Mapping --------------------------------
     //
     template <typename T>
-    static bool spaceToPixel(const T* intrinsics, const T* point, T* pixel);
+    static bool spaceToPixel(const T* params, const T* point, T* pixel);
 
     template <typename T>
-    static bool pixelToSpace(const T* intrinsics, const T* pixel, T* point);
+    static bool pixelToSpace(const T* params, const T* pixel, T* point);
 
     template <typename T>
-    static bool isUnprojectable(const T* intrinsics, const T* pixel);
+    static bool distortPoint(const T* params, const T* pixel, T* distorted);
 
+    template <typename T>
+    static bool undistortPoint(const T* params, const T* pixel, T* undistorted);
+
+protected:
+    std::string toLog() const override;
+
+private:
     template <typename T>
     static void pixelToRayByIteration(const T* params, const T* pixel, T* ray);
-
-    template <typename T>
-    static bool distort(const T* intrinsics, const T* undistort, T* distorted);
-
-    template <typename T>
-    static bool undistort(const T* intrinsics, const T* distort,
-                          T* undistorted);
 
     // NOTE: Learn from CamOdoCal, return 3D point
     // WARNING: Not fully tested
     template <typename T>
-    static void undistortBackproject(const T* intrinsics, const T* distort,
+    static void undistortBackproject(const T* params, const T* distort,
                                      T* point3);
 
     template <typename T>
-    static T calcDistortion(const T* intrinsics, const T* undistort);
-
-    Eigen::Vector2d spaceToImage(const Eigen::Vector3d& point) const override
-    {
-        Eigen::Vector2d pixel;
-        spaceToPixel(parameters(), point.data(), pixel.data());
-        return pixel;
-    }
-
-    Eigen::Vector3d imageToSpace(const Eigen::Vector2d& pixel) const override
-    {
-        Eigen::Vector3d point;
-        pixelToSpace(parameters(), pixel.data(), point.data());
-        return point;
-    }
-
-    // FIXME: The input here should be Vector3
-    Eigen::Vector2d distort(const Eigen::Vector2d& undistort) const override
-    {
-        return undistort;
-    }
-    Eigen::Vector2d distort(const Eigen::Vector3d& point3) const
-    {
-        Eigen::Vector2d distorted;
-        distort(parameters(), point3.data(), distorted.data());
-        return distorted;
-    }
-
-    Eigen::Vector2d undistort(const Eigen::Vector2d& distort) const override
-    {
-        Eigen::Vector2d undistorted;
-        undistort(parameters(), distort.data(), undistorted.data());
-        return undistorted;
-    }
-
-protected:
-    std::string toLog() const override;
+    static T calcDistortion(const T* params, const T* undistort);
 };
 
 /// -------------------------- Implementation -------------------------------
@@ -139,7 +103,7 @@ bool FisheyeCameraModel::spaceToPixel(const T* intrinsics, const T* pt, T* px)
     // NOTE: We pass in the entire 3D point instead of the projection onto a
     // plane or sphere.
     T px_d[2];
-    FisheyeCameraModel::distort(intrinsics, pt, px_d);
+    distortPoint(intrinsics, pt, px_d);
 
     // Apply calibration parameters to transform normalized units into pixels.
     const T& fx = intrinsics[Fx];
@@ -180,11 +144,11 @@ bool FisheyeCameraModel::pixelToSpace(const T* intrinsics, const T* px, T* pt)
     constexpr auto mode = Iteration2;
 
     if constexpr (mode == Iteration1) {
-        FisheyeCameraModel::pixelToRayByIteration(intrinsics, px, pt);
+        pixelToRayByIteration(intrinsics, px, pt);
         return true;
     }
     if constexpr (mode == Iteration2) {
-        FisheyeCameraModel::undistort(intrinsics, px_d, pt);
+        undistortPoint(intrinsics, px_d, pt);
         pt[2] = T(1);
 
         return true;
@@ -195,13 +159,6 @@ bool FisheyeCameraModel::pixelToSpace(const T* intrinsics, const T* px, T* pt)
     }
 
     return false;
-}
-
-template <typename T>
-bool FisheyeCameraModel::isUnprojectable(const T* intrinsics, const T* pixel)
-{
-    // FIXME: complete here
-    return true;
 }
 
 template <typename T>
@@ -254,9 +211,10 @@ void FisheyeCameraModel::pixelToRayByIteration(const T* params, const T* px,
 // point and compute angle theta using the more stable atan2 so that we do not
 // have to perform the (potentially unstable) perspective divide by z.
 template <typename T>
-bool FisheyeCameraModel::distort(const T* intrinsics, const T* pt_u, T* pt_d)
+bool FisheyeCameraModel::distortPoint(const T* intrinsics, const T* pt_u,
+                                      T* pt_d)
 {
-    const auto scale = FisheyeCameraModel::calcDistortion(intrinsics, pt_u);
+    const auto scale = calcDistortion(intrinsics, pt_u);
 
     pt_d[0] = scale * pt_u[0];
     pt_d[1] = scale * pt_u[1];
@@ -270,7 +228,8 @@ bool FisheyeCameraModel::distort(const T* intrinsics, const T* pt_u, T* pt_d)
 }
 
 template <typename T>
-bool FisheyeCameraModel::undistort(const T* intrinsics, const T* pt_d, T* pt_u)
+bool FisheyeCameraModel::undistortPoint(const T* intrinsics, const T* pt_d,
+                                        T* pt_u)
 {
     constexpr int kIterations{100};
     const T kUndistortionEpsilon = T(1e-10);

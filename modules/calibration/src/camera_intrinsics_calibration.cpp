@@ -283,24 +283,24 @@ bool CameraIntrinsicsCalibration::Impl::initializeView(
 
     bool initialized{false};
     switch (m_opts.intrinsicsType) {
-        case CameraIntrinsics::Type::Pinhole:
-        case CameraIntrinsics::Type::PinholeRadialTangential:
+        case CameraIntrinsicsType::Pinhole:
+        case CameraIntrinsicsType::PinholeRadialTangential:
             initialized =
                 initializePinholeCamera(corrs, m_ransacParams, ransacSummary,
                                         rotation, position, focalLength);
             break;
-        case CameraIntrinsics::Type::DivisionUndistortion:
+        case CameraIntrinsicsType::DivisionUndistortion:
             initialized = initializeRadialUndistortionCamera(
                 corrs, m_ransacParams, ransacSummary, m_opts.imageWidth,
                 rotation, position, focalLength, radialDistortion);
             break;
-        case CameraIntrinsics::Type::Omnidirectional:
+        case CameraIntrinsicsType::Omnidirectional:
             // TODO: Not ready
             // initialized = initializeOmnidirectional(
             //     corrs, m_ransacParams, ransacSummary, m_opts.imageWidth,
             //     rotation, position, focalLength);
             // break;
-        case CameraIntrinsics::Type::DoubleSphere:
+        case CameraIntrinsicsType::DoubleSphere:
             // TODO: Not ready
             // initialized = initializeDoubleSphereModel(
             //     corrs, board_pt3_ids, cv::Size(9, 7), m_ransacParams,
@@ -401,13 +401,13 @@ void CameraIntrinsicsCalibration::Impl::initializeViews(
 
         bool initialized{false};
         switch (m_opts.intrinsicsType) {
-            case CameraIntrinsics::Type::Pinhole:
-            case CameraIntrinsics::Type::PinholeRadialTangential:
+            case CameraIntrinsicsType::Pinhole:
+            case CameraIntrinsicsType::PinholeRadialTangential:
                 initialized = initializePinholeCamera(
                     correspondences, m_ransacParams, ransacSummary, rotation,
                     position, focalLength);
                 break;
-            case CameraIntrinsics::Type::DivisionUndistortion:
+            case CameraIntrinsicsType::DivisionUndistortion:
                 initialized = initializeRadialUndistortionCamera(
                     correspondences, m_ransacParams, ransacSummary,
                     m_opts.imageWidth, rotation, position, focalLength,
@@ -605,27 +605,27 @@ ViewId CameraIntrinsicsCalibration::Impl::addViewToScene(
 
     auto intrinsics = cam.cameraIntrinsics();
     switch (m_opts.intrinsicsType) {
-        case CameraIntrinsics::Type::DivisionUndistortion:
+        case CameraIntrinsicsType::DivisionUndistortion:
             intrinsics->setParameter(DivisionUndistortionCameraModel::K,
                                      distortion);
             break;
-        case CameraIntrinsics::Type::DoubleSphere:
+        case CameraIntrinsicsType::DoubleSphere:
             intrinsics->setParameter(DoubleSphereCameraModel::Xi, -0.25);
             intrinsics->setParameter(DoubleSphereCameraModel::Alpha, 0.5);
             break;
-        case CameraIntrinsics::Type::ExtendedUnified:
+        case CameraIntrinsicsType::ExtendedUnified:
             intrinsics->setParameter(ExtendedUnifiedCameraModel::Alpha, 0.5);
             intrinsics->setParameter(ExtendedUnifiedCameraModel::Beta, 1.);
             break;
-        case CameraIntrinsics::Type::Omnidirectional: {
+        case CameraIntrinsicsType::Omnidirectional: {
             intrinsics->setParameter(OmnidirectionalCameraModel::Xi, 1.6);
         } break;
         // TODO: Give better initial values if possible
-        case CameraIntrinsics::Type::Pinhole:
-        case CameraIntrinsics::Type::PinholeRadialTangential:
-        case CameraIntrinsics::Type::Fisheye:
-        case CameraIntrinsics::Type::Fov:
-        case CameraIntrinsics::Type::Orthographic:
+        case CameraIntrinsicsType::Pinhole:
+        case CameraIntrinsicsType::PinholeRadialTangential:
+        case CameraIntrinsicsType::Fisheye:
+        case CameraIntrinsicsType::Fov:
+        case CameraIntrinsicsType::Orthographic:
             break;
         default:
             break;
@@ -824,9 +824,9 @@ bool CameraIntrinsicsCalibration::setFromJson(const std::string& json)
     opts.imageWidth = j[key::kImageWidth];
     opts.imageHeight = j[key::kImageHeight];
     opts.minViewCount = j[key::kMinViewCount];
-    opts.intrinsicsType = magic_enum::enum_cast<CameraIntrinsics::Type>(
+    opts.intrinsicsType = magic_enum::enum_cast<CameraIntrinsicsType>(
                               j[key::kIntrinsicsType].get<std::string>())
-                              .value_or(CameraIntrinsics::Type::Pinhole);
+                              .value_or(CameraIntrinsicsType::Pinhole);
     opts.optimizeBoardPoints = j[key::kOptimizeBoardPoints];
 
     setOptions(opts);

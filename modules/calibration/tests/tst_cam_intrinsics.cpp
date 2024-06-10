@@ -98,7 +98,7 @@ TEST(CameraIntrinsics, Dataset1)
     options.sampleDistance = board_->tagSize();
     options.imageWidth = 640;
     options.imageHeight = 480;
-    options.intrinsicsType = CameraIntrinsics::Type::Pinhole;
+    options.intrinsicsType = CameraIntrinsicsType::Pinhole;
     calib.setOptions(options);
 
     calib.setupScene(board_);

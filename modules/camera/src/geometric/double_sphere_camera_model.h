@@ -11,12 +11,15 @@ namespace tl {
 // Explanation:
 //
 // Reference:
-class DoubleSphereCameraModel final : public CameraIntrinsics
+class DoubleSphereCameraModel final
+    : public CameraIntrinsics_<DoubleSphereCameraModel, 7>
 {
+    using Parent = CameraIntrinsics_<DoubleSphereCameraModel, 7>;
+
 public:
     DoubleSphereCameraModel();
 
-    constexpr Type type() const override { return Type::DoubleSphere; }
+    inline static constexpr auto kType = CameraIntrinsicsType::DoubleSphere;
 
     void setFromMetaData(const CameraMetaData& meta) override;
     CameraMetaData toMetaData() const override;
@@ -31,7 +34,7 @@ public:
 
         IntrinsicsSize,
     };
-    int numParameters() const override;
+    static_assert(kNumParameters == IntrinsicsSize);
 
     void setSkew(double skew);
     double skew() const;
@@ -40,12 +43,10 @@ public:
     double alpha() const;
     double xi() const;
 
-    std::vector<int> constantParameterIndices(
+    std::vector<int> fixedParameterIndices(
         OptimizeIntrinsicsType flags) const override;
 
     Eigen::Matrix3d calibrationMatrix() const override;
-
-    bool isValid() const override;
 
     // --------------------- Point Mapping  ---------------------------
     //
@@ -56,47 +57,12 @@ public:
     static bool pixelToSpace(const T* intrinsics, const T* pixel, T* point);
 
     template <typename T>
-    static bool isUnprojectable(const T* intrinsics, const T* pixel);
+    static bool distortPoint(const T* intrinsics, const T undistort[3],
+                             T* distorted);
 
     template <typename T>
-    static bool distort(const T* intrinsics, const T undistort[3],
-                        T* distorted);
-
-    template <typename T>
-    static bool undistort(const T* intrinsics, const T* distort,
-                          T undistorted[3]);
-
-    Eigen::Vector2d spaceToImage(const Eigen::Vector3d& point) const override
-    {
-        Eigen::Vector2d pixel;
-        spaceToPixel(parameters(), point.data(), pixel.data());
-        return pixel;
-    }
-
-    Eigen::Vector3d imageToSpace(const Eigen::Vector2d& pixel) const override
-    {
-        Eigen::Vector3d point;
-        pixelToSpace(parameters(), pixel.data(), point.data());
-        return point;
-    }
-
-    Eigen::Vector2d distort(const Eigen::Vector2d& undistort) const override
-    {
-        return undistort;
-    }
-    Eigen::Vector2d distort(const Eigen::Vector3d& point3) const
-    {
-        Eigen::Vector2d distorted;
-        distort(parameters(), point3.data(), distorted.data());
-        return distorted;
-    }
-
-    Eigen::Vector2d undistort(const Eigen::Vector2d& distort) const override
-    {
-        Eigen::Vector3d undistorted;
-        undistort(parameters(), distort.data(), undistorted.data());
-        return undistorted.head<2>();
-    }
+    static bool undistortPoint(const T* intrinsics, const T* distort,
+                               T undistorted[3]);
 
 protected:
     std::string toLog() const override;
@@ -112,7 +78,7 @@ bool DoubleSphereCameraModel::spaceToPixel(const T* intrinsics, const T* point,
 
     // Apply distortion.
     T pt_d[2];
-    bool result = DoubleSphereCameraModel::distort(intrinsics, point, pt_d);
+    bool result = distortPoint(intrinsics, point, pt_d);
 
     // Apply calibration parameters to transform normalized units into pixels.
     const T& fx = intrinsics[Fx];
@@ -139,26 +105,16 @@ bool DoubleSphereCameraModel::pixelToSpace(const T* intrinsics, const T* pixel,
     const T& cy = intrinsics[Cy];
     const T& skew = intrinsics[Skew];
 
-    // Normalize the y coordinate first.
     T pt_d[2];
     pt_d[1] = (pixel[1] - cy) / fy;
     pt_d[0] = (pixel[0] - cx - pt_d[1] * skew) / fx;
 
-    // undistort
-    return DoubleSphereCameraModel::undistort(intrinsics, pt_d, point);
+    return undistortPoint(intrinsics, pt_d, point);
 }
 
 template <typename T>
-bool DoubleSphereCameraModel::isUnprojectable(const T* intrinsics,
-                                              const T* pixel)
-{
-    // FIXME: Complete here
-    return true;
-}
-
-template <typename T>
-bool DoubleSphereCameraModel::distort(const T* intrinsics, const T* pt_u,
-                                      T* pt_d)
+bool DoubleSphereCameraModel::distortPoint(const T* intrinsics, const T* pt_u,
+                                           T* pt_d)
 {
     const T& alpha = intrinsics[Alpha];
     const T& xi = intrinsics[Xi];
@@ -195,8 +151,8 @@ bool DoubleSphereCameraModel::distort(const T* intrinsics, const T* pt_u,
 }
 
 template <typename T>
-bool DoubleSphereCameraModel::undistort(const T* intrinsics, const T* pt_d,
-                                        T* pt_u)
+bool DoubleSphereCameraModel::undistortPoint(const T* intrinsics, const T* pt_d,
+                                             T* pt_u)
 {
     const T& xi = intrinsics[Xi];
     const T& alpha = intrinsics[Alpha];

@@ -3,7 +3,6 @@
 #include <algorithm>
 
 #include <ceres/rotation.h>
-#include <Eigen/Core>
 #include <Eigen/Geometry>
 #include <glog/logging.h>
 
@@ -30,7 +29,7 @@ inline Eigen::Vector3d projectionCenterFromProjectionMatrix(const Matrix34d& P)
 }
 } // namespace
 
-Camera::Camera(CameraIntrinsics::Type type) : calibrated_(false)
+Camera::Camera(CameraIntrinsicsType type) : calibrated_(false)
 {
     Eigen::Map<Eigen::Matrix<double, 1, ExtrinsicsSize>>(rExtrinsics())
         .setZero();
@@ -84,9 +83,9 @@ void Camera::deepCopy(const Camera& camera)
 
 void Camera::setFromMetaData(const CameraMetaData& meta)
 {
-    const auto intriType = magic_enum::enum_cast<CameraIntrinsics::Type>(
+    const auto intriType = magic_enum::enum_cast<CameraIntrinsicsType>(
                                meta.camera_intrinsics_model_type)
-                               .value_or(CameraIntrinsics::Type::Pinhole);
+                               .value_or(CameraIntrinsicsType::Pinhole);
     if (intrinsics_->type() != intriType) {
         intrinsics_ = CameraIntrinsics::create(intriType);
     }
@@ -150,14 +149,14 @@ void Camera::setCalibrated(bool on) { calibrated_ = on; }
 
 bool Camera::calibrated() const { return calibrated_; }
 
-void Camera::setCameraIntrinsicsModel(CameraIntrinsics::Type type)
+void Camera::setCameraIntrinsicsModel(CameraIntrinsicsType type)
 {
     if (cameraIntrinsicsModel() != type) {
         intrinsics_ = CameraIntrinsics::create(type);
     }
 }
 
-CameraIntrinsics::Type Camera::cameraIntrinsicsModel() const
+CameraIntrinsicsType Camera::cameraIntrinsicsModel() const
 {
     return intrinsics_->type();
 }
@@ -197,7 +196,10 @@ const double* Camera::intrinsics() const { return intrinsics_->parameters(); }
 
 double* Camera::rIntrinsics() { return intrinsics_->rParameters(); }
 
-std::vector<double> Camera::parameters() const { return intrinsics_->vector(); }
+std::vector<double> Camera::parameters() const
+{
+    return intrinsics_->asVector();
+}
 
 Eigen::Matrix3d Camera::calibrationMatrix() const
 {

@@ -10,16 +10,16 @@ using Eigen::Vector3d;
 
 TEST(FOVCameraModel, InternalParameterGettersAndSetters)
 {
-    FOVCameraModel camera;
+    FovCameraModel camera;
     // Check type
-    EXPECT_EQ(camera.type(), CameraIntrinsics::Type::Fov);
+    EXPECT_EQ(camera.type(), CameraIntrinsicsType::Fov);
 
     // Check that default values are set
     EXPECT_EQ(camera.focalLength(), 1.);
     EXPECT_EQ(camera.aspectRatio(), 1.);
     EXPECT_EQ(camera.principalPointX(), 0.);
     EXPECT_EQ(camera.principalPointY(), 0.);
-    EXPECT_EQ(camera.omega(), FOVCameraModel::kDefaultOmega);
+    EXPECT_EQ(camera.omega(), FovCameraModel::kDefaultOmega);
 
     constexpr double kFocalLength{600.};
     constexpr double kAspectRatio{0.9};
@@ -48,8 +48,8 @@ TEST(FOVCameraModel, SetFromCameraMetaData)
 {
     // Test to ensure that the camera intrinsics are being set appropriately.
     auto TestCameraSetFromMeta = [](const CameraMetaData& meta) {
-        const FOVCameraModel default_camera;
-        FOVCameraModel camera;
+        const FovCameraModel default_camera;
+        FovCameraModel camera;
         camera.setFromMetaData(meta);
 
         if (meta.focal_length.is_set) {
@@ -105,49 +105,49 @@ TEST(FOVCameraModel, SetFromCameraMetaData)
     TestCameraSetFromMeta(meta);
 }
 
-TEST(FOVCameraModel, constantParameterIndices)
+TEST(FOVCameraModel, fixedParameterIndices)
 {
     using _Type = OptimizeIntrinsicsType;
 
-    FOVCameraModel camera;
+    FovCameraModel camera;
     std::vector<int> indices;
 
-    indices = camera.constantParameterIndices(_Type::None);
+    indices = camera.fixedParameterIndices(_Type::None);
     EXPECT_EQ(indices.size(), camera.numParameters());
 
     // Focal length
-    indices = camera.constantParameterIndices(_Type::FocalLength);
+    indices = camera.fixedParameterIndices(_Type::FocalLength);
     EXPECT_EQ(indices.size(), camera.numParameters() - 1);
     for (const auto& index : indices) {
-        EXPECT_NE(index, FOVCameraModel::Fx);
+        EXPECT_NE(index, FovCameraModel::Fx);
     }
 
     // Principal point
-    indices = camera.constantParameterIndices(_Type::PrincipalPoint);
+    indices = camera.fixedParameterIndices(_Type::PrincipalPoint);
     EXPECT_EQ(indices.size(), camera.numParameters() - 2);
     for (const auto& index : indices) {
-        EXPECT_NE(index, FOVCameraModel::Cx);
-        EXPECT_NE(index, FOVCameraModel::Cy);
+        EXPECT_NE(index, FovCameraModel::Cx);
+        EXPECT_NE(index, FovCameraModel::Cy);
     }
 
     // Aspect ratio
-    indices = camera.constantParameterIndices(_Type::AspectRatio);
+    indices = camera.fixedParameterIndices(_Type::AspectRatio);
     EXPECT_EQ(indices.size(), camera.numParameters() - 1);
     for (const auto& index : indices) {
-        EXPECT_NE(index, FOVCameraModel::YX);
+        EXPECT_NE(index, FovCameraModel::YX);
     }
 
     // Skew
-    indices = camera.constantParameterIndices(_Type::RadialDistortion);
+    indices = camera.fixedParameterIndices(_Type::RadialDistortion);
     EXPECT_EQ(indices.size(), camera.numParameters() - 1);
     for (const auto& index : indices) {
-        EXPECT_NE(index, FOVCameraModel::Omega);
+        EXPECT_NE(index, FovCameraModel::Omega);
     }
 
     // Skew and tangential distortion
-    indices = camera.constantParameterIndices(_Type::Skew);
+    indices = camera.fixedParameterIndices(_Type::Skew);
     EXPECT_EQ(indices.size(), camera.numParameters());
-    indices = camera.constantParameterIndices(_Type::TangentialDistortion);
+    indices = camera.fixedParameterIndices(_Type::TangentialDistortion);
     EXPECT_EQ(indices.size(), camera.numParameters());
 }
 
@@ -213,7 +213,7 @@ protected:
     }
 
 protected:
-    FOVCameraModel _camera;
+    FovCameraModel _camera;
 };
 
 TEST_F(FovCameraFixture, ReprojectionNoDistortion)

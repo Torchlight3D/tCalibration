@@ -16,7 +16,7 @@ TEST(FisheyeCameraModel, ParametersSetterAndGetter)
 {
     FisheyeCameraModel camera;
     // Check type
-    EXPECT_EQ(camera.type(), CameraIntrinsics::Type::Fisheye);
+    EXPECT_EQ(camera.type(), CameraIntrinsicsType::Fisheye);
 
     // Check all default values are set
     EXPECT_EQ(camera.focalLength(), 1.);
@@ -146,25 +146,25 @@ TEST(FisheyeCameraModel, ConstantParameterIndices)
     FisheyeCameraModel camera;
     std::vector<int> indices;
 
-    indices = camera.constantParameterIndices(_Type::None);
+    indices = camera.fixedParameterIndices(_Type::None);
     EXPECT_EQ(indices.size(), camera.numParameters());
 
     // Focal length
-    indices = camera.constantParameterIndices(_Type::FocalLength);
+    indices = camera.fixedParameterIndices(_Type::FocalLength);
     EXPECT_EQ(indices.size(), camera.numParameters() - 1);
     for (const auto& index : indices) {
         EXPECT_NE(index, FisheyeCameraModel::Fx);
     }
 
     // Aspect ratio
-    indices = camera.constantParameterIndices(_Type::AspectRatio);
+    indices = camera.fixedParameterIndices(_Type::AspectRatio);
     EXPECT_EQ(indices.size(), camera.numParameters() - 1);
     for (const auto& index : indices) {
         EXPECT_NE(index, FisheyeCameraModel::YX);
     }
 
     // Principal points
-    indices = camera.constantParameterIndices(_Type::PrincipalPoint);
+    indices = camera.fixedParameterIndices(_Type::PrincipalPoint);
     EXPECT_EQ(indices.size(), camera.numParameters() - 2);
     for (const auto& index : indices) {
         EXPECT_NE(index, FisheyeCameraModel::Cx);
@@ -172,14 +172,14 @@ TEST(FisheyeCameraModel, ConstantParameterIndices)
     }
 
     // Skew works
-    indices = camera.constantParameterIndices(_Type::Skew);
+    indices = camera.fixedParameterIndices(_Type::Skew);
     EXPECT_EQ(indices.size(), camera.numParameters() - 1);
     for (const auto& index : indices) {
         EXPECT_NE(index, FisheyeCameraModel::Skew);
     }
 
     // Radial distortion
-    indices = camera.constantParameterIndices(_Type::RadialDistortion);
+    indices = camera.fixedParameterIndices(_Type::RadialDistortion);
     EXPECT_EQ(indices.size(), camera.numParameters() - 4);
     for (const auto& index : indices) {
         EXPECT_NE(index, FisheyeCameraModel::K1);
@@ -189,7 +189,7 @@ TEST(FisheyeCameraModel, ConstantParameterIndices)
     }
 
     // Tangential distortion
-    indices = camera.constantParameterIndices(_Type::TangentialDistortion);
+    indices = camera.fixedParameterIndices(_Type::TangentialDistortion);
     EXPECT_EQ(indices.size(), camera.numParameters());
 }
 

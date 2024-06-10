@@ -1,7 +1,8 @@
 ﻿#pragma once
 
-#include "camera_intrinsics.h"
 #include <ceres/ceres.h>
+
+#include "camera_intrinsics.h"
 
 namespace tl {
 
@@ -10,102 +11,73 @@ namespace tl {
 // Explanation:
 //
 // Reference:
-class DivisionUndistortionCameraModel final : public CameraIntrinsics
+class DivisionUndistortionCameraModel final
+    : public CameraIntrinsics_<DivisionUndistortionCameraModel, 5>
 {
+    using Parent = CameraIntrinsics_<DivisionUndistortionCameraModel, 5>;
+
 public:
     DivisionUndistortionCameraModel();
 
-    constexpr Type type() const override { return Type::DivisionUndistortion; }
+    inline static constexpr auto kType =
+        CameraIntrinsicsType::DivisionUndistortion;
 
     void setFromMetaData(const CameraMetaData& meta) override;
     CameraMetaData toMetaData() const override;
 
     // ---------------------- Parameters Access --------------------------
     //
-    enum IntrinsicsIndex
+    enum
     {
         K = ExtraIndex,
 
         IntrinsicsSize,
     };
-
-    int numParameters() const override;
+    static_assert(kNumParameters == IntrinsicsSize);
 
     void setRadialDistortion(double k);
     double radialDistortion1() const;
     inline auto k() const { return radialDistortion1(); }
 
-    std::vector<int> constantParameterIndices(
+    std::vector<int> fixedParameterIndices(
         OptimizeIntrinsicsType flags) const override;
-
-    bool isValid() const override;
 
     // ---------------------- Point Mapping --------------------------------
     //
     template <typename T>
-    static bool spaceToPixel(const T* intrinsics, const T* point, T* pixel);
+    static bool spaceToPixel(const T* params, const T* point, T* pixel);
 
     template <typename T>
-    static bool pixelToSpace(const T* intrinsics, const T* pixel, T* point);
+    static bool pixelToSpace(const T* params, const T* pixel, T* point);
 
     template <typename T>
-    static bool isUnprojectable(const T* intrinsics, const T* pixel);
-
-    template <typename T>
-    static bool distort(T distortion, const T* undistort, T* distorted);
-    template <typename T>
-    inline static bool distort(const T* intrinsics, const T* undistort,
-                               T* distorted)
+    inline static bool distortPoint(const T* params, const T* pixel,
+                                    T* distorted)
     {
-        const T& k = intrinsics[K];
-        return distort(k, undistort, distorted);
+        const auto& k = params[K];
+        return distortImpl(k, pixel, distorted);
     }
 
     template <typename T>
-    static bool undistort(const T* intrinsics, const T* distort,
-                          T* undistorted);
+    static bool undistortPoint(const T* params, const T* pixel, T* undistorted);
 
-    /// Extras
+    // Extras
     template <typename T>
-    static bool CameraToUndistortedPixelCoordinates(const T* intrinsics,
+    static bool CameraToUndistortedPixelCoordinates(const T* params,
                                                     const T* point,
                                                     T* undistorted);
 
     template <typename T>
-    static bool DistortedPixelToUndistortedPixel(const T* intrinsics,
+    static bool DistortedPixelToUndistortedPixel(const T* params,
                                                  const T* distorted,
                                                  T* undistorted);
 
-    Eigen::Vector2d spaceToImage(const Eigen::Vector3d& point) const override
-    {
-        Eigen::Vector2d pixel;
-        spaceToPixel(parameters(), point.data(), pixel.data());
-        return pixel;
-    }
-
-    Eigen::Vector3d imageToSpace(const Eigen::Vector2d& pixel) const override
-    {
-        Eigen::Vector3d point;
-        pixelToSpace(parameters(), pixel.data(), point.data());
-        return point;
-    }
-
-    Eigen::Vector2d distort(const Eigen::Vector2d& undistorted) const override
-    {
-        Eigen::Vector2d distorted;
-        distort(parameters(), undistorted.data(), distorted.data());
-        return distorted;
-    }
-
-    Eigen::Vector2d undistort(const Eigen::Vector2d& distorted) const override
-    {
-        Eigen::Vector2d undistorted;
-        undistort(parameters(), distorted.data(), undistorted.data());
-        return undistorted;
-    }
-
 protected:
     std::string toLog() const override;
+
+private:
+    template <typename T>
+    static bool distortImpl(T k, const T* pixel, T* distorted);
 };
 
 /// -------------------------- Implementation -------------------------------
@@ -129,7 +101,7 @@ bool DivisionUndistortionCameraModel::spaceToPixel(const T* intrinsics,
     px_u[1] = fy * px_norm[1];
 
     // Apply radial distortion.
-    DivisionUndistortionCameraModel::distort(intrinsics, px_u, px);
+    distortPoint(intrinsics, px_u, px);
 
     // Add the principal point.
     const T& cx = intrinsics[Cx];
@@ -154,7 +126,7 @@ bool DivisionUndistortionCameraModel::pixelToSpace(const T* intrinsics,
     pt_d[1] = px[1] - cy;
 
     // Undo the radial distortion.
-    DivisionUndistortionCameraModel::undistort(intrinsics, pt_d, pt);
+    undistortPoint(intrinsics, pt_d, pt);
 
     const T& fx = intrinsics[Fx];
     const T& y_x = intrinsics[YX];
@@ -168,15 +140,7 @@ bool DivisionUndistortionCameraModel::pixelToSpace(const T* intrinsics,
 }
 
 template <typename T>
-bool DivisionUndistortionCameraModel::isUnprojectable(const T* intrinsics,
-                                                      const T* pixel)
-{
-    // FIXME: complete here
-    return true;
-}
-
-template <typename T>
-bool DivisionUndistortionCameraModel::distort(T k, const T* pt_u, T* pt_d)
+bool DivisionUndistortionCameraModel::distortImpl(T k, const T* pt_u, T* pt_d)
 {
     // From distorted to undistort
     // x_u = x_d / (1 + k * r_d^2)
@@ -206,8 +170,8 @@ bool DivisionUndistortionCameraModel::distort(T k, const T* pt_u, T* pt_d)
 }
 
 template <typename T>
-bool DivisionUndistortionCameraModel::undistort(const T* intrinsics,
-                                                const T* pt_d, T* pt_u)
+bool DivisionUndistortionCameraModel::undistortPoint(const T* intrinsics,
+                                                     const T* pt_d, T* pt_u)
 {
     const T rr = pt_d[0] * pt_d[0] + pt_d[1] * pt_d[1];
 
@@ -260,7 +224,7 @@ bool DivisionUndistortionCameraModel::DistortedPixelToUndistortedPixel(
     pt_d_norm[1] = pt_d[1] - cy;
 
     // Undo the radial distortion.
-    DivisionUndistortionCameraModel::undistort(intrinsics, pt_d_norm, pt_u);
+    distortPoint(intrinsics, pt_d_norm, pt_u);
 
     pt_u[0] += cx;
     pt_u[1] += cy;
