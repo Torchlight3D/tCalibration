@@ -39,7 +39,7 @@ public:
         int minViewCount = 10;
 
         // Camera Model to estimate
-        CameraIntrinsics::Type intrinsicsType = CameraIntrinsics::Type::Fisheye;
+        CameraIntrinsicsType intrinsicsType = CameraIntrinsicsType::Fisheye;
 
         // Optimize board points or not. Turn on when calibration board quality
         // is not good.

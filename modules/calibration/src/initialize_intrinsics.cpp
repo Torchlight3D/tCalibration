@@ -120,7 +120,7 @@ bool initializeRadialUndistortionCamera(
     focalLength = pose.focal_length;
 
     Camera cam;
-    cam.setCameraIntrinsicsModel(CameraIntrinsics::Type::DivisionUndistortion);
+    cam.setCameraIntrinsicsModel(CameraIntrinsicsType::DivisionUndistortion);
     auto intrinsics = cam.cameraIntrinsics();
     intrinsics->setFocalLength(focalLength);
     intrinsics->setPrincipalPoint(0., 0.);
@@ -234,7 +234,7 @@ bool initializeDoubleSphereModel(const std::vector<Feature2D3D>& corres,
 
             // Undistort points with intrinsic guess
             Camera cam;
-            cam.setCameraIntrinsicsModel(CameraIntrinsics::Type::DoubleSphere);
+            cam.setCameraIntrinsicsModel(CameraIntrinsicsType::DoubleSphere);
             auto intrinsics = cam.cameraIntrinsics();
             intrinsics->setFocalLength(0.5 * gamma);
             intrinsics->setPrincipalPoint(0.0, 0.0);

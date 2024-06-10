@@ -13,7 +13,7 @@ TEST(DoubleSphereCameraModel, InternalParameterGettersAndSetters)
     DoubleSphereCameraModel camera;
 
     // Check type
-    EXPECT_EQ(camera.type(), CameraIntrinsics::Type::DoubleSphere);
+    EXPECT_EQ(camera.type(), CameraIntrinsicsType::DoubleSphere);
 
     // Check that default values are set
     EXPECT_EQ(camera.focalLength(), 1.0);
@@ -131,18 +131,18 @@ TEST(DoubleSphereCameraModel, GetSubsetFromOptimizeIntrinsicsType)
     DoubleSphereCameraModel camera;
     std::vector<int> indices;
 
-    indices = camera.constantParameterIndices(_Type::None);
+    indices = camera.fixedParameterIndices(_Type::None);
     EXPECT_EQ(indices.size(), camera.numParameters());
 
     // Focal length
-    indices = camera.constantParameterIndices(_Type::FocalLength);
+    indices = camera.fixedParameterIndices(_Type::FocalLength);
     EXPECT_EQ(indices.size(), camera.numParameters() - 1);
     for (const auto& index : indices) {
         EXPECT_NE(index, DoubleSphereCameraModel::Fx);
     }
 
     // Principal point
-    indices = camera.constantParameterIndices(_Type::PrincipalPoint);
+    indices = camera.fixedParameterIndices(_Type::PrincipalPoint);
     EXPECT_EQ(indices.size(), camera.numParameters() - 2);
     for (const auto& index : indices) {
         EXPECT_NE(index, DoubleSphereCameraModel::Cx);
@@ -150,21 +150,21 @@ TEST(DoubleSphereCameraModel, GetSubsetFromOptimizeIntrinsicsType)
     }
 
     // Aspect ratio
-    indices = camera.constantParameterIndices(_Type::AspectRatio);
+    indices = camera.fixedParameterIndices(_Type::AspectRatio);
     EXPECT_EQ(indices.size(), camera.numParameters() - 1);
     for (const auto& index : indices) {
         EXPECT_NE(index, DoubleSphereCameraModel::YX);
     }
 
     // Skew
-    indices = camera.constantParameterIndices(_Type::Skew);
+    indices = camera.fixedParameterIndices(_Type::Skew);
     EXPECT_EQ(indices.size(), camera.numParameters() - 1);
     for (const auto& index : indices) {
         EXPECT_NE(index, DoubleSphereCameraModel::Skew);
     }
 
     // Radial distortion
-    indices = camera.constantParameterIndices(_Type::RadialDistortion);
+    indices = camera.fixedParameterIndices(_Type::RadialDistortion);
     EXPECT_EQ(indices.size(), camera.numParameters() - 2);
     for (const auto& index : indices) {
         EXPECT_NE(index, DoubleSphereCameraModel::Alpha);

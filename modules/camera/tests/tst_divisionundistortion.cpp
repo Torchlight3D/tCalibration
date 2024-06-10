@@ -16,7 +16,7 @@ TEST(DivisionUndistortionCameraModel, ParameterGettersAndSetters)
     DivisionUndistortionCameraModel camera;
 
     // Check type
-    EXPECT_EQ(camera.type(), CameraIntrinsics::Type::DivisionUndistortion);
+    EXPECT_EQ(camera.type(), CameraIntrinsicsType::DivisionUndistortion);
 
     // Check that default values are set
     EXPECT_EQ(camera.focalLength(), 1.);
@@ -46,10 +46,10 @@ TEST(DivisionUndistortionCameraModel, ParameterGettersAndSetters)
 
 TEST(DivisionUndistortionCameraModel, CameraParameterGettersAndSetters)
 {
-    Camera camera{CameraIntrinsics::Type::DivisionUndistortion};
+    Camera camera{CameraIntrinsicsType::DivisionUndistortion};
 
     EXPECT_EQ(camera.cameraIntrinsics()->type(),
-              CameraIntrinsics::Type::DivisionUndistortion);
+              CameraIntrinsicsType::DivisionUndistortion);
 
     // Check that default values are set
     EXPECT_EQ(camera.focalLength(), 1.0);
@@ -138,18 +138,18 @@ TEST(DivisionUndistortionCameraModel, GetSubsetFromOptimizeIntrinsicsType)
     DivisionUndistortionCameraModel camera;
     std::vector<int> indices;
 
-    indices = camera.constantParameterIndices(_Type::None);
+    indices = camera.fixedParameterIndices(_Type::None);
     EXPECT_EQ(indices.size(), camera.numParameters());
 
     // Focal length
-    indices = camera.constantParameterIndices(_Type::FocalLength);
+    indices = camera.fixedParameterIndices(_Type::FocalLength);
     EXPECT_EQ(indices.size(), camera.numParameters() - 1);
     for (const auto& index : indices) {
         EXPECT_NE(index, DivisionUndistortionCameraModel::Fx);
     }
 
     // Principal point
-    indices = camera.constantParameterIndices(_Type::PrincipalPoint);
+    indices = camera.fixedParameterIndices(_Type::PrincipalPoint);
     EXPECT_EQ(indices.size(), camera.numParameters() - 2);
     for (const auto& index : indices) {
         EXPECT_NE(index, DivisionUndistortionCameraModel::Cx);
@@ -157,23 +157,23 @@ TEST(DivisionUndistortionCameraModel, GetSubsetFromOptimizeIntrinsicsType)
     }
 
     // Aspect ratio
-    indices = camera.constantParameterIndices(_Type::AspectRatio);
+    indices = camera.fixedParameterIndices(_Type::AspectRatio);
     EXPECT_EQ(indices.size(), camera.numParameters() - 1);
     for (const auto& index : indices) {
         EXPECT_NE(index, DivisionUndistortionCameraModel::YX);
     }
 
     // Radial distortion
-    indices = camera.constantParameterIndices(_Type::RadialDistortion);
+    indices = camera.fixedParameterIndices(_Type::RadialDistortion);
     EXPECT_EQ(indices.size(), camera.numParameters() - 1);
     for (const auto& index : indices) {
         EXPECT_NE(index, DivisionUndistortionCameraModel::K);
     }
 
     // Skew and tangential distortion
-    indices = camera.constantParameterIndices(_Type::Skew);
+    indices = camera.fixedParameterIndices(_Type::Skew);
     EXPECT_EQ(indices.size(), camera.numParameters());
-    indices = camera.constantParameterIndices(_Type::TangentialDistortion);
+    indices = camera.fixedParameterIndices(_Type::TangentialDistortion);
     EXPECT_EQ(indices.size(), camera.numParameters());
 }
 
@@ -204,11 +204,11 @@ protected:
                 const Vector2d px_d{x - _camera.cx(), y - _camera.cy()};
 
                 Vector2d px_u;
-                DivisionUndistortionCameraModel::undistort(
+                DivisionUndistortionCameraModel::undistortPoint(
                     _camera.parameters(), px_d.data(), px_u.data());
 
                 Vector2d redistorted_pixel;
-                DivisionUndistortionCameraModel::distort(
+                DivisionUndistortionCameraModel::distortPoint(
                     _camera.parameters(), px_u.data(),
                     redistorted_pixel.data());
 
@@ -234,12 +234,12 @@ protected:
                                                  y - _camera.cy());
 
                 Vector2d distorted_pixel;
-                DivisionUndistortionCameraModel::distort(
+                DivisionUndistortionCameraModel::undistortPoint(
                     _camera.parameters(), undistorted_pixel.data(),
                     distorted_pixel.data());
 
                 Vector2d reundistorted_pixel;
-                DivisionUndistortionCameraModel::undistort(
+                DivisionUndistortionCameraModel::distortPoint(
                     _camera.parameters(), distorted_pixel.data(),
                     reundistorted_pixel.data());
 
@@ -382,7 +382,7 @@ TEST(DivisionUndistortionCameraModel, Triangulation)
     constexpr double kUndistortion = -1.07574e-08;
     const Vector2d kPrincipalPoint(1980.0, 1200.0);
 
-    Camera camera1(CameraIntrinsics::Type::DivisionUndistortion);
+    Camera camera1(CameraIntrinsicsType::DivisionUndistortion);
     camera1.setFocalLength(kFocalLength);
     camera1.setPrincipalPoint(kPrincipalPoint.x(), kPrincipalPoint.y());
     camera1.rIntrinsics()[DivisionUndistortionCameraModel::K] = kUndistortion;
@@ -417,13 +417,13 @@ TEST(DivisionUndistortionCameraModel, NoDistortion)
     constexpr double kFocalLength = 3587.6;
     const Vector2d kPrincipalPoint(1980.0, 1200.0);
 
-    Camera camera1{CameraIntrinsics::Type::DivisionUndistortion};
+    Camera camera1{CameraIntrinsicsType::DivisionUndistortion};
     camera1.setFocalLength(kFocalLength);
     camera1.setPrincipalPoint(kPrincipalPoint.x(), kPrincipalPoint.y());
     camera1.setOrientationFromAngleAxis(Vector3d(-0.1, -0.4, 0.3));
     camera1.setPosition(Vector3d(0.8, 0.2, 0.1));
 
-    Camera camera2{CameraIntrinsics::Type::Pinhole};
+    Camera camera2{CameraIntrinsicsType::Pinhole};
     camera2.setPrincipalPoint(kPrincipalPoint.x(), kPrincipalPoint.y());
     camera2.setFocalLength(kFocalLength);
     camera2.setOrientationFromAngleAxis(Vector3d(-0.1, -0.4, 0.3));

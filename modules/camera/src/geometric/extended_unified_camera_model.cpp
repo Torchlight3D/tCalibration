@@ -4,12 +4,8 @@
 
 namespace tl {
 
-ExtendedUnifiedCameraModel::ExtendedUnifiedCameraModel() : CameraIntrinsics()
+ExtendedUnifiedCameraModel::ExtendedUnifiedCameraModel() : Parent()
 {
-    parameters_.resize(IntrinsicsSize);
-    setFocalLength(1.);
-    setAspectRatio(1.);
-    setPrincipalPoint(0., 0.);
     setParameter(Skew, 0.);
     setParameter(Alpha, 0.5);
     setParameter(Beta, 0.);
@@ -17,7 +13,7 @@ ExtendedUnifiedCameraModel::ExtendedUnifiedCameraModel() : CameraIntrinsics()
 
 void ExtendedUnifiedCameraModel::setFromMetaData(const CameraMetaData& meta)
 {
-    CameraIntrinsics::setFromMetaData(meta);
+    Parent::setFromMetaData(meta);
 
     if (meta.skew.is_set) {
         setParameter(Skew, meta.skew.value[0]);
@@ -31,7 +27,7 @@ void ExtendedUnifiedCameraModel::setFromMetaData(const CameraMetaData& meta)
 
 CameraMetaData ExtendedUnifiedCameraModel::toMetaData() const
 {
-    auto meta = CameraIntrinsics::toMetaData();
+    auto meta = Parent::toMetaData();
     meta.skew.is_set = true;
     meta.skew.value[0] = skew();
     meta.radial_distortion.is_set = true;
@@ -41,26 +37,21 @@ CameraMetaData ExtendedUnifiedCameraModel::toMetaData() const
     return meta;
 }
 
-int ExtendedUnifiedCameraModel::numParameters() const { return IntrinsicsSize; }
+void ExtendedUnifiedCameraModel::setSkew(double skew) { params_[Skew] = skew; }
 
-void ExtendedUnifiedCameraModel::setSkew(double skew)
-{
-    parameters_[Skew] = skew;
-}
-
-double ExtendedUnifiedCameraModel::skew() const { return parameters_[Skew]; }
+double ExtendedUnifiedCameraModel::skew() const { return params_[Skew]; }
 
 void ExtendedUnifiedCameraModel::setDistortion(double alpha, double beta)
 {
-    parameters_[Alpha] = alpha;
-    parameters_[Beta] = beta;
+    params_[Alpha] = alpha;
+    params_[Beta] = beta;
 }
 
-double ExtendedUnifiedCameraModel::alpha() const { return parameters_[Alpha]; }
+double ExtendedUnifiedCameraModel::alpha() const { return params_[Alpha]; }
 
-double ExtendedUnifiedCameraModel::beta() const { return parameters_[Beta]; }
+double ExtendedUnifiedCameraModel::beta() const { return params_[Beta]; }
 
-std::vector<int> ExtendedUnifiedCameraModel::constantParameterIndices(
+std::vector<int> ExtendedUnifiedCameraModel::fixedParameterIndices(
     OptimizeIntrinsicsType flags) const
 {
     // All parameters
@@ -68,7 +59,7 @@ std::vector<int> ExtendedUnifiedCameraModel::constantParameterIndices(
         return {};
     }
 
-    auto indices = CameraIntrinsics::constantParameterIndices(flags);
+    auto indices = Parent::fixedParameterIndices(flags);
     if ((flags & OptimizeIntrinsicsType::Skew) ==
         OptimizeIntrinsicsType::None) {
         indices.emplace_back(Skew);
@@ -83,20 +74,14 @@ std::vector<int> ExtendedUnifiedCameraModel::constantParameterIndices(
 
 Eigen::Matrix3d ExtendedUnifiedCameraModel::calibrationMatrix() const
 {
-    return intrinsicsToCalibrationMatrix(parameters_[Fx], parameters_[Skew],
-                                         parameters_[YX], parameters_[Cx],
-                                         parameters_[Cy]);
-}
-
-bool ExtendedUnifiedCameraModel::isValid() const
-{
-    return CameraIntrinsics::isValid();
+    return intrinsicsToCalibrationMatrix(fx(), params_[Skew], aspectRatio(),
+                                         cx(), cy());
 }
 
 std::string ExtendedUnifiedCameraModel::toLog() const
 {
     std::ostringstream oss;
-    oss << CameraIntrinsics::toLog()
+    oss << Parent::toLog()
         << "\n"
            "Skew: "
         << skew()

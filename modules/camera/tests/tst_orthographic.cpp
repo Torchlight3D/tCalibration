@@ -12,7 +12,7 @@ TEST(OrthographicCameraModel, InternalParameterGettersAndSetters)
 {
     OrthographicCameraModel camera;
     // Check type
-    EXPECT_EQ(camera.type(), CameraIntrinsics::Type::Orthographic);
+    EXPECT_EQ(camera.type(), CameraIntrinsicsType::Orthographic);
 
     // Check that default values are set
     EXPECT_EQ(camera.focalLength(), 1.);
@@ -133,18 +133,18 @@ TEST(OrthographicCameraModel, GetSubsetFromOptimizeIntrinsicsType)
     OrthographicCameraModel camera;
     std::vector<int> indices;
 
-    indices = camera.constantParameterIndices(_Type::None);
+    indices = camera.fixedParameterIndices(_Type::None);
     EXPECT_EQ(indices.size(), camera.numParameters());
 
     // Focal length
-    indices = camera.constantParameterIndices(_Type::FocalLength);
+    indices = camera.fixedParameterIndices(_Type::FocalLength);
     EXPECT_EQ(indices.size(), camera.numParameters() - 1);
     for (const auto& index : indices) {
         EXPECT_NE(index, OrthographicCameraModel::Fx);
     }
 
     // Principal point
-    indices = camera.constantParameterIndices(_Type::PrincipalPoint);
+    indices = camera.fixedParameterIndices(_Type::PrincipalPoint);
     EXPECT_EQ(indices.size(), camera.numParameters() - 2);
     for (const auto& index : indices) {
         EXPECT_NE(index, OrthographicCameraModel::Cx);
@@ -152,21 +152,21 @@ TEST(OrthographicCameraModel, GetSubsetFromOptimizeIntrinsicsType)
     }
 
     // Aspect ratio
-    indices = camera.constantParameterIndices(_Type::AspectRatio);
+    indices = camera.fixedParameterIndices(_Type::AspectRatio);
     EXPECT_EQ(indices.size(), camera.numParameters() - 1);
     for (const auto& index : indices) {
         EXPECT_NE(index, OrthographicCameraModel::YX);
     }
 
     // Skew
-    indices = camera.constantParameterIndices(_Type::Skew);
+    indices = camera.fixedParameterIndices(_Type::Skew);
     EXPECT_EQ(indices.size(), camera.numParameters() - 1);
     for (const auto& index : indices) {
         EXPECT_NE(index, OrthographicCameraModel::Skew);
     }
 
     // Radial distortion
-    indices = camera.constantParameterIndices(_Type::RadialDistortion);
+    indices = camera.fixedParameterIndices(_Type::RadialDistortion);
     EXPECT_EQ(indices.size(), camera.numParameters() - 2);
     for (const auto& index : indices) {
         EXPECT_NE(index, OrthographicCameraModel::K1);
@@ -174,7 +174,7 @@ TEST(OrthographicCameraModel, GetSubsetFromOptimizeIntrinsicsType)
     }
 
     // Tangential distortion
-    indices = camera.constantParameterIndices(_Type::TangentialDistortion);
+    indices = camera.fixedParameterIndices(_Type::TangentialDistortion);
     EXPECT_EQ(indices.size(), camera.numParameters());
 }
 

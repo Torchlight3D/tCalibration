@@ -234,38 +234,39 @@ struct GSReprojectionCostFunctorSplit : public CeresSplineHelper<double, _N>
 
             Vector3 p3d = (T_c_w_matrix * scene_point).hnormalized();
 
+            // TODO: Use auto registration
             T reprojection[2];
             bool success{false};
             switch (cam_model) {
-                case CameraIntrinsics::Type::DivisionUndistortion:
+                case CameraIntrinsicsType::DivisionUndistortion:
                     success = DivisionUndistortionCameraModel::spaceToPixel(
                         intr, p3d.data(), reprojection);
                     break;
-                case CameraIntrinsics::Type::DoubleSphere:
+                case CameraIntrinsicsType::DoubleSphere:
                     success = DoubleSphereCameraModel::spaceToPixel(
                         intr, p3d.data(), reprojection);
                     break;
-                case CameraIntrinsics::Type::Pinhole:
+                case CameraIntrinsicsType::Pinhole:
                     success = PinholeCameraModel::spaceToPixel(intr, p3d.data(),
                                                                reprojection);
                     break;
-                case CameraIntrinsics::Type::PinholeRadialTangential:
+                case CameraIntrinsicsType::PinholeRadialTangential:
                     success = PinholeRadialTangentialCameraModel::spaceToPixel(
                         intr, p3d.data(), reprojection);
                     break;
-                case CameraIntrinsics::Type::Fisheye:
+                case CameraIntrinsicsType::Fisheye:
                     success = FisheyeCameraModel::spaceToPixel(intr, p3d.data(),
                                                                reprojection);
                     break;
-                case CameraIntrinsics::Type::ExtendedUnified:
+                case CameraIntrinsicsType::ExtendedUnified:
                     success = ExtendedUnifiedCameraModel::spaceToPixel(
                         intr, p3d.data(), reprojection);
                     break;
-                case CameraIntrinsics::Type::Omnidirectional:
+                case CameraIntrinsicsType::Omnidirectional:
                     success = OmnidirectionalCameraModel::spaceToPixel(
                         intr, p3d.data(), reprojection);
                     break;
-                case CameraIntrinsics::Type::Orthographic:
+                case CameraIntrinsicsType::Orthographic:
                     success = OrthographicCameraModel::spaceToPixel(
                         intr, p3d.data(), reprojection);
                     break;
@@ -375,35 +376,35 @@ struct RSReprojectionCostFunctorSplit : public CeresSplineHelper<double, _N>
             T reprojection[2];
             bool success = false;
             switch (cam_model) {
-                case CameraIntrinsics::Type::DivisionUndistortion:
+                case CameraIntrinsicsType::DivisionUndistortion:
                     success = DivisionUndistortionCameraModel::spaceToPixel(
                         intr, p3d.data(), reprojection);
                     break;
-                case CameraIntrinsics::Type::DoubleSphere:
+                case CameraIntrinsicsType::DoubleSphere:
                     success = DoubleSphereCameraModel::spaceToPixel(
                         intr, p3d.data(), reprojection);
                     break;
-                case CameraIntrinsics::Type::Pinhole:
+                case CameraIntrinsicsType::Pinhole:
                     success = PinholeCameraModel::spaceToPixel(intr, p3d.data(),
                                                                reprojection);
                     break;
-                case CameraIntrinsics::Type::PinholeRadialTangential:
+                case CameraIntrinsicsType::PinholeRadialTangential:
                     success = PinholeRadialTangentialCameraModel::spaceToPixel(
                         intr, p3d.data(), reprojection);
                     break;
-                case CameraIntrinsics::Type::Fisheye:
+                case CameraIntrinsicsType::Fisheye:
                     success = FisheyeCameraModel::spaceToPixel(intr, p3d.data(),
                                                                reprojection);
                     break;
-                case CameraIntrinsics::Type::ExtendedUnified:
+                case CameraIntrinsicsType::ExtendedUnified:
                     success = ExtendedUnifiedCameraModel::spaceToPixel(
                         intr, p3d.data(), reprojection);
                     break;
-                case CameraIntrinsics::Type::Omnidirectional:
+                case CameraIntrinsicsType::Omnidirectional:
                     success = OmnidirectionalCameraModel::spaceToPixel(
                         intr, p3d.data(), reprojection);
                     break;
-                case CameraIntrinsics::Type::Orthographic:
+                case CameraIntrinsicsType::Orthographic:
                     success = OrthographicCameraModel::spaceToPixel(
                         intr, p3d.data(), reprojection);
                     break;

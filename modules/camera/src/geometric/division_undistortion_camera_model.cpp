@@ -4,20 +4,15 @@
 
 namespace tl {
 
-DivisionUndistortionCameraModel::DivisionUndistortionCameraModel()
-    : CameraIntrinsics()
+DivisionUndistortionCameraModel::DivisionUndistortionCameraModel() : Parent()
 {
-    parameters_.resize(IntrinsicsSize);
-    setFocalLength(1.);
-    setAspectRatio(1.);
-    setPrincipalPoint(0., 0.);
     setParameter(K, 0.);
 }
 
 void DivisionUndistortionCameraModel::setFromMetaData(
     const CameraMetaData& meta)
 {
-    CameraIntrinsics::setFromMetaData(meta);
+    Parent::setFromMetaData(meta);
 
     if (meta.radial_distortion.is_set) {
         setParameter(K, meta.radial_distortion.value[0]);
@@ -29,29 +24,24 @@ void DivisionUndistortionCameraModel::setFromMetaData(
 
 CameraMetaData DivisionUndistortionCameraModel::toMetaData() const
 {
-    auto meta = CameraIntrinsics::toMetaData();
+    auto meta = Parent::toMetaData();
     meta.radial_distortion.is_set = true;
     meta.radial_distortion.value[0] = radialDistortion1();
 
     return meta;
 }
 
-int DivisionUndistortionCameraModel::numParameters() const
-{
-    return IntrinsicsSize;
-}
-
 void DivisionUndistortionCameraModel::setRadialDistortion(double k)
 {
-    parameters_[K] = k;
+    params_[K] = k;
 }
 
 double DivisionUndistortionCameraModel::radialDistortion1() const
 {
-    return parameters_[K];
+    return params_[K];
 }
 
-std::vector<int> DivisionUndistortionCameraModel::constantParameterIndices(
+std::vector<int> DivisionUndistortionCameraModel::fixedParameterIndices(
     OptimizeIntrinsicsType flags) const
 {
     // All parameters
@@ -59,7 +49,7 @@ std::vector<int> DivisionUndistortionCameraModel::constantParameterIndices(
         return {};
     }
 
-    auto indices = CameraIntrinsics::constantParameterIndices(flags);
+    auto indices = Parent::fixedParameterIndices(flags);
     if ((flags & OptimizeIntrinsicsType::RadialDistortion) ==
         OptimizeIntrinsicsType::None) {
         indices.emplace_back(K);
@@ -68,15 +58,10 @@ std::vector<int> DivisionUndistortionCameraModel::constantParameterIndices(
     return indices;
 }
 
-bool DivisionUndistortionCameraModel::isValid() const
-{
-    return CameraIntrinsics::isValid();
-}
-
 std::string DivisionUndistortionCameraModel::toLog() const
 {
     std::ostringstream oss;
-    oss << CameraIntrinsics::toLog()
+    oss << Parent::toLog()
         << "\n"
            "Radial distortion (k): "
         << k();

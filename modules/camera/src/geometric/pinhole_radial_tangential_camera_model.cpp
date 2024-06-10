@@ -5,12 +5,8 @@
 namespace tl {
 
 PinholeRadialTangentialCameraModel::PinholeRadialTangentialCameraModel()
-    : CameraIntrinsics()
+    : Parent()
 {
-    parameters_.resize(IntrinsicsSize);
-    setFocalLength(1.);
-    setAspectRatio(1.);
-    setPrincipalPoint(0., 0.);
     setParameter(Skew, 0.);
     setParameter(K1, 0.);
     setParameter(K2, 0.);
@@ -22,7 +18,7 @@ PinholeRadialTangentialCameraModel::PinholeRadialTangentialCameraModel()
 void PinholeRadialTangentialCameraModel::setFromMetaData(
     const CameraMetaData& meta)
 {
-    CameraIntrinsics::setFromMetaData(meta);
+    Parent::setFromMetaData(meta);
 
     if (meta.skew.is_set) {
         setParameter(Skew, meta.skew.value[0]);
@@ -42,7 +38,7 @@ void PinholeRadialTangentialCameraModel::setFromMetaData(
 
 CameraMetaData PinholeRadialTangentialCameraModel::toMetaData() const
 {
-    auto meta = CameraIntrinsics::toMetaData();
+    auto meta = Parent::toMetaData();
     meta.skew.is_set = true;
     meta.skew.value[0] = skew();
     meta.radial_distortion.is_set = true;
@@ -56,71 +52,65 @@ CameraMetaData PinholeRadialTangentialCameraModel::toMetaData() const
     return meta;
 }
 
-int PinholeRadialTangentialCameraModel::numParameters() const
-{
-    return IntrinsicsSize;
-}
-
 void PinholeRadialTangentialCameraModel::setSkew(double skew)
 {
-    parameters_[Skew] = skew;
+    params_[Skew] = skew;
 }
 
 double PinholeRadialTangentialCameraModel::skew() const
 {
-    return parameters_[Skew];
+    return params_[Skew];
 }
 
 void PinholeRadialTangentialCameraModel::setRadialDistortion(double k1,
                                                              double k2,
                                                              double k3)
 {
-    parameters_[K1] = k1;
-    parameters_[K2] = k2;
-    parameters_[K3] = k3;
+    params_[K1] = k1;
+    params_[K2] = k2;
+    params_[K3] = k3;
 }
 
 double PinholeRadialTangentialCameraModel::radialDistortion1() const
 {
-    return parameters_[K1];
+    return params_[K1];
 }
 
 double PinholeRadialTangentialCameraModel::radialDistortion2() const
 {
-    return parameters_[K2];
+    return params_[K2];
 }
 
 double PinholeRadialTangentialCameraModel::radialDistortion3() const
 {
-    return parameters_[K3];
+    return params_[K3];
 }
 
 void PinholeRadialTangentialCameraModel::setTangentialDistortion(double t1,
                                                                  double t2)
 {
-    parameters_[T1] = t1;
-    parameters_[T2] = t2;
+    params_[T1] = t1;
+    params_[T2] = t2;
 }
 
 double PinholeRadialTangentialCameraModel::tangentialDistortion1() const
 {
-    return parameters_[T1];
+    return params_[T1];
 }
 
 double PinholeRadialTangentialCameraModel::tangentialDistortion2() const
 {
-    return parameters_[T2];
+    return params_[T2];
 }
 
-std::vector<int> PinholeRadialTangentialCameraModel::constantParameterIndices(
+std::vector<int> PinholeRadialTangentialCameraModel::fixedParameterIndices(
     OptimizeIntrinsicsType flags) const
 {
-    // All parameters
     if (flags == OptimizeIntrinsicsType::All) {
         return {};
     }
 
-    auto indices = CameraIntrinsics::constantParameterIndices(flags);
+    auto indices = Parent::fixedParameterIndices(flags);
     if ((flags & OptimizeIntrinsicsType::Skew) ==
         OptimizeIntrinsicsType::None) {
         indices.emplace_back(Skew);
@@ -142,20 +132,14 @@ std::vector<int> PinholeRadialTangentialCameraModel::constantParameterIndices(
 
 Eigen::Matrix3d PinholeRadialTangentialCameraModel::calibrationMatrix() const
 {
-    return intrinsicsToCalibrationMatrix(parameters_[Fx], parameters_[Skew],
-                                         parameters_[YX], parameters_[Cx],
-                                         parameters_[Cy]);
-}
-
-bool PinholeRadialTangentialCameraModel::isValid() const
-{
-    return CameraIntrinsics::isValid();
+    return intrinsicsToCalibrationMatrix(fx(), params_[Skew], aspectRatio(),
+                                         cx(), cy());
 }
 
 std::string PinholeRadialTangentialCameraModel::toLog() const
 {
     std::ostringstream oss;
-    oss << CameraIntrinsics::toLog()
+    oss << Parent::toLog()
         << "\n"
            "Skew: "
         << skew()

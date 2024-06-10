@@ -22,7 +22,7 @@ using Eigen::Quaterniond;
 using Eigen::Vector2d;
 using Eigen::Vector3d;
 
-template <class CameraIntrinsic>
+template <class CameraIntrinsics>
 struct StereoReprojectionError
 {
     const Vector3d m_objPoint;
@@ -70,8 +70,8 @@ struct StereoReprojectionError
         const auto objPointInLeft = transformPoint(objPoint, quat_l, tvec_l);
 
         Eigen::Vector2<T> projLeftPoint;
-        CameraIntrinsic::spaceToPixel(leftIntrinsics, objPointInLeft.data(),
-                                      projLeftPoint.data());
+        CameraIntrinsics::spaceToPixel(leftIntrinsics, objPointInLeft.data(),
+                                       projLeftPoint.data());
 
         // Right
         const Eigen::Quaternion<T> quat_r = quat_l_r * quat_l;
@@ -81,8 +81,8 @@ struct StereoReprojectionError
         const auto objPointInRight = transformPoint(objPoint, quat_r, tvec_r);
 
         Eigen::Vector2<T> projRightPoint;
-        CameraIntrinsic::spaceToPixel(rightIntrinsics, objPointInRight.data(),
-                                      projRightPoint.data());
+        CameraIntrinsics::spaceToPixel(rightIntrinsics, objPointInRight.data(),
+                                       projRightPoint.data());
 
         residuals[0] = projLeftPoint(0) - T(m_leftImgPoint(0));
         residuals[1] = projLeftPoint(1) - T(m_leftImgPoint(1));
@@ -92,111 +92,62 @@ struct StereoReprojectionError
         return true;
     }
 
-    // FIXME: Not used yet, waiting for fix...
-    template <class CameraIntrinsics>
-    static ceres::CostFunction* create(
-        const Vector3d& objPoint, const Vector2d& leftImgPoint,
-        const Vector2d& rightImgPoint,
-        typename CameraIntrinsics::Ptr intrinsics)
+    static ceres::CostFunction* create(const Eigen::Vector3d& objPoint,
+                                       const Eigen::Vector2d& leftImgPoint,
+                                       const Eigen::Vector2d& rightImgPoint)
     {
-        constexpr int kResidualSize{4}; // 2 from left, 2 from right
-        constexpr int kQuaternionSize{4};
-        constexpr int kTranslationSize{3};
         return new ceres::AutoDiffCostFunction<
-            StereoReprojectionError<CameraIntrinsic>, kResidualSize,
-            CameraIntrinsics::IntrinsicsSize, CameraIntrinsics::IntrinsicsSize,
-            kQuaternionSize, kTranslationSize, kQuaternionSize,
-            kTranslationSize>(new StereoReprojectionError<CameraIntrinsics>(
-            objPoint, leftImgPoint, rightImgPoint));
+            StereoReprojectionError<CameraIntrinsics>,
+            Vector2d::SizeAtCompileTime * 2,  // left pixel + right pixel
+            CameraIntrinsics::IntrinsicsSize, // left intrinsics
+            CameraIntrinsics::IntrinsicsSize, // right intrinsics
+            Quaterniond::Coefficients::SizeAtCompileTime,
+            Vector3d::SizeAtCompileTime,
+            Quaterniond::Coefficients::SizeAtCompileTime,
+            Vector3d::SizeAtCompileTime>(
+            new StereoReprojectionError<CameraIntrinsics>(
+                objPoint, leftImgPoint, rightImgPoint));
     }
 };
 
-// FIXME: STUPID!!!!!
+// TODO: Use auto registration
 ceres::CostFunction* createStereoReprojectionError(
-    const Vector3d& objPoint, const Vector2d& leftImgPoint,
-    const Vector2d& rightImgPoint, CameraIntrinsics::Ptr intrinsics)
+    CameraIntrinsicsType type, const Eigen::Vector3d& objPoint,
+    const Eigen::Vector2d& leftImgPoint, const Eigen::Vector2d& rightImgPoint)
 {
-    constexpr int kResidualSize{4}; // 2 from left, 2 from right
-    constexpr int kQuaternionSize{4};
-    constexpr int kTranslationSize{3};
-
-    switch (intrinsics->type()) {
-        case CameraIntrinsics::Type::Pinhole:
-            return new ceres::AutoDiffCostFunction<
-                StereoReprojectionError<PinholeCameraModel>, kResidualSize,
-                PinholeCameraModel::IntrinsicsSize,
-                PinholeCameraModel::IntrinsicsSize, kQuaternionSize,
-                kTranslationSize, kQuaternionSize, kTranslationSize>(
-                new StereoReprojectionError<PinholeCameraModel>(
-                    objPoint, leftImgPoint, rightImgPoint));
-        case CameraIntrinsics::Type::PinholeRadialTangential:
-            return new ceres::AutoDiffCostFunction<
-                StereoReprojectionError<PinholeRadialTangentialCameraModel>,
-                kResidualSize,
-                PinholeRadialTangentialCameraModel::IntrinsicsSize,
-                PinholeRadialTangentialCameraModel::IntrinsicsSize,
-                kQuaternionSize, kTranslationSize, kQuaternionSize,
-                kTranslationSize>(
-                new StereoReprojectionError<PinholeRadialTangentialCameraModel>(
-                    objPoint, leftImgPoint, rightImgPoint));
-        case CameraIntrinsics::Type::Fisheye:
-            return new ceres::AutoDiffCostFunction<
-                StereoReprojectionError<FisheyeCameraModel>, kResidualSize,
-                FisheyeCameraModel::IntrinsicsSize,
-                FisheyeCameraModel::IntrinsicsSize, kQuaternionSize,
-                kTranslationSize, kQuaternionSize, kTranslationSize>(
-                new StereoReprojectionError<FisheyeCameraModel>(
-                    objPoint, leftImgPoint, rightImgPoint));
-        case CameraIntrinsics::Type::Fov:
-            return new ceres::AutoDiffCostFunction<
-                StereoReprojectionError<FOVCameraModel>, kResidualSize,
-                FOVCameraModel::IntrinsicsSize, FOVCameraModel::IntrinsicsSize,
-                kQuaternionSize, kTranslationSize, kQuaternionSize,
-                kTranslationSize>(new StereoReprojectionError<FOVCameraModel>(
-                objPoint, leftImgPoint, rightImgPoint));
-        case CameraIntrinsics::Type::DivisionUndistortion:
-            return new ceres::AutoDiffCostFunction<
-                StereoReprojectionError<DivisionUndistortionCameraModel>,
-                kResidualSize, DivisionUndistortionCameraModel::IntrinsicsSize,
-                DivisionUndistortionCameraModel::IntrinsicsSize,
-                kQuaternionSize, kTranslationSize, kQuaternionSize,
-                kTranslationSize>(
-                new StereoReprojectionError<DivisionUndistortionCameraModel>(
-                    objPoint, leftImgPoint, rightImgPoint));
-        case CameraIntrinsics::Type::DoubleSphere:
-            return new ceres::AutoDiffCostFunction<
-                StereoReprojectionError<DoubleSphereCameraModel>, kResidualSize,
-                DoubleSphereCameraModel::IntrinsicsSize,
-                DoubleSphereCameraModel::IntrinsicsSize, kQuaternionSize,
-                kTranslationSize, kQuaternionSize, kTranslationSize>(
-                new StereoReprojectionError<DoubleSphereCameraModel>(
-                    objPoint, leftImgPoint, rightImgPoint));
-        case CameraIntrinsics::Type::ExtendedUnified:
-            return new ceres::AutoDiffCostFunction<
-                StereoReprojectionError<ExtendedUnifiedCameraModel>,
-                kResidualSize, ExtendedUnifiedCameraModel::IntrinsicsSize,
-                ExtendedUnifiedCameraModel::IntrinsicsSize, kQuaternionSize,
-                kTranslationSize, kQuaternionSize, kTranslationSize>(
-                new StereoReprojectionError<ExtendedUnifiedCameraModel>(
-                    objPoint, leftImgPoint, rightImgPoint));
-        case CameraIntrinsics::Type::Omnidirectional:
-            return new ceres::AutoDiffCostFunction<
-                StereoReprojectionError<OmnidirectionalCameraModel>,
-                kResidualSize, OmnidirectionalCameraModel::IntrinsicsSize,
-                OmnidirectionalCameraModel::IntrinsicsSize, kQuaternionSize,
-                kTranslationSize, kQuaternionSize, kTranslationSize>(
-                new StereoReprojectionError<OmnidirectionalCameraModel>(
-                    objPoint, leftImgPoint, rightImgPoint));
-        case CameraIntrinsics::Type::Orthographic:
-            return new ceres::AutoDiffCostFunction<
-                StereoReprojectionError<OrthographicCameraModel>, kResidualSize,
-                OrthographicCameraModel::IntrinsicsSize,
-                OrthographicCameraModel::IntrinsicsSize, kQuaternionSize,
-                kTranslationSize, kQuaternionSize, kTranslationSize>(
-                new StereoReprojectionError<OrthographicCameraModel>(
-                    objPoint, leftImgPoint, rightImgPoint));
-
+    switch (type) {
+        case CameraIntrinsicsType::Pinhole:
+            return StereoReprojectionError<PinholeCameraModel>::create(
+                objPoint, leftImgPoint, rightImgPoint);
+        case CameraIntrinsicsType::PinholeRadialTangential:
+            return StereoReprojectionError<
+                PinholeRadialTangentialCameraModel>::create(objPoint,
+                                                            leftImgPoint,
+                                                            rightImgPoint);
+        case CameraIntrinsicsType::Fisheye:
+            return StereoReprojectionError<FisheyeCameraModel>::create(
+                objPoint, leftImgPoint, rightImgPoint);
+        case CameraIntrinsicsType::Fov:
+            return StereoReprojectionError<FovCameraModel>::create(
+                objPoint, leftImgPoint, rightImgPoint);
+        case CameraIntrinsicsType::DivisionUndistortion:
+            return StereoReprojectionError<
+                DivisionUndistortionCameraModel>::create(objPoint, leftImgPoint,
+                                                         rightImgPoint);
+        case CameraIntrinsicsType::DoubleSphere:
+            return StereoReprojectionError<DoubleSphereCameraModel>::create(
+                objPoint, leftImgPoint, rightImgPoint);
+        case CameraIntrinsicsType::ExtendedUnified:
+            return StereoReprojectionError<ExtendedUnifiedCameraModel>::create(
+                objPoint, leftImgPoint, rightImgPoint);
+        case CameraIntrinsicsType::Omnidirectional:
+            return StereoReprojectionError<OmnidirectionalCameraModel>::create(
+                objPoint, leftImgPoint, rightImgPoint);
+        case CameraIntrinsicsType::Orthographic:
+            return StereoReprojectionError<OrthographicCameraModel>::create(
+                objPoint, leftImgPoint, rightImgPoint);
         default:
+            LOG(FATAL) << "Unsupported camera type.";
             break;
     }
 
@@ -510,8 +461,8 @@ bool StereoCameraCalibration::calibrate()
                 const auto& rightImgPoint = rightView->featureOf(trackId)->pos;
 
                 auto* costFunc = createStereoReprojectionError(
-                    objPoint, leftImgPoint, rightImgPoint,
-                    leftCamera.cameraIntrinsics());
+                    leftCamera.cameraIntrinsicsModel(), objPoint, leftImgPoint,
+                    rightImgPoint);
                 auto* lossFunc = new ceres::CauchyLoss(1.0);
                 problem.AddResidualBlock(
                     costFunc, lossFunc,

@@ -477,7 +477,7 @@ void StereoModuleTask::prepare()
     // 2. Create Calibration interface
     {
         CameraIntrinsicsCalibration::Options opts;
-        opts.intrinsicsType = CameraIntrinsics::Type::Omnidirectional;
+        opts.intrinsicsType = CameraIntrinsicsType::Omnidirectional;
         opts.imageHeight = 480;
         opts.imageWidth = 640;
         opts.checkSampleDistance = false;

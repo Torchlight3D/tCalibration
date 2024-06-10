@@ -11,12 +11,15 @@ namespace tl {
 // Explanation:
 //
 // Reference:
-class OmnidirectionalCameraModel final : public CameraIntrinsics
+class OmnidirectionalCameraModel final
+    : public CameraIntrinsics_<OmnidirectionalCameraModel, 9>
 {
+    using Parent = CameraIntrinsics_<OmnidirectionalCameraModel, 9>;
+
 public:
     OmnidirectionalCameraModel();
 
-    constexpr Type type() const override { return Type::Omnidirectional; }
+    inline static constexpr auto kType = CameraIntrinsicsType::Omnidirectional;
 
     void setFromMetaData(const CameraMetaData& meta) override;
     CameraMetaData toMetaData() const override;
@@ -33,7 +36,7 @@ public:
 
         IntrinsicsSize,
     };
-    int numParameters() const override;
+    static_assert(kNumParameters == IntrinsicsSize);
 
     // There's no "focal length" in Omnidirectional camera model.
     // To keep the interface consistent, we treat gamma1/gamma2 as fx/fy.
@@ -61,67 +64,32 @@ public:
     inline auto p1() const { return tangentialDistortion1(); }
     inline auto p2() const { return tangentialDistortion2(); }
 
-    std::vector<int> constantParameterIndices(
+    std::vector<int> fixedParameterIndices(
         OptimizeIntrinsicsType flags) const override;
-
-    bool isValid() const override;
 
     // ---------------------- Point Mapping --------------------------------
     //
-    /// Static methods, for ceres
     template <typename T>
-    static bool spaceToPixel(const T* intrinsics, const T* point, T* pixel);
+    static bool spaceToPixel(const T* params, const T* point, T* pixel);
 
     template <typename T>
-    static bool pixelToSpace(const T* intrinsics, const T* pixel, T* point);
+    static bool pixelToSpace(const T* params, const T* pixel, T* point);
 
     template <typename T>
-    static bool isUnprojectable(const T* intrinsics, const T* pixel);
+    static bool distortPoint(const T* params, const T* pixel, T* distorted);
 
     template <typename T>
-    static bool distort(const T* intrinsics, const T* undistort, T* distorted);
+    static bool undistortPoint(const T* params, const T* pixel, T* undistorted);
 
-    template <typename T>
-    static bool undistort(const T* intrinsics, const T* distort,
-                          T* undistorted);
+protected:
+    std::string toLog() const override;
 
+private:
     // Apply distortion to undistort point to get distorted point
     // pt_d = pt_u + distortion
     template <typename T>
     static void calcDistortion(const T* intrinsics, const T* undistort,
                                T* distortion);
-
-    /// Eigen wrapped API of static methods.
-    Eigen::Vector2d spaceToImage(const Eigen::Vector3d& point) const override
-    {
-        Eigen::Vector2d pixel;
-        spaceToPixel(parameters(), point.data(), pixel.data());
-        return pixel;
-    }
-
-    Eigen::Vector3d imageToSpace(const Eigen::Vector2d& pixel) const override
-    {
-        Eigen::Vector3d point;
-        pixelToSpace(parameters(), pixel.data(), point.data());
-        return point;
-    }
-
-    Eigen::Vector2d distort(const Eigen::Vector2d& undistorted) const override
-    {
-        Eigen::Vector2d distorted;
-        distort(parameters(), undistorted.data(), distorted.data());
-        return distorted;
-    }
-
-    Eigen::Vector2d undistort(const Eigen::Vector2d& distorted) const override
-    {
-        Eigen::Vector2d undistorted;
-        undistort(parameters(), distorted.data(), undistorted.data());
-        return undistorted;
-    }
-
-protected:
-    std::string toLog() const override;
 };
 
 /// ---------------------- Implementation -----------------------------------
@@ -139,7 +107,7 @@ bool OmnidirectionalCameraModel::spaceToPixel(const T* intrinsics, const T* pt,
 
     // Apply distortion
     T px_d[2];
-    distort(intrinsics, px_norm, px_d);
+    distortPoint(intrinsics, px_norm, px_d);
 
     // Apply calibration parameters to transform normalized units into pixels.
     const T& fx = intrinsics[Fx];
@@ -176,7 +144,7 @@ bool OmnidirectionalCameraModel::pixelToSpace(const T* intrinsics, const T* px,
 
     // Undistort
     T pt_u[2];
-    undistort(intrinsics, pt_d, pt_u);
+    undistortPoint(intrinsics, pt_d, pt_u);
 
     const T& xi = intrinsics[Xi];
     const T& x_u = pt_u[0];
@@ -197,40 +165,8 @@ bool OmnidirectionalCameraModel::pixelToSpace(const T* intrinsics, const T* px,
 }
 
 template <typename T>
-bool OmnidirectionalCameraModel::isUnprojectable(const T* intrinsics,
-                                                 const T* px)
-{
-    // Unproject
-    const T& fx = intrinsics[Fx];
-    const T& y_x = intrinsics[YX];
-    const T fy = fx * y_x;
-    const T& cx = intrinsics[Cx];
-    const T& cy = intrinsics[Cy];
-
-    const T Kinv_11 = T(1) / fx;
-    const T Kinv_22 = T(1) / fy;
-    const T Kinv_13 = -cx / fx;
-    const T Kinv_23 = -cy / fy;
-
-    T pt_d[2];
-    pt_d[0] = Kinv_11 * px[0] + Kinv_13;
-    pt_d[1] = Kinv_22 * px[1] + Kinv_23;
-
-    // Undistort
-    T pt_u[2];
-    undistort(intrinsics, pt_d, pt_u);
-
-    const T& xi = intrinsics[Xi];
-    const T& x_u = pt_u[0];
-    const T& y_u = pt_u[1];
-    const T rho2 = x_u * x_u + y_u * y_u;
-
-    return (xi <= T(1) || rho2 <= (T(1) / (xi * xi - T(1))));
-}
-
-template <typename T>
-bool OmnidirectionalCameraModel::distort(const T* intrinsics, const T* pt_u,
-                                         T* pt_d)
+bool OmnidirectionalCameraModel::distortPoint(const T* intrinsics,
+                                              const T* pt_u, T* pt_d)
 {
     T dist[2];
     calcDistortion(intrinsics, pt_u, dist);
@@ -242,8 +178,8 @@ bool OmnidirectionalCameraModel::distort(const T* intrinsics, const T* pt_u,
 }
 
 template <typename T>
-bool OmnidirectionalCameraModel::undistort(const T* intrinsics, const T* pt_d,
-                                           T* pt_u)
+bool OmnidirectionalCameraModel::undistortPoint(const T* intrinsics,
+                                                const T* pt_d, T* pt_u)
 {
     constexpr bool kRecursive{true};
     if constexpr (kRecursive) {

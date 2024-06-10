@@ -227,7 +227,7 @@ void BundleAdjustment::Impl::setCameraIntrinsicsParameterization()
 
         // 2. Distortion
         switch (intrinsics->type()) {
-            case CameraIntrinsics::Type::DoubleSphere: {
+            case CameraIntrinsicsType::DoubleSphere: {
                 problem_->SetParameterLowerBound(
                     parameters, DoubleSphereCameraModel::Xi, -1.);
                 problem_->SetParameterUpperBound(
@@ -237,7 +237,7 @@ void BundleAdjustment::Impl::setCameraIntrinsicsParameterization()
                 problem_->SetParameterUpperBound(
                     parameters, DoubleSphereCameraModel::Alpha, 1.);
             } break;
-            case CameraIntrinsics::Type::ExtendedUnified: {
+            case CameraIntrinsicsType::ExtendedUnified: {
                 problem_->SetParameterLowerBound(
                     parameters, ExtendedUnifiedCameraModel::Alpha, 0.);
                 problem_->SetParameterUpperBound(
@@ -245,7 +245,7 @@ void BundleAdjustment::Impl::setCameraIntrinsicsParameterization()
                 problem_->SetParameterLowerBound(
                     parameters, ExtendedUnifiedCameraModel::Beta, 0.1);
             } break;
-            case CameraIntrinsics::Type::Omnidirectional: {
+            case CameraIntrinsicsType::Omnidirectional: {
                 // Do nothing now
             } break;
             default:
@@ -254,7 +254,7 @@ void BundleAdjustment::Impl::setCameraIntrinsicsParameterization()
 
         // Set the constant parameters if any are requested.
         const std::vector<int> const_indices =
-            intrinsics->constantParameterIndices(
+            intrinsics->fixedParameterIndices(
                 options_.intrinsics_to_optimize);
 
         if (const_indices.size() == intrinsics->numParameters()) {

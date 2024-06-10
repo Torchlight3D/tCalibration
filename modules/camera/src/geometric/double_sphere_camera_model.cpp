@@ -4,12 +4,8 @@
 
 namespace tl {
 
-DoubleSphereCameraModel::DoubleSphereCameraModel() : CameraIntrinsics()
+DoubleSphereCameraModel::DoubleSphereCameraModel() : Parent()
 {
-    parameters_.resize(IntrinsicsSize);
-    setFocalLength(1.);
-    setAspectRatio(1.);
-    setPrincipalPoint(0., 0.);
     setParameter(Skew, 0.);
     setParameter(Xi, 0.);
     setParameter(Alpha, 0.5);
@@ -17,7 +13,7 @@ DoubleSphereCameraModel::DoubleSphereCameraModel() : CameraIntrinsics()
 
 void DoubleSphereCameraModel::setFromMetaData(const CameraMetaData& meta)
 {
-    CameraIntrinsics::setFromMetaData(meta);
+    Parent::setFromMetaData(meta);
 
     if (meta.skew.is_set) {
         setParameter(Skew, meta.skew.value[0]);
@@ -31,7 +27,7 @@ void DoubleSphereCameraModel::setFromMetaData(const CameraMetaData& meta)
 
 CameraMetaData DoubleSphereCameraModel::toMetaData() const
 {
-    auto meta = CameraIntrinsics::toMetaData();
+    auto meta = Parent::toMetaData();
     meta.skew.is_set = true;
     meta.skew.value[0] = skew();
     meta.radial_distortion.is_set = true;
@@ -41,23 +37,21 @@ CameraMetaData DoubleSphereCameraModel::toMetaData() const
     return meta;
 }
 
-int DoubleSphereCameraModel::numParameters() const { return IntrinsicsSize; }
+void DoubleSphereCameraModel::setSkew(double skew) { params_[Skew] = skew; }
 
-void DoubleSphereCameraModel::setSkew(double skew) { parameters_[Skew] = skew; }
-
-double DoubleSphereCameraModel::skew() const { return parameters_[Skew]; }
+double DoubleSphereCameraModel::skew() const { return params_[Skew]; }
 
 void DoubleSphereCameraModel::setDistortion(double alpha, double xi)
 {
-    parameters_[Alpha] = alpha;
-    parameters_[Xi] = xi;
+    params_[Alpha] = alpha;
+    params_[Xi] = xi;
 }
 
-double DoubleSphereCameraModel::alpha() const { return parameters_[Alpha]; }
+double DoubleSphereCameraModel::alpha() const { return params_[Alpha]; }
 
-double DoubleSphereCameraModel::xi() const { return parameters_[Xi]; }
+double DoubleSphereCameraModel::xi() const { return params_[Xi]; }
 
-std::vector<int> DoubleSphereCameraModel::constantParameterIndices(
+std::vector<int> DoubleSphereCameraModel::fixedParameterIndices(
     OptimizeIntrinsicsType flags) const
 {
     // All parameters
@@ -65,7 +59,7 @@ std::vector<int> DoubleSphereCameraModel::constantParameterIndices(
         return {};
     }
 
-    auto indices = CameraIntrinsics::constantParameterIndices(flags);
+    auto indices = Parent::fixedParameterIndices(flags);
     if ((flags & OptimizeIntrinsicsType::Skew) ==
         OptimizeIntrinsicsType::None) {
         indices.emplace_back(Skew);
@@ -80,20 +74,14 @@ std::vector<int> DoubleSphereCameraModel::constantParameterIndices(
 
 Eigen::Matrix3d DoubleSphereCameraModel::calibrationMatrix() const
 {
-    return intrinsicsToCalibrationMatrix(parameters_[Fx], parameters_[Skew],
-                                         parameters_[YX], parameters_[Cx],
-                                         parameters_[Cy]);
-}
-
-bool DoubleSphereCameraModel::isValid() const
-{
-    return CameraIntrinsics::isValid();
+    return intrinsicsToCalibrationMatrix(fx(), params_[Skew], aspectRatio(),
+                                         cx(), cy());
 }
 
 std::string DoubleSphereCameraModel::toLog() const
 {
     std::ostringstream oss;
-    oss << CameraIntrinsics::toLog()
+    oss << Parent::toLog()
         << "\n"
            "Skew: "
         << skew()

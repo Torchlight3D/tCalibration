@@ -4,12 +4,8 @@
 
 namespace tl {
 
-PinholeCameraModel::PinholeCameraModel() : CameraIntrinsics()
+PinholeCameraModel::PinholeCameraModel() : Parent()
 {
-    parameters_.resize(IntrinsicsSize);
-    setFocalLength(1.);
-    setAspectRatio(1.);
-    setPrincipalPoint(0., 0.);
     setParameter(Skew, 0.);
     setParameter(K1, 0.);
     setParameter(K2, 0.);
@@ -17,7 +13,7 @@ PinholeCameraModel::PinholeCameraModel() : CameraIntrinsics()
 
 void PinholeCameraModel::setFromMetaData(const CameraMetaData& meta)
 {
-    CameraIntrinsics::setFromMetaData(meta);
+    Parent::setFromMetaData(meta);
 
     if (meta.skew.is_set) {
         setParameter(Skew, meta.skew.value[0]);
@@ -31,7 +27,7 @@ void PinholeCameraModel::setFromMetaData(const CameraMetaData& meta)
 
 CameraMetaData PinholeCameraModel::toMetaData() const
 {
-    auto meta = CameraIntrinsics::toMetaData();
+    auto meta = Parent::toMetaData();
     meta.skew.is_set = true;
     meta.skew.value[0] = skew();
     meta.radial_distortion.is_set = true;
@@ -41,23 +37,21 @@ CameraMetaData PinholeCameraModel::toMetaData() const
     return meta;
 }
 
-int PinholeCameraModel::numParameters() const { return IntrinsicsSize; }
+void PinholeCameraModel::setSkew(double skew) { params_[Skew] = skew; }
 
-void PinholeCameraModel::setSkew(double skew) { parameters_[Skew] = skew; }
-
-double PinholeCameraModel::skew() const { return parameters_[Skew]; }
+double PinholeCameraModel::skew() const { return params_[Skew]; }
 
 void PinholeCameraModel::setRadialDistortion(double k1, double k2)
 {
-    parameters_[K1] = k1;
-    parameters_[K2] = k2;
+    params_[K1] = k1;
+    params_[K2] = k2;
 }
 
-double PinholeCameraModel::radialDistortion1() const { return parameters_[K1]; }
+double PinholeCameraModel::radialDistortion1() const { return params_[K1]; }
 
-double PinholeCameraModel::radialDistortion2() const { return parameters_[K2]; }
+double PinholeCameraModel::radialDistortion2() const { return params_[K2]; }
 
-std::vector<int> PinholeCameraModel::constantParameterIndices(
+std::vector<int> PinholeCameraModel::fixedParameterIndices(
     OptimizeIntrinsicsType flags) const
 {
     // All parameters
@@ -65,7 +59,7 @@ std::vector<int> PinholeCameraModel::constantParameterIndices(
         return {};
     }
 
-    auto indices = CameraIntrinsics::constantParameterIndices(flags);
+    auto indices = Parent::fixedParameterIndices(flags);
     if ((flags & OptimizeIntrinsicsType::Skew) ==
         OptimizeIntrinsicsType::None) {
         indices.emplace_back(Skew);
@@ -80,17 +74,14 @@ std::vector<int> PinholeCameraModel::constantParameterIndices(
 
 Eigen::Matrix3d PinholeCameraModel::calibrationMatrix() const
 {
-    return intrinsicsToCalibrationMatrix(parameters_[Fx], parameters_[Skew],
-                                         parameters_[YX], parameters_[Cx],
-                                         parameters_[Cy]);
+    return intrinsicsToCalibrationMatrix(fx(), params_[Skew], aspectRatio(),
+                                         cx(), cy());
 }
-
-bool PinholeCameraModel::isValid() const { return CameraIntrinsics::isValid(); }
 
 std::string PinholeCameraModel::toLog() const
 {
     std::ostringstream oss;
-    oss << CameraIntrinsics::toLog()
+    oss << Parent::toLog()
         << "\n"
            "Skew: "
         << skew()

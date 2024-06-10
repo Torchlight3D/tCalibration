@@ -7,8 +7,7 @@ namespace tl {
 class Camera
 {
 public:
-    explicit Camera(
-        CameraIntrinsics::Type type = CameraIntrinsics::Type::Pinhole);
+    explicit Camera(CameraIntrinsicsType type = CameraIntrinsicsType::Pinhole);
     // TODO: Duplicated code, write a swap
     Camera(const Camera& other);
     Camera& operator=(const Camera& other);
@@ -33,8 +32,8 @@ public:
 
     /// ----------------------- Intrinsics ----------------------
     ///
-    void setCameraIntrinsicsModel(CameraIntrinsics::Type type);
-    CameraIntrinsics::Type cameraIntrinsicsModel() const;
+    void setCameraIntrinsicsModel(CameraIntrinsicsType type);
+    CameraIntrinsicsType cameraIntrinsicsModel() const;
 
     void setFocalLength(double fx);
     double focalLength() const;
