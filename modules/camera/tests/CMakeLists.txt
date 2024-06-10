@@ -13,6 +13,7 @@ target_sources(${CAMERA_TEST_TARGET}
         tst_omnidirectional.cpp
         tst_orthographic.cpp
         tst_pinhole.cpp
+        tst_photometric.cpp
         # main.cpp
 )
 
