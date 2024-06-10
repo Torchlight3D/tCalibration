@@ -3,6 +3,7 @@
 #include <memory>
 #include <string>
 
+#include <Eigen/Core>
 #include <glog/logging.h>
 
 #include <magic_enum/magic_enum.hpp>
@@ -10,7 +11,6 @@
 #include <tCamera/Types>
 
 #include "camera_meta_data.h"
-#include "../util_camera_matrix.h"
 
 namespace tl {
 
@@ -46,8 +46,8 @@ public:
 
     //////////////////////////// Parameters ////////////////////////////
 
-    virtual void setFromMetaData(const CameraMetaData& meta) = 0;
-    virtual CameraMetaData toMetaData() const = 0;
+    virtual void setFromMetaData(const CameraMetaData& meta);
+    virtual CameraMetaData toMetaData() const;
 
     virtual bool setParameter(int index, double value) = 0;
     virtual double parameter(int index) const = 0;
@@ -67,31 +67,27 @@ public:
     };
 
     // [fx, fy(aspect ratio), cx, cy] are essential paramters
-    virtual void setFocalLength(double fx) = 0;
-    virtual double focalLength() const = 0;
+    void setFocalLength(double fx);
+    double focalLength() const;
     inline auto focalLengthX() const { return focalLength(); }
     inline auto focalLengthY() const { return focalLengthX() * aspectRatio(); }
     inline auto fx() const { return focalLengthX(); }
     inline auto fy() const { return focalLengthY(); }
 
     // Height / Width <=> Y/X
-    virtual void setAspectRatio(double aspectRatio) = 0;
-    virtual double aspectRatio() const = 0;
+    void setAspectRatio(double aspectRatio);
+    double aspectRatio() const;
 
-    virtual void setPrincipalPoint(double cx, double cy) = 0;
-    virtual double principalPointX() const = 0;
-    virtual double principalPointY() const = 0;
+    void setPrincipalPoint(double cx, double cy);
+    double principalPointX() const;
+    double principalPointY() const;
     inline auto cx() const { return principalPointX(); }
     inline auto cy() const { return principalPointY(); }
 
     virtual std::vector<int> fixedParameterIndices(
-        OptimizeIntrinsicsType type) const = 0;
+        OptimizeIntrinsicsType type) const;
 
-    virtual Eigen::Matrix3d calibrationMatrix() const
-    {
-        return intrinsicsToCalibrationMatrix(fx(), 0., aspectRatio(), cx(),
-                                             cy());
-    }
+    virtual Eigen::Matrix3d calibrationMatrix() const;
     inline void calibrationMatrix(Eigen::Matrix3d& K) const
     {
         K = calibrationMatrix();
@@ -99,7 +95,7 @@ public:
     inline auto matrixK() const { return calibrationMatrix(); }
 
     // Scale by image size
-    virtual void scale(double s) = 0;
+    virtual void scale(double s);
 
     //////////////////////////// Point Mapping ////////////////////////////
 
@@ -138,6 +134,7 @@ class CameraIntrinsics_ : public CameraIntrinsics
 public:
     CameraIntrinsics_() : CameraIntrinsics()
     {
+        // The setParameter() is specialized until here
         setFocalLength(1.);
         setAspectRatio(1.);
         setPrincipalPoint(0., 0.);
@@ -166,43 +163,6 @@ public:
 
     //////////////////////////// Parameters ////////////////////////////
 
-    void setFromMetaData(const CameraMetaData& meta) override
-    {
-        if (meta.focal_length.is_set) {
-            setFocalLength(meta.focal_length.value[0]);
-        }
-        else if (meta.image_width != 0. && meta.image_height != 0.) {
-            setFocalLength(1.2 * std::max(meta.image_width, meta.image_height));
-        }
-
-        if (meta.principal_point.is_set) {
-            setPrincipalPoint(meta.principal_point.value[0],
-                              meta.principal_point.value[1]);
-        }
-        else if (meta.image_width != 0. && meta.image_height != 0.) {
-            setPrincipalPoint(meta.image_width / 2., meta.image_height / 2.);
-        }
-
-        if (meta.aspect_ratio.is_set) {
-            setAspectRatio(meta.aspect_ratio.value[0]);
-        }
-    }
-
-    CameraMetaData toMetaData() const override
-    {
-        CameraMetaData meta;
-        meta.camera_intrinsics_model_type = magic_enum::enum_name(type());
-        meta.focal_length.is_set = true;
-        meta.focal_length.value[0] = focalLength();
-        meta.principal_point.is_set = true;
-        meta.principal_point.value[0] = principalPointX();
-        meta.principal_point.value[1] = principalPointY();
-        meta.aspect_ratio.is_set = true;
-        meta.aspect_ratio.value[0] = aspectRatio();
-
-        return meta;
-    }
-
     bool setParameter(int index, double value) final
     {
         DCHECK_GE(index, 0);
@@ -228,69 +188,11 @@ public:
     }
 
     inline static constexpr auto kNumParameters = ParameterCount;
-    static_assert(kNumParameters >= 4,
+    static_assert(kNumParameters >= ExtraIndex,
                   "Camera intrinsics should have at least 4 parameters. "
                   "fx, fy(or aspect ratio), cx, cy.");
 
     size_t numParameters() const final { return kNumParameters; }
-
-    std::vector<int> fixedParameterIndices(
-        OptimizeIntrinsicsType flags) const override
-    {
-        using Type = OptimizeIntrinsicsType;
-
-        if (flags == Type::All) {
-            return {};
-        }
-
-        std::vector<int> indices;
-        if ((flags & Type::FocalLength) == Type::None) {
-            indices.emplace_back(Fx);
-        }
-        if ((flags & Type::AspectRatio) == Type::None) {
-            indices.emplace_back(YX);
-        }
-        if ((flags & Type::PrincipalPoint) == Type::None) {
-            indices.emplace_back(Cx);
-            indices.emplace_back(Cy);
-        }
-
-        return indices;
-    }
-
-    void setFocalLength(double fx) final
-    {
-        CHECK_GT(fx, 0.) << "Invalid focal length value."
-                            "Focal length must be greater than 0.0.";
-        setParameter(Fx, fx);
-    }
-
-    double focalLength() const final { return parameter(Fx); }
-
-    void setAspectRatio(double aspectRatio) final
-    {
-        CHECK_GT(aspectRatio, 0.0) << "Invalid aspect ratio."
-                                      "Aspect ratio must be greater than 0.0.";
-        setParameter(YX, aspectRatio);
-    }
-
-    double aspectRatio() const final { return parameter(YX); }
-
-    void setPrincipalPoint(double cx, double cy) final
-    {
-        setParameter(Cx, cx);
-        setParameter(Cy, cy);
-    }
-
-    double principalPointX() const final { return parameter(Cx); }
-
-    double principalPointY() const final { return parameter(Cy); }
-
-    void scale(double s) override
-    {
-        setFocalLength(fx() * s);
-        setPrincipalPoint(s * (cx() + 0.5) - 0.5, s * (cy() + 0.5) - 0.5);
-    }
 
     //////////////////////////// Point Mapping ////////////////////////////
 

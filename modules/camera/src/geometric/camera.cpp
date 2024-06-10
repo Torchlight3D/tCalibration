@@ -83,23 +83,29 @@ void Camera::deepCopy(const Camera& camera)
 
 void Camera::setFromMetaData(const CameraMetaData& meta)
 {
-    const auto intriType = magic_enum::enum_cast<CameraIntrinsicsType>(
-                               meta.camera_intrinsics_model_type)
-                               .value_or(CameraIntrinsicsType::Pinhole);
-    if (intrinsics_->type() != intriType) {
-        intrinsics_ = CameraIntrinsics::create(intriType);
+    if (!meta.isValid()) {
+        return;
     }
 
-    img_size_[0] = meta.image_width;
-    img_size_[1] = meta.image_height;
+    const auto intriType =
+        magic_enum::enum_cast<CameraIntrinsicsType>(meta.intrinsicType);
+
+    CHECK(intriType.has_value())
+        << "Invalid to create Camera with unsupported intrinsics type.";
+
+    if (intrinsics_->type() != intriType.value()) {
+        intrinsics_ = CameraIntrinsics::create(intriType.value());
+    }
+
+    img_size_[0] = meta.imageWidth();
+    img_size_[1] = meta.imageHeight();
     intrinsics_->setFromMetaData(meta);
 }
 
 CameraMetaData Camera::toMetaData() const
 {
     CameraMetaData meta = intrinsics_->toMetaData();
-    meta.image_width = img_size_[0];
-    meta.image_height = img_size_[1];
+    meta.imageSize = {img_size_[0], img_size_[1]};
     return meta;
 }
 

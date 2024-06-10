@@ -50,46 +50,45 @@ TEST(DoubleSphereCameraModel, InternalParameterGettersAndSetters)
 
 TEST(DoubleSphereCameraModel, SetFromCameraMetaDatas)
 {
-    // Test to ensure that the camera intrinsics are being set appropriately.
     auto TestCameraSetFromMeta = [](const CameraMetaData& meta) {
         const DoubleSphereCameraModel default_camera;
 
         DoubleSphereCameraModel camera;
         camera.setFromMetaData(meta);
 
-        if (meta.focal_length.is_set) {
-            EXPECT_EQ(camera.focalLength(), meta.focal_length.value[0]);
+        if (meta.focalLength.has_value()) {
+            EXPECT_EQ(camera.focalLength(), meta.focalLength.value()[0]);
         }
         else {
             EXPECT_EQ(camera.focalLength(), default_camera.focalLength());
         }
 
-        if (meta.principal_point.is_set) {
-            EXPECT_EQ(camera.principalPointX(), meta.principal_point.value[0]);
-            EXPECT_EQ(camera.principalPointY(), meta.principal_point.value[1]);
+        if (meta.aspectRatio.has_value()) {
+            EXPECT_EQ(camera.aspectRatio(), meta.aspectRatio.value()[0]);
+        }
+        else {
+            EXPECT_EQ(camera.aspectRatio(), default_camera.aspectRatio());
+        }
+
+        if (meta.principalPoint.has_value()) {
+            EXPECT_EQ(camera.cx(), meta.cx());
+            EXPECT_EQ(camera.cy(), meta.cy());
         }
         else {
             EXPECT_EQ(camera.cx(), default_camera.cx());
             EXPECT_EQ(camera.cy(), default_camera.cy());
         }
 
-        if (meta.aspect_ratio.is_set) {
-            EXPECT_EQ(camera.aspectRatio(), meta.aspect_ratio.value[0]);
-        }
-        else {
-            EXPECT_EQ(camera.aspectRatio(), default_camera.aspectRatio());
-        }
-
-        if (meta.skew.is_set) {
-            EXPECT_EQ(camera.skew(), meta.skew.value[0]);
+        if (meta.skew.has_value()) {
+            EXPECT_EQ(camera.skew(), meta.skew.value()[0]);
         }
         else {
             EXPECT_EQ(camera.skew(), default_camera.skew());
         }
 
-        if (meta.radial_distortion.is_set) {
-            EXPECT_EQ(camera.alpha(), meta.radial_distortion.value[0]);
-            EXPECT_EQ(camera.xi(), meta.radial_distortion.value[1]);
+        if (meta.radialDistortion.has_value()) {
+            EXPECT_EQ(camera.alpha(), meta.radialDistortion.value()[0]);
+            EXPECT_EQ(camera.xi(), meta.radialDistortion.value()[1]);
         }
         else {
             EXPECT_EQ(camera.xi(), default_camera.xi());
@@ -98,29 +97,21 @@ TEST(DoubleSphereCameraModel, SetFromCameraMetaDatas)
     };
 
     CameraMetaData meta;
-    meta.focal_length.value[0] = 1000.0;
-    meta.principal_point.value[0] = 400.0;
-    meta.principal_point.value[1] = 300.0;
-    meta.aspect_ratio.value[0] = 1.01;
-    meta.skew.value[0] = 0.01;
-    meta.radial_distortion.value[0] = 0.01;
-    meta.radial_distortion.value[1] = 0.001;
-
     TestCameraSetFromMeta(meta);
 
-    meta.focal_length.is_set = true;
+    meta.focalLength = {1000.};
     TestCameraSetFromMeta(meta);
 
-    meta.principal_point.is_set = true;
+    meta.aspectRatio = {1.01};
     TestCameraSetFromMeta(meta);
 
-    meta.aspect_ratio.is_set = true;
+    meta.principalPoint = {400., 300.};
     TestCameraSetFromMeta(meta);
 
-    meta.skew.is_set = true;
+    meta.skew = {1e-2};
     TestCameraSetFromMeta(meta);
 
-    meta.radial_distortion.is_set = true;
+    meta.radialDistortion = {1e-2, 1e-3, 0., 0.};
     TestCameraSetFromMeta(meta);
 }
 

@@ -1,45 +1,59 @@
 ﻿#pragma once
 
+#include <array>
+#include <optional>
 #include <string>
 
 namespace tl {
 
-// TODO:
-// 1. Setter/Getter are neither intuitive nor safe
-template <int Size_t>
-struct Elem
-{
-    double value[Size_t] = {0.0};
-    bool is_set{false};
-};
-
 struct CameraMetaData
 {
-    int image_width{0};
-    int image_height{0};
+    template <size_t Size_t, typename T = double>
+    using Item_ = std::optional<std::array<T, Size_t>>;
 
-    std::string camera_intrinsics_model_type{"Pinhole"};
+    template <size_t Size_t>
+    using Item = Item_<Size_t>;
 
-    // Camera intrinsics parameters.
-    Elem<1> focal_length;
-    Elem<2> principal_point;
-    Elem<1> aspect_ratio;
-    Elem<1> skew;
+    Item_<2, int> imageSize; // [width, height]
 
-    // Up to 4 radial distortion parameters.
-    // For fisheye cameras, the fisheye distortion parameters would be set as
-    // radial_distortion.
-    Elem<4> radial_distortion;
-    Elem<2> tangential_distortion;
+    // Intrinsics - Projection
+    std::string intrinsicType{"Pinhole"};
 
-    // Extrinsics that may be available from EXIF or elsewhere.
-    Elem<3> position;    // (x, y, z)
-    Elem<3> orientation; // angle-axis
+    Item<1> focalLength;
+    Item<1> aspectRatio;
+    Item<2> principalPoint; // [cx, cy]
+    Item<1> skew;
 
-    // GPS priors. The altitude is measured as meters above sea level.
-    Elem<1> latitude;  // meter
-    Elem<1> longitude; // meter
-    Elem<1> altitude;  // meter
+    // Intrinsics - Distortion
+    Item<4> radialDistortion;
+    Item<2> tangentialDistortion;
+
+    // Extrinsics
+    Item<3> position;    // meter
+    Item<3> orientation; // Angle axis
+
+    // GPS
+    Item<1> latitude;  // meter
+    Item<1> longitude; // meter
+    Item<1> altitude;  // meter
+
+    CameraMetaData() = default;
+
+    /// Alias
+    // NOTE: Check has_value() before calling
+    const auto& imageWidth() const { return imageSize.value()[0]; }
+    const auto& imageHeight() const { return imageSize.value()[1]; }
+
+    const auto& f() const { return focalLength.value()[0]; }
+
+    const auto& cx() const { return principalPoint.value()[0]; }
+    const auto& cy() const { return principalPoint.value()[1]; }
+
+    // At least we need to have image size
+    bool isValid() const { return imageSize.has_value(); }
+
+    // Focal length is the most essential parameter for any calibrated camera.
+    bool calibrated() const { return isValid() && focalLength.has_value(); }
 };
 
 } // namespace tl

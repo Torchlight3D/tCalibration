@@ -115,29 +115,30 @@ TEST(Camera, ExternalParameterGettersAndSetters)
 TEST(Camera, SetFromCameraMetaData)
 {
     CameraMetaData meta;
-    meta.image_width = 1920;
-    meta.image_height = 1080;
+    meta.imageSize = {1920, 1080};
 
     Camera camera;
     camera.setFromMetaData(meta);
     EXPECT_EQ(camera.cameraIntrinsicsModel(), CameraIntrinsicsType::Pinhole);
-    EXPECT_EQ(camera.imageWidth(), meta.image_width);
-    EXPECT_EQ(camera.imageHeight(), meta.image_height);
+    EXPECT_EQ(camera.imageWidth(), meta.imageWidth());
+    EXPECT_EQ(camera.imageHeight(), meta.imageHeight());
 
-    // TODO: Try wrong string
+    meta.intrinsicType = "Unknown";
+    EXPECT_DEATH(camera.setFromMetaData(meta), "unsupported");
+
     // Set the meta for intrinsics model to Pinhole.
-    meta.camera_intrinsics_model_type = "Pinhole";
+    meta.intrinsicType = "Pinhole";
     camera.setFromMetaData(meta);
     EXPECT_EQ(camera.cameraIntrinsicsModel(), CameraIntrinsicsType::Pinhole);
 
     // Set the meta for intrinsics model to PinholeRadialTangential.
-    meta.camera_intrinsics_model_type = "PinholeRadialTangential";
+    meta.intrinsicType = "PinholeRadialTangential";
     camera.setFromMetaData(meta);
     EXPECT_EQ(camera.cameraIntrinsicsModel(),
               CameraIntrinsicsType::PinholeRadialTangential);
 
     // Set the meta for intrinsics model to Fisheye.
-    meta.camera_intrinsics_model_type = "Fisheye";
+    meta.intrinsicType = "Fisheye";
     camera.setFromMetaData(meta);
     EXPECT_EQ(camera.cameraIntrinsicsModel(), CameraIntrinsicsType::Fisheye);
 }

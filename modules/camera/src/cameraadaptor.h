@@ -5,6 +5,6 @@
 
 namespace tl {
 
-Camera fromCocCamera(const camodocal::Camera::ConstPtr camera);
+std::unique_ptr<Camera> fromCocCamera(const camodocal::Camera::ConstPtr camera);
 
 }

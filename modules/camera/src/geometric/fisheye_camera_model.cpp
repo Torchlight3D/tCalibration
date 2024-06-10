@@ -15,52 +15,31 @@ FisheyeCameraModel::FisheyeCameraModel() : Parent()
 
 void FisheyeCameraModel::setFromMetaData(const CameraMetaData& meta)
 {
-    if (meta.focal_length.is_set) {
-        setFocalLength(meta.focal_length.value[0]);
-    }
-    else if (meta.image_width != 0. && meta.image_height != 0.) {
-        // NOTE: A scaling of 0.4 times the max image dimension was empircally
-        // observed to be a decent initialization.
-        constexpr double kFocalLengthScaleFactor{0.4};
-        setFocalLength(
-            kFocalLengthScaleFactor *
-            static_cast<double>(std::max(meta.image_width, meta.image_height)));
+    Parent::setFromMetaData(meta);
+
+    if (!meta.focalLength.has_value() && meta.imageSize.has_value()) {
+        constexpr auto kEpiracalScale{0.4};
+        setFocalLength(kEpiracalScale *
+                       std::max(meta.imageWidth(), meta.imageHeight()));
     }
 
-    if (meta.principal_point.is_set) {
-        setPrincipalPoint(meta.principal_point.value[0],
-                          meta.principal_point.value[1]);
-    }
-    else if (meta.image_width != 0. && meta.image_height != 0.) {
-        setPrincipalPoint(meta.image_width / 2., meta.image_height / 2.);
+    if (meta.skew.has_value()) {
+        setParameter(Skew, meta.skew.value()[0]);
     }
 
-    if (meta.aspect_ratio.is_set) {
-        setParameter(YX, meta.aspect_ratio.value[0]);
-    }
-
-    if (meta.skew.is_set) {
-        setParameter(Skew, meta.skew.value[0]);
-    }
-
-    if (meta.radial_distortion.is_set) {
-        setParameter(K1, meta.radial_distortion.value[0]);
-        setParameter(K2, meta.radial_distortion.value[1]);
-        setParameter(K3, meta.radial_distortion.value[2]);
-        setParameter(K4, meta.radial_distortion.value[3]);
+    if (meta.radialDistortion.has_value()) {
+        setParameter(K1, meta.radialDistortion.value()[0]);
+        setParameter(K2, meta.radialDistortion.value()[1]);
+        setParameter(K3, meta.radialDistortion.value()[2]);
+        setParameter(K4, meta.radialDistortion.value()[3]);
     }
 }
 
 CameraMetaData FisheyeCameraModel::toMetaData() const
 {
     auto meta = Parent::toMetaData();
-    meta.skew.is_set = true;
-    meta.skew.value[0] = skew();
-    meta.radial_distortion.is_set = true;
-    meta.radial_distortion.value[0] = radialDistortion1();
-    meta.radial_distortion.value[1] = radialDistortion2();
-    meta.radial_distortion.value[2] = radialDistortion3();
-    meta.radial_distortion.value[3] = radialDistortion4();
+    meta.skew = {skew()};
+    meta.radialDistortion = {k1(), k2(), k3(), k4()};
 
     return meta;
 }

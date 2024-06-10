@@ -48,50 +48,47 @@ TEST(OrthographicCameraModel, InternalParameterGettersAndSetters)
     EXPECT_EQ(camera.radialDistortion2(), kK2);
 }
 
-// Gradually add one prior at a time and ensure that the method still works. We
-// test before and after setting the "is_set" member variable to true to ensure
-// that setting the value of priors when is_set=false is handled properly.
 TEST(OrthographicCameraModel, SetFromCameraMetaData)
 {
-    // Test to ensure that the camera intrinsics are being set appropriately.
     auto TestCameraSetFromMeta = [](const CameraMetaData& meta) {
         const OrthographicCameraModel default_camera;
+
         OrthographicCameraModel camera;
         camera.setFromMetaData(meta);
 
-        if (meta.focal_length.is_set) {
-            EXPECT_EQ(camera.focalLength(), meta.focal_length.value[0]);
+        if (meta.focalLength.has_value()) {
+            EXPECT_EQ(camera.focalLength(), meta.focalLength.value()[0]);
         }
         else {
             EXPECT_EQ(camera.focalLength(), default_camera.focalLength());
         }
 
-        if (meta.principal_point.is_set) {
-            EXPECT_EQ(camera.cx(), meta.principal_point.value[0]);
-            EXPECT_EQ(camera.cy(), meta.principal_point.value[1]);
+        if (meta.aspectRatio.has_value()) {
+            EXPECT_EQ(camera.aspectRatio(), meta.aspectRatio.value()[0]);
+        }
+        else {
+            EXPECT_EQ(camera.aspectRatio(), default_camera.aspectRatio());
+        }
+
+        if (meta.principalPoint.has_value()) {
+            EXPECT_EQ(camera.cx(), meta.cx());
+            EXPECT_EQ(camera.cy(), meta.cy());
         }
         else {
             EXPECT_EQ(camera.cx(), default_camera.cx());
             EXPECT_EQ(camera.cy(), default_camera.cy());
         }
 
-        if (meta.aspect_ratio.is_set) {
-            EXPECT_EQ(camera.aspectRatio(), meta.aspect_ratio.value[0]);
-        }
-        else {
-            EXPECT_EQ(camera.aspectRatio(), default_camera.aspectRatio());
-        }
-
-        if (meta.skew.is_set) {
-            EXPECT_EQ(camera.skew(), meta.skew.value[0]);
+        if (meta.skew.has_value()) {
+            EXPECT_EQ(camera.skew(), meta.skew.value()[0]);
         }
         else {
             EXPECT_EQ(camera.skew(), default_camera.skew());
         }
 
-        if (meta.radial_distortion.is_set) {
-            EXPECT_EQ(camera.k1(), meta.radial_distortion.value[0]);
-            EXPECT_EQ(camera.k2(), meta.radial_distortion.value[1]);
+        if (meta.radialDistortion.has_value()) {
+            EXPECT_EQ(camera.k1(), meta.radialDistortion.value()[0]);
+            EXPECT_EQ(camera.k2(), meta.radialDistortion.value()[1]);
         }
         else {
             EXPECT_EQ(camera.k1(), default_camera.k1());
@@ -100,29 +97,21 @@ TEST(OrthographicCameraModel, SetFromCameraMetaData)
     };
 
     CameraMetaData meta;
-    meta.focal_length.value[0] = 30000;
-    meta.principal_point.value[0] = 400.0;
-    meta.principal_point.value[1] = 300.0;
-    meta.skew.value[0] = 0.0;
-    meta.aspect_ratio.value[0] = 1.001;
-    meta.radial_distortion.value[0] = 0.01;
-    meta.radial_distortion.value[1] = 0.001;
-
     TestCameraSetFromMeta(meta);
 
-    meta.focal_length.is_set = true;
+    meta.focalLength = {1000.};
     TestCameraSetFromMeta(meta);
 
-    meta.principal_point.is_set = true;
+    meta.aspectRatio = {1.01};
     TestCameraSetFromMeta(meta);
 
-    meta.aspect_ratio.is_set = true;
+    meta.principalPoint = {400., 300.};
     TestCameraSetFromMeta(meta);
 
-    meta.skew.is_set = true;
+    meta.skew = {1e-2};
     TestCameraSetFromMeta(meta);
 
-    meta.radial_distortion.is_set = true;
+    meta.radialDistortion = {1e-2, 1e-3, 0., 0.};
     TestCameraSetFromMeta(meta);
 }
 

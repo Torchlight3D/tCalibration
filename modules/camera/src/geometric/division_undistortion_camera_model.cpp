@@ -14,8 +14,8 @@ void DivisionUndistortionCameraModel::setFromMetaData(
 {
     Parent::setFromMetaData(meta);
 
-    if (meta.radial_distortion.is_set) {
-        setParameter(K, meta.radial_distortion.value[0]);
+    if (meta.radialDistortion.has_value()) {
+        setParameter(K, meta.radialDistortion.value()[0]);
     }
     else {
         setParameter(K, 0.);
@@ -25,8 +25,7 @@ void DivisionUndistortionCameraModel::setFromMetaData(
 CameraMetaData DivisionUndistortionCameraModel::toMetaData() const
 {
     auto meta = Parent::toMetaData();
-    meta.radial_distortion.is_set = true;
-    meta.radial_distortion.value[0] = radialDistortion1();
+    meta.radialDistortion = {k(), 0., 0., 0.};
 
     return meta;
 }
