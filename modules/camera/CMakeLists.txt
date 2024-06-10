@@ -6,13 +6,11 @@ add_library(${CAMERA_TARGET_NAME})
 add_library(${NS_PREFIX}::${CAMERA_TARGET_NAME} ALIAS ${CAMERA_TARGET_NAME})
 
 file(GLOB CAMERA_INTERNAL_HEADERS
-    src/simple/*.h
-
+    src/geometric/*.h
     src/*.h
 )
 file(GLOB CAMERA_SOURCES
-    src/simple/*.cpp
-
+    src/geometric/*.cpp
     src/*.cpp
 )
 
