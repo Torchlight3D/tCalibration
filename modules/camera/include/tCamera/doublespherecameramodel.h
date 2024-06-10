@@ -1,1 +1,1 @@
-#include "../../src/simple/double_sphere_camera_model.h"
+#include "../../src/geometric/double_sphere_camera_model.h"

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "camodocal/Camera.h"
-#include "simple/camera.h"
+#include "geometric/camera.h"
 
 namespace tl {
 

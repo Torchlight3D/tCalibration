@@ -1,1 +1,1 @@
-#include "../../src/simple/camera_meta_data.h"
+#include "../../src/geometric/camera_meta_data.h"

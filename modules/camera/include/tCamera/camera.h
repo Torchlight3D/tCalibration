@@ -1,1 +1,1 @@
-#include "../../src/simple/camera.h"
+#include "../../src/geometric/camera.h"

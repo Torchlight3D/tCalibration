@@ -1,1 +1,1 @@
-#include "../../src/simple/omnidirectional_camera_model.h"
+#include "../../src/geometric/omnidirectional_camera_model.h"
