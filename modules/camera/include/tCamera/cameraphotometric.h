@@ -1,0 +1,1 @@
+#include "../../src/photometric/cameraphotometric.h"
