@@ -15,24 +15,21 @@ void OrthographicCameraModel::setFromMetaData(const CameraMetaData& meta)
 {
     Parent::setFromMetaData(meta);
 
-    if (meta.skew.is_set) {
-        setParameter(Skew, meta.skew.value[0]);
+    if (meta.skew.has_value()) {
+        setParameter(Skew, meta.skew.value()[0]);
     }
 
-    if (meta.radial_distortion.is_set) {
-        setParameter(K1, meta.radial_distortion.value[0]);
-        setParameter(K2, meta.radial_distortion.value[1]);
+    if (meta.radialDistortion.has_value()) {
+        setParameter(K1, meta.radialDistortion.value()[0]);
+        setParameter(K2, meta.radialDistortion.value()[1]);
     }
 }
 
 CameraMetaData OrthographicCameraModel::toMetaData() const
 {
     auto meta = Parent::toMetaData();
-    meta.skew.is_set = true;
-    meta.skew.value[0] = skew();
-    meta.radial_distortion.is_set = true;
-    meta.radial_distortion.value[0] = radialDistortion1();
-    meta.radial_distortion.value[1] = radialDistortion2();
+    meta.skew = {skew()};
+    meta.radialDistortion = {k1(), k2(), 0., 0.};
 
     return meta;
 }

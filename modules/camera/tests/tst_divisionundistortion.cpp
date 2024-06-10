@@ -71,38 +71,37 @@ TEST(DivisionUndistortionCameraModel, CameraParameterGettersAndSetters)
 
 TEST(DivisionUndistortionCameraModel, SetFromCameraMetaData)
 {
-    // Test to ensure that the camera intrinsics are being set appropriately.
     auto TestCameraSetFromMeta = [](const CameraMetaData& meta) {
         const DivisionUndistortionCameraModel default_camera;
 
         DivisionUndistortionCameraModel camera;
         camera.setFromMetaData(meta);
 
-        if (meta.focal_length.is_set) {
-            EXPECT_EQ(camera.focalLength(), meta.focal_length.value[0]);
+        if (meta.focalLength.has_value()) {
+            EXPECT_EQ(camera.focalLength(), meta.focalLength.value()[0]);
         }
         else {
             EXPECT_EQ(camera.focalLength(), default_camera.focalLength());
         }
 
-        if (meta.principal_point.is_set) {
-            EXPECT_EQ(camera.principalPointX(), meta.principal_point.value[0]);
-            EXPECT_EQ(camera.principalPointY(), meta.principal_point.value[1]);
+        if (meta.aspectRatio.has_value()) {
+            EXPECT_EQ(camera.aspectRatio(), meta.aspectRatio.value()[0]);
+        }
+        else {
+            EXPECT_EQ(camera.aspectRatio(), default_camera.aspectRatio());
+        }
+
+        if (meta.principalPoint.has_value()) {
+            EXPECT_EQ(camera.cx(), meta.cx());
+            EXPECT_EQ(camera.cy(), meta.cy());
         }
         else {
             EXPECT_EQ(camera.cx(), default_camera.cx());
             EXPECT_EQ(camera.cy(), default_camera.cy());
         }
 
-        if (meta.aspect_ratio.is_set) {
-            EXPECT_EQ(camera.aspectRatio(), meta.aspect_ratio.value[0]);
-        }
-        else {
-            EXPECT_EQ(camera.aspectRatio(), default_camera.aspectRatio());
-        }
-
-        if (meta.radial_distortion.is_set) {
-            EXPECT_EQ(camera.k(), meta.radial_distortion.value[0]);
+        if (meta.radialDistortion.has_value()) {
+            EXPECT_EQ(camera.k(), meta.radialDistortion.value()[0]);
         }
         else {
             EXPECT_EQ(camera.k(), default_camera.k());
@@ -110,24 +109,18 @@ TEST(DivisionUndistortionCameraModel, SetFromCameraMetaData)
     };
 
     CameraMetaData meta;
-    meta.focal_length.value[0] = 1000.0;
-    meta.principal_point.value[0] = 400.0;
-    meta.principal_point.value[1] = 300.0;
-    meta.aspect_ratio.value[0] = 1.01;
-    meta.radial_distortion.value[0] = -0.01;
-
     TestCameraSetFromMeta(meta);
 
-    meta.focal_length.is_set = true;
+    meta.focalLength = {1000.};
     TestCameraSetFromMeta(meta);
 
-    meta.principal_point.is_set = true;
+    meta.aspectRatio = {1.01};
     TestCameraSetFromMeta(meta);
 
-    meta.aspect_ratio.is_set = true;
+    meta.principalPoint = {400., 300.};
     TestCameraSetFromMeta(meta);
 
-    meta.radial_distortion.is_set = true;
+    meta.radialDistortion = {-0.01};
     TestCameraSetFromMeta(meta);
 }
 

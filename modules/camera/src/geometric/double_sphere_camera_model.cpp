@@ -15,24 +15,21 @@ void DoubleSphereCameraModel::setFromMetaData(const CameraMetaData& meta)
 {
     Parent::setFromMetaData(meta);
 
-    if (meta.skew.is_set) {
-        setParameter(Skew, meta.skew.value[0]);
+    if (meta.skew.has_value()) {
+        setParameter(Skew, meta.skew.value()[0]);
     }
 
-    if (meta.radial_distortion.is_set) {
-        setParameter(Alpha, meta.radial_distortion.value[0]);
-        setParameter(Xi, meta.radial_distortion.value[1]);
+    if (meta.radialDistortion.has_value()) {
+        setParameter(Alpha, meta.radialDistortion.value()[0]);
+        setParameter(Xi, meta.radialDistortion.value()[1]);
     }
 }
 
 CameraMetaData DoubleSphereCameraModel::toMetaData() const
 {
     auto meta = Parent::toMetaData();
-    meta.skew.is_set = true;
-    meta.skew.value[0] = skew();
-    meta.radial_distortion.is_set = true;
-    meta.radial_distortion.value[0] = alpha();
-    meta.radial_distortion.value[1] = xi();
+    meta.skew = {skew()};
+    meta.radialDistortion = {alpha(), xi(), 0., 0.};
 
     return meta;
 }

@@ -1,5 +1,7 @@
 ﻿#pragma once
 
+#include <tMath/Eigen/Types>
+
 #include "camera_intrinsics.h"
 
 namespace tl {

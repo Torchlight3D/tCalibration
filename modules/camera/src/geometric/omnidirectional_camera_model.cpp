@@ -17,29 +17,23 @@ void OmnidirectionalCameraModel::setFromMetaData(const CameraMetaData& meta)
 {
     Parent::setFromMetaData(meta);
 
-    if (meta.radial_distortion.is_set) {
-        setParameter(K1, meta.radial_distortion.value[0]);
-        setParameter(K2, meta.radial_distortion.value[1]);
-        setParameter(Xi, meta.radial_distortion.value[2]);
+    if (meta.radialDistortion.has_value()) {
+        setParameter(K1, meta.radialDistortion.value()[0]);
+        setParameter(K2, meta.radialDistortion.value()[1]);
+        setParameter(Xi, meta.radialDistortion.value()[2]);
     }
 
-    if (meta.tangential_distortion.is_set) {
-        setParameter(P1, meta.tangential_distortion.value[0]);
-        setParameter(P2, meta.tangential_distortion.value[1]);
+    if (meta.tangentialDistortion.has_value()) {
+        setParameter(P1, meta.tangentialDistortion.value()[0]);
+        setParameter(P2, meta.tangentialDistortion.value()[1]);
     }
 }
 
 CameraMetaData OmnidirectionalCameraModel::toMetaData() const
 {
     auto meta = Parent::toMetaData();
-    meta.radial_distortion.is_set = true;
-    meta.radial_distortion.value[0] = radialDistortion1();
-    meta.radial_distortion.value[1] = radialDistortion2();
-    // Put mirror parameter in radial distortion
-    meta.radial_distortion.value[2] = mirrorDistortion();
-    meta.tangential_distortion.is_set = true;
-    meta.tangential_distortion.value[0] = tangentialDistortion1();
-    meta.tangential_distortion.value[1] = tangentialDistortion2();
+    meta.radialDistortion = {k1(), k2(), xi(), 0.};
+    meta.tangentialDistortion = {p1(), p2()};
 
     return meta;
 }

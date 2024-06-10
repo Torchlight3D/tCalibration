@@ -20,34 +20,28 @@ void PinholeRadialTangentialCameraModel::setFromMetaData(
 {
     Parent::setFromMetaData(meta);
 
-    if (meta.skew.is_set) {
-        setParameter(Skew, meta.skew.value[0]);
+    if (meta.skew.has_value()) {
+        setParameter(Skew, meta.skew.value()[0]);
     }
 
-    if (meta.radial_distortion.is_set) {
-        setParameter(K1, meta.radial_distortion.value[0]);
-        setParameter(K2, meta.radial_distortion.value[1]);
-        setParameter(K3, meta.radial_distortion.value[2]);
+    if (meta.radialDistortion.has_value()) {
+        setParameter(K1, meta.radialDistortion.value()[0]);
+        setParameter(K2, meta.radialDistortion.value()[1]);
+        setParameter(K3, meta.radialDistortion.value()[2]);
     }
 
-    if (meta.tangential_distortion.is_set) {
-        setParameter(T1, meta.tangential_distortion.value[0]);
-        setParameter(T2, meta.tangential_distortion.value[1]);
+    if (meta.tangentialDistortion.has_value()) {
+        setParameter(T1, meta.tangentialDistortion.value()[0]);
+        setParameter(T2, meta.tangentialDistortion.value()[1]);
     }
 }
 
 CameraMetaData PinholeRadialTangentialCameraModel::toMetaData() const
 {
     auto meta = Parent::toMetaData();
-    meta.skew.is_set = true;
-    meta.skew.value[0] = skew();
-    meta.radial_distortion.is_set = true;
-    meta.radial_distortion.value[0] = radialDistortion1();
-    meta.radial_distortion.value[1] = radialDistortion2();
-    meta.radial_distortion.value[2] = radialDistortion3();
-    meta.tangential_distortion.is_set = true;
-    meta.tangential_distortion.value[0] = tangentialDistortion1();
-    meta.tangential_distortion.value[1] = tangentialDistortion2();
+    meta.skew = {skew()};
+    meta.radialDistortion = {k1(), k2(), k3(), 0.};
+    meta.tangentialDistortion = {t1(), t2()};
 
     return meta;
 }
