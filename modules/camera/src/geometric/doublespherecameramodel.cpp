@@ -1,4 +1,4 @@
-﻿#include "double_sphere_camera_model.h"
+﻿#include "doublespherecameramodel.h"
 
 #include <tCamera/CameraMatrixUtils>
 

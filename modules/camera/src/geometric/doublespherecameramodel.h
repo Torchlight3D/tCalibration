@@ -2,7 +2,7 @@
 
 #include <ceres/ceres.h>
 
-#include "camera_intrinsics.h"
+#include "cameraintrinsics.h"
 
 namespace tl {
 
@@ -126,11 +126,11 @@ bool DoubleSphereCameraModel::distortPoint(const T* intrinsics, const T* pt_u,
     const T rr = xx + yy;
 
     const T d1_2 = rr + zz;
-    const T d1 = ceres::sqrt(d1_2);
+    const T d1 = sqrt(d1_2);
 
     const T w1 =
         alpha > T(0.5) ? (T(1) - alpha) / alpha : alpha / (T(1) - alpha);
-    const T w2 = (w1 + xi) / ceres::sqrt(T(2) * w1 * xi + xi * xi + T(1));
+    const T w2 = (w1 + xi) / sqrt(T(2) * w1 * xi + xi * xi + T(1));
 
     if (pt_u[2] <= -w2 * d1) {
         return false;
@@ -140,7 +140,7 @@ bool DoubleSphereCameraModel::distortPoint(const T* intrinsics, const T* pt_u,
     const T kk = k * k;
 
     const T d2_2 = rr + kk;
-    const T d2 = ceres::sqrt(d2_2);
+    const T d2 = sqrt(d2_2);
 
     const T norm = alpha * d2 + (T(1) - alpha) * k;
 
@@ -168,7 +168,7 @@ bool DoubleSphereCameraModel::undistortPoint(const T* intrinsics, const T* pt_d,
     const T xi2_2 = alpha * alpha;
     const T xi1_2 = xi * xi;
 
-    const T sqrt2 = ceres::sqrt(T(1) - (T(2) * alpha - T(1)) * rr);
+    const T sqrt2 = sqrt(T(1) - (T(2) * alpha - T(1)) * rr);
 
     const T norm2 = alpha * sqrt2 + T(1) - alpha;
 
@@ -176,7 +176,7 @@ bool DoubleSphereCameraModel::undistortPoint(const T* intrinsics, const T* pt_d,
     const T mz2 = mz * mz;
 
     const T norm1 = mz2 + rr;
-    const T sqrt1 = ceres::sqrt(mz2 + (T(1) - xi1_2) * rr);
+    const T sqrt1 = sqrt(mz2 + (T(1) - xi1_2) * rr);
     const T k = (mz * xi + sqrt1) / norm1;
 
     pt_u[0] = k * pt_d[0];

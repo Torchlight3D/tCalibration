@@ -1,4 +1,4 @@
-﻿#include "division_undistortion_camera_model.h"
+﻿#include "divisionundistortioncameramodel.h"
 
 #include <tCamera/CameraMatrixUtils>
 

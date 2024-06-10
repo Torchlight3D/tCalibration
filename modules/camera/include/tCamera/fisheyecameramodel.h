@@ -1,1 +1,1 @@
-#include "../../src/geometric/fisheye_camera_model.h"
+#include "../../src/geometric/fisheyecameramodel.h"

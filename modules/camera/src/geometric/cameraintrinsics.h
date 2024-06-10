@@ -10,7 +10,7 @@
 
 #include <tCamera/Types>
 
-#include "camera_meta_data.h"
+#include "camerametadata.h"
 
 namespace tl {
 

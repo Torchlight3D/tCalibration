@@ -1,8 +1,6 @@
 ﻿#pragma once
 
-#include <ceres/ceres.h>
-
-#include "camera_intrinsics.h"
+#include "cameraintrinsics.h"
 
 namespace tl {
 
@@ -137,7 +135,7 @@ bool FovCameraModel::distortPoint(const T* intrinsics, const T* pt_u, T* pt_d)
         // factor(radius) = tan(radius * omega) / ...
         //                  (radius * 2*tan(omega/2));
         // simplify(taylor(factor, radius, 'order', 3))
-        const T tan_half_omega = ceres::tan(omega / T(2));
+        const T tan_half_omega = tan(omega / T(2));
         r_d = (-T(2) * tan_half_omega *
                (T(4) * rr * tan_half_omega * tan_half_omega - T(3))) /
               (T(3) * omega);
@@ -145,9 +143,8 @@ bool FovCameraModel::distortPoint(const T* intrinsics, const T* pt_u, T* pt_d)
     else {
         // Compute the radius of the distorted image point based on the FOV
         // model equations.
-        const T r_u = ceres::sqrt(rr);
-        r_d =
-            ceres::atan(T(2) * r_u * ceres::tan(omega / T(2))) / (r_u * omega);
+        const T r_u = sqrt(rr);
+        r_d = atan(T(2) * r_u * tan(omega / T(2))) / (r_u * omega);
     }
 
     // Compute the radius of the distorted image point based on the FOV model
@@ -189,14 +186,13 @@ bool FovCameraModel::undistortPoint(const T* intrinsics, const T* pt_d, T* pt_u)
         // factor(radius) = tan(radius * omega) / ...
         //                  (radius * 2*tan(omega/2));
         // simplify(taylor(factor, radius, 'order', 3))
-        r_u =
-            (omega * (omega_2 * rr + T(3))) / (T(6) * ceres::tan(omega / T(2)));
+        r_u = (omega * (omega_2 * rr + T(3))) / (T(6) * tan(omega / T(2)));
     }
     else {
         // Compute the radius of the distorted image point based on the FOV
         // model equations.
-        const T rd = ceres::sqrt(rr);
-        r_u = ceres::tan(rd * omega) / (T(2) * rd * ceres::tan(omega / T(2)));
+        const T rd = sqrt(rr);
+        r_u = tan(rd * omega) / (T(2) * rd * tan(omega / T(2)));
     }
 
     pt_u[0] = r_u * pt_d[0];

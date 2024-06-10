@@ -1,17 +1,17 @@
-#include "reprojection_error.h"
+#include "reprojectionerror.h"
 
 #include <ceres/rotation.h>
 
 #include "camera.h"
-#include "division_undistortion_camera_model.h"
-#include "double_sphere_camera_model.h"
-#include "extended_unified_camera_model.h"
-#include "fisheye_camera_model.h"
-#include "fov_camera_model.h"
-#include "pinhole_camera_model.h"
-#include "pinhole_radial_tangential_camera_model.h"
-#include "omnidirectional_camera_model.h"
-#include "orthographic_camera_model.h"
+#include "divisionundistortioncameramodel.h"
+#include "doublespherecameramodel.h"
+#include "extendedunifiedcameramodel.h"
+#include "fisheyecameramodel.h"
+#include "fovcameramodel.h"
+#include "pinholecameramodel.h"
+#include "pinholeradialtangentialcameramodel.h"
+#include "omnidirectionalcameramodel.h"
+#include "orthographiccameramodel.h"
 
 namespace tl {
 

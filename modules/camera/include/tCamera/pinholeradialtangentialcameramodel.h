@@ -1,1 +1,1 @@
-#include "../../src/geometric/pinhole_radial_tangential_camera_model.h"
+#include "../../src/geometric/pinholeradialtangentialcameramodel.h"

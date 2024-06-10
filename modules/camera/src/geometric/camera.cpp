@@ -12,7 +12,7 @@
 #include <tCore/Math>
 #include <tMath/Eigen/Utils>
 
-#include "pinhole_camera_model.h"
+#include "pinholecameramodel.h"
 
 namespace tl {
 
