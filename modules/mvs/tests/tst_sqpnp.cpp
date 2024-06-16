@@ -176,9 +176,9 @@ TEST(SQPnP, ManyPoints)
             Vector3dList points_3d;
             points_3d.reserve(num_points[j]);
             for (int k = 0; k < num_points[j]; k++) {
-                points_3d.push_back(Vector3d(rng.RandDouble(-5.0, 5.0),
-                                             rng.RandDouble(-5.0, 5.0),
-                                             rng.RandDouble(2.0, 10.0)));
+                points_3d.push_back(Vector3d(rng.randFloat(-5.0, 5.0),
+                                             rng.randFloat(-5.0, 5.0),
+                                             rng.randFloat(2.0, 10.0)));
             }
 
             TestSQPnPWithNoise(points_3d, kNoise, soln_rotation,

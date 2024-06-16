@@ -7,7 +7,7 @@ target_sources(${MATH_TEST_TARGET}
         test_utils.h
         tst_brent.cpp
         tst_eigen.cpp
-        tst_exhaustive_ransac.cpp
+        tst_exhaustiveransac.cpp
         tst_lmed.cpp
         tst_prosac.cpp
         tst_ransac.cpp

@@ -154,7 +154,7 @@ void ReprojectionTest(const Camera& camera)
         // Get the normalized ray of that pixel.
         const Vector3d normalized_ray = camera.pixelToUnitDepthRay(pixel);
 
-        const double random_depth = kRNG.RandDouble(0.01, 100.0);
+        const double random_depth = kRNG.randFloat(0.01, 100.0);
         const Vector4d random_point =
             (camera.position() + normalized_ray * random_depth).homogeneous();
 

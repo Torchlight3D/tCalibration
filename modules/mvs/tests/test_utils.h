@@ -15,8 +15,8 @@ inline void AddNoiseToProjection(double factor, RandomNumberGenerator* rng,
                                  Vector2d* ray)
 {
     //    CHECK_NOTNULL(rng);
-    *ray += Vector2d(rng->RandDouble(-factor, factor),
-                     rng->RandDouble(-factor, factor));
+    *ray += Vector2d(rng->randFloat(-factor, factor),
+                     rng->randFloat(-factor, factor));
 }
 
 inline Eigen::Matrix3d RandomRotation(double max_degrees_from_identity)

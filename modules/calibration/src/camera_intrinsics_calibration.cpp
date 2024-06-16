@@ -14,7 +14,7 @@
 #include <tCamera/ExtendedUnifiedCameraModel>
 #include <tCamera/OmnidirectionalCameraModel>
 #include <tCore/TimeUtils>
-#include <tMath/RANSAC/SampleConsensus>
+#include <tMath/Ransac/SampleConsensus>
 #include <tMvs/BundleAdjustment>
 #include <tMvs/Feature>
 #include <tMvs/Landmark>

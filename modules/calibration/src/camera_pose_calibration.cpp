@@ -6,7 +6,7 @@
 
 #include <tCore/ContainerUtils>
 #include <tCore/TimeUtils>
-#include <tMath/RANSAC/SampleConsensus>
+#include <tMath/Ransac/SampleConsensus>
 #include <tMath/Solvers/LossFunction>
 #include <tMvs/BundleAdjustment>
 #include <tMvs/Feature>

@@ -1,46 +1,33 @@
 ﻿#include "random.h"
 
 #include <chrono>
-#include <random>
 
 namespace tl {
 
-namespace {
-std::mt19937 kRNG;
-} // namespace
-
 RandomNumberGenerator::RandomNumberGenerator()
+    : RandomNumberGenerator(static_cast<size_t>(
+          std::chrono::system_clock::now().time_since_epoch().count()))
 {
-    auto seed = std::chrono::system_clock::now().time_since_epoch().count();
-    kRNG.seed(seed);
 }
 
-RandomNumberGenerator::RandomNumberGenerator(unsigned seed) { kRNG.seed(seed); }
-
-void RandomNumberGenerator::Seed(unsigned seed) const { kRNG.seed(seed); }
-
-double RandomNumberGenerator::RandDouble(double lower, double upper) const
+RandomNumberGenerator::RandomNumberGenerator(size_t seed)
+    : _rng(std::random_device{}())
 {
-    std::uniform_real_distribution<double> distribution{lower, upper};
-    return distribution(kRNG);
+    this->seed(seed);
 }
 
-float RandomNumberGenerator::RandFloat(float lower, float upper) const
+RandomNumberGenerator& RandomNumberGenerator::theRNG(
+    const std::optional<size_t>& seed)
 {
-    std::uniform_real_distribution<float> distribution{lower, upper};
-    return distribution(kRNG);
+    static RandomNumberGenerator kRNG;
+
+    if (seed.has_value()) {
+        kRNG.seed(seed.value());
+    }
+
+    return kRNG;
 }
 
-int RandomNumberGenerator::RandInt(int lower, int upper) const
-{
-    std::uniform_int_distribution<int> distribution{lower, upper};
-    return distribution(kRNG);
-}
-
-double RandomNumberGenerator::RandGaussian(double mean, double stddev) const
-{
-    std::normal_distribution<double> distribution{mean, stddev};
-    return distribution(kRNG);
-}
+void RandomNumberGenerator::seed(size_t seed) { _rng.seed(seed); }
 
 } // namespace tl

@@ -5,7 +5,7 @@
 #include <tCore/Math>
 #include <tCore/RandomGenerator>
 #include <tMath/Eigen/Utils>
-#include <tMath/RANSAC/SampleConsensus>
+#include <tMath/Ransac/SampleConsensus>
 #include <tMvs/PnP/EstimateUncalibratedAbsolutePose>
 #include <tMvs/Feature>
 
@@ -38,8 +38,8 @@ inline void ExecuteRandomTest(const SacParameters& options,
     for (int i = 0; i < kNumPoints; i++) {
         Feature2D3D correspondence;
         correspondence.world_point =
-            Vector3d(kRNG.RandDouble(-2.0, 2.0), kRNG.RandDouble(-2.0, 2.0),
-                     kRNG.RandDouble(6.0, 10.0));
+            Vector3d(kRNG.randFloat(-2.0, 2.0), kRNG.randFloat(-2.0, 2.0),
+                     kRNG.randFloat(6.0, 10.0));
 
         // Add an inlier or outlier.
         if (i < inlier_ratio * kNumPoints) {
@@ -51,8 +51,8 @@ inline void ExecuteRandomTest(const SacParameters& options,
         }
         else {
             correspondence.feature =
-                kFocalLength * Vector2d(kRNG.RandDouble(-1.0, 1.0),
-                                        kRNG.RandDouble(-1.0, 1.0));
+                kFocalLength *
+                Vector2d(kRNG.randFloat(-1.0, 1.0), kRNG.randFloat(-1.0, 1.0));
         }
         correspondences.emplace_back(correspondence);
     }

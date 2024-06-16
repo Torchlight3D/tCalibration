@@ -1,22 +1,23 @@
 ﻿#pragma once
 
-#include "exhaustive_ransac.h"
+#include <tMath/Types>
+
+#include "exhaustiveransac.h"
 #include "lmed.h"
 #include "prosac.h"
 #include "ransac.h"
 
-#include <tMath/Types>
-
 namespace tl {
 
+// TODO: How to use template factory
 template <class Estimator>
-std::unique_ptr<SampleConsensusEstimator<Estimator>> createRansac(
+std::unique_ptr<SampleConsensus<Estimator>> createRansac(
     RansacType type, const SacParameters& params, const Estimator& estimator)
 {
-    std::unique_ptr<SampleConsensusEstimator<Estimator>> sac;
+    std::unique_ptr<SampleConsensus<Estimator>> sac;
     switch (type) {
         case RansacType::RANSAC:
-            sac.reset(new Ransac<Estimator>(params, estimator));
+            sac.reset(new RANSAC<Estimator>(params, estimator));
             break;
         case RansacType::PROSAC:
             sac.reset(new Prosac<Estimator>(params, estimator));
@@ -28,11 +29,12 @@ std::unique_ptr<SampleConsensusEstimator<Estimator>> createRansac(
             sac.reset(new ExhaustiveRansac<Estimator>(params, estimator));
             break;
         default:
-            sac.reset(new Ransac<Estimator>(params, estimator));
+            sac.reset(new RANSAC<Estimator>(params, estimator));
             break;
     }
 
     CHECK(sac->Initialize()) << "Failed to initialize ransac estimator";
+
     return sac;
 }
 

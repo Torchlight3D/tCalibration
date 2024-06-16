@@ -1,35 +1,75 @@
 ﻿#pragma once
 
+#include <concepts>
+#include <optional>
+#include <random>
+
 namespace tl {
 
-// A wrapper around the std random generator with default engine mt19937
+template <typename T>
+concept ArithmeticType = std::is_arithmetic_v<T>;
+
+// A wrapper around the std random generator. Default engine mt19937
 class RandomNumberGenerator
 {
 public:
     RandomNumberGenerator();
-    explicit RandomNumberGenerator(unsigned int seed);
+    explicit RandomNumberGenerator(size_t seed);
 
-    void Seed(unsigned int seed) const;
+    static RandomNumberGenerator& theRNG(
+        const std::optional<size_t>& seed = {});
 
-    double RandDouble(double lower, double upper) const;
-    inline auto Rand(double lower, double upper) const
+    void seed(size_t seed);
+
+    template <std::integral T>
+    inline T randInt(T min, T max)
     {
-        return RandDouble(lower, upper);
+        std::uniform_int_distribution<T> distribution{min, max};
+        return distribution(_rng);
     }
 
-    float RandFloat(float lower, float upper) const;
-    inline auto Rand(float lower, float upper) const
+    template <std::signed_integral T>
+    inline T randInt()
     {
-        return RandFloat(lower, upper);
+        return randInt(T(-1), T(1));
     }
 
-    int RandInt(int lower, int upper) const;
-    inline auto Rand(int lower, int upper) const
+    template <std::floating_point T>
+    inline T randFloat(T min, T max)
     {
-        return RandInt(lower, upper);
+        std::uniform_real_distribution<T> distribution{min, max};
+        return distribution(_rng);
     }
 
-    double RandGaussian(double mean, double stddev) const;
+    template <std::floating_point T>
+    inline T randFloat()
+    {
+        return randFloat(T(-1), T(1));
+    }
+
+    template <ArithmeticType T>
+    inline T rand(T min, T max)
+    {
+        if constexpr (std::signed_integral<T>) {
+            return randInt(min, max);
+        }
+
+        if constexpr (std::floating_point<T>) {
+            return randFloat(min, max);
+        }
+
+        // TODO: Return something here? But it's impossible to arrive here.
+    }
+
+    template <std::floating_point T>
+    inline T randNorm(T mean, T sigma)
+    {
+        std::normal_distribution<T> distribution{mean, sigma};
+        return distribution(_rng);
+    }
+
+private:
+    std::mt19937_64 _rng;
 };
 
 } // namespace tl

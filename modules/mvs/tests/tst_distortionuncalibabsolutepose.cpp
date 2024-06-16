@@ -5,7 +5,7 @@
 #include <tCore/Math>
 #include <tCore/RandomGenerator>
 #include <tMath/Eigen/Utils>
-#include <tMath/RANSAC/SampleConsensus>
+#include <tMath/Ransac/SampleConsensus>
 #include <tMvs/PnP/EstimateRadialDistortionUncalibratedAbsolutePose>
 #include <tMvs/Feature>
 
@@ -63,8 +63,8 @@ inline void ExecuteRandomTest(const SacParameters& options,
     for (int i = 0; i < kNumPoints; i++) {
         Feature2D3D corr;
         corr.world_point =
-            Vector3d(kRNG.RandDouble(-5., 5.), kRNG.RandDouble(-5., 5.),
-                     kRNG.RandDouble(3., 10.));
+            Vector3d(kRNG.randFloat(-5., 5.), kRNG.randFloat(-5., 5.),
+                     kRNG.randFloat(3., 10.));
 
         const Matrix3d K =
             Vector3d(kFocalLength, kFocalLength, 1.0).asDiagonal();
@@ -81,7 +81,7 @@ inline void ExecuteRandomTest(const SacParameters& options,
         }
         else {
             corr.feature =
-                Vector2d(kRNG.RandDouble(-1., 1.), kRNG.RandDouble(-1., 1.));
+                Vector2d(kRNG.randFloat(-1., 1.), kRNG.randFloat(-1., 1.));
         }
 
         corres.emplace_back(corr);

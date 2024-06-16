@@ -2,7 +2,7 @@
 
 #include <cmath>
 
-#include <tMath/RANSAC/ModelEstimator>
+#include <tMath/Ransac/RansacModelEstimator>
 
 namespace tl {
 
@@ -26,16 +26,17 @@ struct Line
     constexpr Line(double m, double b) : m(m), b(b) {}
 };
 
-class LineEstimator : public Estimator<Point, Line>
+class LineEstimator : public RansacModelEstimator<Point, Line>
 {
+    using Base = RansacModelEstimator<Point, Line>;
+
 public:
-    LineEstimator() {}
-    ~LineEstimator() {}
+    using Base::Base;
 
-    int SampleSize() const override { return 2; }
+    size_t SampleSize() const override { return 2; }
 
-    bool EstimateModel(const std::vector<Point> &data,
-                       std::vector<Line> *models) const override
+    bool EstimateModel(const std::vector<Point>& data,
+                       std::vector<Line>* models) const override
     {
         Line model;
         model.m = (data[1].y - data[0].y) / (data[1].x - data[0].x);
@@ -44,12 +45,12 @@ public:
         return true;
     }
 
-    double Error(const Point &point, const Line &line) const override
+    double Error(const Point& point, const Line& line) const override
     {
         double a = -1.0 * line.m;
         double b = 1.0;
         double c = -1.0 * line.b;
-        return std::fabs(a * point.x + b * point.y + c) /
+        return std::abs(a * point.x + b * point.y + c) /
                std::sqrt(a * a + b * b);
     }
 };

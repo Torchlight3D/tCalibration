@@ -178,9 +178,9 @@ TEST(DlsPnp, ManyPoints)
             Vector3dList points_3d;
             points_3d.reserve(num_points[j]);
             for (int k = 0; k < num_points[j]; k++) {
-                points_3d.push_back(Vector3d(kRNG.RandDouble(-5., 5.),
-                                             kRNG.RandDouble(-5., 5.),
-                                             kRNG.RandDouble(2., 10.)));
+                points_3d.push_back(Vector3d(kRNG.randFloat(-5., 5.),
+                                             kRNG.randFloat(-5., 5.),
+                                             kRNG.randFloat(2., 10.)));
             }
 
             TestDlsPnpWithNoise(points_3d, kNoise, soln_rotation,

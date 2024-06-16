@@ -2,8 +2,8 @@
 
 #include <Eigen/Dense>
 
-#include <tMath/RANSAC/RansacCreator>
-#include <tMath/RANSAC/RansacModelEstimator>
+#include <tMath/Ransac/RansacCreator>
+#include <tMath/Ransac/RansacModelEstimator>
 #include <tMvs/PnP/P4PFocalLengthDistortion>
 #include <tMvs/Feature>
 
@@ -42,17 +42,17 @@ void DistortPoint(const Vector2d& point2d, double distortion,
 // correspondences. The feature correspondences should be normalized such that
 // the principal point is at (0, 0).
 class RadialDistUncalibratedAbsolutePoseEstimator
-    : public Estimator<Feature2D3D, RadialDistUncalibratedAbsolutePose>
+    : public RansacModelEstimator<Feature2D3D,
+                                  RadialDistUncalibratedAbsolutePose>
 {
-    using Base = Estimator<Feature2D3D, RadialDistUncalibratedAbsolutePose>;
+    using Base =
+        RansacModelEstimator<Feature2D3D, RadialDistUncalibratedAbsolutePose>;
 
 public:
     using Base::Base;
 
-    // 4 correspondences are needed to determine the absolute pose.
-    int SampleSize() const override { return 4; }
+    size_t SampleSize() const override { return 4; }
 
-    // Estimates candidate absolute poses from correspondences.
     bool EstimateModel(
         const std::vector<Feature2D3D>& corres,
         std::vector<RadialDistUncalibratedAbsolutePose>* poses) const override

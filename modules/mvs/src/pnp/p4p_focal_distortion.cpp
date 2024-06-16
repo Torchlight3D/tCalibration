@@ -124,8 +124,8 @@ bool FourPointsPoseFocalLengthRadialDistortion(
 
     // Use random rotation to make the solver more stable
     static RandomNumberGenerator rng(42);
-    Vector3d rvec(rng.RandDouble(-0.5, 0.5), rng.RandDouble(-0.5, 0.5),
-                  rng.RandDouble(-0.5, 0.5));
+    Vector3d rvec(rng.randFloat(-0.5, 0.5), rng.randFloat(-0.5, 0.5),
+                  rng.randFloat(-0.5, 0.5));
     AngleAxisd random_rot(rvec.norm(), rvec);
     N.leftCols<3>() *= random_rot.toRotationMatrix();
     Vector8d x0 =

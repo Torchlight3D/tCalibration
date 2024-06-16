@@ -40,8 +40,8 @@ inline void TestOptimizeView(int numPoints, double pixelNoise)
 
     // Set up random points
     for (int i = 0; i < numPoints; i++) {
-        const Vector3d point{kRNG.RandDouble(-5., 5.), kRNG.RandDouble(-5., 5.),
-                             kRNG.RandDouble(4., 10.)};
+        const Vector3d point{kRNG.randFloat(-5., 5.), kRNG.randFloat(-5., 5.),
+                             kRNG.randFloat(4., 10.)};
         const auto trackId = scene.addTrack();
         scene.rTrack(trackId)->setPosition(point.homogeneous());
         scene.rTrack(trackId)->setEstimated(true);
