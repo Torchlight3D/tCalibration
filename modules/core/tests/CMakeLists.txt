@@ -7,6 +7,7 @@ target_sources(${CORE_TEST_TARGET}
         tst_bimap.cpp
         tst_channel.cpp
         tst_container.cpp
+        tst_registerer.cpp
         tst_string.cpp
         tst_templatefactory.cpp
         tst_threadpool.cpp
@@ -21,6 +22,8 @@ target_link_libraries(${CORE_TEST_TARGET}
         ${NS_PREFIX}::Core
         GTest::gtest
         GTest::gtest_main
+        # GTest::gmock
+        # GTest::gmock_main
 )
 
 gtest_discover_tests(${CORE_TEST_TARGET}
