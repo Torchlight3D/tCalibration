@@ -4,7 +4,7 @@
 #include <tCore/Math>
 #include <tCore/RandomGenerator>
 #include <tMath/Eigen/Utils>
-#include <tMath/RANSAC/SampleConsensus>
+#include <tMath/Ransac/SampleConsensus>
 #include <tMvs/PnP/EstimateCalibratedAbsolutePose>
 #include <tMvs/Feature>
 #include <tMvs/Types>
@@ -39,8 +39,8 @@ void ExecuteRandomTest(const SacParameters& options, const Matrix3d& rotation,
     for (int i = 0; i < kNumPoints; i++) {
         Feature2D3D correspondence;
         correspondence.world_point =
-            Vector3d(kRNG.RandDouble(-2.0, 2.0), kRNG.RandDouble(-2.0, 2.0),
-                     kRNG.RandDouble(6.0, 10.0));
+            Vector3d(kRNG.randFloat(-2.0, 2.0), kRNG.randFloat(-2.0, 2.0),
+                     kRNG.randFloat(6.0, 10.0));
 
         // Add an inlier or outlier.
         if (i < inlier_ratio * kNumPoints) {

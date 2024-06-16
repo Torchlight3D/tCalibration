@@ -1,52 +1,61 @@
-#include <random>
-
 #include <gtest/gtest.h>
 
-#include <tMath/RANSAC/Prosac>
+#include <tCore/RandomGenerator>
+#include <tMath/Ransac/Prosac>
 
 #include "test_utils.h"
 
 using namespace tl;
 
-TEST(ProsacTest, LineFitting)
+class ProsacFitLine : public ::testing::Test
 {
-    // TODO:
-    // 1. use AxMath/RandomGenerator
-    // 2. use Fixture
+protected:
+    void SetUp() override
+    {
+        // Prepare data
+        // Create a set of points along y=x with a small random pertubation.
+        constexpr size_t kNumPoint{10000};
 
-    // Create a set of points along y=x with a small random pertubation.
-    std::default_random_engine generator(90);
-    std::normal_distribution<double> small_distribution(0.0, 0.05);
-    std::normal_distribution<double> gauss_distribution(0.0, 0.5);
-    constexpr int num_points = 10000;
-    std::vector<Point> input_points(num_points);
-    std::vector<double> confidence(num_points);
+        _points.clear();
+        _confidences.clear();
 
-    for (int i = 0; i < num_points; ++i) {
-        if (i < 300) {
-            double noise_x = small_distribution(generator);
-            double noise_y = small_distribution(generator);
-            input_points[i] = Point(i + noise_x, i + noise_y);
-            confidence[i] = 0.95;
-        }
-        else {
-            double noise_x = gauss_distribution(generator);
-            double noise_y = gauss_distribution(generator);
-            input_points[i] = Point(i + noise_x, i + noise_y);
-            confidence[i] = 0.1;
+        _points.reserve(kNumPoint);
+        _confidences.reserve(kNumPoint);
+        for (size_t i{0}; i < kNumPoint; ++i) {
+            if (i < 300) {
+                // Small noise
+                _points.emplace_back(i + _rng.randNorm(0., 5e-2),
+                                     i + _rng.randNorm(0., 5e-2));
+                _confidences.emplace_back(0.95);
+            }
+            else {
+                // Relative large noise
+                _points.emplace_back(i + _rng.randNorm(0., 5e-1),
+                                     i + _rng.randNorm(0., 5e-1));
+                _confidences.emplace_back(0.1);
+            }
         }
     }
 
+protected:
+    RandomNumberGenerator _rng{23};
+    std::vector<Point> _points;
+    std::vector<double> _confidences;
+};
+
+TEST_F(ProsacFitLine, TerminationSlope)
+{
     SacParameters params;
-    params.rng = std::make_shared<RandomNumberGenerator>(113);
+    params.rng = std::make_shared<RandomNumberGenerator>(_rng);
     params.error_thresh = 0.5;
 
-    LineEstimator line_estimator;
-    Prosac<LineEstimator> prosac_line{params, line_estimator};
-    prosac_line.Initialize();
+    LineEstimator estimator;
+    Prosac<LineEstimator> prosac{params, estimator};
+    EXPECT_TRUE(prosac.Initialize());
 
     Line line;
     SacSummary summary;
-    prosac_line.Estimate(input_points, &line, &summary);
-    ASSERT_LT(fabs(line.m - 1.0), 0.1);
+    EXPECT_TRUE(prosac.Estimate(_points, &line, &summary));
+
+    ASSERT_LT(std::abs(line.m - 1.0), 0.1);
 }

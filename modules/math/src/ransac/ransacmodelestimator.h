@@ -16,17 +16,17 @@ namespace tl {
 // NOTE: RANSAC, ARRSAC, and other solvers work best if Data and Model are
 // lightweight classes or structs.
 template <typename Data_t, typename Model_t>
-class Estimator
+class RansacModelEstimator
 {
 public:
     using Data = Data_t;
     using Model = Model_t;
 
-    Estimator() = default;
-    virtual ~Estimator() = default;
+    RansacModelEstimator() = default;
+    virtual ~RansacModelEstimator() = default;
 
     // Get the minimum number of samples needed to generate a model.
-    virtual int SampleSize() const = 0;
+    virtual size_t SampleSize() const = 0;
 
     // Given a set of data points, estimate the model. Users should implement
     // this function appropriately for the task being solved. Returns true for
@@ -75,14 +75,14 @@ public:
 
     // Returns the set inliers of the data set based on the error threshold
     // provided.
-    std::vector<int> GetInliers(const std::vector<Data>& data,
-                                const Model& model, double threshold) const
+    std::vector<size_t> GetInliers(const std::vector<Data>& data,
+                                   const Model& model, double threshold) const
     {
-        std::vector<int> inliers;
+        std::vector<size_t> inliers;
         inliers.reserve(data.size());
         for (size_t i{0}; i < data.size(); i++) {
             if (Error(data[i], model) < threshold) {
-                inliers.push_back(i);
+                inliers.emplace_back(i);
             }
         }
         return inliers;

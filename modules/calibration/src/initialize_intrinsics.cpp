@@ -11,8 +11,8 @@
 #include <tCamera/DivisionUndistortionCameraModel>
 #include <tCamera/DoubleSphereCameraModel>
 #include <tMath/Eigen/Utils>
-#include <tMath/RANSAC/RansacCreator>
-#include <tMath/RANSAC/SampleConsensus>
+#include <tMath/Ransac/RansacCreator>
+#include <tMath/Ransac/SampleConsensus>
 #include <tMvs/PnP/EstimateCalibratedAbsolutePose>
 #include <tMvs/PnP/EstimateUncalibratedAbsolutePose>
 #include <tMvs/PnP/EstimateRadialDistortionUncalibratedAbsolutePose>
@@ -36,8 +36,8 @@ bool initializePinholeCamera(const std::vector<Feature2D3D>& corrs,
                              Vector3d& position, double& focalLength)
 {
     if (corrs.size() <= kMinCorrespondence) {
-        LOG(ERROR) << "Not enough feature matching. "
-                   << "(" << corrs.size() << "<" << kMinCorrespondence << ")";
+        LOG(ERROR) << "Not enough feature matching. " << "(" << corrs.size()
+                   << "<" << kMinCorrespondence << ")";
         return false;
     }
 

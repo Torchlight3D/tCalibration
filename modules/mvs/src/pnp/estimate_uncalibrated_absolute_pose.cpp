@@ -5,8 +5,8 @@
 #include <tCamera/CameraIntrinsics>
 #include <tCamera/CameraMatrixUtils>
 #include <tMath/Eigen/Types>
-#include <tMath/RANSAC/RansacCreator>
-#include <tMath/RANSAC/RansacModelEstimator>
+#include <tMath/Ransac/RansacCreator>
+#include <tMath/Ransac/RansacModelEstimator>
 #include <tMvs/Feature>
 #include <tMvs/PnP/P4PFocalLength>
 
@@ -23,28 +23,26 @@ namespace {
 // correspondences. The feature correspondences should be normalized such that
 // the principal point is at (0, 0).
 class UncalibratedAbsolutePoseEstimator
-    : public Estimator<Feature2D3D, Matrix34d>
+    : public RansacModelEstimator<Feature2D3D, Matrix34d>
 {
-    using Base = Estimator<Feature2D3D, Matrix34d>;
+    using Base = RansacModelEstimator<Feature2D3D, Matrix34d>;
 
 public:
     using Base::Base;
 
-    // 3 correspondences are needed to determine the absolute pose.
-    int SampleSize() const override { return 4; }
+    size_t SampleSize() const override { return 4; }
 
-    // Estimates candidate absolute poses from correspondences.
     bool EstimateModel(const std::vector<Feature2D3D>& corres,
                        std::vector<Matrix34d>* poses) const override
     {
-        const Vector2dList point2s{corres[0].feature, corres[1].feature,
-                                   corres[2].feature, corres[3].feature};
-        const Vector3dList point3s{corres[0].world_point, corres[1].world_point,
-                                   corres[2].world_point,
-                                   corres[3].world_point};
+        const Vector2dList imgPoints{corres[0].feature, corres[1].feature,
+                                     corres[2].feature, corres[3].feature};
+        const Vector3dList objPoints{
+            corres[0].world_point, corres[1].world_point, corres[2].world_point,
+            corres[3].world_point};
 
         const int solutions =
-            FourPointPoseAndFocalLength(point2s, point3s, *poses);
+            FourPointPoseAndFocalLength(imgPoints, objPoints, *poses);
         return solutions > 0;
     }
 

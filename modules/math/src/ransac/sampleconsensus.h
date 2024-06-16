@@ -4,8 +4,7 @@
 
 #include <glog/logging.h>
 
-#include "inlier_support.h"
-#include "mle_quality_measurement.h"
+#include "qualitymeasurement.h"
 #include "sampler.h"
 
 namespace tl {
@@ -73,7 +72,7 @@ struct SacParameters
 struct SacSummary
 {
     // Indices of all inliers.
-    std::vector<int> inliers;
+    std::vector<size_t> inliers;
 
     // The confidence in the solution.
     double confidence;
@@ -89,15 +88,15 @@ struct SacSummary
 };
 
 template <class ModelEstimator>
-class SampleConsensusEstimator
+class SampleConsensus
 {
 public:
     using Data = typename ModelEstimator::Data;
     using Model = typename ModelEstimator::Model;
 
-    SampleConsensusEstimator(const SacParameters& params,
-                             const ModelEstimator& estimator);
-    virtual ~SampleConsensusEstimator() = default;
+    SampleConsensus(const SacParameters& params,
+                    const ModelEstimator& estimator);
+    virtual ~SampleConsensus() = default;
 
     virtual bool Initialize() { return true; }
 
@@ -122,7 +121,7 @@ protected:
     //
     // sampler: The class that instantiates the sampling strategy for this
     //   particular type of sampling consensus.
-    bool Initialize(Sampler* sampler);
+    bool SetUpSampler(Sampler* sampler);
 
     // Computes the maximum number of iterations required to ensure the inlier
     // ratio is the best with a probability corresponding to log_failure_prob.
@@ -131,22 +130,22 @@ protected:
 
     // For LO
     void GetInliers(const std::vector<Data>& data,
-                    const std::vector<int>& indices,
+                    const std::vector<size_t>& indices,
                     std::vector<Data>& inliers) const;
 
 protected:
     std::unique_ptr<Sampler> sampler_;
     std::unique_ptr<QualityMeasurement> quality_measurement_;
-    const SacParameters& sac_params_;
-    const ModelEstimator& estimator_;
+    const SacParameters& _params;
+    const ModelEstimator& _estimator;
 };
 
 /// -------------------------- Implementation ------------------------------//
 ///
 template <class ModelEstimator>
-SampleConsensusEstimator<ModelEstimator>::SampleConsensusEstimator(
+SampleConsensus<ModelEstimator>::SampleConsensus(
     const SacParameters& params, const ModelEstimator& estimator)
-    : sac_params_(params), estimator_(estimator)
+    : _params(params), _estimator(estimator)
 {
     CHECK_GT(params.error_thresh, 0)
         << "Error threshold must be set to greater than zero";
@@ -158,30 +157,32 @@ SampleConsensusEstimator<ModelEstimator>::SampleConsensusEstimator(
 }
 
 template <class ModelEstimator>
-bool SampleConsensusEstimator<ModelEstimator>::Initialize(Sampler* sampler)
+bool SampleConsensus<ModelEstimator>::SetUpSampler(Sampler* sampler)
 {
-    CHECK_NOTNULL(sampler);
+    if (!sampler) {
+        return false;
+    }
 
     sampler_.reset(sampler);
 
-    if (sac_params_.use_mle) {
+    if (_params.use_mle) {
         quality_measurement_.reset(
-            new MLEQualityMeasurement(sac_params_.error_thresh));
+            new MLEQualityMeasurement(_params.error_thresh));
     }
     else {
-        quality_measurement_.reset(new InlierSupport(sac_params_.error_thresh));
+        quality_measurement_.reset(new InlierSupport(_params.error_thresh));
     }
 
     return quality_measurement_->Initialize();
 }
 
 template <class ModelEstimator>
-int SampleConsensusEstimator<ModelEstimator>::ComputeMaxIterations(
+int SampleConsensus<ModelEstimator>::ComputeMaxIterations(
     double minSampleSize, double inlierRatio, double log_failure_prob) const
 {
     CHECK_GT(inlierRatio, 0.);
     if (inlierRatio == 1.) {
-        return sac_params_.min_iterations;
+        return _params.min_iterations;
     }
 
     // If we use the T_{1,1} test, we have to adapt the number of samples
@@ -189,7 +190,7 @@ int SampleConsensusEstimator<ModelEstimator>::ComputeMaxIterations(
     // match for verification and a correct match is selected with probability
     // inlier_ratio.
     const double num_samples =
-        sac_params_.use_Tdd_test ? minSampleSize + 1 : minSampleSize;
+        _params.use_Tdd_test ? minSampleSize + 1 : minSampleSize;
 
     const double log_prob = std::log(1. - std::pow(inlierRatio, num_samples)) -
                             std::numeric_limits<double>::epsilon();
@@ -201,13 +202,14 @@ int SampleConsensusEstimator<ModelEstimator>::ComputeMaxIterations(
     const double num_iterations = log_failure_prob / log_prob;
 
     return std::clamp(num_iterations,
-                      static_cast<double>(sac_params_.min_iterations),
-                      static_cast<double>(sac_params_.max_iterations));
+                      static_cast<double>(_params.min_iterations),
+                      static_cast<double>(_params.max_iterations));
 }
 
 template <class ModelEstimator>
-bool SampleConsensusEstimator<ModelEstimator>::Estimate(
-    const std::vector<Data>& data, Model* best_model, SacSummary* summary)
+bool SampleConsensus<ModelEstimator>::Estimate(const std::vector<Data>& data,
+                                               Model* bestModel,
+                                               SacSummary* summary)
 {
     CHECK(!data.empty())
         << "Cannot perform estimation with 0 data measurements!";
@@ -215,7 +217,7 @@ bool SampleConsensusEstimator<ModelEstimator>::Estimate(
     CHECK_NOTNULL(quality_measurement_.get());
     CHECK_NOTNULL(summary);
     summary->inliers.clear();
-    CHECK_NOTNULL(best_model);
+    CHECK_NOTNULL(bestModel);
 
     // Initialize the sampler with the size of the data input.
     if (!sampler_->Initialize(data.size())) {
@@ -224,113 +226,112 @@ bool SampleConsensusEstimator<ModelEstimator>::Estimate(
 
     summary->num_input_data_points = data.size();
 
-    const double log_failure_prob = std::log(sac_params_.failure_probability);
-    double best_cost = std::numeric_limits<double>::max();
-    int max_iterations = sac_params_.max_iterations;
+    const double log_failure_prob = std::log(_params.failure_probability);
 
+    int max_iterations = _params.max_iterations;
     // Set the max iterations if the inlier ratio is set.
-    if (sac_params_.min_inlier_ratio > 0) {
-        max_iterations =
-            std::min(ComputeMaxIterations(estimator_.SampleSize(),
-                                          sac_params_.min_inlier_ratio,
-                                          log_failure_prob),
-                     sac_params_.max_iterations);
+    if (_params.min_inlier_ratio > 0) {
+        max_iterations = std::min(
+            ComputeMaxIterations(_estimator.SampleSize(),
+                                 _params.min_inlier_ratio, log_failure_prob),
+            _params.max_iterations);
     }
 
+    auto minCost = std::numeric_limits<double>::max();
     for (summary->num_iterations = 0; summary->num_iterations < max_iterations;
          summary->num_iterations++) {
-        // Sample subset. Proceed if successfully sampled.
-        std::vector<int> data_subset_indices;
-        if (!sampler_->Sample(&data_subset_indices)) {
+        // Random sample data.
+        std::vector<size_t> sampleIndices;
+        if (!sampler_->Sample(&sampleIndices)) {
             continue;
         }
 
-        // Get the corresponding data elements for the subset.
-        std::vector<Data> data_subset(data_subset_indices.size());
-        for (int i = 0; i < data_subset_indices.size(); i++) {
-            data_subset[i] = data[data_subset_indices[i]];
+        // Get the corresponding data from indices.
+        std::vector<Data> sampledData(sampleIndices.size());
+        for (size_t i{0}; i < sampleIndices.size(); ++i) {
+            sampledData[i] = data[sampleIndices[i]];
         }
 
-        // Estimate model from subset. Skip to next iteration if the model fails
-        // to estimate.
-        std::vector<Model> temp_models;
-        if (!estimator_.EstimateModel(data_subset, &temp_models)) {
+        // Estimate model from sampled data. Skip to this iteration if fail.
+        std::vector<Model> estimatedModels;
+        if (!_estimator.EstimateModel(sampledData, &estimatedModels)) {
             continue;
         }
 
         // Calculate residuals from estimated model.
-        for (const auto& model : temp_models) {
-            const std::vector<double> residuals =
-                estimator_.Residuals(data, model);
+        for (const auto& model : estimatedModels) {
+            const auto residuals = _estimator.Residuals(data, model);
 
             // Determine cost of the generated model.
-            std::vector<int> inlier_indices;
-            const double sample_cost =
-                quality_measurement_->ComputeCost(residuals, &inlier_indices);
-            const double inlier_ratio =
-                static_cast<double>(inlier_indices.size()) /
+            std::vector<size_t> inlierIndices;
+            const double cost =
+                quality_measurement_->ComputeCost(residuals, &inlierIndices);
+            const double inlierRatio =
+                static_cast<double>(inlierIndices.size()) /
                 static_cast<double>(data.size());
 
-            // Update best model if error is the best we have seen.
-            if (sample_cost < best_cost) {
-                *best_model = model;
-                best_cost = sample_cost;
+            if (std::isgreaterequal(cost, minCost)) {
+                continue;
+            }
 
-                if (inlier_ratio < estimator_.SampleSize() /
-                                       static_cast<double>(data.size())) {
+            // Update best model
+            *bestModel = model;
+            minCost = cost;
+
+            if (inlierRatio <
+                _estimator.SampleSize() / static_cast<double>(data.size())) {
+                continue;
+            }
+
+            if (_params.use_lo &&
+                summary->num_iterations >= _params.lo_start_iterations) {
+                std::vector<Data> inliers;
+                GetInliers(data, inlierIndices, inliers);
+                if (!_estimator.RefineModel(inliers, _params.error_thresh,
+                                            bestModel)) {
                     continue;
                 }
 
-                if (summary->num_iterations >=
-                        sac_params_.lo_start_iterations &&
-                    sac_params_.use_lo) {
-                    std::vector<Data> inliers;
-                    GetInliers(data, inlier_indices, inliers);
-                    if (!estimator_.RefineModel(
-                            inliers, sac_params_.error_thresh, best_model)) {
-                        continue;
-                    }
-                    ++summary->num_lo_iterations;
-                }
-
-                // A better cost does not guarantee a higher inlier ratio (i.e,
-                // the MLE case) so we only update the max iterations if the
-                // number decreases.
-                max_iterations = std::min(
-                    ComputeMaxIterations(estimator_.SampleSize(), inlier_ratio,
-                                         log_failure_prob),
-                    max_iterations);
-
-                VLOG(3) << "Inlier ratio = " << inlier_ratio
-                        << " and max number of iterations = " << max_iterations;
+                ++summary->num_lo_iterations;
             }
+
+            // A better cost does not guarantee a higher inlier ratio (i.e,
+            // the MLE case) so we only update the max iterations if the
+            // number decreases.
+            max_iterations =
+                std::min(ComputeMaxIterations(_estimator.SampleSize(),
+                                              inlierRatio, log_failure_prob),
+                         max_iterations);
+
+            VLOG(3) << "Inlier ratio = " << inlierRatio
+                    << " and max number of iterations = " << max_iterations;
         }
     }
 
     // Compute the final inliers for the best model.
-    const std::vector<double> best_residuals =
-        estimator_.Residuals(data, *best_model);
-    quality_measurement_->ComputeCost(best_residuals, &summary->inliers);
+    const auto bestResiduals = _estimator.Residuals(data, *bestModel);
+    quality_measurement_->ComputeCost(bestResiduals, &summary->inliers);
 
-    if (sac_params_.use_lo) {
+    if (_params.use_lo) {
         std::vector<Data> inliers;
         GetInliers(data, summary->inliers, inliers);
-        estimator_.RefineModel(inliers, sac_params_.error_thresh, best_model);
+        _estimator.RefineModel(inliers, _params.error_thresh, bestModel);
         ++summary->num_lo_iterations;
     }
 
     const double inlier_ratio =
         static_cast<double>(summary->inliers.size()) / data.size();
+
     summary->confidence =
-        1. - std::pow(1. - std::pow(inlier_ratio, estimator_.SampleSize()),
+        1. - std::pow(1. - std::pow(inlier_ratio, _estimator.SampleSize()),
                       summary->num_iterations);
 
     return true;
 }
 
 template <class ModelEstimator>
-void SampleConsensusEstimator<ModelEstimator>::GetInliers(
-    const std::vector<Data>& data, const std::vector<int>& indices,
+void SampleConsensus<ModelEstimator>::GetInliers(
+    const std::vector<Data>& data, const std::vector<size_t>& indices,
     std::vector<Data>& inliers) const
 {
     inliers.resize(indices.size());

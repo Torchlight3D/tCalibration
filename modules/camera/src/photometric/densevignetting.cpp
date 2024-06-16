@@ -1,5 +1,5 @@
 #include "densevignetting.h"
 
-namespace agilex {
+namespace tl {
 
 }

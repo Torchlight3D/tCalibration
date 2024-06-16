@@ -1,28 +1,25 @@
 ﻿#pragma once
 
-#include "lmed_quality_measurement.h"
-#include "random_sampler.h"
+#include "qualitymeasurement.h"
 #include "sampleconsensus.h"
 
 namespace tl {
 
 template <class ModelEstimator>
-class LMed : public SampleConsensusEstimator<ModelEstimator>
+class LMed final : public SampleConsensus<ModelEstimator>
 {
-    using Base = SampleConsensusEstimator<ModelEstimator>;
+    using Base = SampleConsensus<ModelEstimator>;
 
 public:
-    using Data = typename ModelEstimator::Data;
-    using Model = typename ModelEstimator::Model;
-
     using Base::Base;
 
     bool Initialize() override
     {
-        const bool initialized = Base::Initialize(new RandomSampler(
-            this->sac_params_.rng, this->estimator_.SampleSize()));
+        auto sampler =
+            new RandomSampler(this->_estimator.SampleSize(), this->_params.rng);
+        const bool initialized = Base::SetUpSampler(sampler);
         this->quality_measurement_.reset(
-            new LmedQualityMeasurement(this->estimator_.SampleSize()));
+            new LmedQualityMeasurement(this->_estimator.SampleSize()));
         return initialized;
     }
 };

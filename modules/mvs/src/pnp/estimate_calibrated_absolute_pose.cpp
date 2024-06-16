@@ -1,14 +1,14 @@
 ﻿#include "estimate_calibrated_absolute_pose.h"
 
 #include <tCamera/CameraIntrinsics>
-#include <tMath/RANSAC/RansacCreator>
-#include <tMath/RANSAC/RansacModelEstimator>
-#include <tMvs/BundleAdjustment>
-#include <tMvs/Feature>
-#include <tMvs/Landmark>
+#include <tMath/Ransac/RansacCreator>
+#include <tMath/Ransac/RansacModelEstimator>
 #include <tMvs/PnP/DlsPnP>
 #include <tMvs/PnP/P3P>
 #include <tMvs/PnP/SQPnP>
+#include <tMvs/BundleAdjustment>
+#include <tMvs/Feature>
+#include <tMvs/Landmark>
 #include <tMvs/Scene>
 #include <tMvs/View>
 
@@ -22,9 +22,9 @@ namespace {
 // correspondences. The feature correspondences should be normalized by the
 // focal length with the principal point at (0, 0).
 class CalibratedAbsolutePoseEstimator
-    : public Estimator<Feature2D3D, CalibratedAbsolutePose>
+    : public RansacModelEstimator<Feature2D3D, CalibratedAbsolutePose>
 {
-    using Base = Estimator<Feature2D3D, CalibratedAbsolutePose>;
+    using Base = RansacModelEstimator<Feature2D3D, CalibratedAbsolutePose>;
 
 public:
     explicit CalibratedAbsolutePoseEstimator(PnPType type = PnPType::KNEIP)
@@ -32,10 +32,8 @@ public:
     {
     }
 
-    // 3 correspondences are needed to determine the absolute pose.
-    int SampleSize() const override { return 3; }
+    size_t SampleSize() const override { return 3; }
 
-    // Estimates candidate absolute poses from corrs.
     bool EstimateModel(
         const std::vector<Feature2D3D>& corrs,
         std::vector<CalibratedAbsolutePose>* poses) const override
