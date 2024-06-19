@@ -11,6 +11,14 @@ using Eigen::Vector2d;
 using Eigen::Vector3d;
 using Eigen::Vector4d;
 
+TEST(DivisionUndistortionCameraModel, CreateFromName)
+{
+    using theFactory = ::factory::Registry<CameraIntrinsics>;
+
+    ASSERT_TRUE(theFactory::CanNew(DivisionUndistortionCameraModel::kName));
+    ASSERT_TRUE(theFactory::New(DivisionUndistortionCameraModel::kName).get());
+}
+
 TEST(DivisionUndistortionCameraModel, ParameterGettersAndSetters)
 {
     DivisionUndistortionCameraModel camera;
@@ -124,7 +132,7 @@ TEST(DivisionUndistortionCameraModel, SetFromCameraMetaData)
     TestCameraSetFromMeta(meta);
 }
 
-TEST(DivisionUndistortionCameraModel, GetSubsetFromOptimizeIntrinsicsType)
+TEST(DivisionUndistortionCameraModel, ConstantParameterIndices)
 {
     using _Type = OptimizeIntrinsicsType;
 

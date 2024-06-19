@@ -1,5 +1,7 @@
 ﻿#pragma once
 
+#include <tCore/AutoRegisterFactory>
+
 #include "cameraintrinsics.h"
 
 namespace tl {
@@ -13,10 +15,12 @@ class DivisionUndistortionCameraModel final
     : public CameraIntrinsics_<DivisionUndistortionCameraModel, 5>
 {
     using Parent = CameraIntrinsics_<DivisionUndistortionCameraModel, 5>;
+    REGISTER(kName, CameraIntrinsics);
 
 public:
     DivisionUndistortionCameraModel();
 
+    inline static constexpr char kName[32]{"DivisionUndistortionCameraModel"};
     inline static constexpr auto kType =
         CameraIntrinsicsType::DivisionUndistortion;
 

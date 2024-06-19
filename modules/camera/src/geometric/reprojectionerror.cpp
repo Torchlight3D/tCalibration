@@ -1,6 +1,7 @@
 #include "reprojectionerror.h"
 
 #include <ceres/rotation.h>
+#include <ceres/autodiff_cost_function.h>
 
 #include "camera.h"
 #include "divisionundistortioncameramodel.h"

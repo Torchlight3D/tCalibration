@@ -1,5 +1,7 @@
 ﻿#pragma once
 
+#include <tCore/AutoRegisterFactory>
+
 #include "cameraintrinsics.h"
 
 namespace tl {
@@ -13,10 +15,12 @@ class ExtendedUnifiedCameraModel final
     : public CameraIntrinsics_<ExtendedUnifiedCameraModel, 7>
 {
     using Parent = CameraIntrinsics_<ExtendedUnifiedCameraModel, 7>;
+    REGISTER(kName, CameraIntrinsics);
 
 public:
     ExtendedUnifiedCameraModel();
 
+    inline static constexpr char kName[27]{"ExtendedUnifiedCameraModel"};
     inline static constexpr auto kType = CameraIntrinsicsType::ExtendedUnified;
 
     void setFromMetaData(const CameraMetaData& meta) override;

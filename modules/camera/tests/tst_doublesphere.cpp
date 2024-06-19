@@ -8,6 +8,14 @@ using namespace tl;
 using Eigen::Vector2d;
 using Eigen::Vector3d;
 
+TEST(DoubleSphereCameraModel, CreateFromName)
+{
+    using theFactory = ::factory::Registry<CameraIntrinsics>;
+
+    ASSERT_TRUE(theFactory::CanNew(DoubleSphereCameraModel::kName));
+    ASSERT_TRUE(theFactory::New(DoubleSphereCameraModel::kName));
+}
+
 TEST(DoubleSphereCameraModel, InternalParameterGettersAndSetters)
 {
     DoubleSphereCameraModel camera;
@@ -115,7 +123,7 @@ TEST(DoubleSphereCameraModel, SetFromCameraMetaDatas)
     TestCameraSetFromMeta(meta);
 }
 
-TEST(DoubleSphereCameraModel, GetSubsetFromOptimizeIntrinsicsType)
+TEST(DoubleSphereCameraModel, ConstantParameterIndices)
 {
     using _Type = OptimizeIntrinsicsType;
 

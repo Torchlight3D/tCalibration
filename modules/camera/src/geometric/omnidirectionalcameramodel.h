@@ -1,5 +1,7 @@
 #pragma once
 
+#include <tCore/AutoRegisterFactory>
+
 #include "cameraintrinsics.h"
 
 namespace tl {
@@ -13,10 +15,12 @@ class OmnidirectionalCameraModel final
     : public CameraIntrinsics_<OmnidirectionalCameraModel, 9>
 {
     using Parent = CameraIntrinsics_<OmnidirectionalCameraModel, 9>;
+    REGISTER(kName, CameraIntrinsics);
 
 public:
     OmnidirectionalCameraModel();
 
+    inline static constexpr char kName[27]{"OmnidirectionalCameraModel"};
     inline static constexpr auto kType = CameraIntrinsicsType::Omnidirectional;
 
     void setFromMetaData(const CameraMetaData& meta) override;

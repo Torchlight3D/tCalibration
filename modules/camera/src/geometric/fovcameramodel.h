@@ -1,5 +1,7 @@
 ﻿#pragma once
 
+#include <tCore/AutoRegisterFactory>
+
 #include "cameraintrinsics.h"
 
 namespace tl {
@@ -10,14 +12,15 @@ namespace tl {
 //
 // Reference:
 
-// FIXME: Use FovCameraModel
 class FovCameraModel final : public CameraIntrinsics_<FovCameraModel, 5>
 {
     using Parent = CameraIntrinsics_<FovCameraModel, 5>;
+    REGISTER(kName, CameraIntrinsics);
 
 public:
     FovCameraModel();
 
+    inline static constexpr char kName[15]{"FovCameraModel"};
     inline static constexpr auto kType = CameraIntrinsicsType::Fov;
 
     void setFromMetaData(const CameraMetaData& meta) override;
