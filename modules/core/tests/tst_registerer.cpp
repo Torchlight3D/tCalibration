@@ -20,7 +20,7 @@ public:
 
 class V4Engine : public Engine
 {
-    REGISTER_VOID("V4", Engine);
+    REGISTER("V4", Engine);
 
 public:
     float consumption() const override { return 5.f; }
@@ -28,7 +28,7 @@ public:
 
 class V8Engine : public Engine
 {
-    REGISTER_VOID("V8", Engine);
+    REGISTER("V8", Engine);
 
 public:
     float consumption() const override { return 15.f; }
@@ -78,7 +78,7 @@ private:
 
 class Bicycle : public Vehicle
 {
-    REGISTER_VOID("Bicycle", Vehicle);
+    REGISTER("Bicycle", Vehicle);
     REGISTER("Motorbike", Vehicle, Engine *);
 
 public:
@@ -249,7 +249,7 @@ public:
 class RegisteredDerived : public Base
 {
 public:
-    REGISTER_VOID("Derived", Base);
+    REGISTER("Derived", Base);
 
 private:
     int value() const override { return 3; }
@@ -258,7 +258,7 @@ private:
 class RegisteredSubDerived : public RegisteredDerived
 {
 public:
-    REGISTER_VOID("SubDerived", Base);
+    REGISTER("SubDerived", Base);
     int value() const override { return 5; }
 };
 
