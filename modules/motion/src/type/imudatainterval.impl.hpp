@@ -1,7 +1,7 @@
 ﻿#pragma once
 
-#include "imu_data_interval.h"
-#include "imu_data.h"
+#include "imudata.h"
+#include "imudatainterval.h"
 
 namespace tl {
 

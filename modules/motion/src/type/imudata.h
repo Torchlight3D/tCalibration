@@ -3,7 +3,7 @@
 #include <ceres/rotation.h>
 #include <Eigen/Core>
 
-#include "imu_data_interval.h"
+#include "imudatainterval.h"
 
 namespace tl {
 
@@ -188,4 +188,4 @@ inline double calcSampleRate(const Timeline& timeline)
 
 } // namespace tl
 
-#include "imu_data.impl.hpp"
+#include "imudata.impl.hpp"

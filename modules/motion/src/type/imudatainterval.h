@@ -36,4 +36,4 @@ struct DataInterval
 
 } // namespace tl
 
-#include "imu_data_interval.impl.hpp"
+#include "imudatainterval.impl.hpp"

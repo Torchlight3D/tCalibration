@@ -1,4 +1,4 @@
-#include "spline_error_weighting.h"
+#include "splineerrorweighting.h"
 
 #include <unsupported/Eigen/FFT>
 #include <glog/logging.h>
