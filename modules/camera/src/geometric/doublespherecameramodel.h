@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include <ceres/ceres.h>
+#include <tCore/AutoRegisterFactory>
 
 #include "cameraintrinsics.h"
 
@@ -15,10 +15,12 @@ class DoubleSphereCameraModel final
     : public CameraIntrinsics_<DoubleSphereCameraModel, 7>
 {
     using Parent = CameraIntrinsics_<DoubleSphereCameraModel, 7>;
+    REGISTER(kName, CameraIntrinsics);
 
 public:
     DoubleSphereCameraModel();
 
+    inline static constexpr char kName[24]{"DoubleSphereCameraModel"};
     inline static constexpr auto kType = CameraIntrinsicsType::DoubleSphere;
 
     void setFromMetaData(const CameraMetaData& meta) override;

@@ -2,6 +2,8 @@
 
 #include <Eigen/Eigenvalues>
 
+#include <tCore/AutoRegisterFactory>
+
 #include "cameraintrinsics.h"
 
 namespace tl {
@@ -15,10 +17,12 @@ namespace tl {
 class FisheyeCameraModel final : public CameraIntrinsics_<FisheyeCameraModel, 9>
 {
     using Parent = CameraIntrinsics_<FisheyeCameraModel, 9>;
+    REGISTER(kName, CameraIntrinsics);
 
 public:
     FisheyeCameraModel();
 
+    inline static constexpr char kName[19]{"FisheyeCameraModel"};
     inline static constexpr auto kType = CameraIntrinsicsType::Fisheye;
 
     void setFromMetaData(const CameraMetaData& meta) override;

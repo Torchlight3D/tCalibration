@@ -8,7 +8,15 @@ using namespace tl;
 using Eigen::Vector2d;
 using Eigen::Vector3d;
 
-TEST(ExtendedUnifiedCameraModel, InternalParameterGettersAndSetters)
+TEST(ExtendedUnifiedCameraModel, CreateFromName)
+{
+    using theFactory = ::factory::Registry<CameraIntrinsics>;
+
+    ASSERT_TRUE(theFactory::CanNew(ExtendedUnifiedCameraModel::kName));
+    ASSERT_TRUE(theFactory::New(ExtendedUnifiedCameraModel::kName));
+}
+
+TEST(ExtendedUnifiedCameraModel, ParameterGettersAndSetters)
 {
     ExtendedUnifiedCameraModel camera;
     // Check type
@@ -115,7 +123,7 @@ TEST(ExtendedUnifiedCameraModel, SetFromCameraMetaData)
     TestCameraSetFromMeta(meta);
 }
 
-TEST(ExtendedUnifiedCameraModel, fixedParameterIndices)
+TEST(ExtendedUnifiedCameraModel, ConstantParameterIndices)
 {
     using _Type = OptimizeIntrinsicsType;
 

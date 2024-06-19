@@ -12,6 +12,14 @@ using namespace tl;
 using Eigen::Vector2d;
 using Eigen::Vector3d;
 
+TEST(FisheyeCameraModel, CreateFromName)
+{
+    using theFactory = ::factory::Registry<CameraIntrinsics>;
+
+    ASSERT_TRUE(theFactory::CanNew(FisheyeCameraModel::kName));
+    ASSERT_TRUE(theFactory::New(FisheyeCameraModel::kName));
+}
+
 TEST(FisheyeCameraModel, ParametersSetterAndGetter)
 {
     FisheyeCameraModel camera;

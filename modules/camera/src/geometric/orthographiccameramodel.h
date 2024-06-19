@@ -1,5 +1,7 @@
 #pragma once
 
+#include <tCore/AutoRegisterFactory>
+
 #include "cameraintrinsics.h"
 
 namespace tl {
@@ -13,10 +15,12 @@ class OrthographicCameraModel final
     : public CameraIntrinsics_<OrthographicCameraModel, 7>
 {
     using Parent = CameraIntrinsics_<OrthographicCameraModel, 7>;
+    REGISTER(kName, CameraIntrinsics);
 
 public:
     OrthographicCameraModel();
 
+    inline static constexpr char kName[24]{"OrthographicCameraModel"};
     inline static constexpr auto kType = CameraIntrinsicsType::Orthographic;
 
     void setFromMetaData(const CameraMetaData& meta) override;

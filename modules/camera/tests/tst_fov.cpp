@@ -8,7 +8,15 @@ using namespace tl;
 using Eigen::Vector2d;
 using Eigen::Vector3d;
 
-TEST(FOVCameraModel, InternalParameterGettersAndSetters)
+TEST(FovCameraModel, CreateFromName)
+{
+    using theFactory = ::factory::Registry<CameraIntrinsics>;
+
+    ASSERT_TRUE(theFactory::CanNew(FovCameraModel::kName));
+    ASSERT_TRUE(theFactory::New(FovCameraModel::kName));
+}
+
+TEST(FovCameraModel, InternalParameterGettersAndSetters)
 {
     FovCameraModel camera;
     // Check type
@@ -41,7 +49,7 @@ TEST(FOVCameraModel, InternalParameterGettersAndSetters)
     EXPECT_EQ(camera.omega(), kOmega);
 }
 
-TEST(FOVCameraModel, SetFromCameraMetaData)
+TEST(FovCameraModel, SetFromCameraMetaData)
 {
     auto TestCameraSetFromMeta = [](const CameraMetaData& meta) {
         const FovCameraModel default_camera;
@@ -96,7 +104,7 @@ TEST(FOVCameraModel, SetFromCameraMetaData)
     TestCameraSetFromMeta(meta);
 }
 
-TEST(FOVCameraModel, fixedParameterIndices)
+TEST(FovCameraModel, ConstantParameterIndices)
 {
     using _Type = OptimizeIntrinsicsType;
 

@@ -1,5 +1,7 @@
 ﻿#pragma once
 
+#include <tCore/AutoRegisterFactory>
+
 #include "cameraintrinsics.h"
 
 namespace tl {
@@ -30,10 +32,13 @@ class PinholeRadialTangentialCameraModel final
     : public CameraIntrinsics_<PinholeRadialTangentialCameraModel, 10>
 {
     using Parent = CameraIntrinsics_<PinholeRadialTangentialCameraModel, 10>;
+    REGISTER(kName, CameraIntrinsics);
 
 public:
     PinholeRadialTangentialCameraModel();
 
+    inline static constexpr char kName[35]{
+        "PinholeRadialTangentialCameraModel"};
     inline static constexpr auto kType =
         CameraIntrinsicsType::PinholeRadialTangential;
 

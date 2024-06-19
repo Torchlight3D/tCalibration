@@ -1,5 +1,7 @@
 ﻿#pragma once
 
+#include <tCore/AutoRegisterFactory>
+
 #include "cameraintrinsics.h"
 
 namespace tl {
@@ -27,10 +29,12 @@ namespace tl {
 class PinholeCameraModel final : public CameraIntrinsics_<PinholeCameraModel, 7>
 {
     using Parent = CameraIntrinsics_<PinholeCameraModel, 7>;
+    REGISTER(kName, CameraIntrinsics);
 
 public:
     PinholeCameraModel();
 
+    inline static constexpr char kName[19]{"PinholeCameraModel"};
     inline static constexpr auto kType = CameraIntrinsicsType::Pinhole;
 
     void setFromMetaData(const CameraMetaData& meta) override;

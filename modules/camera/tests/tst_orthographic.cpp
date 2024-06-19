@@ -8,6 +8,14 @@ using namespace tl;
 using Eigen::Vector2d;
 using Eigen::Vector3d;
 
+TEST(OrthographicCameraModel, CreateFromName)
+{
+    using theFactory = ::factory::Registry<CameraIntrinsics>;
+
+    ASSERT_TRUE(theFactory::CanNew(OrthographicCameraModel::kName));
+    ASSERT_TRUE(theFactory::New(OrthographicCameraModel::kName));
+}
+
 TEST(OrthographicCameraModel, InternalParameterGettersAndSetters)
 {
     OrthographicCameraModel camera;

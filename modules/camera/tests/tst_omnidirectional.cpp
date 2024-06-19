@@ -12,6 +12,14 @@ using namespace tl;
 using Eigen::Vector2d;
 using Eigen::Vector3d;
 
+TEST(OmnidirectionalCameraModel, CreateFromName)
+{
+    using theFactory = ::factory::Registry<CameraIntrinsics>;
+
+    ASSERT_TRUE(theFactory::CanNew(OmnidirectionalCameraModel::kName));
+    ASSERT_TRUE(theFactory::New(OmnidirectionalCameraModel::kName));
+}
+
 class OmnidirectionalCameraFixture : public ::testing::Test
 {
 protected:

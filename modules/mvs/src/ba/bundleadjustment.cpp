@@ -1,5 +1,6 @@
 ﻿#include "bundleadjustment.h"
 
+#include <ceres/ceres.h>
 #include <ceres/rotation.h>
 
 #include <tCamera/CameraIntrinsics>
@@ -254,8 +255,7 @@ void BundleAdjustment::Impl::setCameraIntrinsicsParameterization()
 
         // Set the constant parameters if any are requested.
         const std::vector<int> const_indices =
-            intrinsics->fixedParameterIndices(
-                options_.intrinsics_to_optimize);
+            intrinsics->fixedParameterIndices(options_.intrinsics_to_optimize);
 
         if (const_indices.size() == intrinsics->numParameters()) {
             problem_->SetParameterBlockConstant(parameters);
