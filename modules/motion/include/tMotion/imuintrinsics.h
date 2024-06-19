@@ -1,1 +1,1 @@
-#include "../../src/type/imu_intrinsics.h"
+#include "../../src/type/imuintrinsics.h"

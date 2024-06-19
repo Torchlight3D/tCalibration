@@ -1,1 +1,1 @@
-#include "../../src/algo/spline_error_weighting.h"
+#include "../../src/algo/splineerrorweighting.h"
