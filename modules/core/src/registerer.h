@@ -200,20 +200,18 @@
 // None of the static methods of Registry<> can be called from
 // a global static, as it would result in an initialization order fiasco.
 
-#ifndef REGISTERER_H
-#define REGISTERER_H
+#pragma once
 
+#include <format>
+#include <functional>
+#include <map>
 #include <memory>
 #include <mutex>
 #include <string>
-#include <map>
-#include <functional>
-#include <type_traits>
 #include <vector>
 
 // Main macro. See file documentation for usage.
 #define REGISTER(KEY, TYPE, ...) REGISTER_AT(__LINE__, KEY, TYPE, __VA_ARGS__)
-#define REGISTER_VOID(KEY, TYPE) REGISTER_AT_VOID(__LINE__, KEY, TYPE)
 
 // Helper macro for defining alias for registered classes
 // with parameter-less constructors. For more complex constructors, use
@@ -227,6 +225,7 @@
     static_assert(true, "") // enforce ; at EOL
 
 namespace factory {
+
 template <typename T, class... Args>
 class Registry
 {
@@ -254,7 +253,6 @@ public:
         if (entry.first) {
             result.reset(entry.second->function(args...));
         }
-        registry_mutex_.unlock();
         return std::move(result);
     }
 
@@ -278,14 +276,16 @@ public:
     static std::vector<std::string> GetKeys()
     {
         std::vector<std::string> keys;
-        registry_mutex_.lock();
-        for (const auto &iter : *GetRegistry()) {
-            keys.emplace_back(iter.first);
+        {
+            std::scoped_lock locker{registry_mutex_};
+            keys.reserve(GetRegistry()->size() + GetInjectors()->size());
+            for (const auto &[name, _] : *GetRegistry()) {
+                keys.push_back(name);
+            }
+            for (const auto &[name, _] : *GetInjectors()) {
+                keys.push_back(name + "*");
+            }
         }
-        for (const auto &iter : *GetInjectors()) {
-            keys.emplace_back(iter.first + "*");
-        }
-        registry_mutex_.unlock();
         return keys;
     }
 
@@ -295,20 +295,21 @@ public:
     // passed to the injector constructor.
     static std::vector<std::string> GetKeysWithLocations()
     {
-        std::vector<std::string> keys;
-        registry_mutex_.lock();
-        for (const auto &iter : *GetRegistry()) {
-            keys.emplace_back(std::string(iter.second.file) + ":" +
-                              std::string(iter.second.line) + ": " +
-                              iter.first);
+        std::vector<std::string> locations;
+        {
+            std::scoped_lock locker{registry_mutex_};
+            locations.reserve(GetRegistry()->size() + GetInjectors()->size());
+            for (const auto &[name, entry] : *GetRegistry()) {
+                locations.push_back(
+                    std::format("{}:{}:{}", entry.file, entry.line, name));
+            }
+            for (const auto &[name, entry] : *GetInjectors()) {
+                locations.push_back(
+                    std::format("{}:{}:{}*", entry.file, entry.line, name));
+            }
         }
-        for (const auto &iter : *GetInjectors()) {
-            keys.emplace_back(std::string(iter.second.file) + ":" +
-                              std::string(iter.second.line) + ": " +
-                              iter.first + "*");
-        }
-        registry_mutex_.unlock();
-        return keys;
+
+        return locations;
     }
 
     // Helper class which uses RAII to inject a factory which will be used
@@ -320,37 +321,37 @@ public:
     struct Injector
     {
         const std::string &key;
+
         Injector(const std::string &key,
                  const std::function<T *(Args...)> &function,
                  const char *file = "undefined", const char *line = "undefined")
             : key(key)
         {
-            registry_mutex_.lock();
-            const Entry entry = {file, line, function};
+            std::scoped_lock locker{registry_mutex_};
+            const Entry entry{file, line, function};
             GetInjectors()->insert(std::make_pair(key, entry));
-            registry_mutex_.unlock();
         }
+
         ~Injector()
         {
-            registry_mutex_.lock();
+            std::scoped_lock locker{registry_mutex_};
             GetInjectors()->erase(key);
-            registry_mutex_.unlock();
         }
     };
+
     //***************************************************************************
     // Implementation details that can't be made private because used in macros
     //***************************************************************************
-    typedef std::function<T *(Args...)> function_t;
+    using function_t = std::function<T *(Args...)>;
 
     struct Registerer
     {
         Registerer(function_t function, const std::string &key,
                    const char *file, const char *line)
         {
-            const Entry entry = {file, line, function};
-            registry_mutex_.lock();
+            const Entry entry{file, line, function};
+            std::scoped_lock locker{registry_mutex_};
             GetRegistry()->insert(std::make_pair(key, entry));
-            registry_mutex_.unlock();
         }
     };
 
@@ -361,7 +362,9 @@ private:
         const char *const line;
         const function_t function;
     };
-    typedef std::map<std::string, Entry> EntryMap;
+
+    using EntryMap = std::map<std::string, Entry>;
+
     // The registry and injectors are created on demand using static variables
     // inside a static method so that there is no order initialization fiasco.
     static EntryMap *GetRegistry()
@@ -369,11 +372,13 @@ private:
         static EntryMap registry;
         return &registry;
     }
+
     static EntryMap *GetInjectors()
     {
         static EntryMap injectors;
         return &injectors;
     };
+
     static std::mutex registry_mutex_;
 
     static std::pair<bool, const Entry *> GetEntry(const std::string &key,
@@ -440,9 +445,9 @@ const typename Registry<base_type, Args...>::Registerer
     };                                                                         \
     const void *CONCAT_TOKENS(_xd_unused, LINE)() const                        \
     {                                                                          \
-        return &::factory::TypeRegisterer<                                     \
-            CONCAT_TOKENS(_xd_Trait, LINE), TYPE,                              \
-            std::decay<decltype(*this)>::type, __VA_ARGS__>::instance;         \
+        return &::factory::TypeRegisterer<CONCAT_TOKENS(_xd_Trait, LINE),      \
+                                          TYPE, std::decay_t<decltype(*this)>, \
+                                          __VA_ARGS__>::instance;              \
     }                                                                          \
     static const char *_xd_key(const TYPE *, std::function<void(__VA_ARGS__)>) \
     {                                                                          \
@@ -450,26 +455,4 @@ const typename Registry<base_type, Args...>::Registerer
     }                                                                          \
     static_assert(true, "") // enforce ; at EOL
 
-#define REGISTER_AT_VOID(LINE, KEY, TYPE)                           \
-    friend class ::factory::Registry<TYPE>;                         \
-    struct CONCAT_TOKENS(_xd_Trait, LINE)                           \
-    {                                                               \
-        static const char *key() { return KEY; }                    \
-        static const char *file() { return __FILE__; }              \
-        static const char *line() { return STRINGIFY(LINE); }       \
-    };                                                              \
-    const void *CONCAT_TOKENS(_xd_unused, LINE)() const             \
-    {                                                               \
-        return &::factory::TypeRegisterer<                          \
-            CONCAT_TOKENS(_xd_Trait, LINE), TYPE,                   \
-            std::decay<decltype(*this)>::type>::instance;           \
-    }                                                               \
-    static const char *_xd_key(const TYPE *, std::function<void()>) \
-    {                                                               \
-        return KEY;                                                 \
-    }                                                               \
-    static_assert(true, "") // enforce ; at EOL
-
 } // namespace factory
-
-#endif // REGISTERER_H
