@@ -229,7 +229,7 @@ bool StereoModuleTask::Impl::calibCameraImuTransform()
         }
 
         acc_times.push_back(acc.timestamp());
-        linear_accs.push_back(acc.data());
+        linear_accs.push_back(acc.asVector());
     }
 
     Timeline gyr_times;
@@ -240,7 +240,7 @@ bool StereoModuleTask::Impl::calibCameraImuTransform()
         }
 
         gyr_times.push_back(gyro.timestamp());
-        ang_vels.push_back(gyro.data());
+        ang_vels.push_back(gyro.asVector());
     }
 
     InertialBasedScaleEstimation ibse;

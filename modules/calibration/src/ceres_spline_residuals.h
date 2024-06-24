@@ -58,38 +58,39 @@ struct AccelerationCostFunctorSplit : public CeresSplineHelper<double, _N>
     }
 
     template <class T>
-    bool operator()(const T* const* sKnots, T* sResiduals) const
+    bool operator()(const T* const* sKnots, T* residuals) const
     {
-        using Vector3 = Eigen::Vector3<T>;
-        using Vector6 = Eigen::Matrix<T, 6, 1>;
+        using SO3 = Sophus::SO3<T>;
+        using Vec3 = Eigen::Vector3<T>;
+        using Vec6 = Eigen::Matrix<T, 6, 1>;
 
-        Sophus::SO3<T> R_w_i;
+        SO3 R_wi;
         CeresSplineHelper<T, Order>::template evaluate_lie<Sophus::SO3>(
-            sKnots, T(u_so3), T(inv_so3_dt), &R_w_i);
+            sKnots, T(u_so3), T(inv_so3_dt), &R_wi);
 
-        Vector3 accel_w;
+        Vec3 accel_w;
         CeresSplineHelper<T, Order>::template evaluate<3, 2>(
             sKnots + Order, T(u_r3), T(inv_r3_dt), &accel_w);
 
-        Vector3 bias_spline;
+        Vec3 bias_spline;
         CeresSplineHelper<T, kBiasSplineOrder>::template evaluate<3, 0>(
             sKnots + 2 * Order, T(u_bias), T(inv_bias_dt), &bias_spline);
 
-        const Eigen::Map<const Vector3> gravity(
+        const Eigen::Map<const Vec3> gravity(
             sKnots[2 * Order + kBiasSplineOrder]);
-        const Eigen::Map<const Vector6> acc_params(
+        const Eigen::Map<const Vec6> params(
             sKnots[2 * Order + kBiasSplineOrder + 1]);
 
-        ImuIntrinsics_<T> acc_intrinsics{
-            acc_params[0], acc_params[1],  acc_params[2],  T(0),
-            T(0),          T(0),           acc_params[3],  acc_params[4],
-            acc_params[5], bias_spline[0], bias_spline[1], bias_spline[2]};
+        // clang-format off
+        const ImuIntrinsics_<T> intrinsics{
+            params[0], params[1], params[2], T(0), T(0), T(0),
+            params[3], params[4], params[5],
+            bias_spline[0], bias_spline[1], bias_spline[2]};
+        // clang-format on
 
-        Eigen::Map<Vector3> residuals(sResiduals);
-        Vector3 acc_raw{T(measurement[0]), T(measurement[1]),
-                        T(measurement[2])};
-        residuals = T(inv_std) * (R_w_i.inverse() * (accel_w + gravity) -
-                                  acc_intrinsics.unbiasNormalize(acc_raw));
+        Eigen::Map<Vec3>{residuals} =
+            T(inv_std) * (R_wi.inverse() * (accel_w + gravity) -
+                          intrinsics.unbiasNormalize(measurement.cast<T>()));
         return true;
     }
 };
@@ -300,11 +301,6 @@ struct RSReprojectionCostFunctorSplit : public CeresSplineHelper<double, _N>
     static constexpr int N = _N;       // Order of the spline.
     static constexpr int DEG = _N - 1; // Degree of the spline.
 
-    using MatN = Eigen::Matrix<double, _N, _N>;
-    using VecN = Eigen::Matrix<double, _N, 1>;
-    using Vec3 = Eigen::Vector3d;
-    using Mat3 = Eigen::Matrix3d;
-
     const View* view;
     const Scene* scene;
     std::vector<int> track_ids;
@@ -316,14 +312,14 @@ struct RSReprojectionCostFunctorSplit : public CeresSplineHelper<double, _N>
     RSReprojectionCostFunctorSplit(const View* view, const Scene* scene,
                                    double u_so3, double u_r3, double inv_so3_dt,
                                    double inv_r3_dt,
-                                   const std::vector<int>& track_ids)
+                                   const std::vector<TrackId>& _trackIds)
         : view(view),
           scene(scene),
           u_so3(u_so3),
           u_r3(u_r3),
           inv_so3_dt(inv_so3_dt),
           inv_r3_dt(inv_r3_dt),
-          track_ids(track_ids)
+          track_ids(_trackIds)
     {
     }
 

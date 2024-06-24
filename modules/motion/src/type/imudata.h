@@ -1,6 +1,5 @@
 ﻿#pragma once
 
-#include <ceres/rotation.h>
 #include <Eigen/Core>
 
 #include "imudatainterval.h"
@@ -11,63 +10,72 @@ template <typename T>
 class ImuSample_
 {
 public:
-    // No explicit on purpose
-    ImuSample_(const T data[3]);
+    explicit ImuSample_(const std::array<T, 3>& data = {T(0)}) : _xyz(data) {}
+
+    inline const auto* data() const { return _xyz.data(); }
+
+    inline const auto& x() const { return _xyz[0]; }
+    inline const auto& y() const { return _xyz[1]; }
+    inline const auto& z() const { return _xyz[2]; }
 
 private:
-    T _xyz[3];
+    std::array<T, 3> _xyz;
 };
+
+using ImuSample = ImuSample_<double>;
+
+using Timestamp = double;
+using Timeline = std::vector<Timestamp>;
 
 template <typename T>
 class ImuReading_
 {
 public:
     ImuReading_() = default;
-    ImuReading_(double timestamp, const Eigen::Vector3<T>& data)
-        : _xyz(data), _t(timestamp)
+    ImuReading_(double timestamp, const Eigen::Vector3<T>& vec)
+        : ImuReading_(timestamp, vec.x(), vec.y(), vec.z())
     {
     }
-    ImuReading_(double timestamp, const T data[3])
-        : ImuReading_(timestamp, Eigen::Vector3<T>{data[0], data[1], data[2]})
+    ImuReading_(double timestamp, const std::array<T, 3>& data)
+        : _data(data), _stamp(timestamp)
     {
     }
     ImuReading_(double timestamp, T x, T y, T z)
-        : ImuReading_(timestamp, Eigen::Vector3<T>{x, y, z})
+        : ImuReading_(timestamp, std::array{x, y, z})
     {
     }
 
     inline ImuReading_<T>& operator+=(const Eigen::Vector3<T>& vec)
     {
-        _xyz += vec;
+        Eigen::Map<Eigen::Vector3<T>>{_data.data()} += vec;
         return *this;
     }
     inline ImuReading_<T>& operator-=(const Eigen::Vector3<T>& vec)
     {
-        _xyz -= vec;
-        return *this;
+        return *this + (-vec);
     }
 
-    inline const T& x() const { return _xyz[0]; }
-    inline const T& y() const { return _xyz[1]; }
-    inline const T& z() const { return _xyz[2]; }
-    inline const T& operator()(int index) const { return _xyz[index]; }
+    inline const auto& x() const { return _data.x(); }
+    inline const auto& y() const { return _data.y(); }
+    inline const auto& z() const { return _data.z(); }
+    inline const auto& operator[](int index) const { return _data[index]; }
 
-    inline const Eigen::Vector3<T>& data() const { return _xyz; }
-    inline const T* pData() const { return _xyz.data(); }
+    inline const auto* data() const { return _data.data(); }
+    inline Eigen::Vector3<T> asVector() const
+    {
+        return Eigen::Map<const Eigen::Vector3<T>>{_data.data()};
+    }
 
-    inline const double& timestamp() const { return _t; }
+    inline const double& timestamp() const { return _stamp; }
 
 private:
-    Eigen::Vector3<T> _xyz{Eigen::Vector3<T>::Zero()};
-    double _t{0.};
+    ImuSample_<T> _data;
+    double _stamp{0.}; // in sec
 };
 
 using ImuReading = ImuReading_<double>;
 using AccReading = ImuReading;
 using GyroReading = ImuReading;
-
-using Timestamp = double;
-using Timeline = std::vector<Timestamp>;
 
 struct ImuData
 {

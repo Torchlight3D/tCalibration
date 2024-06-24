@@ -53,8 +53,8 @@ void IntegrateGyroInterval(const ImuReadings_<T>& samples,
                         ? fixed_dt
                         : samples[i + 1].timestamp() - samples[i].timestamp();
 
-        math::QuaternionIntegrationByRK4(quat, samples[i].data(),
-                                         samples[i + 1].data(), dt, quat);
+        math::QuaternionIntegrationByRK4(quat, samples[i].asVector(),
+                                         samples[i + 1].asVector(), dt, quat);
     }
 }
 

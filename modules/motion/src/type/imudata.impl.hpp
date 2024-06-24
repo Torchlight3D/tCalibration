@@ -24,7 +24,7 @@ Eigen::Vector3d ImuReadings_<T>::mean(const DataInterval& interval) const
     const auto validInterval = this->validInterval(interval);
     Eigen::Vector3d mean = Eigen::Vector3d::Zero();
     for (int i = validInterval.start; i <= validInterval.end; ++i) {
-        mean += d()[i].data().template cast<double>();
+        mean += d()[i].asVector().template cast<double>();
     }
 
     mean /= validInterval.size();
@@ -39,7 +39,7 @@ Eigen::Vector3d ImuReadings_<T>::variance(const DataInterval& interval) const
     const auto mean = this->mean(validInterval);
     Eigen::Vector3d variance = Eigen::Vector3d::Zero();
     for (int i = validInterval.start; i <= validInterval.end; ++i) {
-        const auto diff = d()[i].data().template cast<double>() - mean;
+        const auto diff = d()[i].asVector().template cast<double>() - mean;
         variance += (diff.array() * diff.array()).matrix();
     }
     variance /= (validInterval.size() - 1);
