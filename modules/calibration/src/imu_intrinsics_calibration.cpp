@@ -10,6 +10,8 @@
 
 namespace tl {
 
+using Eigen::Vector3d;
+
 struct AccSampleResidual
 {
     const Eigen::Vector3d acc_;
@@ -23,15 +25,17 @@ struct AccSampleResidual
     template <typename T>
     bool operator()(const T* const params, T* residuals) const
     {
-        auto acc = acc_.template cast<T>();
         // Assume body frame same as accelerometer frame, so bottom left
         // params in the misalignment matrix are set to zero
-        ImuIntrinsics_<T> intrinsics{
+        // clang-format off
+        const ImuIntrinsics_<T> intrinsics{
             params[0], params[1], params[2], T(0),      T(0),      T(0),
-            params[3], params[4], params[5], params[6], params[7], params[8]};
+            params[3], params[4], params[5],
+            params[6], params[7], params[8]};
+        // clang-format on
 
-        auto corrected_sample = intrinsics.unbiasNormalize(acc);
-        residuals[0] = T(g_) - corrected_sample.norm();
+        residuals[0] =
+            T(g_) - intrinsics.unbiasNormalize(acc_.template cast<T>()).norm();
 
         return true;
     }
@@ -71,36 +75,31 @@ struct GyroSamplesResidual
     template <typename T>
     bool operator()(const T* const params, T* residuals) const
     {
-        ImuIntrinsics_<T> intrinsics{params[0],
-                                     params[1],
-                                     params[2],
-                                     params[3],
-                                     params[4],
-                                     params[5],
-                                     params[6],
-                                     params[7],
-                                     params[8],
-                                     optimize_bias_ ? params[9] : T(0),
-                                     optimize_bias_ ? params[10] : T(0),
-                                     optimize_bias_ ? params[11] : T(0)};
+        using Mat3 = Eigen::Matrix3<T>;
+        using Vec3 = Eigen::Vector3<T>;
+
+        // clang-format off
+        const ImuIntrinsics_<T> intrinsics{
+            params[0], params[1], params[2], params[3], params[4], params[5],
+            params[6], params[7], params[8],
+            optimize_bias_ ? params[9] : T(0), optimize_bias_ ? params[10] : T(0), optimize_bias_ ? params[11] : T(0)};
+        // clang-format on
 
         ImuReadings_<T> samples;
         samples.reserve(interval_.size());
-        for (int i{interval_.start}; i <= interval_.end; i++) {
-            auto gyro = gyros_[i].data().template cast<T>();
+        for (auto i = interval_.start; i <= interval_.end; i++) {
+            auto gyro = gyros_[i].asVector().template cast<T>();
             samples.d().emplace_back(gyros_[i].timestamp(),
                                      intrinsics.unbiasNormalize(gyro));
         }
 
-        Eigen::Matrix3<T> rmat;
-        IntegrateGyroInterval(samples, rmat, dt_);
+        Mat3 R;
+        IntegrateGyroInterval(samples, R, dt_);
 
-        auto diff = rmat.transpose() * g_start_.template cast<T>() -
-                    g_end_.template cast<T>();
+        Eigen::Map<Vec3>{residuals} =
+            R.transpose() * g_start_.template cast<T>() -
+            g_end_.template cast<T>();
 
-        residuals[0] = diff(0);
-        residuals[1] = diff(1);
-        residuals[2] = diff(2);
         return true;
     }
 
@@ -110,20 +109,19 @@ struct GyroSamplesResidual
                                        const DataInterval& interval, double dt,
                                        bool optimizeBias)
     {
-        constexpr int kResidualSize{3};
         if (optimizeBias) {
-            return new ceres::AutoDiffCostFunction<
-                GyroSamplesResidual, kResidualSize, imu::kParameterSize>(
+            return new ceres::AutoDiffCostFunction<GyroSamplesResidual,
+                                                   Vector3d::SizeAtCompileTime,
+                                                   imu::kParameterSize>(
                 new GyroSamplesResidual(gravityStart, gravityEnd, gyroSamples,
                                         interval, dt, optimizeBias));
         }
 
-        return (
-            new ceres::AutoDiffCostFunction<GyroSamplesResidual, kResidualSize,
-                                            imu::kParameterSize -
-                                                imu::kBiasSize>(
-                new GyroSamplesResidual(gravityStart, gravityEnd, gyroSamples,
-                                        interval, dt, optimizeBias)));
+        return (new ceres::AutoDiffCostFunction<
+                GyroSamplesResidual, Vector3d::SizeAtCompileTime,
+                imu::kParameterSize - imu::kBiasSize>(
+            new GyroSamplesResidual(gravityStart, gravityEnd, gyroSamples,
+                                    interval, dt, optimizeBias)));
     }
 };
 
@@ -205,8 +203,8 @@ bool ImuIntrinsicsCalibration::calibAccelerometer(const AccDatas& acclSamples)
     const auto initInterval = DataInterval::initialInterval(
         acclSamples, d->m_opts.initStaticDuration);
 
-    Eigen::Vector3d acclMean = acclSamples.mean(initInterval);
-    Eigen::Vector3d::Index maxIdx;
+    Vector3d acclMean = acclSamples.mean(initInterval);
+    Vector3d::Index maxIdx;
     acclMean.maxCoeff(&maxIdx);
     acclMean[maxIdx] -= d->m_opts.gravity;
     d->m_initAcclIntrinsics.setBias(acclMean);
@@ -253,7 +251,7 @@ bool ImuIntrinsicsCalibration::calibAccelerometer(const AccDatas& acclSamples)
         ceres::Problem problem;
         for (const auto& sample : staticSamples.d()) {
             problem.AddResidualBlock(
-                AccSampleResidual::create(sample.data(), d->m_opts.gravity),
+                AccSampleResidual::create(sample.asVector(), d->m_opts.gravity),
                 nullptr, intrinsics.data());
         }
 
@@ -297,7 +295,7 @@ bool ImuIntrinsicsCalibration::calibAccelerometer(const AccDatas& acclSamples)
     for (const auto& sample : acclSamples.d()) {
         d->m_calibAcclSamples.d().emplace_back(
             sample.timestamp(),
-            d->m_acclIntrinsics.unbiasNormalize(sample.data()));
+            d->m_acclIntrinsics.unbiasNormalize(sample.asVector()));
     }
 
     LOG(INFO) << "Accelerometer misalignment matrix: "
@@ -337,7 +335,7 @@ bool ImuIntrinsicsCalibration::calibAccelerometerGyroscope(
     // Compute the gyroscopes biases in the (static) initialization interval
     const auto initStaticGyroInterval = DataInterval::initialInterval(
         gyroSamples, d->m_opts.initStaticDuration);
-    Eigen::Vector3d gyroBias = gyroSamples.mean(initStaticGyroInterval);
+    Vector3d gyroBias = gyroSamples.mean(initStaticGyroInterval);
 
     // Remove the bias
     {
@@ -348,7 +346,7 @@ bool ImuIntrinsicsCalibration::calibAccelerometerGyroscope(
         for (size_t i{0}; i < sampleCount; i++) {
             d->m_calibGyroSamples.d().emplace_back(
                 gyroSamples[i].timestamp(),
-                gyroIntrinsics.unbias(gyroSamples[i].data()));
+                gyroIntrinsics.unbias(gyroSamples[i].asVector()));
         }
     }
 
@@ -366,9 +364,8 @@ bool ImuIntrinsicsCalibration::calibAccelerometerGyroscope(
 
     ceres::Problem problem;
     for (int i = 0, tsIdx = 0; i < staticPoseCount - 1; i++) {
-        Eigen::Vector3d currGVersor = staticAcclMeans[i].data().normalized();
-        Eigen::Vector3d nextGVersor =
-            staticAcclMeans[i + 1].data().normalized();
+        Vector3d currGVersor = staticAcclMeans[i].asVector().normalized();
+        Vector3d nextGVersor = staticAcclMeans[i + 1].asVector().normalized();
 
         double ts0 =
             d->m_calibAcclSamples[extractedIntervals[i].end].timestamp();
@@ -424,7 +421,7 @@ bool ImuIntrinsicsCalibration::calibAccelerometerGyroscope(
     for (const auto& sample : gyroSamples.d()) {
         d->m_calibGyroSamples.d().emplace_back(
             sample.timestamp(),
-            d->m_gyroIntrinsics.unbiasNormalize(sample.data()));
+            d->m_gyroIntrinsics.unbiasNormalize(sample.asVector()));
     }
 
     LOG(INFO) << summary.FullReport();

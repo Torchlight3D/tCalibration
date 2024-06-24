@@ -91,7 +91,7 @@ void CameraImuCalibration::Impl::initializeGravity(const ImuDatas& imu_data)
 
         if (!m_gravity_initialized) {
             for (const auto& acc : imu_data.acc.d()) {
-                const auto ad = acc.data();
+                const auto ad = acc.asVector();
                 const int64_t t = acc.timestamp();
                 if (std::abs(t - vis_stamp) < 1. / 30.) {
                     init_gravity_ = T_a_i.so3() * ad;
@@ -214,16 +214,16 @@ void CameraImuCalibration::initSpline(const Scene& scene,
             continue;
         }
 
-        d->m_gyro_data[t] = acc_data.data();
-        d->m_acc_data[t] = acc_data.data();
+        d->m_gyro_data[t] = acc_data.asVector();
+        d->m_acc_data[t] = acc_data.asVector();
         if (!d->m_trajectory.addAccelerometerMeasurement(
-                acc_data.data(), time::sToNs(t), 1. / sewData.r3_var)) {
+                acc_data.asVector(), time::sToNs(t), 1. / sewData.r3_var)) {
             LOG(ERROR) << "Failed to add accelerometer measurement at time "
                        << t;
         }
 
         if (!d->m_trajectory.addGyroscopeMeasurement(
-                imu.gyro[i].data(), time::sToNs(t), 1. / sewData.so3_var)) {
+                imu.gyro[i].asVector(), time::sToNs(t), 1. / sewData.so3_var)) {
             LOG(ERROR) << "Failed to add gyroscope measurement at time: " << t;
         }
     }

@@ -2,6 +2,7 @@
 
 #include <format>
 
+#include <glog/logging.h>
 #include <grpcpp/alarm.h>
 #include <grpcpp/grpcpp.h>
 #include <opencv2/imgcodecs.hpp>
