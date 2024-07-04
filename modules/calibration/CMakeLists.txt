@@ -20,14 +20,9 @@ target_sources(${CALIBRATION_TARGET_NAME}
         ${CALIBRATION_SOURCES}
 )
 
-# Duplicated code!!!
-# fmt, now used by Sophus, explicitly enable before Cpp20
-set(fmt_DIR ${ACTIVE_DEPENDS_PREFIX}/fmt/10.2.1/lib/cmake/fmt)
-find_package(fmt REQUIRED)
-
 # Sophus
 set(Eigen3_DIR ${ACTIVE_DEPENDS_PREFIX}/eigen/3.4.0/share/eigen3/cmake)
-set(Sophus_DIR ${ACTIVE_DEPENDS_PREFIX}/sophus/1.22.10/share/sophus/cmake)
+set(Sophus_DIR ${ACTIVE_DEPENDS_PREFIX}/sophus/1.x/share/sophus/cmake)
 find_package(Sophus REQUIRED)
 
 # OpenCV, apt default 4.2. TODO: Duplicated code.
@@ -69,7 +64,6 @@ target_link_libraries(${CALIBRATION_TARGET_NAME}
         ${NS_PREFIX}::Motion
         ${NS_PREFIX}::Mvs
         ${NS_PREFIX}::Vision
-        fmt::fmt
         Sophus::Sophus
         yaml-cpp::yaml-cpp
     PRIVATE
