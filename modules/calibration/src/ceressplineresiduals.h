@@ -15,7 +15,7 @@
 #include <tMvs/Scene>
 #include <tMvs/View>
 
-#include "ceres_spline_helper.h"
+#include "ceressplinehelper.h"
 
 namespace tl {
 

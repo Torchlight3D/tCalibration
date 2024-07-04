@@ -1,4 +1,4 @@
-﻿#include "camera_intrinsics_calibration.h"
+﻿#include "cameraintrinsicscalibration.h"
 
 #include <map>
 #include <thread>
@@ -23,7 +23,7 @@
 #include <tVision/EigenCVUtils>
 
 #include "util_scene.h"
-#include "initialize_intrinsics.h"
+#include "initializeintrinsics.h"
 
 namespace tl {
 

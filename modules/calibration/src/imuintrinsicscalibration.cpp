@@ -1,4 +1,4 @@
-﻿#include "imu_intrinsics_calibration.h"
+﻿#include "imuintrinsicscalibration.h"
 
 #include <ceres/ceres.h>
 #include <glog/logging.h>
