@@ -190,4 +190,4 @@ inline int GetPtrOffset(const double* knot_ptr,
 
 } // namespace tl
 
-#include "spline_trajectory_estimator.impl.hpp"
+#include "splinetrajectoryestimator.hpp"

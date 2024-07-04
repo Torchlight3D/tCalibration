@@ -1,5 +1,7 @@
 ﻿#pragma once
 
+#include "splinetrajectoryestimator.h"
+
 #include <thread>
 
 #include <ceres/sphere_manifold.h>
@@ -12,8 +14,7 @@
 #include <tMvs/Landmark>
 #include <tMvs/View>
 
-#include "ceres_spline_residuals.h"
-#include "spline_trajectory_estimator.h"
+#include "ceressplineresiduals.h"
 
 namespace tl {
 

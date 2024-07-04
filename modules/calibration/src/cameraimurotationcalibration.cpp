@@ -1,4 +1,4 @@
-﻿#include "camera_imu_rotation_calibration.h"
+﻿#include "cameraimurotationcalibration.h"
 
 #include <glog/logging.h>
 

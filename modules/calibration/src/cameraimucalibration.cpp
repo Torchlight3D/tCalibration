@@ -1,9 +1,10 @@
-﻿#include "camera_imu_calibration.h"
+﻿#include "cameraimucalibration.h"
 
 #include <glog/logging.h>
+
 #include <json/json.hpp>
 
-#include "spline_trajectory_estimator.h"
+#include "splinetrajectoryestimator.h"
 
 namespace tl {
 
