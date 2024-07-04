@@ -28,13 +28,9 @@ target_sources(${MVS_TARGET_NAME}
         ${MVS_SOURCES}
 )
 
-# fmt, now used by Sophus, explicitly enable before Cpp20
-set(fmt_DIR ${ACTIVE_DEPENDS_PREFIX}/fmt/10.2.1/lib/cmake/fmt)
-find_package(fmt REQUIRED)
-
 # Sophus
 set(Eigen3_DIR ${ACTIVE_DEPENDS_PREFIX}/eigen/3.4.0/share/eigen3/cmake)
-set(Sophus_DIR ${ACTIVE_DEPENDS_PREFIX}/sophus/1.22.10/share/sophus/cmake)
+set(Sophus_DIR ${ACTIVE_DEPENDS_PREFIX}/sophus/1.x/share/sophus/cmake)
 find_package(Sophus REQUIRED)
 
 target_include_directories(${MVS_TARGET_NAME}
@@ -52,7 +48,6 @@ target_link_libraries(${MVS_TARGET_NAME}
         ${NS_PREFIX}::Math
         ${NS_PREFIX}::Vision
     PRIVATE
-        fmt::fmt
         magic_enum
         Sophus::Sophus
 )
