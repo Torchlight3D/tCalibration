@@ -4,13 +4,9 @@
 #include <vector>
 #include <ranges>
 
-namespace tl::con {
+#include <glog/logging.h>
 
-template <typename T, size_t N>
-inline constexpr size_t ArraySize(T (&arr)[N])
-{
-    return N;
-}
+namespace tl::con {
 
 template <typename T>
 void Erase(std::vector<T>& vec, size_t index)
@@ -57,6 +53,9 @@ using MapKey = typename Map_t::value_type::first_type;
 
 template <class Map_t>
 using MapValue = typename Map_t::value_type::second_type;
+
+template <class Set_t>
+using SetValue = typename Set_t::value_type;
 
 template <class Map_t>
 MapValue<Map_t>& FindOrDie(Map_t& map, const MapKey<Map_t>& key)
@@ -121,6 +120,44 @@ const MapValue<Map_t>& FindWithDefault(const Map_t& map,
         return value;
     }
     return it->second;
+}
+
+// Insert a new key and value into a map or hash_map.
+// If the key is not present in the map the key and value are
+// inserted, otherwise nothing happens. True indicates that an insert
+// took place, false indicates the key was already present.
+template <class Map_t>
+bool InsertIfNotPresent(Map_t* const map, const MapKey<Map_t>& key,
+                        const MapValue<Map_t>& value)
+{
+    auto ret = map->insert({key, value});
+    return ret.second;
+}
+
+// Insert a new value into a set or hash_set. If the value is not present in
+// the set then it is inserted, otherwise nothing happens. True indicates that
+// an insert took place, false indicates the value was already present.
+template <class Set_t>
+bool InsertIfNotPresent(Set_t* const set, const SetValue<Set_t>& value)
+{
+    auto ret = set->insert(value);
+    return ret.second;
+}
+
+// Inserts a new key/value into a map or hash_map.
+// Dies if the key is already present.
+template <class Map_t>
+void InsertOrDie(Map_t* const map, const MapKey<Map_t>& key,
+                 const MapValue<Map_t>& value)
+{
+    CHECK(map->insert({key, value}).second) << "duplicate key: " << key;
+}
+
+template <class Map_t>
+void InsertOrDieNoPrint(Map_t* const map, const MapKey<Map_t>& key,
+                        const MapValue<Map_t>& value)
+{
+    CHECK(map->insert({key, value}).second);
 }
 
 // For ordered containers, we can use std::set_intersection() as well
