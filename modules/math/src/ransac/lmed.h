@@ -5,10 +5,10 @@
 
 namespace tl {
 
-template <class ModelEstimator>
-class LMed final : public SampleConsensus<ModelEstimator>
+template <class Model>
+class LMed final : public SampleConsensus<Model>
 {
-    using Base = SampleConsensus<ModelEstimator>;
+    using Base = SampleConsensus<Model>;
 
 public:
     using Base::Base;
