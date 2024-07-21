@@ -45,6 +45,10 @@ public:
     void setPrincipalPoint(double cx, double cy);
     double principalPointX() const;
     double principalPointY() const;
+    inline Eigen::Vector2d principalPoint() const
+    {
+        return {principalPointX(), principalPointY()};
+    }
 
     void setCameraIntrinsics(CameraIntrinsics::Ptr intrinsics);
     CameraIntrinsics::Ptr cameraIntrinsics() const;

@@ -89,8 +89,6 @@ std::vector<TrackId> View::trackIds() const
 
 size_t View::trackCount() const { return m_trackIdToFeature.size(); }
 
-bool View::empty() const { return m_trackIdToFeature.empty(); }
-
 Vector3d View::position() const { return m_camera.position(); }
 
 Vector3d View::orientationAsEuler() const

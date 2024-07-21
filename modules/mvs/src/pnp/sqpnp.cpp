@@ -1,13 +1,11 @@
 ﻿#include "sqpnp.h"
 #include "impl/sqpnp_impl.h"
 
-#include <numbers>
+#include <glog/logging.h>
 
 #include <tCore/Math>
 
 namespace tl {
-
-using std::numbers::sqrt3;
 
 namespace {
 
@@ -20,7 +18,7 @@ SQPSolution runSQP(const Vector9d& r0, const Matrix9d& omega,
     int step{0};
     Vector9d delta;
     Vector9d r = r0;
-    auto delta_squared_norm = kMaxDouble;
+    double delta_squared_norm = kMaxDouble;
     while (delta_squared_norm > DEFAULT_SQP_SQUARED_TOLERANCE &&
            step++ < DEFAULT_SQP_SQUARED_TOLERANCE) {
         SolveSQPSystem(r, omega, delta);
@@ -48,14 +46,15 @@ SQPSolution runSQP(const Vector9d& r0, const Matrix9d& omega,
 
 } // namespace
 
-bool SQPnP(const Vector2dList& image_points, const Vector3dList& world_points,
-           QuaterniondList& rotations, Vector3dList& translations)
+bool SQPnP(const std::vector<Eigen::Vector2d>& imagePoints,
+           const std::vector<Eigen::Vector3d>& objectPoints,
+           std::vector<Eigen::Quaterniond>& rotations,
+           std::vector<Eigen::Vector3d>& translations)
 {
-    // TODO: assert equal size
-    size_t N = world_points.size();
-    if (N != image_points.size() || N < 3 || image_points.size() < 3) {
-        return false;
-    }
+    CHECK_GE(imagePoints.size(), 3);
+    CHECK_EQ(imagePoints.size(), objectPoints.size());
+
+    const size_t N = objectPoints.size();
 
     std::vector<double> weights;
     weights.resize(N, 1.0);
@@ -68,17 +67,17 @@ bool SQPnP(const Vector2dList& image_points, const Vector3dList& world_points,
     for (size_t i = 0; i < N; i++) {
         const double& w = weights[i];
 
-        double wx = image_points[i][0] * w;
-        double wy = image_points[i][1] * w;
-        double wsq_norm_m = w * image_points[i].squaredNorm();
+        double wx = imagePoints[i][0] * w;
+        double wy = imagePoints[i][1] * w;
+        double wsq_norm_m = w * imagePoints[i].squaredNorm();
         sum_wx += wx;
         sum_wy += wy;
         sum_wx2_plus_wy2 += wsq_norm_m;
         sum_w += w;
 
-        double X = world_points[i][0];
-        double Y = world_points[i][1];
-        double Z = world_points[i][2];
+        double X = objectPoints[i][0];
+        double Y = objectPoints[i][1];
+        double Z = objectPoints[i][2];
         sum_X += X;
         sum_Y += Y;
         sum_Z += Z;
@@ -263,7 +262,7 @@ bool SQPnP(const Vector2dList& image_points, const Vector3dList& world_points,
         findNearestRotationMatrix = findNearestRotationMatrixBySVD;
     }
 
-    auto min_sq_error = kMaxDouble;
+    double min_sq_error = kMaxDouble;
     int num_eigen_points = nullSpaceDim > 0 ? nullSpaceDim : 1;
     // clear solutions
     SQPSolution solutions_[18];

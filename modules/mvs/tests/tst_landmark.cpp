@@ -1,6 +1,5 @@
 #include <array>
 
-#include <Eigen/Core>
 #include <gtest/gtest.h>
 
 #include <tCore/ContainerUtils>
@@ -9,6 +8,7 @@
 using namespace tl;
 
 using Eigen::Vector3f;
+using Eigen::Vector4d;
 using Eigen::VectorXf;
 
 namespace {
@@ -19,7 +19,7 @@ TEST(Landmark, Default)
 {
     Track track;
     EXPECT_EQ(track.viewCount(), 0);
-    EXPECT_EQ(track.position(), Eigen::Vector4d::Zero());
+    EXPECT_EQ(track.position(), Vector4d::Zero());
 }
 
 TEST(Landmark, Estimated)

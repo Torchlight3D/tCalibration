@@ -15,7 +15,7 @@
 #include <tCamera/OmnidirectionalCameraModel>
 #include <tCore/TimeUtils>
 #include <tMath/Ransac/SampleConsensus>
-#include <tMvs/BundleAdjustment>
+#include <tMvs/BA/BundleAdjustment>
 #include <tMvs/Feature>
 #include <tMvs/Landmark>
 #include <tMvs/Scene>

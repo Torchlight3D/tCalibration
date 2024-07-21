@@ -1,0 +1,1 @@
+#include "../../../src/sfm/incrementalreconstruction.h"

@@ -1,10 +1,13 @@
 ﻿#pragma once
 
+#include <numbers>
 #include <vector>
-#include <Eigen/Core>
+
 #include <Eigen/Geometry>
 
 namespace tl {
+
+using std::numbers::sqrt3;
 
 using Matrix9d = Eigen::Matrix<double, 9, 9>;
 using Vector9d = Eigen::Matrix<double, 9, 1>;
@@ -28,7 +31,6 @@ constexpr double DEFAULT_ORTHOGONALITY_SQUARED_ERROR_THRESHOLD = 1e-8;
 constexpr double DEFAULT_EQUAL_VECTORS_SQUARED_DIFF = 1e-10;
 constexpr double DEFAULT_EQUAL_SQUARED_ERRORS_DIFF = 1e-6;
 constexpr double DEFAULT_POINT_VARIANCE_THRESHOLD = 1e-5;
-const double SQRT3 = std::sqrt(3);
 
 struct SQPSolution
 {
@@ -86,6 +88,6 @@ double OrthogonalityError(const Vector9d& a);
 // Jacobian at a 9D vector r (not necessarilly a rotation-yet it should be
 // rank-3)
 void RowAndNullSpace(const Vector9d& r, Matrix96& H, Matrix93& N, Matrix66& K,
-                      double norm_threhsold = 0.1);
+                     double norm_threhsold = 0.1);
 
 } // namespace tl

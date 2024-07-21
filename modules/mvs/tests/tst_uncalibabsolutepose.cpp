@@ -1,17 +1,17 @@
-#include <gtest/gtest.h>
-
 #include <Eigen/Dense>
+#include <gtest/gtest.h>
 
 #include <tCore/Math>
 #include <tCore/RandomGenerator>
 #include <tMath/Eigen/Utils>
-#include <tMath/Ransac/SampleConsensus>
-#include <tMvs/PnP/EstimateUncalibratedAbsolutePose>
+#include <tMath/Ransac/RansacCreator>
 #include <tMvs/Feature>
+#include <tMvs/PnP/EstimateUncalibratedAbsolutePose>
 
 #include "test_utils.h"
 
 using namespace tl;
+using namespace tl::math;
 
 using Eigen::AngleAxisd;
 using Eigen::Matrix3d;
@@ -24,7 +24,7 @@ constexpr double kFocalLength = 1000.0;
 constexpr double kReprojectionError = 4.0;
 constexpr double kErrorThreshold = kReprojectionError * kReprojectionError;
 
-RandomNumberGenerator kRNG{64};
+RandomNumberGenerator kRNG(64);
 } // namespace
 
 inline void ExecuteRandomTest(const SacParameters& options,
@@ -59,7 +59,7 @@ inline void ExecuteRandomTest(const SacParameters& options,
 
     if (noise) {
         for (int i = 0; i < kNumPoints; i++) {
-            AddNoiseToProjection(noise, &kRNG, &correspondences[i].feature);
+            AddNoiseToVector2(noise, &correspondences[i].feature);
         }
     }
 
@@ -98,8 +98,8 @@ TEST(EstimateUncalibratedAbsolutePose, AllInliersNoNoise)
 
     const std::vector<Matrix3d> rotations = {
         Matrix3d::Identity(),
-        AngleAxisd(math::degToRad(12.0), Vector3d::UnitY()).toRotationMatrix(),
-        AngleAxisd(math::degToRad(-9.0), Vector3d(1.0, 0.2, -0.8).normalized())
+        AngleAxisd(degToRad(12.0), Vector3d::UnitY()).toRotationMatrix(),
+        AngleAxisd(degToRad(-9.0), Vector3d(1.0, 0.2, -0.8).normalized())
             .toRotationMatrix()};
     const std::vector positions = {Vector3d(-1.3, 0, 0), Vector3d(0, 0, 0.5)};
     for (const auto& rotation : rotations) {
@@ -124,8 +124,8 @@ TEST(EstimateUncalibratedAbsolutePose, AllInliersWithNoise)
 
     const std::vector<Matrix3d> rotations = {
         Matrix3d::Identity(),
-        AngleAxisd(math::degToRad(12.0), Vector3d::UnitY()).toRotationMatrix(),
-        AngleAxisd(math::degToRad(-9.0), Vector3d(1.0, 0.2, -0.8).normalized())
+        AngleAxisd(degToRad(12.0), Vector3d::UnitY()).toRotationMatrix(),
+        AngleAxisd(degToRad(-9.0), Vector3d(1.0, 0.2, -0.8).normalized())
             .toRotationMatrix()};
     const std::vector positions = {Vector3d(-1.3, 0, 0), Vector3d(0, 0, 0.5)};
 
@@ -149,9 +149,9 @@ TEST(EstimateUncalibratedAbsolutePose, OutliersNoNoise)
     constexpr double kNoise = 0.0;
     constexpr double kPoseTolerance = 1e-2;
 
-    const std::vector<Matrix3d> rotations = {Matrix3d::Identity(),
-                                             RandomRotation(15.)};
-    const std::vector positions = {Vector3d(1, 0, 0), Vector3d(0, 1, 0)};
+    const std::vector<Matrix3d> rotations{Matrix3d::Identity(),
+                                          RandomRotation(15.)};
+    const std::vector positions{Vector3d::UnitX(), Vector3d::UnitY()};
 
     for (const auto& rotation : rotations) {
         for (const auto& position : positions) {
@@ -173,9 +173,9 @@ TEST(EstimateUncalibratedAbsolutePose, OutliersWithNoise)
     constexpr double kNoise = 1.0;
     constexpr double kPoseTolerance = 0.1;
 
-    const std::vector<Matrix3d> rotations = {Matrix3d::Identity(),
-                                             RandomRotation(15.)};
-    const std::vector positions = {Vector3d(1, 0, 0), Vector3d(0, 1, 0)};
+    const std::vector<Matrix3d> rotations{Matrix3d::Identity(),
+                                          RandomRotation(15.)};
+    const std::vector positions{Vector3d::UnitX(), Vector3d::UnitY()};
 
     for (const auto& rotation : rotations) {
         for (const auto& position : positions) {

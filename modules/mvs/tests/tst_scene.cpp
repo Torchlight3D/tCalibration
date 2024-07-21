@@ -15,8 +15,8 @@ TEST(Scene, ViewIdFromNameValid)
 {
     Scene scene;
     const auto viewId = scene.addView(kViewNames[0], 0.);
-    const auto viewIdFromName = scene.viewIdFromName(kViewNames[0]);
-    EXPECT_EQ(viewId, viewIdFromName);
+    const auto fromNameViewId = scene.viewIdFromName(kViewNames[0]);
+    EXPECT_EQ(viewId, fromNameViewId);
 }
 
 TEST(Scene, ViewIdFromNameInvalid)
@@ -43,7 +43,7 @@ TEST(Scene, AddView)
 TEST(Scene, AddViewWithSpecificCameraId)
 {
     Scene scene;
-    constexpr CameraId camId{1};
+    const CameraId camId{1};
     const auto viewId = scene.addView(kViewNames[0], 0., camId);
     EXPECT_NE(viewId, kInvalidViewId);
     EXPECT_EQ(scene.viewCount(), 1);
@@ -408,4 +408,58 @@ TEST(Scene, GetSubScene)
             ASSERT_TRUE(subScene.removeView(viewId));
         }
     }
+}
+
+TEST(Scene, FindCommonTracksInViews_NoCommonTracks)
+{
+    const Feature feature;
+    const Scene::TrackObservation track1{{ViewId{0}, feature},
+                                         {ViewId{1}, feature}};
+    const Scene::TrackObservation track2{{ViewId{1}, feature},
+                                         {ViewId{2}, feature}};
+    const Scene::TrackObservation track3{{ViewId{2}, feature},
+                                         {ViewId{3}, feature}};
+
+    Scene scene;
+    scene.addView("0", 0.);
+    scene.addView("1", 1.);
+    scene.addView("2", 2.);
+    scene.addView("3", 3.);
+
+    scene.addTrack(track1);
+    scene.addTrack(track2);
+    scene.addTrack(track3);
+
+    const std::vector viewIds{0, 1, 2, 3};
+    const auto commonTrackIds = scene.trackIdsInViews(viewIds);
+    EXPECT_TRUE(commonTrackIds.empty());
+}
+
+TEST(Scene, FindCommonTracksInViews_CommonTracks)
+{
+    const Feature feature;
+    const Scene::TrackObservation track1{{ViewId{1}, feature},
+                                         {ViewId{2}, feature}};
+    const Scene::TrackObservation track2{{ViewId{0}, feature},
+                                         {ViewId{1}, feature},
+                                         {ViewId{2}, feature},
+                                         {ViewId{3}, feature}};
+    const Scene::TrackObservation track3{{ViewId{2}, feature},
+                                         {ViewId{3}, feature}};
+
+    Scene scene;
+    scene.addView("0", 0.);
+    scene.addView("1", 1.);
+    scene.addView("2", 2.);
+    scene.addView("3", 3.);
+
+    scene.addTrack(track1);
+    scene.addTrack(track2);
+    scene.addTrack(track3);
+
+    const std::vector viewIds{0, 1, 2, 3};
+    const auto commonTrackIds = scene.trackIdsInViews(viewIds);
+
+    // Track2 is the common track
+    EXPECT_EQ(commonTrackIds.size(), 1);
 }

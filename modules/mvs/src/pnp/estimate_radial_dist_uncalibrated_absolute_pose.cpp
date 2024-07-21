@@ -2,10 +2,12 @@
 
 #include <Eigen/Dense>
 
-#include <tMath/Ransac/RansacCreator>
 #include <tMath/Ransac/RansacModelEstimator>
-#include <tMvs/PnP/P4PFocalLengthDistortion>
+#include <tMath/Ransac/SampleConsensus>
+#include <tMath/Ransac/RansacCreator>
 #include <tMvs/Feature>
+
+#include "p4p_focal_distortion.h"
 
 namespace tl {
 
@@ -54,21 +56,25 @@ public:
     size_t SampleSize() const override { return 4; }
 
     bool EstimateModel(
-        const std::vector<Feature2D3D>& corres,
+        const std::vector<Feature2D3D>& corrs,
         std::vector<RadialDistUncalibratedAbsolutePose>* poses) const override
     {
-        const Vector2dList point2s{corres[0].feature, corres[1].feature,
-                                   corres[2].feature, corres[3].feature};
-        const Vector3dList point3s{corres[0].world_point, corres[1].world_point,
-                                   corres[2].world_point,
-                                   corres[3].world_point};
+        if (corrs.size() < SampleSize()) {
+            return false;
+        }
+
+        const Vector2dList imgPoints{corrs[0].feature, corrs[1].feature,
+                                     corrs[2].feature, corrs[3].feature};
+        const Vector3dList objPoints{corrs[0].world_point, corrs[1].world_point,
+                                     corrs[2].world_point,
+                                     corrs[3].world_point};
 
         Matrix3dList rotations;
         Vector3dList translations;
         std::vector<double> radialDistortions;
         std::vector<double> focalLenghths;
         if (!FourPointsPoseFocalLengthRadialDistortion(
-                point2s, point3s,
+                imgPoints, objPoints,
                 {opts_.min_focal_length, opts_.max_focal_length,
                  opts_.min_radial_distortion, opts_.max_radial_distortion},
                 &rotations, &translations, &radialDistortions,

@@ -878,7 +878,7 @@ bool FourPointFocalLengthHelper(double glab, double glac, double glad,
             continue;
         }
 
-        f->push_back(sqrt(sol(3, i).real()));
+        f->push_back(std::sqrt(sol(3, i).real()));
         depths->push_back(sol.col(i).real().head<3>().reverse());
     }
 

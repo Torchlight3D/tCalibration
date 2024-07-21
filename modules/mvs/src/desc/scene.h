@@ -1,8 +1,11 @@
 ﻿#pragma once
 
+#include <memory>
 #include <set>
-
-#include <tMvs/Types>
+#include <string>
+#include <unordered_map>
+#include <unordered_set>
+#include <vector>
 
 #include "landmark.h"
 #include "view.h"
@@ -30,7 +33,6 @@ public:
     View* rView(ViewId id);
     int viewCount() const;
     int viewCount(CameraId id) const;
-    int estimatedViewCount() const;
 
     ViewId viewIdFromName(const std::string& name) const;
     std::set<ViewId> viewIdsAtTime(double timestamp) const;
@@ -38,16 +40,16 @@ public:
     std::vector<ViewId> estimatedViewIds() const;
     std::vector<ViewId> sharedCameraViewIds(CameraId id) const;
 
-    CameraId cameraId(ViewId id) const;
-    const Camera* camera(CameraId id) const;
+    // Use left camera as reference
+    void pairCamera(CameraId left, CameraId right);
+    ViewId pairViewIdOf(ViewId id) const;
+
     std::vector<CameraId> cameraIds() const;
     int cameraCount() const;
-
-    // TODO: Now used by StereoCameraCalibration. Delete later
-    void pairCamera(CameraId left, CameraId right);
     CameraId pairCameraIdOf(CameraId id) const;
-    ViewId pairViewIdOf(ViewId id) const;
-    const auto& timeToViewIds() const { return m_timestampToViewIds; }
+
+    CameraId cameraId(ViewId id) const;
+    const Camera* camera(CameraId id) const;
 
     // Add empty track
     TrackId addTrack();
@@ -63,11 +65,26 @@ public:
     std::vector<TrackId> trackIdsInViews(const std::vector<ViewId>& ids) const;
     std::vector<Eigen::Vector3d> tracksInView(ViewId id) const;
     int trackCount() const;
-    int estimatedTrackCount() const;
 
-    int setUnderconstrainedViewsToUnestimated();
-    int setUnderconstrainedTracksToUnestimated();
-    void setUnestimated();
+    int setUnderconstrainedViewsUnestimated(int minTrackCount = 3);
+    int setUnderconstrainedTracksUnestimated(int minViewCount = 2);
+    int setOutlierTracksUnestimated(const std::vector<TrackId>& trackIds,
+                                    double maxRpe,
+                                    double min_triangulation_angle_degrees);
+    inline auto setOutlierTracksUnestimated(
+        double maxRpe, double min_triangulation_angle_degrees)
+    {
+        return setOutlierTracksUnestimated(trackIds(), maxRpe,
+                                           min_triangulation_angle_degrees);
+    }
+
+    void setTracksInViewsUnestimated(const std::vector<ViewId>& viewIds,
+                                     const std::vector<TrackId>& exceptions);
+    void resetEstimated();
+
+    void updateViewPoses(
+        const std::unordered_map<ViewId, Eigen::Vector3d>& orientations,
+        const std::unordered_map<ViewId, Eigen::Vector3d>& positions);
 
     // Adds an observation between the track and the view to the scene. Returns
     // true upon successful insertion of the observation. If the track already
@@ -95,47 +112,18 @@ public:
     void extractSubScene(const std::unordered_set<ViewId>& subViewIds,
                          Scene* subScene) const;
 
-    /// Reprojection error (RPE) calculation.
-    /// 1. RPE of all the detected points (regardless View)
-    /// 2. RPE of specific view.
-    /// 3. Weighted mean of all View RPEs.
-    // TODO:
-    // 1. Put all RPE calculation into one place
-    // 2. Make these methods const
+    // Return average RPE of observed points in a view
+    // TODO: Put all RPE calculation into one place
     std::optional<double> calcViewReprojectionError(
         ViewId id, bool update = true,
         const Eigen::Vector3d* orientation = nullptr,
         const Eigen::Vector3d* translation = nullptr);
 
-    // RPE_rms = sqrt(Mean(SqauredNorm(offset))
-    std::optional<double> calcRpeRMS(
-        const Eigen::Vector3d* orientation = nullptr,
-        const Eigen::Vector3d* translation = nullptr) const;
-    std::optional<double> calcViewRpeRMS(
-        ViewId id, const Eigen::Vector3d* orientation = nullptr,
-        const Eigen::Vector3d* translation = nullptr, bool update = false);
-
-    // RPE_mean = Mean(Norm(offset))
-    std::optional<double> calcRpeMean(
-        const Eigen::Vector3d* orientation = nullptr,
-        const Eigen::Vector3d* translation = nullptr) const;
-    std::optional<double> calcViewRpeMean(
-        ViewId id, const Eigen::Vector3d* orientation = nullptr,
-        const Eigen::Vector3d* translation = nullptr, bool update = false);
-    std::optional<double> calcAverageViewRpeMean(
-        const Eigen::Vector3d* orientation = nullptr,
-        const Eigen::Vector3d* translation = nullptr) const;
-
-    // RPE_median = Median(Norm(offset))
-    std::optional<double> calcRpeMedian(
-        const Eigen::Vector3d* orientation = nullptr,
-        const Eigen::Vector3d* translation = nullptr) const;
-    std::optional<double> calcViewRpeMedian(
-        ViewId id, const Eigen::Vector3d* orientation = nullptr,
-        const Eigen::Vector3d* translation = nullptr, bool update = false);
-
     void transform(const Eigen::Matrix3d& rotation,
                    const Eigen::Vector3d& translation, double scale = 1.);
+
+    // Debug. TODO: Delete later
+    const auto& timeToViewIds() const { return m_timestampToViewIds; }
 
 private:
     std::unordered_map<std::string, ViewId> m_nameToViewId;
@@ -151,7 +139,5 @@ private:
     ViewId m_nextViewId;
     CameraId m_nextCamId;
 };
-
-std::ostream& operator<<(std::ostream& os, const Scene& scene);
 
 } // namespace tl

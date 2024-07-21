@@ -71,12 +71,9 @@ struct Feature2D3D
 template <>
 struct std::hash<tl::Feature>
 {
-    size_t operator()(const tl::Feature &k) const
+    size_t operator()(const tl::Feature &feat) const
     {
-        // Compute individual hash values for two data members and combine them
-        // using XOR and bit shifting
-        return (
-            (hash<double>()(k.pos.x()) ^ (hash<double>()(k.pos.y()) << 1)) >>
-            1);
+        const hash<double> hasher{};
+        return ((hasher(feat.x()) ^ (hasher(feat.y()) << 1)) >> 1);
     }
 };

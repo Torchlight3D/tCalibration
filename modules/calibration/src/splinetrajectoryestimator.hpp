@@ -981,7 +981,7 @@ void SplineTrajectoryEstimator<_T>::ConvertInvDepthPointsToHom()
 }
 
 template <int _T>
-void SplineTrajectoryEstimator<_T>::ConvertToTheiaRecon(Scene* recon_out)
+void SplineTrajectoryEstimator<_T>::toScene(Scene* recon_out) const
 {
     // read camera calibration
     for (const auto& viewId : scene_.viewIds()) {

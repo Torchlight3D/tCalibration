@@ -1,15 +1,18 @@
 ﻿#include "bundleadjustment.h"
 
 #include <ceres/ceres.h>
+#include <ceres/rotation.h>
 
 #include <tCamera/Camera>
 #include <tCamera/ReprojectionError>
-#include <tMath/Solvers/LossFunction>
 #include <tMvs/Feature>
-#include <tMVS/Scene>
-#include <tMvs/StereoViewInfo>
+#include <tMvs/ViewPairInfo>
 
 namespace tl {
+
+using Eigen::Matrix3d;
+using Eigen::Vector2d;
+using Eigen::Vector3d;
 
 namespace {
 
@@ -64,48 +67,48 @@ void AddCameraParametersToProblem(bool constant_extrinsic,
 
 struct AngularEpipolarError
 {
-    const Eigen::Vector2d feature1_;
-    const Eigen::Vector2d feature2_;
+    const Eigen::Vector2d point1;
+    const Eigen::Vector2d point2;
 
-    AngularEpipolarError(const Eigen::Vector2d& feature1,
-                         const Eigen::Vector2d& feature2)
-        : feature1_(feature1), feature2_(feature2)
+    AngularEpipolarError(const Eigen::Vector2d& point1,
+                         const Eigen::Vector2d& point2)
+        : point1(point1), point2(point2)
     {
     }
 
     template <typename T>
-    bool operator()(const T* const rvec, const T* const translation,
-                    T* residual) const
+    bool operator()(const T* const rvec, const T* const tvec,
+                    T* residuals) const
     {
-        // double -> T
-        const Eigen::Vector3<T> feature1{T(feature1_(0)), T(feature1_(1)),
-                                         T(1)};
-        const Eigen::Vector3<T> feature2{T(feature2_(0)), T(feature2_(1)),
-                                         T(1)};
+        using Mat3 = Eigen::Matrix3<T>;
+        using Vec3 = Eigen::Vector3<T>;
 
-        // angle-axis -> rotation matrix
-        Eigen::Matrix3<T> rmat;
+        const Vec3 p1 = point1.cast<T>().homogeneous();
+        const Vec3 p2 = point2.cast<T>().homogeneous();
+
+        Mat3 R;
         ceres::AngleAxisToRotationMatrix(
-            rvec, ceres::ColumnMajorAdapter3x3(rmat.data()));
+            rvec, ceres::ColumnMajorAdapter3x3(R.data()));
 
         // Compute values A and B (Eq. 11 in the paper).
-        Eigen::Map<const Eigen::Vector3<T>> translation_map(translation);
-        const Eigen::Matrix3<T> translation_term =
-            Eigen::Matrix3<T>::Identity() -
-            translation_map * translation_map.transpose();
-        const T a = feature1.dot(translation_term * feature1) +
-                    (rmat * feature2)
-                        .dot(translation_term * (rmat.transpose() * feature2));
-        const T b_sqrt =
-            translation_map.dot(feature1.cross(rmat.transpose() * feature2));
+        Eigen::Map<const Vec3> t{tvec};
+
+        // I - t * t'
+        const Mat3 translation_term = Mat3::Identity() - t * t.transpose();
+        // R' * p2
+        const Vec3 Rt_p2 = R.transpose() * p2;
+        const T a = p1.dot(translation_term * p1) +
+                    (R * p2).dot(translation_term * Rt_p2);
+        const T b_sqrt = t.dot(p1.cross(Rt_p2));
 
         // Ensure the square root is real.
-        const T sqrt_term = a * a / T(4) - b_sqrt * b_sqrt;
+        const T sqrt_term = (a * a) / T(4) - b_sqrt * b_sqrt;
         if (sqrt_term < T(0)) {
-            return false;
+            residuals[0] = T(1000);
+            return true;
         }
 
-        residual[0] = a / T(2) - sqrt(sqrt_term);
+        residuals[0] = a / T(2) - sqrt(sqrt_term);
         return true;
     }
 
@@ -113,38 +116,42 @@ struct AngularEpipolarError
                                        const Eigen::Vector2d& feature2)
     {
         constexpr int kResidualSize{1};
-        constexpr int kRotationSize{3};
-        constexpr int kTranslationSize{3};
-        return new ceres::AutoDiffCostFunction<AngularEpipolarError,
-                                               kResidualSize, kRotationSize,
-                                               kTranslationSize>(
+
+        return new ceres::AutoDiffCostFunction<
+            AngularEpipolarError, kResidualSize, Vector3d::SizeAtCompileTime,
+            Vector3d::SizeAtCompileTime>(
             new AngularEpipolarError(feature1, feature2));
     }
 };
 
 struct SampsonError
 {
-    const Eigen::Vector2d feature1_;
-    const Eigen::Vector2d feature2_;
+    const Eigen::Vector2d point1;
+    const Eigen::Vector2d point2;
 
-    explicit SampsonError(const Eigen::Vector2d& feature1,
-                          const Eigen::Vector2d& feature2)
-        : feature1_(feature1), feature2_(feature2)
+    explicit SampsonError(const Eigen::Vector2d& point1,
+                          const Eigen::Vector2d& point2)
+        : point1(point1), point2(point2)
     {
     }
 
     template <typename T>
-    bool operator()(const T* const fundamental, T* residual) const
+    bool operator()(const T* const fundamental, T* residuals) const
     {
-        const Eigen::Map<const Eigen::Matrix3<T>> F(fundamental);
-        const Eigen::Vector3<T> epiline_x = F * feature1_.homogeneous();
-        const T numerator_sqrt = feature2_.homogeneous().dot(epiline_x);
-        const Eigen::Vector4<T> denominator{
-            feature2_.homogeneous().dot(F.col(0)),
-            feature2_.homogeneous().dot(F.col(1)), epiline_x[0], epiline_x[1]};
+        using Mat3 = Eigen::Matrix3<T>;
+        using Vec3 = Eigen::Vector3<T>;
+        using Vec4 = Eigen::Vector4<T>;
 
-        residual[0] =
-            numerator_sqrt * numerator_sqrt / denominator.squaredNorm();
+        const Vec3 p1 = point1.cast<T>().homogeneous();
+        const Vec3 p2 = point2.cast<T>().homogeneous();
+
+        const Eigen::Map<const Mat3> F{fundamental};
+        const Vec3 epiline_x = F * p1;
+        const T numerator_sqrt = p2.dot(epiline_x);
+        const Vec4 deno{p2.dot(F.col(0)), p2.dot(F.col(1)), epiline_x[0],
+                        epiline_x[1]};
+
+        residuals[0] = numerator_sqrt * numerator_sqrt / deno.squaredNorm();
         return true;
     }
 
@@ -152,9 +159,9 @@ struct SampsonError
                                        const Eigen::Vector2d& feature2)
     {
         constexpr int kResidualSize{1};
-        constexpr int kFundamentalMatrixSize{9};
+
         return new ceres::AutoDiffCostFunction<SampsonError, kResidualSize,
-                                               kFundamentalMatrixSize>(
+                                               Matrix3d::SizeAtCompileTime>(
             new SampsonError(feature1, feature2));
     }
 };
@@ -235,14 +242,15 @@ struct UnitNormThreeVectorManifold
 //
 // Templated to be used with autodifferentiation.
 template <typename T>
-void SymmetricGeometricDistanceTerms(const Eigen::Matrix<T, 3, 3>& H,
-                                     const Eigen::Matrix<T, 2, 1>& x1,
-                                     const Eigen::Matrix<T, 2, 1>& x2,
+void SymmetricGeometricDistanceTerms(const Eigen::Matrix3<T>& H,
+                                     const Eigen::Vector2<T>& x1,
+                                     const Eigen::Vector2<T>& x2,
                                      T forward_error[2], T backward_error[2])
 {
-    using Vec3 = Eigen::Matrix<T, 3, 1>;
-    Vec3 x(x1(0), x1(1), T(1.0));
-    Vec3 y(x2(0), x2(1), T(1.0));
+    using Vec3 = Eigen::Vector3<T>;
+
+    const Vec3 x = x1.homogeneous();
+    const Vec3 y = x2.homogeneous();
 
     Vec3 H_x = H * x;
     Vec3 Hinv_y = H.inverse() * y;
@@ -289,13 +297,14 @@ struct HomographySymmetricGeometricCostFunctor
     {
         return new ceres::AutoDiffCostFunction<
             HomographySymmetricGeometricCostFunctor,
-            Eigen::Vector2d::SizeAtCompileTime +
-                Eigen::Vector2d::SizeAtCompileTime,
-            Eigen::Matrix3d::SizeAtCompileTime>(
+            Vector2d::SizeAtCompileTime + Vector2d::SizeAtCompileTime,
+            Matrix3d::SizeAtCompileTime>(
             new HomographySymmetricGeometricCostFunctor(x, y));
     }
 };
 
+// Triangulates all 3d points and performs standard bundle adjustment on the
+// points and cameras.
 BundleAdjustment::Summary BundleAdjustTwoViews(
     const TwoViewBundleAdjustmentOptions& options,
     const std::vector<Feature2D2D>& corrs, Camera* camera1, Camera* camera2,
@@ -306,8 +315,9 @@ BundleAdjustment::Summary BundleAdjustTwoViews(
     CHECK_NOTNULL(point3ds);
     CHECK_EQ(point3ds->size(), corrs.size());
 
+    // Set problem options.
     ceres::Problem::Options problem_options;
-    ceres::Problem problem{problem_options};
+    ceres::Problem problem(problem_options);
 
     // Set solver options.
     ceres::Solver::Options solver_options;
@@ -353,7 +363,6 @@ BundleAdjustment::Summary BundleAdjustTwoViews(
 
     ceres::Solver::Summary solver_summary;
     ceres::Solve(solver_options, &problem, &solver_summary);
-
     LOG_IF(INFO, options.ba_options.verbose) << solver_summary.FullReport();
 
     BundleAdjustment::Summary summary;
@@ -361,6 +370,9 @@ BundleAdjustment::Summary BundleAdjustTwoViews(
     summary.solve_time_in_seconds = solver_summary.total_time_in_seconds;
     summary.initial_cost = solver_summary.initial_cost;
     summary.final_cost = solver_summary.final_cost;
+
+    // This only indicates whether the optimization was successfully run and
+    // makes no guarantees on the quality or convergence.
     summary.success = solver_summary.termination_type != ceres::FAILURE;
 
     return summary;
@@ -368,41 +380,42 @@ BundleAdjustment::Summary BundleAdjustTwoViews(
 
 BundleAdjustment::Summary BundleAdjustTwoViewsAngular(
     const BundleAdjustment::Options& options,
-    const std::vector<Feature2D2D>& corrs, TwoViewInfo* info)
+    const std::vector<Feature2D2D>& corrs, ViewPairInfo* info)
 {
     CHECK_NOTNULL(info);
 
     BundleAdjustment::Summary summary;
 
     ceres::Problem::Options problem_options;
+    problem_options.loss_function_ownership = ceres::DO_NOT_TAKE_OWNERSHIP;
     ceres::Problem problem{problem_options};
-
-    // Add the relative rotation as a parameter block.
-    constexpr int kParameterBlockSize{3};
-    problem.AddParameterBlock(info->rotation.data(), kParameterBlockSize);
-    // Add the position as a parameter block, ensuring that the norm is 1.
-    auto* manifold =
-        new ceres::AutoDiffManifold<UnitNormThreeVectorManifold, 3, 3>;
-    problem.AddParameterBlock(info->position.data(), kParameterBlockSize,
-                              manifold);
-
-    // Add all the epipolar constraints from feature matches.
-    for (const auto& corr : corrs) {
-        problem.AddResidualBlock(
-            AngularEpipolarError::create(corr.feature1.pos, corr.feature2.pos),
-            nullptr, info->rotation.data(), info->position.data());
-    }
-
-    summary.setup_time_in_seconds = 0.;
 
     ceres::Solver::Options solver_options;
     baOptionsToCeresOptions(options, solver_options);
     // Allow Ceres to determine the ordering.
     solver_options.linear_solver_ordering.reset();
 
+    // Add the relative rotation as a parameter block.
+    constexpr int kParameterBlockSize{3};
+    problem.AddParameterBlock(info->rotation.data(), kParameterBlockSize);
+    // Add the position as a parameter block, ensuring that the norm is 1.
+    auto* manifold = new ceres::SphereManifold<3>();
+    problem.AddParameterBlock(info->position.data(), kParameterBlockSize,
+                              manifold);
+
+    // Add all the epipolar constraints from feature matches.
+    auto loss = createLossFunction(options.loss_function_type,
+                                   options.robust_loss_width);
+    for (const auto& corr : corrs) {
+        problem.AddResidualBlock(
+            AngularEpipolarError::create(corr.feature1.pos, corr.feature2.pos),
+            loss.get(), info->rotation.data(), info->position.data());
+    }
+
+    summary.setup_time_in_seconds = 0.;
+
     ceres::Solver::Summary solver_summary;
     ceres::Solve(solver_options, &problem, &solver_summary);
-
     LOG_IF(INFO, options.verbose) << solver_summary.FullReport();
 
     summary.solve_time_in_seconds = solver_summary.total_time_in_seconds;
@@ -413,7 +426,7 @@ BundleAdjustment::Summary BundleAdjustTwoViewsAngular(
     return summary;
 }
 
-BundleAdjustment::Summary OptimizeFundamentalMatrix(
+BundleAdjustment::Summary OptimizeFundamental(
     const BundleAdjustment::Options& options,
     const std::vector<Feature2D2D>& corrs, Eigen::Matrix3d* F)
 {
@@ -421,6 +434,11 @@ BundleAdjustment::Summary OptimizeFundamentalMatrix(
 
     ceres::Problem::Options problem_options;
     ceres::Problem problem{problem_options};
+
+    ceres::Solver::Options solver_options;
+    baOptionsToCeresOptions(options, solver_options);
+    // Allow Ceres to determine the ordering.
+    solver_options.linear_solver_ordering.reset();
 
     auto* fundamental_parametrization =
         new ceres::AutoDiffLocalParameterization<
@@ -437,25 +455,22 @@ BundleAdjustment::Summary OptimizeFundamentalMatrix(
             SampsonError::create(corr.feature1.pos, corr.feature2.pos), nullptr,
             F->data());
     }
-
-    ceres::Solver::Options solver_options;
-    baOptionsToCeresOptions(options, solver_options);
-    // Allow Ceres to determine the ordering.
-    solver_options.linear_solver_ordering.reset();
+    // End setup time.
 
     BundleAdjustment::Summary ba_summary;
     ba_summary.setup_time_in_seconds = 0.;
 
     ceres::Solver::Summary solver_summary;
     ceres::Solve(solver_options, &problem, &solver_summary);
-
     LOG_IF(INFO, options.verbose) << solver_summary.FullReport();
 
     ba_summary.solve_time_in_seconds = solver_summary.total_time_in_seconds;
     ba_summary.initial_cost = solver_summary.initial_cost;
     ba_summary.final_cost = solver_summary.final_cost;
-    ba_summary.success = solver_summary.termination_type != ceres::FAILURE;
 
+    // This only indicates whether the optimization was successfully run and
+    // makes no guarantees on the quality or convergence.
+    ba_summary.success = solver_summary.termination_type != ceres::FAILURE;
     return ba_summary;
 }
 
@@ -466,41 +481,47 @@ BundleAdjustment::Summary OptimizeHomography(
 {
     CHECK_NOTNULL(homography);
 
+    // Set problem options.
     ceres::Problem::Options problem_options;
     problem_options.loss_function_ownership = ceres::DO_NOT_TAKE_OWNERSHIP;
 
-    ceres::Problem problem{problem_options};
+    ceres::Problem problem(problem_options);
 
     auto loss = createLossFunction(options.loss_function_type,
                                    options.robust_loss_width);
     for (const auto& match : correspondences) {
-        auto* costFunc = new HomographySymmetricGeometricCostFunctor(
+        auto* cost = new HomographySymmetricGeometricCostFunctor(
             match.feature1.pos, match.feature2.pos);
 
-        problem.AddResidualBlock(new ceres::AutoDiffCostFunction<
-                                     HomographySymmetricGeometricCostFunctor,
-                                     4, // num_residuals
-                                     9>(costFunc),
-                                 loss.get(), homography->data());
+        problem.AddResidualBlock(
+            new ceres::AutoDiffCostFunction<
+                HomographySymmetricGeometricCostFunctor,
+                Vector2d::SizeAtCompileTime + Vector2d::SizeAtCompileTime,
+                Matrix3d::SizeAtCompileTime>(cost),
+            loss.get(), homography->data());
     }
 
+    // Set solver options.
     ceres::Solver::Options solver_options;
     baOptionsToCeresOptions(options, solver_options);
     // Allow Ceres to determine the ordering.
     solver_options.linear_solver_ordering.reset();
 
+    // Solve the problem.
     ceres::Solver::Summary solver_summary;
     ceres::Solve(solver_options, &problem, &solver_summary);
-
     LOG_IF(INFO, options.verbose) << solver_summary.FullReport();
 
-    (*homography) /= (*homography)(2, 2);
+    // Set the BundleAdjustmentSummary.
     BundleAdjustment::Summary summary;
     summary.solve_time_in_seconds = solver_summary.total_time_in_seconds;
     summary.initial_cost = solver_summary.initial_cost;
     summary.final_cost = solver_summary.final_cost;
-    summary.success = solver_summary.termination_type != ceres::FAILURE;
 
+    // This only indicates whether the optimization was successfully run and
+    // makes no guarantees on the quality or convergence.
+    summary.success = solver_summary.termination_type != ceres::FAILURE;
+    (*homography) /= (*homography)(2, 2);
     return summary;
 }
 

@@ -4,7 +4,6 @@
 
 namespace tl {
 
-using Eigen::Matrix;
 using Eigen::MatrixXd;
 using Eigen::Vector3d;
 
@@ -716,7 +715,8 @@ Eigen::MatrixXd CreateMacaulayMatrix(const double a[20], const double b[20],
         b[18], b[7],  b[13], c[13], c[7],  c[12], c[19], c[3],  c[18], a[19],
         a[18], a[7],  b[19], b[18], b[7],  c[7],  c[19], c[18]};
 
-    Eigen::Map<Matrix<double, 14400, 1>> macaulay_vec(macaulay_matrix.data());
+    Eigen::Map<Eigen::Matrix<double, 14400, 1>> macaulay_vec(
+        macaulay_matrix.data());
     for (int i = 0; i < 1968; i++) {
         macaulay_vec(indices[i]) = values[i];
     }

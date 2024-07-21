@@ -3,35 +3,24 @@
 
 #include <glog/logging.h>
 
-#include <tCore/Math>
 #include <tCore/RandomGenerator>
 
 namespace tl {
 
-using Eigen::AngleAxisd;
 using Eigen::Matrix3d;
 using Eigen::Matrix4d;
 using Eigen::MatrixXd;
-using Eigen::RowVectorXd;
 using Eigen::Vector3d;
 using Eigen::Vector4d;
 
 using Matrix24d = Eigen::Matrix<double, 2, 4>;
-using Matrix34d = Eigen::Matrix<double, 3, 4>;
-using Matrix39d = Eigen::Matrix<double, 3, 9>;
 using Matrix42d = Eigen::Matrix<double, 4, 2>;
-using Matrix58d = Eigen::Matrix<double, 5, 8>;
-using Matrix63d = Eigen::Matrix<double, 6, 3>;
-using Matrix69d = Eigen::Matrix<double, 6, 9>;
-using Matrix84d = Eigen::Matrix<double, 8, 4>;
-using Matrix85d = Eigen::Matrix<double, 8, 5>;
-using Matrix8d = Eigen::Matrix<double, 8, 8>;
-using Vector5d = Eigen::Matrix<double, 5, 1>;
-using Vector64d = Eigen::Matrix<double, 64, 1>;
 using Vector8d = Eigen::Matrix<double, 8, 1>;
-using Vector9d = Eigen::Matrix<double, 9, 1>;
+using Vector5d = Eigen::Matrix<double, 5, 1>;
 
 namespace {
+
+inline constexpr double sgn(double val) { return (0.0 < val) - (val < 0.0); }
 
 } // namespace
 
@@ -76,11 +65,11 @@ bool FourPointsPoseFocalLengthRadialDistortion(
     U.topRows<3>() = point3.colwise() - point3_mean;
     U.bottomRows<1>() << 1.0, 1.0, 1.0, 1.0;
 
-    Eigen::JacobiSVD<MatrixXd> svd{U.topRows<3>(),
-                                   Eigen::ComputeFullV | Eigen::ComputeFullU};
+    Eigen::JacobiSVD<Eigen::MatrixXd> svd{
+        U.topRows<3>(), Eigen::ComputeFullV | Eigen::ComputeFullU};
 
     Matrix3d R0 = svd.matrixU();
-    if (math::sgn(R0.determinant()) < 0.0) {
+    if (sgn(R0.determinant()) < 0.0) {
         R0.col(0) *= -1;
     }
     R0.transposeInPlace();
@@ -99,7 +88,7 @@ bool FourPointsPoseFocalLengthRadialDistortion(
     const double k0 = d.array().mean();
     d /= k0;
 
-    Matrix58d M;
+    Eigen::Matrix<double, 5, 8> M;
     M.fill(0.0);
     M.row(0).leftCols<4>() = U.col(0);
     M.row(1).rightCols<4>() = U.col(0);
@@ -113,12 +102,13 @@ bool FourPointsPoseFocalLengthRadialDistortion(
     Vector5d b;
     b.fill(0.0);
     b.topRows<2>() = point2.col(0).topRows<2>();
-    Eigen::HouseholderQR<MatrixXd> qr;
+    Eigen::HouseholderQR<Eigen::MatrixXd> qr;
     qr.compute(M.transpose());
 
-    Matrix8d Q = qr.householderQ();
-    Matrix85d R = qr.matrixQR().triangularView<Eigen::Upper>();
-    Matrix84d N;
+    Eigen::Matrix<double, 8, 8> Q = qr.householderQ();
+    Eigen::Matrix<double, 8, 5> R =
+        qr.matrixQR().triangularView<Eigen::Upper>();
+    Eigen::Matrix<double, 8, 4> N;
     N.fill(0.0);
     N.leftCols<3>() = Q.rightCols<3>();
 
@@ -126,17 +116,17 @@ bool FourPointsPoseFocalLengthRadialDistortion(
     static RandomNumberGenerator rng(42);
     Vector3d rvec(rng.randFloat(-0.5, 0.5), rng.randFloat(-0.5, 0.5),
                   rng.randFloat(-0.5, 0.5));
-    AngleAxisd random_rot(rvec.norm(), rvec);
+    Eigen::AngleAxisd random_rot(rvec.norm(), rvec);
     N.leftCols<3>() *= random_rot.toRotationMatrix();
-    Vector8d x0 =
+    Eigen::Matrix<double, 8, 1> x0 =
         Q.leftCols<5>() * (R.topRows<5>().transpose().fullPivLu().solve(b));
     N.rightCols<1>() = x0;
 
-    Matrix63d C;
+    Eigen::Matrix<double, 6, 3> C;
     C.fill(0.0);
     Matrix34d UN1 = U.rightCols<3>().transpose() * N.topRows<4>();
     Matrix34d UN2 = U.rightCols<3>().transpose() * N.bottomRows<4>();
-    Matrix69d B;
+    Eigen::Matrix<double, 6, 9> B;
     B.fill(0.0);
 
     B.topLeftCorner<3, 3>() = UN1.leftCols<3>();
@@ -176,11 +166,11 @@ bool FourPointsPoseFocalLengthRadialDistortion(
     C.block<3, 3>(0, 0) = Utmp.transpose().cwiseProduct(u1temp.transpose());
     C.block<3, 3>(3, 0) = Utmp.transpose().cwiseProduct(u2temp.transpose());
 
-    Matrix39d D = C.colPivHouseholderQr().solve(B);
-    Eigen::Map<RowVectorXd> N_(N.data(), N.size());
-    Eigen::Map<RowVectorXd> D_(D.data(), D.size());
+    Eigen::Matrix<double, 3, 9> D = C.colPivHouseholderQr().solve(B);
+    Eigen::Map<Eigen::RowVectorXd> N_(N.data(), N.size());
+    Eigen::Map<Eigen::RowVectorXd> D_(D.data(), D.size());
 
-    Vector64d data;
+    Eigen::Matrix<double, 64, 1> data;
     data(0) = 0.0; // used to keep matlab indices, just an index offset of 1
     data.block<32, 1>(1, 0) = N_;
     data.block<27, 1>(33, 0) = D_;
@@ -193,12 +183,12 @@ bool FourPointsPoseFocalLengthRadialDistortion(
     for (const auto& sol : valid_solutions) {
         const double k = sol[3];
         const double P33 = sol[4];
-        Vector4d alpha(sol[0], sol[1], sol[2], 1.);
+        Eigen::Vector4d alpha(sol[0], sol[1], sol[2], 1.);
 
         Vector8d P12_ = N * alpha;
         Eigen::Map<Matrix42d> P12(P12_.data(), 4, 2);
 
-        Vector9d tmp;
+        Eigen::Matrix<double, 9, 1> tmp;
         tmp(0, 0) = alpha[0];
         tmp(1, 0) = alpha[1];
         tmp(2, 0) = alpha[2];

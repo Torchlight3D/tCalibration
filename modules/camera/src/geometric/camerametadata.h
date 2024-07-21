@@ -17,7 +17,7 @@ struct CameraMetaData
     Item_<2, int> imageSize; // [width, height]
 
     // Intrinsics - Projection
-    std::string intrinsicType{"Pinhole"};
+    std::string intrinsicModel{"Pinhole"};
 
     Item<1> focalLength;
     Item<1> aspectRatio;
@@ -44,10 +44,32 @@ struct CameraMetaData
     const auto& imageWidth() const { return imageSize.value()[0]; }
     const auto& imageHeight() const { return imageSize.value()[1]; }
 
-    const auto& f() const { return focalLength.value()[0]; }
+    const auto& focal() const { return focalLength.value()[0]; }
 
     const auto& cx() const { return principalPoint.value()[0]; }
     const auto& cy() const { return principalPoint.value()[1]; }
+
+    void clear()
+    {
+        imageSize.reset();
+
+        intrinsicModel = "Pinhole";
+
+        focalLength.reset();
+        aspectRatio.reset();
+        principalPoint.reset();
+        skew.reset();
+
+        radialDistortion.reset();
+        tangentialDistortion.reset();
+
+        position.reset();
+        orientation.reset();
+
+        latitude.reset();
+        longitude.reset();
+        altitude.reset();
+    }
 
     // At least we need to have image size
     bool isValid() const { return imageSize.has_value(); }

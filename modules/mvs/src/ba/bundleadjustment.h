@@ -1,20 +1,15 @@
 ﻿#pragma once
 
-#include <map>
 #include <thread>
 
 #include <ceres/types.h>
-#include <Eigen/Core>
 
-#include <tCamera/Types>
-#include <tMath/Types>
-#include <tMvs/Types>
+#include <tMath/Solvers/LossFunction>
+#include <tMvs/Scene>
 
 namespace tl {
 
 using Matrix6d = Eigen::Matrix<double, 6, 6>;
-
-class Scene;
 
 // Brief:
 // This class sets up nonlinear optimization problems for bundle adjustment.
@@ -214,7 +209,7 @@ struct TwoViewBundleAdjustmentOptions
 
 class Camera;
 struct Feature2D2D;
-struct TwoViewInfo;
+struct ViewPairInfo;
 
 // Performs bundle adjustment on the two views assuming that both views observe
 // all of the 3D points. The cameras should be initialized with intrinsics and
@@ -228,26 +223,33 @@ BundleAdjustment::Summary BundleAdjustTwoViews(
     const std::vector<Feature2D2D>& correspondences, Camera* camera1,
     Camera* camera2, std::vector<Eigen::Vector4d>* points3d);
 
+// Brief:
 // Performs bundle adjustment to find the optimal rotation and translation
-// describing the two views. This is done without the need for 3D points, as
-// described in .
+// describing the two views. This is done without the need for 3D points.
 //
-// Ref: "Exact Two-Image Structure from Motion" by John Oliensis (PAMI2002)
+// Ref:
+// "Exact Two-Image Structure from Motion" by John Oliensis (PAMI2002)
 //
-// NOTE: The correspondences must be normalized by the focal length and
+// NOTE: The 2D-2D correspondences must be normalized by the focal length and
 // principal point.
 BundleAdjustment::Summary BundleAdjustTwoViewsAngular(
     const BundleAdjustment::Options& options,
-    const std::vector<Feature2D2D>& correspondences, TwoViewInfo* info);
+    const std::vector<Feature2D2D>& correspondences, ViewPairInfo* info);
 
-// Optimizes a fundamentral matrix. It uses the manifold presented in
-// Non-Linear Estimation of the Fundamental Matrix With Minimal Parameters,
-// PAMI 2004, by Bartoli and Sturm
-BundleAdjustment::Summary OptimizeFundamentalMatrix(
+// Brief:
+// Optimizes a fundamentral matrix by its manifold form.
+//
+// Ref:
+// "Non-Linear Estimation of the Fundamental Matrix With Minimal Parameters" by
+// Bartoli and Sturm (PAMI 2004)
+BundleAdjustment::Summary OptimizeFundamental(
     const BundleAdjustment::Options& options,
     const std::vector<Feature2D2D>& correspondences, Eigen::Matrix3d* fmatrix);
 
-// Optimizes a homography matrix. It uses the manifold presented in
+// Brief:
+// Optimizes a homography matrix by its manifold form.
+//
+// Ref:
 // ceres-solver/examples/libmv_homography.cc
 BundleAdjustment::Summary OptimizeHomography(
     const BundleAdjustment::Options& options,

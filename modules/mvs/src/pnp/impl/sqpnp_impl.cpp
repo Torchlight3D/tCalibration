@@ -75,7 +75,7 @@ void HandleSolution(const Matrix9d& Omega, const Eigen::Vector3d& point_mean,
 {
     if (TestPositiveDepth(solution, point_mean)) {
         solution.sq_error = (Omega * solution.r_hat).dot(solution.r_hat);
-        if (fabs(min_sq_error - solution.sq_error) >
+        if (std::abs(min_sq_error - solution.sq_error) >
             DEFAULT_EQUAL_SQUARED_ERRORS_DIFF) {
             if (min_sq_error > solution.sq_error) {
                 min_sq_error = solution.sq_error;
@@ -136,7 +136,7 @@ void findNearestRotationMatrixByFOAM(const Vector9d& B, Vector9d& r)
     // compute l_max with Newton-Raphson from FOAM's characteristic polynomial,
     // i.e. eq.(23) - (26)
     for (i = 200, l = 2.0, lprev = 0.0;
-         fabs(l - lprev) > 1E-12 * fabs(lprev) && i > 0; --i) {
+         std::abs(l - lprev) > 1E-12 * std::abs(lprev) && i > 0; --i) {
         double tmp, p, pp;
 
         tmp = (l * l - Bsq);
@@ -232,8 +232,9 @@ bool InvertSymmetric3x3(const Eigen::Matrix3d& Q, Eigen::Matrix3d& Qinv,
     t12 = c * c;
     double det = -t4 * f + a * t2 + t7 * f - 2.0 * t9 * e + t12 * d;
 
-    if (fabs(det) < det_threshold)
+    if (std::abs(det) < det_threshold) {
         return false;
+    }
 
     // 3. Inverse
     double t15, t20, t24, t30;
@@ -336,7 +337,7 @@ void RowAndNullSpace(
     H = Matrix96::Zero();
 
     // 1. q1
-    double norm_r1 = sqrt(r[0] * r[0] + r[1] * r[1] + r[2] * r[2]);
+    double norm_r1 = std::sqrt(r[0] * r[0] + r[1] * r[1] + r[2] * r[2]);
     double inv_norm_r1 = norm_r1 > 1e-5 ? 1.0 / norm_r1 : 0.0;
     H(0, 0) = r[0] * inv_norm_r1;
     H(1, 0) = r[1] * inv_norm_r1;
@@ -344,7 +345,7 @@ void RowAndNullSpace(
     K(0, 0) = 2 * norm_r1;
 
     // 2. q2
-    double norm_r2 = sqrt(r[3] * r[3] + r[4] * r[4] + r[5] * r[5]);
+    double norm_r2 = std::sqrt(r[3] * r[3] + r[4] * r[4] + r[5] * r[5]);
     double inv_norm_r2 = 1.0 / norm_r2;
     H(3, 1) = r[3] * inv_norm_r2;
     H(4, 1) = r[4] * inv_norm_r2;
@@ -353,7 +354,7 @@ void RowAndNullSpace(
     K(1, 1) = 2 * norm_r2;
 
     // 3. q3 = (r3'*q2)*q2 - (r3'*q1)*q1 ; q3 = q3/norm(q3)
-    double norm_r3 = sqrt(r[6] * r[6] + r[7] * r[7] + r[8] * r[8]);
+    double norm_r3 = std::sqrt(r[6] * r[6] + r[7] * r[7] + r[8] * r[8]);
     double inv_norm_r3 = 1.0 / norm_r3;
     H(6, 2) = r[6] * inv_norm_r3;
     H(7, 2) = r[7] * inv_norm_r3;
@@ -371,9 +372,9 @@ void RowAndNullSpace(
     H(3, 3) = r[0] - dot_j4q2 * H(3, 1);
     H(4, 3) = r[1] - dot_j4q2 * H(4, 1);
     H(5, 3) = r[2] - dot_j4q2 * H(5, 1);
-    double inv_norm_j4 =
-        1.0 / sqrt(H(0, 3) * H(0, 3) + H(1, 3) * H(1, 3) + H(2, 3) * H(2, 3) +
-                   H(3, 3) * H(3, 3) + H(4, 3) * H(4, 3) + H(5, 3) * H(5, 3));
+    double inv_norm_j4 = 1.0 / std::sqrt(H(0, 3) * H(0, 3) + H(1, 3) * H(1, 3) +
+                                         H(2, 3) * H(2, 3) + H(3, 3) * H(3, 3) +
+                                         H(4, 3) * H(4, 3) + H(5, 3) * H(5, 3));
 
     H(0, 3) *= inv_norm_j4;
     H(1, 3) *= inv_norm_j4;
@@ -474,10 +475,12 @@ void RowAndNullSpace(
     N.block<9, 1>(0, 0) = v1 * (1.0 / max_norm1);
 
     for (int i = 0; i < 9; i++) {
-        if (i == index1)
+        if (i == index1) {
             continue;
+        }
+
         if (col_norms[i] >= norm_threshold) {
-            double cos_v1_x_col = fabs(Pn.col(i).dot(v1) / col_norms[i]);
+            double cos_v1_x_col = std::abs(Pn.col(i).dot(v1) / col_norms[i]);
 
             if (cos_v1_x_col <= min_dot12) {
                 index2 = i;
@@ -490,12 +493,13 @@ void RowAndNullSpace(
     N.block<9, 1>(0, 1) /= N.col(1).norm();
 
     for (int i = 0; i < 9; i++) {
-        if (i == index2 || i == index1)
+        if (i == index2 || i == index1) {
             continue;
+        }
 
         if (col_norms[i] >= norm_threshold) {
-            double cos_v1_x_col = fabs(Pn.col(i).dot(v1) / col_norms[i]);
-            double cos_v2_x_col = fabs(Pn.col(i).dot(v2) / col_norms[i]);
+            double cos_v1_x_col = std::abs(Pn.col(i).dot(v1) / col_norms[i]);
+            double cos_v2_x_col = std::abs(Pn.col(i).dot(v2) / col_norms[i]);
 
             if (cos_v1_x_col + cos_v2_x_col <= min_dot1323) {
                 index3 = i;

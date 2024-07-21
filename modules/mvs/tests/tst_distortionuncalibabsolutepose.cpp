@@ -5,9 +5,9 @@
 #include <tCore/Math>
 #include <tCore/RandomGenerator>
 #include <tMath/Eigen/Utils>
-#include <tMath/Ransac/SampleConsensus>
-#include <tMvs/PnP/EstimateRadialDistortionUncalibratedAbsolutePose>
+#include <tMath/Ransac/RansacCreator>
 #include <tMvs/Feature>
+#include <tMvs/PnP/EstimateRadialDistortionUncalibratedAbsolutePose>
 
 #include "test_utils.h"
 
@@ -15,6 +15,7 @@ using namespace tl;
 
 using Eigen::AngleAxisd;
 using Eigen::Matrix3d;
+using Eigen::Vector2d;
 using Eigen::Vector3d;
 
 namespace {
@@ -89,7 +90,7 @@ inline void ExecuteRandomTest(const SacParameters& options,
 
     if (noise > 0.) {
         for (int i = 0; i < kNumPoints; i++) {
-            AddNoiseToProjection(noise, &kRNG, &corres[i].feature);
+            AddNoiseToVector2(noise, &corres[i].feature);
         }
     }
 

@@ -4,8 +4,6 @@
 
 namespace tl {
 
-// Put these methods in a nested namespace so that they are not part of the
-// common public theia namespace.
 namespace internal {
 
 using Matrix39d = Eigen::Matrix<double, 3, 9>;

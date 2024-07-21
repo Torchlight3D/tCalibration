@@ -5,10 +5,11 @@
 #include <tCamera/CameraIntrinsics>
 #include <tCamera/CameraMatrixUtils>
 #include <tMath/Eigen/Types>
-#include <tMath/Ransac/RansacCreator>
 #include <tMath/Ransac/RansacModelEstimator>
+#include <tMath/Ransac/RansacCreator>
 #include <tMvs/Feature>
-#include <tMvs/PnP/P4PFocalLength>
+
+#include "p4p_focal.h"
 
 namespace tl {
 
@@ -32,14 +33,18 @@ public:
 
     size_t SampleSize() const override { return 4; }
 
-    bool EstimateModel(const std::vector<Feature2D3D>& corres,
+    bool EstimateModel(const std::vector<Feature2D3D>& corrs,
                        std::vector<Matrix34d>* poses) const override
     {
-        const Vector2dList imgPoints{corres[0].feature, corres[1].feature,
-                                     corres[2].feature, corres[3].feature};
-        const Vector3dList objPoints{
-            corres[0].world_point, corres[1].world_point, corres[2].world_point,
-            corres[3].world_point};
+        if (corrs.size() < SampleSize()) {
+            return false;
+        }
+
+        const Vector2dList imgPoints{corrs[0].feature, corrs[1].feature,
+                                     corrs[2].feature, corrs[3].feature};
+        const Vector3dList objPoints{corrs[0].world_point, corrs[1].world_point,
+                                     corrs[2].world_point,
+                                     corrs[3].world_point};
 
         const int solutions =
             FourPointPoseAndFocalLength(imgPoints, objPoints, *poses);
