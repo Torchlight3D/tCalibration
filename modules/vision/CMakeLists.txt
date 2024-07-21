@@ -49,9 +49,6 @@ else()
     message(FATAL_ERROR "OpenCV library not found.")
 endif()
 
-# Eigen, apt default 3.3
-set(Eigen3_DIR ${ACTIVE_DEPENDS_PREFIX}/eigen/3.4.0/share/eigen3/cmake)
-find_package(Eigen3 REQUIRED)
 
 target_include_directories(${IMGPROC_TARGET_NAME}
     PUBLIC

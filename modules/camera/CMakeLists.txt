@@ -26,8 +26,6 @@ target_include_directories(${CAMERA_TARGET_NAME}
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/>
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-    PRIVATE
-        ${EIGEN3_INCLUDE_DIRS}
 )
 
 target_link_libraries(${CAMERA_TARGET_NAME}

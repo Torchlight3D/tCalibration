@@ -1,10 +1,13 @@
 ﻿#include "util_eigen.h"
 
+#include <Eigen/EigenValues>
+
 #include <tCore/Math>
 
-namespace tl {
+namespace tl::math {
 
-namespace math {
+using Eigen::MatrixXd;
+using Eigen::VectorXd;
 
 namespace {
 
@@ -81,6 +84,31 @@ void InterpolateQuaternions(const std::vector<double>& ts_old,
     }
 }
 
-} // namespace math
+Eigen::MatrixXd MatrixSquareRoot(const Eigen::MatrixXd& mat)
+{
+    CHECK_EQ(mat.rows(), mat.cols());
 
-} // namespace tl
+    Eigen::EigenSolver<MatrixXd> solver{mat};
+    const MatrixXd V = solver.eigenvectors().real();
+    const VectorXd Dv = solver.eigenvalues().real();
+    const MatrixXd sqrt_D = Dv.cwiseSqrt().asDiagonal();
+
+    return V * sqrt_D * V.inverse();
+}
+
+Eigen::MatrixXd MatrixSquareRootForSemidefinitePositiveMat(
+    const Eigen::MatrixXd& mat)
+{
+    CHECK_EQ(mat.rows(), mat.cols());
+
+    Eigen::LDLT<Eigen::MatrixXd> ldlt{mat};
+
+    Eigen::MatrixXd result;
+    result = ldlt.matrixL();
+    result = ldlt.transpositionsP().transpose() * result;
+    result *= ldlt.vectorD().array().sqrt().matrix().asDiagonal();
+
+    return result;
+}
+
+} // namespace tl::math

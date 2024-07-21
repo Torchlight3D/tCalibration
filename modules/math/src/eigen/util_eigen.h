@@ -470,6 +470,28 @@ RQDecomposition<MatrixType>::RQDecomposition(const MatrixType& matrix)
     }
 }
 
+Eigen::MatrixXd MatrixSquareRoot(const Eigen::MatrixXd& mat);
+
+Eigen::MatrixXd MatrixSquareRootForSemidefinitePositiveMat(
+    const Eigen::MatrixXd& mat);
+
 } // namespace math
 
 } // namespace tl
+
+// A generic hash function that hashes constant size Eigen matrices and vectors.
+template <typename Scalar_t, int Row_t, int Col_t>
+struct std::hash<Eigen::Matrix<Scalar_t, Row_t, Col_t>>
+{
+    size_t operator()(const Eigen::Matrix<Scalar_t, Row_t, Col_t>& matrix) const
+    {
+        const auto* data = matrix.data();
+        const hash<Scalar_t> hasher{};
+
+        size_t seed{0};
+        for (Eigen::Index i{0}; i < matrix.size(); ++i) {
+            seed ^= hasher(data[i]) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+        }
+        return seed;
+    }
+};

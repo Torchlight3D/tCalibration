@@ -14,7 +14,9 @@ enum class LossFunctionType
     SoftLOne,
     Cauchy,
     Arctan,
+    // Tolerant,
     Tukey,
+    Truncated,
 };
 
 enum class RansacType

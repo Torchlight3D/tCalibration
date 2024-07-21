@@ -4,10 +4,10 @@
 
 namespace tl {
 
-template <class ModelEstimator>
-class RANSAC final : public SampleConsensus<ModelEstimator>
+template <class Model>
+class RANSAC final : public SampleConsensus<Model>
 {
-    using Base = SampleConsensus<ModelEstimator>;
+    using Base = SampleConsensus<Model>;
 
 public:
     using Base::Base;

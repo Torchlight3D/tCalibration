@@ -1,8 +1,15 @@
 ﻿#include "lossfunction.h"
 
-#include <ceres/loss_function.h>
-
 namespace tl {
+
+TruncatedLoss::TruncatedLoss(double a) : squared_error_(a * a) {}
+
+void TruncatedLoss::Evaluate(double s, double rho[3]) const
+{
+    rho[0] = std::min(s, squared_error_);
+    rho[1] = s < squared_error_ ? 1. : 0.;
+    rho[2] = 0.;
+}
 
 std::unique_ptr<ceres::LossFunction> createLossFunction(LossFunctionType type,
                                                         double scale)
