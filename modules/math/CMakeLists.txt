@@ -9,6 +9,7 @@ file(GLOB MATH_INTERNAL_HEADERS
     src/eigen/*.h
     src/internal/*.h
     src/ransac/*.h
+    src/sdp/*.h
     src/solvers/*.h
 )
 file(GLOB MATH_SOURCES
@@ -16,12 +17,16 @@ file(GLOB MATH_SOURCES
     src/eigen/*.cpp
     src/internal/*.cc
     src/ransac/*.cpp
+    src/sdp/*.cpp
     src/solvers/*.cpp
 )
 
 # Eigen, apt default 3.3
 set(Eigen3_DIR ${ACTIVE_DEPENDS_PREFIX}/eigen/3.4.0/share/eigen3/cmake)
 find_package(Eigen3 REQUIRED)
+
+set(Spectra_DIR ${ACTIVE_DEPENDS_PREFIX}/spectra/1.0.1/share/spectra/cmake)
+find_package(Spectra REQUIRED)
 
 # glog, apt default 0.4.0
 set(gflags_DIR ${ACTIVE_DEPENDS_PREFIX}/gflags/2.2.2/lib/cmake/gflags)
@@ -48,6 +53,7 @@ target_link_libraries(${MATH_TARGET_NAME}
     PUBLIC
         Ceres::ceres
         Eigen3::Eigen
+        Spectra::Spectra
         ${NS_PREFIX}::Core
 )
 
