@@ -49,12 +49,14 @@ else()
     message(FATAL_ERROR "OpenCV library not found.")
 endif()
 
+# apriltag-v3
+set(apriltag_DIR ${ACTIVE_DEPENDS_PREFIX}/apriltag/3.4.2/share/apriltag/cmake)
+find_package(apriltag REQUIRED)
 
 target_include_directories(${IMGPROC_TARGET_NAME}
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/>
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-        ${EIGEN3_INCLUDE_DIRS}
     PRIVATE
         ${OpenCV_INCLUDE_DIRS}
 )
@@ -65,6 +67,8 @@ target_link_libraries(${IMGPROC_TARGET_NAME}
         ${NS_PREFIX}::Core
         ${NS_PREFIX}::Math
         json
+    PRIVATE
+        apriltag::apriltag
 )
 
 install(
