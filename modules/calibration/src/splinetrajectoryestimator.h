@@ -99,7 +99,7 @@ private:
     bool GetAngularVelocity(int64_t time, Eigen::Vector3d& velocity) const;
     bool GetAcceleration(int64_t time, Eigen::Vector3d& acceleration) const;
 
-    void ConvertToTheiaRecon(Scene* recon_out);
+    void toScene(Scene* recon_out) const;
     void ConvertInvDepthPointsToHom();
 
     bool calcSO3Times(int64_t sensor_time, double& u_so3, int64_t& s_so3) const;

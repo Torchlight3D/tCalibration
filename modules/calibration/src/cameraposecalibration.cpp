@@ -8,7 +8,7 @@
 #include <tCore/TimeUtils>
 #include <tMath/Ransac/SampleConsensus>
 #include <tMath/Solvers/LossFunction>
-#include <tMvs/BundleAdjustment>
+#include <tMvs/BA/BundleAdjustment>
 #include <tMvs/Feature>
 #include <tMvs/Landmark>
 #include <tMvs/View>

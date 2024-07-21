@@ -1,12 +1,10 @@
-#include <Eigen/Dense>
 #include <Eigen/Geometry>
-
 #include <gtest/gtest.h>
 
 #include <tCore/ContainerUtils>
-#include <tCore/Global>
 #include <tCore/Math>
 #include <tCore/RandomGenerator>
+#include <tMath/Eigen/Types>
 #include <tMvs/PnP/DlsPnP>
 
 #include "test_utils.h"
@@ -20,230 +18,246 @@ using Eigen::Vector2d;
 using Eigen::Vector3d;
 
 namespace {
+constexpr auto kFocalLength{500.};
+
 RandomNumberGenerator kRNG{59};
-}
+} // namespace
 
-inline void TestDlsPnpWithNoise(const Vector3dList& world_points,
-                                double projection_noise_std_dev,
-                                const Quaterniond& expected_rotation,
-                                const Vector3d& expected_translation,
-                                double max_reprojection_error,
-                                double max_rotation_difference,
-                                double max_translation_difference)
+class DLSPnPTest : public ::testing::Test
 {
-    const int num_points = world_points.size();
-
-    Matrix34d expected_transform;
-    expected_transform << expected_rotation.toRotationMatrix(),
-        expected_translation;
-
-    Vector2dList feature_points;
-    feature_points.reserve(num_points);
-    for (int i = 0; i < num_points; i++) {
-        // Reproject 3D points into camera frame.
-        feature_points.push_back(
-            (expected_transform * world_points[i].homogeneous())
-                .eval()
-                .hnormalized());
+protected:
+    void SetUp() override
+    {
+        //
+        _opts.imgNoise.reset();
     }
 
-    if (projection_noise_std_dev) {
-        // Adds noise to both of the rays.
-        for (int i = 0; i < num_points; i++) {
-            AddNoiseToProjection(projection_noise_std_dev, &kRNG,
-                                 &feature_points[i]);
-        }
-    }
+    void TearDown() override {}
 
-    // Run DLS PnP.
-    QuaterniondList soln_rotation;
-    Vector3dList soln_translation;
-    DlsPnp(feature_points, world_points, soln_rotation, soln_translation);
+    void Execute(const std::vector<Eigen::Vector3d>& objectPoints,
+                 const Eigen::Quaterniond& rotation,
+                 const Eigen::Vector3d& translation)
+    {
+        // Prepare data
+        Matrix34d P;
+        P << rotation.toRotationMatrix(), translation;
 
-    // Check solutions and verify at least one is close to the actual solution.
-    const int num_solutions = soln_rotation.size();
-    EXPECT_GT(num_solutions, 0);
-    bool matched_transform = false;
-    for (int i = 0; i < num_solutions; i++) {
-        // Check that reprojection errors are small.
-        Matrix34d soln_transform;
-        soln_transform << soln_rotation[i].toRotationMatrix(),
-            soln_translation[i];
-
-        for (int j = 0; j < num_points; j++) {
-            const Vector2d reprojected_point =
-                (soln_transform * world_points[j].homogeneous())
-                    .eval()
-                    .hnormalized();
-            const double reprojection_error =
-                (feature_points[j] - reprojected_point).squaredNorm();
-            ASSERT_LE(reprojection_error, max_reprojection_error);
+        std::vector<Vector2d> imagePoints;
+        imagePoints.reserve(objectPoints.size());
+        for (const auto& objPoint : objectPoints) {
+            imagePoints.push_back((P * objPoint.homogeneous()).hnormalized());
         }
 
-        // Check that the solution is accurate.
-        const double rotation_difference =
-            expected_rotation.angularDistance(soln_rotation[i]);
-        const bool matched_rotation =
-            (rotation_difference < max_rotation_difference);
-        const double translation_difference =
-            (expected_translation - soln_translation[i]).squaredNorm();
-        const bool matched_translation =
-            (translation_difference < max_translation_difference);
-
-        if (matched_translation && matched_rotation) {
-            matched_transform = true;
+        if (_opts.imgNoise.has_value()) {
+            for (auto& imgPoint : imagePoints) {
+                AddNoiseToVector2(_opts.imgNoise.value(), &imgPoint);
+            }
         }
-    }
-    EXPECT_TRUE(matched_transform);
-}
 
-inline void BasicTest()
-{
-    const Vector3dList points_3d{
-        Vector3d(-1.0, 3.0, 3.0), Vector3d(1.0, -1.0, 2.0),
-        Vector3d(-1.0, 1.0, 2.0), Vector3d(2.0, 1.0, 3.0)};
-    const Quaterniond soln_rotation{
-        AngleAxisd{math::degToRad(13.), Vector3d::UnitZ()}};
-    const Vector3d soln_translation(1.0, 1.0, 1.0);
-    constexpr double kNoise = 0.0;
-    constexpr double kMaxReprojectionError = 1e-4;
-    constexpr double kMaxAllowedRotationDifference = 1e-5;
-    constexpr double kMaxAllowedTranslationDifference = 1e-8;
+        // Run DLS PnP.
+        std::vector<Quaterniond> rotations_est;
+        std::vector<Vector3d> translations_est;
+        EXPECT_TRUE(
+            DLSPnp(imagePoints, objectPoints, rotations_est, translations_est));
 
-    TestDlsPnpWithNoise(points_3d, kNoise, soln_rotation, soln_translation,
-                        kMaxReprojectionError, kMaxAllowedRotationDifference,
-                        kMaxAllowedTranslationDifference);
-}
+        // Check at least one of the solutions is correct
+        const auto numSolutions = rotations_est.size();
 
-TEST(DlsPnp, Basic) { BasicTest(); }
+        bool valid{false};
+        for (size_t i{0}; i < numSolutions; ++i) {
+            Matrix34d P_est;
+            P_est << rotations_est[i].toRotationMatrix(), translations_est[i];
 
-TEST(DlsPnp, NoiseTest)
-{
-    const Vector3dList points_3d = {
-        Vector3d(-1.0, 3.0, 3.0),  Vector3d(1.0, -1.0, 2.0),
-        Vector3d(-1.0, 1.0, 2.0),  Vector3d(2.0, 1.0, 3.0),
-        Vector3d(-1.0, -3.0, 2.0), Vector3d(1.0, -2.0, 1.0),
-        Vector3d(-1.0, 4.0, 2.0),  Vector3d(-2.0, 2.0, 3.0)};
-    const Quaterniond soln_rotation{
-        AngleAxisd{math::degToRad(13.), Vector3d::UnitZ()}};
-    const Vector3d soln_translation(1.0, 1.0, 1.0);
-    constexpr double kNoise = 1.0 / 512.0;
-    constexpr double kMaxReprojectionError = 5e-3;
-    constexpr double kMaxAllowedRotationDifference = math::degToRad(0.25);
-    constexpr double kMaxAllowedTranslationDifference = 1e-2;
-
-    TestDlsPnpWithNoise(points_3d, kNoise, soln_rotation, soln_translation,
-                        kMaxReprojectionError, kMaxAllowedRotationDifference,
-                        kMaxAllowedTranslationDifference);
-}
-
-TEST(DlsPnp, ManyPoints)
-{
-    // Sets some test rotations and translations.
-    static const Vector3d kAxes[]{Vector3d::UnitZ(),
-                                  Vector3d::UnitY(),
-                                  Vector3d::UnitX(),
-                                  Vector3d(1.0, 0.0, 1.0).normalized(),
-                                  Vector3d(0.0, 1.0, 1.0).normalized(),
-                                  Vector3d(1.0, 1.0, 1.0).normalized(),
-                                  Vector3d(0.0, 1.0, 1.0).normalized(),
-                                  Vector3d(1.0, 1.0, 1.0).normalized()};
-
-    static const double kRotationAngles[con::ArraySize(kAxes)] = {
-        math::degToRad(7.0),  math::degToRad(12.0), math::degToRad(15.0),
-        math::degToRad(20.0), math::degToRad(11.0),
-        math::degToRad(0.0), // Tests no rotation.
-        math::degToRad(5.0),
-        math::degToRad(0.0) // Tests no rotation and no translation.
-    };
-
-    static const Vector3d kTranslations[con::ArraySize(kAxes)] = {
-        Vector3d(1.0, 1.0, 1.0),  Vector3d(3.0, 2.0, 13.0),
-        Vector3d(4.0, 5.0, 11.0), Vector3d(1.0, 2.0, 15.0),
-        Vector3d(3.0, 1.5, 18.0), Vector3d(1.0, 7.0, 11.0),
-        Vector3d(0.0, 0.0, 0.0), // Tests no translation.
-        Vector3d(0.0, 0.0, 0.0)  // Tests no translation and no rotation.
-    };
-
-    constexpr int num_points[3]{100, 500, 1000};
-    constexpr double kNoise{1. / 512.};
-    constexpr double kMaxReprojectionError{1e-2};
-    constexpr double kMaxAllowedRotationDifference = math::degToRad(0.3);
-    constexpr double kMaxAllowedTranslationDifference{5e-3};
-
-    for (size_t i{0}; i < con::ArraySize(kAxes); i++) {
-        const Quaterniond soln_rotation(
-            AngleAxisd(kRotationAngles[i], kAxes[i]));
-        for (size_t j{0}; j < con::ArraySize(num_points); j++) {
-            Vector3dList points_3d;
-            points_3d.reserve(num_points[j]);
-            for (int k = 0; k < num_points[j]; k++) {
-                points_3d.push_back(Vector3d(kRNG.randFloat(-5., 5.),
-                                             kRNG.randFloat(-5., 5.),
-                                             kRNG.randFloat(2., 10.)));
+            for (size_t j{0}; j < objectPoints.size(); ++j) {
+                const Vector2d reproj =
+                    (P_est * objectPoints[j].homogeneous()).hnormalized();
+                const double rpe = (imagePoints[j] - reproj).squaredNorm();
+                ASSERT_LE(rpe, _ref.maxRpe);
             }
 
-            TestDlsPnpWithNoise(points_3d, kNoise, soln_rotation,
-                                kTranslations[i], kMaxReprojectionError,
-                                kMaxAllowedRotationDifference,
-                                kMaxAllowedTranslationDifference);
+            // Check if the solution is accurate.
+            const double rotationDiff =
+                rotation.angularDistance(rotations_est[i]);
+            const double translationDiff =
+                (translation - translations_est[i]).squaredNorm();
+
+            if ((rotationDiff < _ref.maxRotationDiff) &&
+                (translationDiff < _ref.maxTranslationDiff)) {
+                valid = true;
+                break;
+            }
+        }
+        EXPECT_TRUE(valid);
+    }
+
+protected:
+    struct
+    {
+        std::optional<double> imgNoise = {}; // px
+    } _opts;
+
+    struct
+    {
+        double maxRpe = 1.;          // px^2
+        double maxRotationDiff = 1.; // rad
+        double maxTranslationDiff = 1.;
+    } _ref;
+};
+
+TEST_F(DLSPnPTest, MinimumNoNoise)
+{
+    // Configs
+    _ref.maxRpe = 1e-4;
+    _ref.maxRotationDiff = 1e-5;
+    _ref.maxTranslationDiff = 1e-8;
+
+    // Data
+    const std::vector objectPoints{Vector3d{-1., 3., 3.}, Vector3d{1., -1., 2.},
+                                   Vector3d{-1., 1., 2.}, Vector3d{2., 1., 3.}};
+
+    const Quaterniond rotation{
+        AngleAxisd{math::degToRad(13.), Vector3d::UnitZ()}};
+    const Vector3d translation{1., 1., 1.};
+
+    Execute(objectPoints, rotation, translation);
+}
+
+TEST_F(DLSPnPTest, SmallScaleWithNoise)
+{
+    // Configs
+    _opts.imgNoise = 1. / kFocalLength;
+    _ref.maxRpe = 5e-3;
+    _ref.maxRotationDiff = math::degToRad(0.25);
+    _ref.maxTranslationDiff = 1e-2;
+
+    // Data
+    const std::vector objectPoints{
+        Vector3d{-1., 3., 3.}, Vector3d{1., -1., 2.},  Vector3d{-1., 1., 2.},
+        Vector3d{2., 1., 3.},  Vector3d{-1., -3., 2.}, Vector3d{1., -2., 1.},
+        Vector3d{-1., 4., 2.}, Vector3d{-2., 2., 3.}};
+
+    const Quaterniond rotation{
+        AngleAxisd{math::degToRad(13.), Vector3d::UnitZ()}};
+    const Vector3d translation{1., 1., 1.};
+
+    Execute(objectPoints, rotation, translation);
+}
+
+TEST_F(DLSPnPTest, LargeScaleWithNoise)
+{
+    // Configs
+    _opts.imgNoise = 1. / kFocalLength;
+    _ref.maxRpe = 1e-2; // 0.1px
+    _ref.maxRotationDiff = math::degToRad(0.3);
+    _ref.maxTranslationDiff = 5e-3;
+
+    // Data
+    const std::vector<Vector3d> kAxes{Vector3d::UnitZ(),
+                                      Vector3d::UnitY(),
+                                      Vector3d::UnitX(),
+                                      Vector3d{1., 0., 1.}.normalized(),
+                                      Vector3d{0., 1., 1.}.normalized(),
+                                      Vector3d{1., 1., 1.}.normalized(),
+                                      Vector3d{0., 1., 1.}.normalized(),
+                                      Vector3d{1., 1., 1.}.normalized()};
+
+    constexpr double kAngles[]{
+        math::degToRad(7.),  math::degToRad(12.), math::degToRad(15.),
+        math::degToRad(20.), math::degToRad(11.),
+        math::degToRad(0.), // Tests no rotation.
+        math::degToRad(5.),
+        math::degToRad(0.) // Tests no rotation and no translation.
+    };
+
+    const std::vector<Vector3d> kTranslations{
+        Vector3d{1., 1., 1.},  Vector3d{3., 2., 13.},  Vector3d{4., 5., 11.},
+        Vector3d{1., 2., 15.}, Vector3d{3., 1.5, 18.}, Vector3d{1., 7., 11.},
+        Vector3d::Zero(), // Tests no translation.
+        Vector3d::Zero()  // Tests no translation and no rotation.
+    };
+
+    EXPECT_GE(kAxes.size(), std::size(kAngles));
+    EXPECT_EQ(kAxes.size(), kTranslations.size());
+
+    constexpr size_t numPoints[]{100, 500, 1000};
+
+    for (size_t i{0}; i < kAxes.size(); ++i) {
+        const Quaterniond rotation{AngleAxisd{kAngles[i], kAxes[i]}};
+        const auto& translation = kTranslations[i];
+        for (const auto& pointCount : numPoints) {
+            // Data
+            std::vector<Vector3d> objectPoints;
+            objectPoints.reserve(pointCount);
+            for (size_t k{0}; k < pointCount; ++k) {
+                objectPoints.push_back(Vector3d{kRNG.randFloat(-5., 5.),
+                                                kRNG.randFloat(-5., 5.),
+                                                kRNG.randFloat(2., 10.)});
+            }
+
+            Execute(objectPoints, rotation, translation);
         }
     }
 }
 
-TEST(DlsPnp, NoRotation)
+TEST_F(DLSPnPTest, SmallScaleWithNoise_NoRotation)
 {
-    const Vector3dList points_3d{Vector3d(-1., 3., 3.),  Vector3d(1., -1., 2.),
-                                 Vector3d(-1., 1., 2.),  Vector3d(2., 1.0, 3.),
-                                 Vector3d(-1., -3., 2.), Vector3d(1., -2., 1.),
-                                 Vector3d(-1., 4., 2.),  Vector3d(-2., 2., 3.)};
-    const Quaterniond soln_rotation{
+    // Configs
+    _opts.imgNoise = 1. / kFocalLength;
+    _ref.maxRpe = 5e-3;
+    _ref.maxRotationDiff = math::degToRad(0.25);
+    _ref.maxTranslationDiff = 5e-4;
+
+    // Data
+    const std::vector objectPoints{
+        Vector3d{-1., 3., 3.}, Vector3d{1., -1., 2.},  Vector3d{-1., 1., 2.},
+        Vector3d{2., 1., 3.},  Vector3d{-1., -3., 2.}, Vector3d{1., -2., 1.},
+        Vector3d{-1., 4., 2.}, Vector3d{-2., 2., 3.}};
+
+    const Quaterniond rotation{
         AngleAxisd{math::degToRad(0.), Vector3d::UnitZ()}};
-    const Vector3d soln_translation(1.0, 1.0, 1.0);
-    constexpr double kNoise = 1.0 / 512.0;
-    constexpr double kMaxReprojectionError = 5e-3;
-    constexpr double kMaxAllowedRotationDifference = math::degToRad(0.25);
-    constexpr double kMaxAllowedTranslationDifference = 5e-4;
+    const Vector3d translation{1., 1., 1.};
 
-    TestDlsPnpWithNoise(points_3d, kNoise, soln_rotation, soln_translation,
-                        kMaxReprojectionError, kMaxAllowedRotationDifference,
-                        kMaxAllowedTranslationDifference);
+    Execute(objectPoints, rotation, translation);
 }
 
-TEST(DlsPnp, NoTranslation)
+TEST_F(DLSPnPTest, SmallScaleWithNoise_NoTranslation)
 {
-    const Vector3dList points_3d{Vector3d(-1., 3., 3.),  Vector3d(1., -1., 2.),
-                                 Vector3d(-1., 1., 2.),  Vector3d(2., 1., 3.),
-                                 Vector3d(-1., -3., 2.), Vector3d(1., -2., 1.),
-                                 Vector3d(-1., 4., 2.),  Vector3d(-2., 2., 3.)};
-    const Quaterniond soln_rotation{
+    // Configs
+    _opts.imgNoise = 1. / kFocalLength;
+    _ref.maxRpe = 1e-2;
+    _ref.maxRotationDiff = math::degToRad(0.2);
+    _ref.maxTranslationDiff = 5e-3;
+
+    // Data
+    const std::vector objectPoints{
+        Vector3d{-1., 3., 3.}, Vector3d{1., -1., 2.},  Vector3d{-1., 1., 2.},
+        Vector3d{2., 1., 3.},  Vector3d{-1., -3., 2.}, Vector3d{1., -2., 1.},
+        Vector3d{-1., 4., 2.}, Vector3d{-2., 2., 3.}};
+
+    const Quaterniond rotation{
         AngleAxisd{math::degToRad(13.), Vector3d::UnitZ()}};
-    const Vector3d soln_translation(0.0, 0.0, 0.0);
-    constexpr double kNoise{1.0 / 512.0};
-    constexpr double kMaxReprojectionError{1e-2};
-    constexpr double kMaxAllowedRotationDifference = math::degToRad(0.2);
-    constexpr double kMaxAllowedTranslationDifference{5e-3};
+    const Vector3d translation = Vector3d::Zero();
 
-    TestDlsPnpWithNoise(points_3d, kNoise, soln_rotation, soln_translation,
-                        kMaxReprojectionError, kMaxAllowedRotationDifference,
-                        kMaxAllowedTranslationDifference);
+    Execute(objectPoints, rotation, translation);
 }
 
-TEST(DlsPnp, OrthogonalRotation)
+TEST_F(DLSPnPTest, SmallScaleWithNoise_OrthogonalRotation)
 {
-    const Vector3dList points_3d{Vector3d(-1., 3., 3.),  Vector3d(1., -1., 2.),
-                                 Vector3d(-1., 1., 2.),  Vector3d(2., 1., 3.),
-                                 Vector3d(-1., -3., 2.), Vector3d(1., -2., 1.),
-                                 Vector3d(-1., 4., 2.),  Vector3d(-2., 2., 3.)};
-    const Quaterniond soln_rotation{
-        AngleAxisd{math::degToRad(90.), Vector3d::UnitZ()}};
-    const Vector3d soln_translation(1.0, 1.0, 1.0);
-    constexpr double kNoise{1.0 / 512.0};
-    constexpr double kMaxReprojectionError{5e-3};
-    constexpr double kMaxAllowedRotationDifference = math::degToRad(0.25);
-    constexpr double kMaxAllowedTranslationDifference{5e-3};
+    // Configs
+    _opts.imgNoise = 1. / kFocalLength;
+    _ref.maxRpe = 5e-3;
+    _ref.maxRotationDiff = math::degToRad(0.25);
+    _ref.maxTranslationDiff = 5e-3;
 
-    TestDlsPnpWithNoise(points_3d, kNoise, soln_rotation, soln_translation,
-                        kMaxReprojectionError, kMaxAllowedRotationDifference,
-                        kMaxAllowedTranslationDifference);
+    // Data
+    const std::vector objectPoints{
+        Vector3d{-1., 3., 3.}, Vector3d{1., -1., 2.},  Vector3d{-1., 1., 2.},
+        Vector3d{2., 1., 3.},  Vector3d{-1., -3., 2.}, Vector3d{1., -2., 1.},
+        Vector3d{-1., 4., 2.}, Vector3d{-2., 2., 3.}};
+
+    const Quaterniond rotation{
+        AngleAxisd{math::degToRad(90.), Vector3d::UnitZ()}};
+    const Vector3d translation{1., 1., 1.};
+
+    Execute(objectPoints, rotation, translation);
 }

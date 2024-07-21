@@ -11,58 +11,52 @@ namespace tl {
 using internal::CreateMacaulayMatrix;
 using internal::ExtractJacobianCoefficients;
 using internal::LeftMultiplyMatrix;
-using Eigen::Matrix;
+
 using Eigen::Matrix3d;
 using Eigen::MatrixXd;
 using Eigen::Quaterniond;
 using Eigen::Vector2d;
 using Eigen::Vector3d;
 
-// This implementation is ported from the Matlab version provided by the authors
-// of "A Direct Least-Squares (DLS) Method for PnP". The general approach is to
-// first rewrite the reprojection constraint (i.e., cost function) such that all
-// unknowns appear linearly in terms of the rotation parameters (which are 3
-// parameters in the Cayley-Gibss-Rodriguez formulation). Then we create a
-// system of equations from the jacobian of the cost function, and solve these
-// equations via a Macaulay matrix to obtain the roots (i.e., the 3 parameters
-// of rotation). The translation can then be obtained through back-substitution.
-bool DlsPnp(const Vector2dList& feature_position,
-            const Vector3dList& world_point, QuaterniondList& rotations,
-            Vector3dList& translations)
-{
-    CHECK_GE(feature_position.size(), 3);
-    CHECK_EQ(feature_position.size(), world_point.size());
+using Matrix39d = Eigen::Matrix<double, 3, 9>;
+using Matrix9d = Eigen::Matrix<double, 9, 9>;
+using Vector9d = Eigen::Matrix<double, 9, 1>;
 
-    const size_t num_correspondences = feature_position.size();
+bool DLSPnp(const std::vector<Eigen::Vector2d>& imagePoints,
+            const std::vector<Eigen::Vector3d>& objectPoints,
+            std::vector<Eigen::Quaterniond>& rotations,
+            std::vector<Eigen::Vector3d>& translations)
+{
+    CHECK_GE(imagePoints.size(), 3);
+    CHECK_EQ(imagePoints.size(), objectPoints.size());
+
+    const size_t num_correspondences = imagePoints.size();
 
     // Holds the normalized feature positions cross multiplied with itself
     // i.e. n * n^t. This value is used multiple times so it is efficient to
     // pre-compute it.
-    Matrix3dList normalized_feature_cross;
-    normalized_feature_cross.reserve(num_correspondences);
-    for (const auto& feature : feature_position) {
-        const Vector3d normalized_feature_pos =
-            feature.homogeneous().normalized();
-        normalized_feature_cross.push_back(normalized_feature_pos *
-                                           normalized_feature_pos.transpose());
+    std::vector<Matrix3d> NNt;
+    NNt.reserve(num_correspondences);
+    for (const auto& imgPoint : imagePoints) {
+        const Vector3d N = imgPoint.homogeneous().normalized();
+        NNt.push_back(N * N.transpose());
     }
 
     // The bottom-right symmetric block matrix of inverse(A^T * A). Matrix H
     // from Eq. 25 in the Appendix of the DLS paper.
     Matrix3d h_inverse = num_correspondences * Matrix3d::Identity();
     for (size_t i{0}; i < num_correspondences; i++) {
-        h_inverse -= normalized_feature_cross[i];
+        h_inverse -= NNt[i];
     }
     const Matrix3d h_matrix = h_inverse.inverse();
 
     // Compute V*W*b with the rotation parameters factored out. This is the
     // translation parameterized by the 9 entries of the rotation matrix.
-    Matrix<double, 3, 9> translation_factor = Matrix<double, 3, 9>::Zero();
+    Matrix39d translation_factor = Matrix39d::Zero();
     for (size_t i{0}; i < num_correspondences; i++) {
         translation_factor =
-            translation_factor +
-            (normalized_feature_cross[i] - Matrix3d::Identity()) *
-                LeftMultiplyMatrix(world_point[i]);
+            translation_factor + (NNt[i] - Matrix3d::Identity()) *
+                                     LeftMultiplyMatrix(objectPoints[i]);
     }
 
     translation_factor = h_matrix * translation_factor;
@@ -71,14 +65,14 @@ bool DlsPnp(const Vector2dList& feature_position,
     // version where the rotation matrix parameters have been pulled out. The
     // entries to this equation are the coefficients to the cost function which
     // is a quartic in the rotation parameters.
-    Matrix<double, 9, 9> ls_cost_coefficients = Matrix<double, 9, 9>::Zero();
+    Matrix9d ls_cost_coefficients = Matrix9d::Zero();
     for (size_t i{0}; i < num_correspondences; i++) {
         ls_cost_coefficients +=
 
-            (LeftMultiplyMatrix(world_point[i]) + translation_factor)
+            (LeftMultiplyMatrix(objectPoints[i]) + translation_factor)
                 .transpose() *
-            (Matrix3d::Identity() - normalized_feature_cross[i]) *
-            (LeftMultiplyMatrix(world_point[i]) + translation_factor);
+            (Matrix3d::Identity() - NNt[i]) *
+            (LeftMultiplyMatrix(objectPoints[i]) + translation_factor);
     }
 
     // Extract the coefficients of the jacobian (Eq. 18) from the
@@ -137,7 +131,7 @@ bool DlsPnp(const Vector2dList& feature_position,
             soln_rotation = soln_rotation.inverse().normalized();
 
             const Matrix3d rmat = soln_rotation.inverse().toRotationMatrix();
-            const Eigen::Map<const Matrix<double, 9, 1>> rvec(rmat.data());
+            const Eigen::Map<const Vector9d> rvec(rmat.data());
             const Vector3d soln_translation = translation_factor * rvec;
 
             // TODO: evaluate cost function and return it as an output variable.
@@ -147,7 +141,7 @@ bool DlsPnp(const Vector2dList& feature_position,
             bool all_points_in_front_of_camera{true};
             for (size_t j{0}; j < num_correspondences; j++) {
                 const Vector3d transformed_point =
-                    soln_rotation * world_point[j] + soln_translation;
+                    soln_rotation * objectPoints[j] + soln_translation;
                 if (transformed_point.z() < 0) {
                     all_points_in_front_of_camera = false;
                     break;

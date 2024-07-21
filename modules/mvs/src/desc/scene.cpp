@@ -5,10 +5,11 @@
 #include <tCore/ContainerUtils>
 #include <tMath/Eigen/Utils>
 
+// TODO: I don't think Scene should take care of this
+#include "../epipolar/triangulation.h"
+
 namespace tl {
 
-using Eigen::ArrayXd;
-using Eigen::ArrayXi;
 using Eigen::Matrix3d;
 using Eigen::Matrix3Xd;
 using Eigen::Quaterniond;
@@ -149,17 +150,8 @@ int Scene::viewCount() const { return static_cast<int>(m_viewIdToView.size()); }
 
 int Scene::viewCount(CameraId id) const
 {
-    if (!m_camIdToViewIds.contains(id)) {
-        return 0;
-    }
-    return m_camIdToViewIds.at(id).size();
-}
-
-int Scene::estimatedViewCount() const
-{
-    return std::count_if(
-        m_viewIdToView.cbegin(), m_viewIdToView.cend(),
-        [](const auto& item) { return item.second.estimated(); });
+    const auto sharedCamViewIds = sharedCameraViewIds(id);
+    return sharedCamViewIds.size();
 }
 
 ViewId Scene::viewIdFromName(const std::string& name) const
@@ -425,91 +417,209 @@ int Scene::trackCount() const
     return static_cast<int>(m_trackIdToTrack.size());
 }
 
-int Scene::estimatedTrackCount() const
+int Scene::setUnderconstrainedViewsUnestimated(int minTrackCount)
 {
-    return std::count_if(
-        m_trackIdToTrack.cbegin(), m_trackIdToTrack.cend(),
-        [](const auto& item) { return item.second.estimated(); });
-}
-
-int Scene::setUnderconstrainedViewsToUnestimated()
-{
-    constexpr int kMinNumTracks = 3;
-
-    int num_underconstrained_views = 0;
-    // Set all underconstrained views to be unestimated.
+    auto underconstrainedViewCount{0};
     for (const auto& viewId : viewIds()) {
-        auto* view = CHECK_NOTNULL(rView(viewId));
-        if (!view->estimated()) {
+        auto* view = rView(viewId);
+        if (!view || !view->estimated()) {
             continue;
         }
 
-        // Count the number of estimated views observing it.
-        int estimatedTrackCount = 0;
+        auto estimatedTrackCount{0};
         for (const auto& trackId : view->trackIds()) {
             if (track(trackId)->estimated()) {
                 ++estimatedTrackCount;
             }
-            if (estimatedTrackCount >= kMinNumTracks) {
+
+            if (estimatedTrackCount >= minTrackCount) {
                 break;
             }
         }
 
-        if (estimatedTrackCount < kMinNumTracks) {
+        if (estimatedTrackCount < minTrackCount) {
             view->setEstimated(false);
-            ++num_underconstrained_views;
+            ++underconstrainedViewCount;
         }
     }
 
-    return num_underconstrained_views;
+    return underconstrainedViewCount;
 }
 
-int Scene::setUnderconstrainedTracksToUnestimated()
+int Scene::setUnderconstrainedTracksUnestimated(int minViewCount)
 {
-    constexpr int kMinNumViews = 2;
+    auto underconstrainedTrackCount{0};
+    for (const auto& trackId : trackIds()) {
+        auto* track = rTrack(trackId);
+        if (!track || !track->estimated()) {
+            continue;
+        }
 
-    int num_underconstrained_tracks = 0;
-    // Set all underconstrained tracks to be unestimated.
-    for (const TrackId track_id : trackIds()) {
-        Track* track = CHECK_NOTNULL(rTrack(track_id));
+        auto estimatedViewCount{0};
+        for (const auto& viewId : track->viewIds()) {
+            if (view(viewId)->estimated()) {
+                ++estimatedViewCount;
+            }
+
+            if (estimatedViewCount >= minViewCount) {
+                break;
+            }
+        }
+
+        if (estimatedViewCount < minViewCount) {
+            track->setEstimated(false);
+            ++underconstrainedTrackCount;
+        }
+    }
+
+    return underconstrainedTrackCount;
+}
+
+int Scene::setOutlierTracksUnestimated(const std::vector<TrackId>& trackIds,
+                                       double maxRpe,
+                                       double min_triangulation_angle_degrees)
+{
+    const double max_sq_reprojection_error = maxRpe * maxRpe;
+
+    int num_estimated_tracks = 0;
+    int num_bad_reprojections = 0;
+    int num_insufficient_viewing_angles = 0;
+    for (const auto& trackId :
+         std::unordered_set<TrackId>(trackIds.cbegin(), trackIds.cend())) {
+        auto* track = rTrack(trackId);
         if (!track->estimated()) {
             continue;
         }
 
-        // Count the number of estimated views observing it.
-        int num_estimated_views = 0;
-        for (const ViewId view_id : track->viewIds()) {
-            if (view(view_id)->estimated()) {
-                ++num_estimated_views;
+        ++num_estimated_tracks;
+
+        std::vector<Vector3d> rays;
+        auto num_projections{0};
+        auto mean_sq_reprojection_error{0.};
+        for (const auto& viewId : track->viewIds()) {
+            const auto* view = this->view(viewId);
+            if (!view || !view->estimated()) {
+                continue;
             }
-            if (num_estimated_views >= kMinNumViews) {
+
+            const auto& camera = view->camera();
+            const Vector3d ray =
+                track->position().hnormalized() - camera.position();
+            rays.push_back(ray.normalized());
+
+            // Check reprojection error.
+            const auto* feature = view->featureOf(trackId);
+            Vector2d projection;
+            const double depth =
+                camera.projectPoint(track->position(), projection);
+            // Remove the feature if the reprojection is behind the camera.
+            if (depth < 0.) {
+                ++num_bad_reprojections;
+                track->setEstimated(false);
                 break;
             }
+
+            mean_sq_reprojection_error +=
+                (projection - (*feature).pos).squaredNorm();
+            ++num_projections;
+        }
+        mean_sq_reprojection_error /= num_projections;
+
+        if (track->estimated() &&
+            mean_sq_reprojection_error > max_sq_reprojection_error) {
+            ++num_bad_reprojections;
+            track->setEstimated(false);
         }
 
-        if (num_estimated_views < kMinNumViews) {
+        // The track will remain estimated if the reprojection errors were all
+        // good. We then test that the track is properly constrained by having
+        // at least two cameras view it with a sufficient viewing angle.
+        if (track->estimated() && !SufficientTriangulationAngle(
+                                      rays, min_triangulation_angle_degrees)) {
+            ++num_insufficient_viewing_angles;
             track->setEstimated(false);
-            ++num_underconstrained_tracks;
         }
     }
 
-    return num_underconstrained_tracks;
+    LOG_IF(INFO,
+           num_bad_reprojections > 0 || num_insufficient_viewing_angles > 0)
+        << num_bad_reprojections
+        << " points were removed because of bad reprojection errors. "
+        << num_insufficient_viewing_angles
+        << " points were removed because they had insufficient viewing angles "
+           "and were poorly constrained.";
+
+    return num_bad_reprojections + num_insufficient_viewing_angles;
 }
 
-void Scene::setUnestimated()
+void Scene::setTracksInViewsUnestimated(const std::vector<ViewId>& viewIds,
+                                        const std::vector<TrackId>& exceptions)
+{
+    const std::unordered_set<TrackId> exceptions_set{exceptions.cbegin(),
+                                                     exceptions.cend()};
+    for (const auto viewId : viewIds) {
+        const auto* view = this->view(viewId);
+        if (!view || !view->estimated()) {
+            continue;
+        }
+
+        for (const auto trackId : view->trackIds()) {
+            if (auto* track = rTrack(trackId);
+                track && !exceptions_set.contains(trackId)) {
+                track->setEstimated(false);
+            }
+        }
+    }
+}
+
+void Scene::resetEstimated()
 {
     // Set tracks as unestimated.
-    for (const auto& id : trackIds()) {
-        if (auto* track = rTrack(id); track->estimated()) {
+    for (const auto& trackId : trackIds()) {
+        if (auto* track = rTrack(trackId); track && track->estimated()) {
             track->setEstimated(false);
         }
     }
 
     // Set views as unestimated.
-    for (const auto& id : viewIds()) {
-        if (auto* view = rView(id); view->estimated()) {
+    for (const auto& viewId : viewIds()) {
+        if (auto* view = rView(viewId); view && view->estimated()) {
             view->setEstimated(false);
         }
+    }
+}
+
+void Scene::updateViewPoses(
+    const std::unordered_map<ViewId, Eigen::Vector3d>& orientations,
+    const std::unordered_map<ViewId, Eigen::Vector3d>& positions)
+{
+    for (const auto& [viewId, position] : positions) {
+        auto* view = rView(viewId);
+        if (!view) {
+            LOG(WARNING) << "Failed to update pose of View " << viewId
+                         << ": "
+                            "View does not exist in the scene.";
+            continue;
+        }
+
+        if (view->estimated()) {
+            LOG(WARNING) << "Failed to update pose of View " << viewId
+                         << ": "
+                            "View is already estimated.";
+            continue;
+        }
+
+        const auto* orientation = con::FindOrNull(orientations, viewId);
+        if (!orientation) {
+            LOG(WARNING) << "Failed to update pose of View " << viewId
+                         << ": "
+                            "Missing estimated orientation.";
+            continue;
+        }
+
+        view->rCamera().setPosition(position);
+        view->rCamera().setOrientationFromAngleAxis(*orientation);
+        view->setEstimated(true);
     }
 }
 
@@ -735,245 +845,6 @@ std::optional<double> Scene::calcViewReprojectionError(
     return std::make_optional(viewRpe);
 }
 
-std::optional<double> Scene::calcRpeRMS(const Eigen::Vector3d* rvec,
-                                        const Eigen::Vector3d* tvec) const
-{
-    if (m_viewIdToView.empty()) {
-        return {};
-    }
-
-    auto rpeRMS{0.};
-    auto trackCount{0};
-    for (const auto& [viewId, view] : m_viewIdToView) {
-        for (const auto& trackId : view.trackIds()) {
-            const auto* feature = view.featureOf(trackId);
-            const auto* track = this->track(trackId);
-            Vector2d pt;
-            view.camera().projectPoint(track->position(), pt, rvec, tvec);
-
-            rpeRMS += ((*feature).pos - pt).squaredNorm();
-        }
-        trackCount += view.trackCount();
-    }
-    rpeRMS = std::sqrt(rpeRMS / trackCount);
-
-    return std::make_optional(rpeRMS);
-}
-
-std::optional<double> Scene::calcViewRpeRMS(ViewId viewId,
-                                            const Eigen::Vector3d* rvec,
-                                            const Eigen::Vector3d* tvec,
-                                            bool update)
-{
-    if (!m_viewIdToView.contains(viewId)) {
-        return {};
-    }
-
-    auto* view = this->rView(viewId);
-    if (view->empty()) {
-        return {};
-    }
-
-    const auto trackIds = view->trackIds();
-    const auto trackCount = trackIds.size();
-
-    std::vector<Vector2d> offsets;
-    offsets.reserve(trackCount);
-    auto rpeRMS{0.};
-    for (const auto& trackId : view->trackIds()) {
-        const auto* feature = view->featureOf(trackId);
-        const auto* track = this->track(trackId);
-        Vector2d pt;
-        view->camera().projectPoint(track->position(), pt, rvec, tvec);
-        const auto offset = (*feature).pos - pt;
-
-        rpeRMS += offset.squaredNorm();
-        offsets.push_back(offset);
-    }
-    rpeRMS = std::sqrt(rpeRMS / trackCount);
-
-    if (update) {
-        for (size_t i{0}; i < trackCount; ++i) {
-            view->setTrackOffset(trackIds[i], offsets[i]);
-        }
-    }
-
-    return std::make_optional(rpeRMS);
-}
-
-std::optional<double> Scene::calcRpeMean(const Eigen::Vector3d* rvec,
-                                         const Eigen::Vector3d* tvec) const
-{
-    if (m_viewIdToView.empty()) {
-        return {};
-    }
-
-    auto rpeMean{0.};
-    auto trackCount{0};
-    for (const auto& [viewId, view] : m_viewIdToView) {
-        for (const auto& trackId : view.trackIds()) {
-            const auto* feature = view.featureOf(trackId);
-            const auto* track = this->track(trackId);
-            Vector2d pt;
-            view.camera().projectPoint(track->position(), pt, rvec, tvec);
-
-            rpeMean += ((*feature).pos - pt).norm();
-        }
-        trackCount += view.trackCount();
-    }
-    rpeMean /= trackCount;
-
-    return std::make_optional(rpeMean);
-}
-
-std::optional<double> Scene::calcViewRpeMean(ViewId viewId,
-                                             const Eigen::Vector3d* rvec,
-                                             const Eigen::Vector3d* tvec,
-                                             bool update)
-{
-    if (!m_viewIdToView.contains(viewId)) {
-        return {};
-    }
-
-    auto* view = this->rView(viewId);
-    if (view->empty()) {
-        return {};
-    }
-
-    const auto trackIds = view->trackIds();
-    const auto trackCount = trackIds.size();
-
-    std::vector<Vector2d> offsets;
-    offsets.reserve(trackCount);
-    auto rpeMean{0.};
-    for (const auto& trackId : trackIds) {
-        const auto* feature = view->featureOf(trackId);
-        const auto* track = this->track(trackId);
-        Vector2d pt;
-        view->camera().projectPoint(track->position(), pt, rvec, tvec);
-        const auto offset = (*feature).pos - pt;
-
-        rpeMean += offset.norm();
-        offsets.push_back(offset);
-    }
-    rpeMean /= trackCount;
-
-    if (update) {
-        for (size_t i{0}; i < trackCount; ++i) {
-            view->setTrackOffset(trackIds[i], offsets[i]);
-        }
-    }
-
-    return std::make_optional(rpeMean);
-}
-
-std::optional<double> Scene::calcAverageViewRpeMean(
-    const Eigen::Vector3d* rvec, const Eigen::Vector3d* tvec) const
-{
-    if (m_viewIdToView.empty()) {
-        return {};
-    }
-
-    std::vector<int> trackCounts;
-    std::vector<double> rpeMeans;
-    for (const auto& [viewId, view] : m_viewIdToView) {
-        if (view.empty()) {
-            continue;
-        }
-
-        auto rpeMean{0.};
-        for (const auto& trackId : view.trackIds()) {
-            const auto* feature = view.featureOf(trackId);
-            const auto* track = this->track(trackId);
-            Vector2d pt;
-            view.camera().projectPoint(track->position(), pt, rvec, tvec);
-
-            rpeMean += ((*feature).pos - pt).norm();
-        }
-        const auto trackCount = view.trackCount();
-        rpeMean /= trackCount;
-
-        trackCounts.push_back(trackCount);
-        rpeMeans.push_back(rpeMean);
-    }
-
-    const ArrayXd W =
-        Eigen::Map<ArrayXi>(trackCounts.data(), trackCounts.size())
-            .cast<double>();
-    const Eigen::Map<ArrayXd> V(rpeMeans.data(), rpeMeans.size());
-
-    const auto res = ((W / W.sum()) * V).sum();
-
-    return std::make_optional(res);
-}
-
-std::optional<double> Scene::calcRpeMedian(const Eigen::Vector3d* rvec,
-                                           const Eigen::Vector3d* tvec) const
-{
-    if (m_viewIdToView.empty()) {
-        return {};
-    }
-
-    std::vector<double> norms;
-    for (const auto& [viewId, view] : m_viewIdToView) {
-        for (const auto& trackId : view.trackIds()) {
-            const auto* feature = view.featureOf(trackId);
-            const auto* track = this->track(trackId);
-            Vector2d pt;
-            view.camera().projectPoint(track->position(), pt, rvec, tvec);
-
-            norms.emplace_back(((*feature).pos - pt).norm());
-        }
-    }
-
-    const auto rpeMedian = con::FindMedian(norms);
-
-    return std::make_optional(rpeMedian);
-}
-
-std::optional<double> Scene::calcViewRpeMedian(ViewId viewId,
-                                               const Eigen::Vector3d* rvec,
-                                               const Eigen::Vector3d* tvec,
-                                               bool update)
-{
-    if (!m_viewIdToView.contains(viewId)) {
-        return {};
-    }
-
-    auto* view = this->rView(viewId);
-    if (view->empty()) {
-        return {};
-    }
-
-    const auto trackIds = view->trackIds();
-    const auto trackCount = trackIds.size();
-
-    std::vector<Vector2d> offsets;
-    std::vector<double> norms;
-    offsets.reserve(trackCount);
-    norms.reserve(trackCount);
-    for (const auto& trackId : view->trackIds()) {
-        const auto* feature = view->featureOf(trackId);
-        const auto* track = this->track(trackId);
-        Vector2d pt;
-        view->camera().projectPoint(track->position(), pt, rvec, tvec);
-        const auto offset = (*feature).pos - pt;
-
-        offsets.push_back(offset);
-        norms.push_back(offset.norm());
-    }
-
-    const auto rpeMedian = con::FindMedian(norms);
-
-    if (update) {
-        for (size_t i{0}; i < trackCount; ++i) {
-            view->setTrackOffset(trackIds[i], offsets[i]);
-        }
-    }
-
-    return std::make_optional(rpeMedian);
-}
-
 void Scene::transform(const Eigen::Matrix3d& R, const Eigen::Vector3d& t,
                       double scale)
 {
@@ -990,21 +861,6 @@ void Scene::transform(const Eigen::Matrix3d& R, const Eigen::Vector3d& t,
             track->rPosition() = point.homogeneous();
         }
     }
-}
-
-std::ostream& operator<<(std::ostream& os, const Scene& scene)
-{
-    return os << "\n"
-                 "Scene infos:"
-                 "\n"
-                 "View count: "
-              << scene.viewCount()
-              << "; "
-                 "Identical Camera count: "
-              << scene.cameraCount()
-              << "\n"
-                 "Landmark count: "
-              << scene.trackCount();
 }
 
 } // namespace tl

@@ -23,7 +23,7 @@ std::unique_ptr<Camera> fromCocCamera(
 
         case cocType::KANNALA_BRANDT: {
             auto camera = std::make_unique<Camera>(Type::Fisheye);
-            meta.intrinsicType = magic_enum::enum_name(Type::Fisheye);
+            meta.intrinsicModel = magic_enum::enum_name(Type::Fisheye);
             meta.focalLength = {params[4]};
             meta.aspectRatio = {params[5] / params[4]};
             meta.principalPoint = {params[6], params[7]};
@@ -34,7 +34,7 @@ std::unique_ptr<Camera> fromCocCamera(
         }
         case cocType::MEI: {
             auto camera = std::make_unique<Camera>(Type::Omnidirectional);
-            meta.intrinsicType = magic_enum::enum_name(Type::Omnidirectional);
+            meta.intrinsicModel = magic_enum::enum_name(Type::Omnidirectional);
             meta.focalLength = {params[5]};
             meta.aspectRatio = {params[6] / params[5]};
             meta.principalPoint = {params[7], params[8]};

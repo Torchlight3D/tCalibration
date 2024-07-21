@@ -10,16 +10,26 @@ add_library(${NS_PREFIX}::${MVS_TARGET_NAME} ALIAS ${MVS_TARGET_NAME})
 file(GLOB_RECURSE MVS_INTERNAL_HEADERS
     src/ba/*.h
     src/desc/*.h
+    src/epipolar/*.h
+    src/graph/*.h
     src/pnp/*.h
+    src/pnp/**/*.h
+    src/poses/*.h
+    src/registration/*.h
     src/residuals/*.h
+    src/sfm/*.h
     src/*.h
 )
 file(GLOB_RECURSE MVS_SOURCES
     src/ba/*.cpp
     src/desc/*.cpp
+    src/epipolar/*.cpp
     src/pnp/*.cpp
     src/pnp/**/*.cpp
+    src/poses/*.cpp
+    src/registration/*.cpp
     src/residuals/*.cpp
+    src/sfm/*.cpp
 )
 
 target_sources(${MVS_TARGET_NAME}

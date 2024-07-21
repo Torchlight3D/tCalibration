@@ -2,8 +2,6 @@
 
 #include <glog/logging.h>
 
-#include <tMVS/Scene>
-
 namespace tl {
 
 using Eigen::Matrix3d;

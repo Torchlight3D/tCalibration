@@ -81,7 +81,7 @@ void CameraIntrinsics::setFromMetaData(const CameraMetaData& meta)
 CameraMetaData CameraIntrinsics::toMetaData() const
 {
     CameraMetaData meta;
-    meta.intrinsicType = magic_enum::enum_name(type());
+    meta.intrinsicModel = magic_enum::enum_name(type());
     meta.focalLength = {focalLength()};
     meta.aspectRatio = {aspectRatio()};
     meta.principalPoint = {cx(), cy()};

@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include <optional>
+#include <string>
 
 #include <tCamera/Camera>
 #include <tMvs/Types>
@@ -38,7 +39,6 @@ public:
     TrackId trackIdOf(const Feature& feature) const;
     std::vector<TrackId> trackIds() const;
     size_t trackCount() const;
-    bool empty() const;
 
     Eigen::Vector3d position() const;
     Eigen::Vector3d orientationAsEuler() const;

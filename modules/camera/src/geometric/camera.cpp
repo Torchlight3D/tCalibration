@@ -88,7 +88,7 @@ void Camera::setFromMetaData(const CameraMetaData& meta)
     }
 
     const auto intriType =
-        magic_enum::enum_cast<CameraIntrinsicsType>(meta.intrinsicType);
+        magic_enum::enum_cast<CameraIntrinsicsType>(meta.intrinsicModel);
 
     CHECK(intriType.has_value())
         << "Invalid to create Camera with unsupported intrinsics type.";
@@ -212,7 +212,7 @@ Eigen::Matrix3d Camera::calibrationMatrix() const
     return intrinsics_->calibrationMatrix();
 }
 
-void Camera::setPosition(const Vector3d& position)
+void Camera::setPosition(const Eigen::Vector3d& position)
 {
     Eigen::Map<Vector3d>(rExtrinsics() + Position) = position;
 }
@@ -328,14 +328,17 @@ void Camera::transform(const Eigen::Matrix3d& R, const Eigen::Vector3d& t,
 
 std::ostream& operator<<(std::ostream& os, const Camera& cam)
 {
-    return os << *cam.cameraIntrinsics()
+    return os << "\n"
+                 "Camera size (w x h): "
+              << cam.imageWidth() << " x " << cam.imageHeight() << "\n"
+              << *cam.cameraIntrinsics()
               << "\n"
                  "Camera pose in world coordinate: "
                  "\n"
                  "Position: "
               << cam.position().transpose()
               << "\n"
-                 "Orientation (roll, pitch, yaw):"
+                 "Orientation (roll, pitch, yaw): "
               << cam.orientationAsEuler().transpose();
 }
 

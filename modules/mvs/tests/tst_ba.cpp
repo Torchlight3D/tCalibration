@@ -4,7 +4,7 @@
 
 #include <tCamera/Camera>
 #include <tCore/RandomGenerator>
-#include <tMvs/BundleAdjustment>
+#include <tMvs/BA/BundleAdjustment>
 #include <tMvs/Scene>
 
 #include "test_utils.h"
@@ -40,8 +40,8 @@ inline void TestOptimizeView(int numPoints, double pixelNoise)
 
     // Set up random points
     for (int i = 0; i < numPoints; i++) {
-        const Vector3d point{kRNG.randFloat(-5., 5.), kRNG.randFloat(-5., 5.),
-                             kRNG.randFloat(4., 10.)};
+        const Vector3d point(kRNG.randFloat(-5., 5.), kRNG.randFloat(-5., 5.),
+                             kRNG.randFloat(4., 10.));
         const auto trackId = scene.addTrack();
         scene.rTrack(trackId)->setPosition(point.homogeneous());
         scene.rTrack(trackId)->setEstimated(true);
@@ -50,7 +50,7 @@ inline void TestOptimizeView(int numPoints, double pixelNoise)
         const auto depth = scene.view(viewId)->camera().projectPoint(
             point.homogeneous(), pixel);
         if (pixelNoise > 0.) {
-            AddNoiseToProjection(pixelNoise, &kRNG, &pixel);
+            AddNoiseToVector2(pixelNoise, &pixel);
         }
         if (depth > 0.) {
             scene.addFeature(viewId, trackId, Feature(pixel));

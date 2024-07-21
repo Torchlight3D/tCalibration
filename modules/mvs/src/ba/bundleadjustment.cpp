@@ -9,15 +9,15 @@
 #include <tCamera/OmnidirectionalCameraModel>
 #include <tCamera/ReprojectionError>
 #include <tCore/ContainerUtils>
-#include <tMath/Solvers/LossFunction>
-#include <tMVS/Scene>
 
+// TODO: Us <> to include header from other submodule
 #include "../residuals/inversereprojectionerror.h"
 
 namespace tl {
 
 using Eigen::Matrix3d;
 using Eigen::MatrixXd;
+using Eigen::Vector3d;
 
 namespace {
 
@@ -59,11 +59,12 @@ struct DepthPriorError
     bool operator()(const T* const extrinsics, const T* const point,
                     T* residual) const
     {
-        using Vector3 = Eigen::Map<const Eigen::Vector3<T>>;
+        using Vec3 = Eigen::Vector3<T>;
 
         // Remove the translation.
-        Eigen::Vector3<T> adjusted_point =
-            Vector3(point) - point[3] * Vector3(extrinsics + Camera::Position);
+        Vec3 adjusted_point =
+            Eigen::Map<const Vec3>{point} -
+            point[3] * Eigen::Map<const Vec3>{extrinsics + Camera::Position};
 
         // If the point is too close to the camera center then the point cannot
         // be constrained by triangulation. This is likely to only occur when a
@@ -80,14 +81,15 @@ struct DepthPriorError
         }
 
         // Rotate the point to obtain the point in the camera coordinate system.
-        T rotated_point[3];
+        Vec3 rotated_point;
         ceres::AngleAxisRotatePoint(extrinsics + Camera::Orientation,
-                                    adjusted_point.data(), rotated_point);
+                                    adjusted_point.data(),
+                                    rotated_point.data());
 
         const T sqrt_information = T(1. / sqrt(feature_.depthPriorVar));
 
         (*residual) =
-            sqrt_information * (rotated_point[2] - T(feature_.depthPrior));
+            sqrt_information * (rotated_point.z() - T(feature_.depthPrior));
 
         return true;
     }
@@ -95,9 +97,10 @@ struct DepthPriorError
     static ceres::CostFunction* create(const Feature& feature)
     {
         constexpr int kResidualSize{1};
-        constexpr int kPointSize{4};
+
         return new ceres::AutoDiffCostFunction<
-            DepthPriorError, kResidualSize, Camera::ExtrinsicsSize, kPointSize>(
+            DepthPriorError, kResidualSize, Camera::ExtrinsicsSize,
+            Vector3d::HomogeneousReturnType::SizeAtCompileTime>(
             new DepthPriorError(feature));
     }
 };

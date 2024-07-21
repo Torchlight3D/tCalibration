@@ -5,17 +5,47 @@ add_executable(${MVS_TEST_TARGET})
 target_sources(${MVS_TEST_TARGET}
     PRIVATE
         test_utils.h
+        test_utils.cpp
+        # Description
         tst_landmark.cpp
         tst_scene.cpp
         tst_view.cpp
+        tst_viewgraph.cpp
+        # PnP
         tst_dlspnp.cpp
         tst_p3p.cpp
         tst_sqpnp.cpp
         tst_calibabsolutepose.cpp
         tst_uncalibabsolutepose.cpp
         tst_distortionuncalibabsolutepose.cpp
+        tst_estimateabsolutepose.cpp
+        # Epipolar
+        tst_epipolar.cpp
+        tst_findessential.cpp
+        tst_findfundamental.cpp
+        tst_findhomography.cpp
+        tst_triangulation.cpp
+        # BA
         tst_ba.cpp
-#        main.cpp
+        # Global Pose
+        tst_estimaterotationhybrid.cpp
+        tst_estimaterotationlagrange.cpp
+        tst_estimaterotationlinear.cpp
+        tst_estimaterotationnonlinear.cpp
+        tst_estimaterotationrobust.cpp
+        tst_estimatepositionligt.cpp
+        tst_estimatepositionlinear.cpp
+        tst_estimatepositionlud.cpp
+        tst_estimatepositionnonlinear.cpp
+        tst_alignpotincloud.cpp
+        tst_alignrotation.cpp
+        tst_optimizerelativeposition.cpp
+        # Reconstruction
+        tst_selectviewpairs.cpp
+        tst_trackbuilder.cpp
+        # Graph
+        tst_graph.cpp
+        # main.cpp
 )
 
 # googletest, Ubuntu 20.04 default 1.10.0

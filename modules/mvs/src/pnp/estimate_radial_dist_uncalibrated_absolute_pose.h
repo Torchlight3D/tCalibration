@@ -1,7 +1,5 @@
 ﻿#pragma once
 
-#include <vector>
-
 #include <Eigen/Core>
 
 #include <tMath/Types>
@@ -25,9 +23,9 @@ struct RadialDistUncalibratedAbsolutePoseMetaData
     double max_radial_distortion = -1e-5;
 };
 
+struct Feature2D3D;
 struct SacParameters;
 struct SacSummary;
-struct Feature2D3D;
 
 // Estimates the uncalibrated absolute pose using the ransac variant of choice
 // (e.g. Ransac, Prosac, etc.). Apart from the focal length, a radial distortion

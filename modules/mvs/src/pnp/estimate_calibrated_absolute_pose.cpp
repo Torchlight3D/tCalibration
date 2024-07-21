@@ -1,20 +1,23 @@
 ﻿#include "estimate_calibrated_absolute_pose.h"
 
 #include <tCamera/CameraIntrinsics>
-#include <tMath/Ransac/RansacCreator>
 #include <tMath/Ransac/RansacModelEstimator>
-#include <tMvs/PnP/DlsPnP>
-#include <tMvs/PnP/P3P>
-#include <tMvs/PnP/SQPnP>
-#include <tMvs/BundleAdjustment>
+#include <tMath/Ransac/RansacCreator>
 #include <tMvs/Feature>
 #include <tMvs/Landmark>
 #include <tMvs/Scene>
 #include <tMvs/View>
+#include <tMvs/BA/BundleAdjustment>
+#include <tMvs/PnP/DlsPnP>
+#include <tMvs/PnP/P3P>
+#include <tMvs/PnP/SQPnP>
 
 namespace tl {
 
+using Eigen::Matrix3d;
+using Eigen::Quaterniond;
 using Eigen::Vector2d;
+using Eigen::Vector3d;
 
 namespace {
 
@@ -38,15 +41,19 @@ public:
         const std::vector<Feature2D3D>& corrs,
         std::vector<CalibratedAbsolutePose>* poses) const override
     {
-        Vector2dList imgPoints(3);
-        Vector3dList objPoints(3);
-        for (int i = 0; i < 3; ++i) {
+        if (corrs.size() < SampleSize()) {
+            return false;
+        }
+
+        std::vector<Vector2d> imgPoints(SampleSize());
+        std::vector<Vector3d> objPoints(SampleSize());
+        for (size_t i{0}; i < SampleSize(); ++i) {
             imgPoints[i] = corrs[i].feature;
             objPoints[i] = corrs[i].world_point;
         }
 
-        Matrix3dList rotations;
-        Vector3dList translations;
+        std::vector<Matrix3d> rotations;
+        std::vector<Vector3d> translations;
         switch (pnp_type_) {
             case PnPType::KNEIP: {
                 if (!P3P(imgPoints, objPoints, rotations, translations)) {
@@ -54,8 +61,8 @@ public:
                 }
             } break;
             case PnPType::DLS: {
-                QuaterniondList quats;
-                if (!DlsPnp(imgPoints, objPoints, quats, translations)) {
+                std::vector<Quaterniond> quats;
+                if (!DLSPnp(imgPoints, objPoints, quats, translations)) {
                     return false;
                 }
 
@@ -64,7 +71,7 @@ public:
                                [](const auto& q) { return q.matrix(); });
             } break;
             case PnPType::SQPnP: {
-                QuaterniondList quats;
+                std::vector<Quaterniond> quats;
                 if (!SQPnP(imgPoints, objPoints, quats, translations)) {
                     return false;
                 }
@@ -112,7 +119,7 @@ public:
         opts.max_num_iterations = 2;
         opts.use_homogeneous_local_point_parametrization = false;
         opts.intrinsics_to_optimize = OptimizeIntrinsicsType::None;
-        opts.loss_function_type = LossFunctionType::Huber;
+        // opts.loss_function_type = LossFunctionType::Huber;
         opts.robust_loss_width = error * 1.5;
 
         const auto summary = BundleAdjustView(opts, viewId, &scene);

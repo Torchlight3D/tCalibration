@@ -1,17 +1,18 @@
-#include <Eigen/Dense>
 #include <gtest/gtest.h>
+
+#include <Eigen/Dense>
 
 #include <tCore/Math>
 #include <tCore/RandomGenerator>
 #include <tMath/Eigen/Utils>
-#include <tMath/Ransac/SampleConsensus>
-#include <tMvs/PnP/EstimateCalibratedAbsolutePose>
+#include <tMath/Ransac/RansacCreator>
 #include <tMvs/Feature>
-#include <tMvs/Types>
+#include <tMvs/PnP/EstimateCalibratedAbsolutePose>
 
 #include "test_utils.h"
 
 using namespace tl;
+using namespace tl::math;
 
 using Eigen::AngleAxisd;
 using Eigen::Matrix3d;
@@ -26,7 +27,7 @@ constexpr int kMinIterations = 50;
 constexpr double kErrorThreshold =
     (kReprojectionError * kReprojectionError) / (kFocalLength * kFocalLength);
 
-RandomNumberGenerator kRNG{66};
+RandomNumberGenerator kRNG(66);
 } // namespace
 
 void ExecuteRandomTest(const SacParameters& options, const Matrix3d& rotation,
@@ -57,8 +58,8 @@ void ExecuteRandomTest(const SacParameters& options, const Matrix3d& rotation,
 
     if (noise) {
         for (int i = 0; i < kNumPoints; i++) {
-            AddNoiseToProjection(noise / kFocalLength, &kRNG,
-                                 &correspondences[i].feature);
+            AddNoiseToVector2(noise / kFocalLength,
+                              &correspondences[i].feature);
         }
     }
 
@@ -94,15 +95,16 @@ TEST(EstimateCalibratedAbsolutePose, AllInliersNoNoiseKNEIP)
 
     const std::vector<Matrix3d> rotations = {
         Matrix3d::Identity(),
-        AngleAxisd(math::degToRad(12.0), Vector3d::UnitY()).toRotationMatrix(),
-        AngleAxisd(math::degToRad(-9.0), Vector3d(1.0, 0.2, -0.8).normalized())
+        AngleAxisd(degToRad(12.0), Vector3d::UnitY()).toRotationMatrix(),
+        AngleAxisd(degToRad(-9.0), Vector3d(1.0, 0.2, -0.8).normalized())
             .toRotationMatrix()};
     const std::vector<Vector3d> positions = {Vector3d(-1.3, 0, 0),
                                              Vector3d(0, 0, 0.5)};
-    for (size_t i = 0; i < rotations.size(); i++) {
-        for (size_t j = 0; j < positions.size(); j++) {
-            ExecuteRandomTest(options, rotations[i], positions[j], kInlierRatio,
-                              kNoise, kPoseTolerance, type);
+
+    for (const auto& rotation : rotations) {
+        for (const auto& position : positions) {
+            ExecuteRandomTest(options, rotation, position, kInlierRatio, kNoise,
+                              kPoseTolerance, type);
         }
     }
 }
@@ -122,16 +124,16 @@ TEST(EstimateCalibratedAbsolutePose, AllInliersWithNoiseKNEIP)
 
     const std::vector<Matrix3d> rotations = {
         Matrix3d::Identity(),
-        AngleAxisd(math::degToRad(12.0), Vector3d::UnitY()).toRotationMatrix(),
-        AngleAxisd(math::degToRad(-9.0), Vector3d(1.0, 0.2, -0.8).normalized())
+        AngleAxisd(degToRad(12.0), Vector3d::UnitY()).toRotationMatrix(),
+        AngleAxisd(degToRad(-9.0), Vector3d(1.0, 0.2, -0.8).normalized())
             .toRotationMatrix()};
     const std::vector<Vector3d> positions = {Vector3d(-1.3, 0, 0),
                                              Vector3d(0, 0, 0.5)};
 
-    for (size_t i = 0; i < rotations.size(); i++) {
-        for (size_t j = 0; j < positions.size(); j++) {
-            ExecuteRandomTest(options, rotations[i], positions[j], kInlierRatio,
-                              kNoise, kPoseTolerance, type);
+    for (const auto& rotation : rotations) {
+        for (const auto& position : positions) {
+            ExecuteRandomTest(options, rotation, position, kInlierRatio, kNoise,
+                              kPoseTolerance, type);
         }
     }
 }
@@ -151,16 +153,16 @@ TEST(EstimateCalibratedAbsolutePose, AllInliersWithNoiseDLS)
 
     const std::vector<Matrix3d> rotations = {
         Matrix3d::Identity(),
-        AngleAxisd(math::degToRad(12.0), Vector3d::UnitY()).toRotationMatrix(),
-        AngleAxisd(math::degToRad(-9.0), Vector3d(1.0, 0.2, -0.8).normalized())
+        AngleAxisd(degToRad(12.0), Vector3d::UnitY()).toRotationMatrix(),
+        AngleAxisd(degToRad(-9.0), Vector3d(1.0, 0.2, -0.8).normalized())
             .toRotationMatrix()};
     const std::vector<Vector3d> positions = {Vector3d(-1.3, 0, 0),
                                              Vector3d(0, 0, 0.5)};
 
-    for (size_t i = 0; i < rotations.size(); i++) {
-        for (size_t j = 0; j < positions.size(); j++) {
-            ExecuteRandomTest(options, rotations[i], positions[j], kInlierRatio,
-                              kNoise, kPoseTolerance, type);
+    for (const auto& rotation : rotations) {
+        for (const auto& position : positions) {
+            ExecuteRandomTest(options, rotation, position, kInlierRatio, kNoise,
+                              kPoseTolerance, type);
         }
     }
 }
@@ -180,16 +182,16 @@ TEST(EstimateCalibratedAbsolutePose, AllInliersWithNoiseSQPnP)
 
     const std::vector<Matrix3d> rotations = {
         Matrix3d::Identity(),
-        AngleAxisd(math::degToRad(12.0), Vector3d::UnitY()).toRotationMatrix(),
-        AngleAxisd(math::degToRad(-9.0), Vector3d(1.0, 0.2, -0.8).normalized())
+        AngleAxisd(degToRad(12.0), Vector3d::UnitY()).toRotationMatrix(),
+        AngleAxisd(degToRad(-9.0), Vector3d(1.0, 0.2, -0.8).normalized())
             .toRotationMatrix()};
     const std::vector<Vector3d> positions = {Vector3d(-1.3, 0, 0),
                                              Vector3d(0, 0, 0.5)};
 
-    for (size_t i = 0; i < rotations.size(); i++) {
-        for (size_t j = 0; j < positions.size(); j++) {
-            ExecuteRandomTest(options, rotations[i], positions[j], kInlierRatio,
-                              kNoise, kPoseTolerance, type);
+    for (const auto& rotation : rotations) {
+        for (const auto& position : positions) {
+            ExecuteRandomTest(options, rotation, position, kInlierRatio, kNoise,
+                              kPoseTolerance, type);
         }
     }
 }
@@ -207,15 +209,14 @@ TEST(EstimateCalibratedAbsolutePose, OutliersNoNoiseKNEIP)
     const double kPoseTolerance = 1e-2;
     const PnPType type = PnPType::KNEIP;
 
-    const std::vector<Matrix3d> rotations = {Matrix3d::Identity(),
-                                             RandomRotation(10.)};
-    const std::vector<Vector3d> positions = {Vector3d(1, 0, 0),
-                                             Vector3d(0, 1, 0)};
+    const std::vector<Matrix3d> rotations{Matrix3d::Identity(),
+                                          RandomRotation(10.)};
+    const std::vector<Vector3d> positions{Vector3d::UnitX(), Vector3d::UnitY()};
 
-    for (size_t i = 0; i < rotations.size(); i++) {
-        for (size_t j = 0; j < positions.size(); j++) {
-            ExecuteRandomTest(options, rotations[i], positions[j], kInlierRatio,
-                              kNoise, kPoseTolerance, type);
+    for (const auto& rotation : rotations) {
+        for (const auto& position : positions) {
+            ExecuteRandomTest(options, rotation, position, kInlierRatio, kNoise,
+                              kPoseTolerance, type);
         }
     }
 }
@@ -233,15 +234,14 @@ TEST(EstimateCalibratedAbsolutePose, OutliersWithNoiseKNEIP)
     const double kPoseTolerance = 1e-2;
     const PnPType type = PnPType::KNEIP;
 
-    const std::vector<Matrix3d> rotations = {Matrix3d::Identity(),
-                                             RandomRotation(10.)};
-    const std::vector<Vector3d> positions = {Vector3d(1, 0, 0),
-                                             Vector3d(0, 1, 0)};
+    const std::vector<Matrix3d> rotations{Matrix3d::Identity(),
+                                          RandomRotation(10.)};
+    const std::vector<Vector3d> positions{Vector3d::UnitX(), Vector3d::UnitY()};
 
-    for (size_t i = 0; i < rotations.size(); i++) {
-        for (size_t j = 0; j < positions.size(); j++) {
-            ExecuteRandomTest(options, rotations[i], positions[j], kInlierRatio,
-                              kNoise, kPoseTolerance, type);
+    for (const auto& rotation : rotations) {
+        for (const auto& position : positions) {
+            ExecuteRandomTest(options, rotation, position, kInlierRatio, kNoise,
+                              kPoseTolerance, type);
         }
     }
 }
@@ -259,15 +259,14 @@ TEST(EstimateCalibratedAbsolutePose, OutliersWithNoiseDLS)
     const double kPoseTolerance = 1e-2;
     const PnPType type = PnPType::DLS;
 
-    const std::vector<Matrix3d> rotations = {Matrix3d::Identity(),
-                                             RandomRotation(10.)};
-    const std::vector<Vector3d> positions = {Vector3d(1, 0, 0),
-                                             Vector3d(0, 1, 0)};
+    const std::vector<Matrix3d> rotations{Matrix3d::Identity(),
+                                          RandomRotation(10.)};
+    const std::vector<Vector3d> positions{Vector3d::UnitX(), Vector3d::UnitY()};
 
-    for (size_t i = 0; i < rotations.size(); i++) {
-        for (size_t j = 0; j < positions.size(); j++) {
-            ExecuteRandomTest(options, rotations[i], positions[j], kInlierRatio,
-                              kNoise, kPoseTolerance, type);
+    for (const auto& rotation : rotations) {
+        for (const auto& position : positions) {
+            ExecuteRandomTest(options, rotation, position, kInlierRatio, kNoise,
+                              kPoseTolerance, type);
         }
     }
 }
@@ -285,10 +284,9 @@ TEST(EstimateCalibratedAbsolutePose, OutliersWithNoiseSQPNP)
     const double kPoseTolerance = 1e-2;
     const PnPType type = PnPType::SQPnP;
 
-    const std::vector<Matrix3d> rotations = {Matrix3d::Identity(),
-                                             RandomRotation(10.0)};
-    const std::vector<Vector3d> positions = {Vector3d(1, 0, 0),
-                                             Vector3d(0, 1, 0)};
+    const std::vector<Matrix3d> rotations{Matrix3d::Identity(),
+                                          RandomRotation(10.)};
+    const std::vector<Vector3d> positions{Vector3d::UnitX(), Vector3d::UnitY()};
 
     for (size_t i = 0; i < rotations.size(); i++) {
         for (size_t j = 0; j < positions.size(); j++) {
@@ -313,15 +311,14 @@ TEST(EstimateCalibratedAbsolutePose, OutliersWithNoiseKNEIP_LO)
     const double kPoseTolerance = 1e-4;
     const PnPType type = PnPType::KNEIP;
 
-    const std::vector<Matrix3d> rotations = {Matrix3d::Identity(),
-                                             RandomRotation(10.0)};
-    const std::vector<Vector3d> positions = {Vector3d(1, 0, 0),
-                                             Vector3d(0, 1, 0)};
+    const std::vector<Matrix3d> rotations{Matrix3d::Identity(),
+                                          RandomRotation(10.)};
+    const std::vector<Vector3d> positions{Vector3d::UnitX(), Vector3d::UnitY()};
 
-    for (size_t i = 0; i < rotations.size(); i++) {
-        for (size_t j = 0; j < positions.size(); j++) {
-            ExecuteRandomTest(options, rotations[i], positions[j], kInlierRatio,
-                              kNoise, kPoseTolerance, type);
+    for (const auto& rotation : rotations) {
+        for (const auto& position : positions) {
+            ExecuteRandomTest(options, rotation, position, kInlierRatio, kNoise,
+                              kPoseTolerance, type);
         }
     }
 }
@@ -346,10 +343,10 @@ TEST(EstimateCalibratedAbsolutePose, OutliersWithNoiseDLS_LO)
                                           RandomRotation(10.)};
     const std::vector<Vector3d> positions{Vector3d::UnitX(), Vector3d::UnitY()};
 
-    for (size_t i = 0; i < rotations.size(); i++) {
-        for (size_t j = 0; j < positions.size(); j++) {
-            ExecuteRandomTest(options, rotations[i], positions[j], kInlierRatio,
-                              kNoise, kPoseTolerance, type);
+    for (const auto& rotation : rotations) {
+        for (const auto& position : positions) {
+            ExecuteRandomTest(options, rotation, position, kInlierRatio, kNoise,
+                              kPoseTolerance, type);
         }
     }
 }
@@ -370,7 +367,7 @@ TEST(EstimateCalibratedAbsolutePose, OutliersWithNoiseSQPNP_LO)
     constexpr PnPType type = PnPType::SQPnP;
 
     const std::vector<Matrix3d> rotations{Matrix3d::Identity(),
-                                          RandomRotation(10.0)};
+                                          RandomRotation(10.)};
     const std::vector<Vector3d> positions{Vector3d::UnitX(), Vector3d::UnitY()};
 
     for (const auto& rotation : rotations) {

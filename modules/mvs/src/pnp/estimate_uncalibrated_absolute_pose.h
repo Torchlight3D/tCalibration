@@ -1,7 +1,5 @@
 ﻿#pragma once
 
-#include <vector>
-
 #include <Eigen/Core>
 
 #include <tMath/Types>
