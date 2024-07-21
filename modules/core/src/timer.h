@@ -8,11 +8,17 @@ namespace tl {
 class Timer
 {
 public:
-    Timer() { start(); }
-    ~Timer() { [[maybe_unused]] auto _ = stop<std::chrono::milliseconds>(); }
+    Timer();
+    ~Timer();
 
-    void start() { start_ = std::chrono::system_clock::now(); }
+    void start();
+    inline void reset() { start(); }
 
+    double lapInSecond();
+    double elapseInSecond();
+    double elapseInMs();
+
+private:
     template <typename Duration_t>
     typename Duration_t::rep stop()
     {
