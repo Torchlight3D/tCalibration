@@ -2,29 +2,69 @@
 
 #include <map>
 
-#include "types.h"
+#include <opencv2/core/mat.hpp>
 
-namespace ipa_Fiducials {
+namespace tl {
+
+enum t_FiducialType
+{
+    TYPE_UNDEFINED = 0x00000000,
+    TYPE_PI = 0x00000001,
+    TYPE_ARUCO = 0x00000002
+};
+
+struct t_pose
+{
+    // Marker Id
+    int id;
+
+    // Rotation (in vector) from tag frame to camera frame
+    cv::Mat rot;
+
+    // Translation from tag frame to camera frame
+    cv::Mat trans;
+};
+
+struct t_points
+{
+    // Marker Id
+    int id;
+
+    // Ellipse coordinates in marker coordinate system
+    std::vector<cv::Point2f> marker_points;
+
+    // Ellipse coordinates in marker coordinate system
+    std::vector<cv::Point2f> image_points;
+};
 
 struct FiducialPiParameters
 {
-    int m_id;             // Unique ID of tag
-    cv::Point2d m_offset; // Offset of tag to target coordinate system
+    // Tag Id
+    int m_id;
 
-    cv::Rect_<double>
-        m_sharpness_pattern_area_rect3d; // rectangle describing the area for
-                                         // sharpness computation in 2d
-                                         // coordinates within the marker plane
-                                         // with respect to the marker origin
+    // Offset of tag to target coordinate system
+    cv::Point2d m_offset;
 
-    double line_width_height; ///< Common width and height of fiducial
+    // rectangle describing the area for sharpness computation in 2d coordinates
+    // within the marker plane with respect to the marker origin
+    cv::Rect2d m_sharpness_pattern_area_rect3d;
+
+    // Common width and height of fiducial
+    double line_width_height;
 
     // Assert that cross_ratio(line0) > cross_ratio(line1)
-    double d_line0_AB; ///< Distance of from A to B of 4pt line A-B-C-D
-    double d_line0_AC; ///< Distance of from A to C of 4pt line A-B-C-D
 
-    double d_line1_AB; ///< Distance of from A to B of 4pt line A-B-C-D
-    double d_line1_AC; ///< Distance of from A to C of 4pt line A-B-C-D
+    ///< Distance of from A to B of 4pt line A-B-C-D
+    double d_line0_AB;
+
+    ///< Distance of from A to C of 4pt line A-B-C-D
+    double d_line0_AC;
+
+    ///< Distance of from A to B of 4pt line A-B-C-D
+    double d_line1_AB;
+
+    ///< Distance of from A to C of 4pt line A-B-C-D
+    double d_line1_AC;
 };
 
 /// Struct to represent a pi fiducial
@@ -38,20 +78,26 @@ struct t_pi
 
     FiducialPiParameters parameters;
 
-    double cross_ration_0; ///< Cross ration for line type 0
-    double cross_ration_1; ///< Cross ration for line type 1
+    ///< Cross ration for line type 0
+    double cross_ration_0;
 
-    std::vector<std::vector<cv::RotatedRect>>
-        fitting_image_lines_0; ///< lines that fit to the first cross ratio
-    std::vector<std::vector<cv::RotatedRect>>
-        fitting_image_lines_1; ///< lines that fit to the second cross ratio
+    ///< Cross ration for line type 1
+    double cross_ration_1;
 
-    int no_matching_lines; ///< Number of matching sides (at most 4 per marker)
+    ///< lines that fit to the first cross ratio
+    std::vector<std::vector<cv::RotatedRect>> fitting_image_lines_0;
 
-    std::vector<cv::Point2f>
-        marker_points; ///< ellipse coordinates in marker coordinate system
-    std::vector<cv::RotatedRect>
-        image_points; ///< ellipse coordinates in marker coordinate system
+    ///< lines that fit to the second cross ratio
+    std::vector<std::vector<cv::RotatedRect>> fitting_image_lines_1;
+
+    ///< Number of matching sides (at most 4 per marker)
+    int no_matching_lines;
+
+    ///< ellipse coordinates in marker coordinate system
+    std::vector<cv::Point2f> marker_points;
+
+    ///< ellipse coordinates in marker coordinate system
+    std::vector<cv::RotatedRect> image_points;
 };
 
 class FiducialModelPi
@@ -95,25 +141,15 @@ public:
         double sharpness_calibration_parameter_m = 9139.749632393357,
         double sharpness_calibration_parameter_n = -2670187.875850272);
 
-    // Gets the camera matrix
-    // @return 3x3 camera matrix (fx 0 cx, 0 fy cy, 0 0 1)
     cv::Mat GetCameraMatrix() const;
-
-    // Set the camera matrix
-    // @param camera_matrix 3x3 camera matrix (fx 0 cx, 0 fy cy, 0 0 1)
     void SetCameraMatrix(cv::Mat camera_matrix);
 
-    // Gets the distortion coeffs
-    // @return 1x4 distortion coeffs matrix (k1,k2,p1,p2)
     cv::Mat GetDistortionCoeffs() const;
-
-    // Sets the distortion coeffs
-    // @param dist_coeffs 1x4 distortion coeffs matrix (k1,k2,p1,p2)
     void SetDistortionCoeffs(cv::Mat dist_coeffs);
 
     // Gets the general fiducial parameters for a certain marker
     // @return general fiducial parameters
-    FiducialPiParameters GetGeneralFiducialParameters(int marker_id);
+    FiducialPiParameters GetGeneralFiducialParameters(int marker_id) const;
 
     /// Load fiducial-centric coordinates of markers from file
     /// @param directory Directory, where the parameters of all fiducials are
@@ -157,7 +193,7 @@ protected:
     std::vector<SharpnessLogData> m_log_data;
 
 private:
-    bool ProjectionValid(cv::Mat& rot_CfromO, cv::Mat& trans_CfromO,
+    bool ProjectionValid(cv::Mat& rmat_CfromO, cv::Mat& tvec_CfromO,
                          cv::Mat& camera_matrix, cv::Mat& pattern_coords,
                          cv::Mat& image_coords);
 
@@ -166,4 +202,4 @@ private:
     bool m_use_fast_pi_tag;
 };
 
-} // end namespace ipa_Fiducials
+} // namespace tl
