@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Eigen/Dense>
+#include <Eigen/Core>
 #include <opencv2/core/mat.hpp>
 
 using Vector2dList = std::vector<Eigen::Vector2d>;

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "edge_record.h"
+#include "edgerecord.h"
 #include "gradient.h"
 
 constexpr double rect_il_thresh = 7; // pixels, during initial linear fit

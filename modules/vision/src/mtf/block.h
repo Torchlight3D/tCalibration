@@ -3,7 +3,7 @@
 #include <map>
 #include <memory>
 
-#include "edge_model.h"
+#include "edgemodel.h"
 #include "rectangle.h"
 #include "scanline.h"
 #include "snr.h"
