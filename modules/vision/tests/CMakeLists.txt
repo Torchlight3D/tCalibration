@@ -1,4 +1,4 @@
-set(IMGPROC_TEST_TARGET imgproc_test)
+set(IMGPROC_TEST_TARGET vision_test)
 
 add_executable(${IMGPROC_TEST_TARGET})
 
