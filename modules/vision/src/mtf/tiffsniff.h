@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 
-#include "display_profile.h"
+#include "displayprofile.h"
 
 enum class jpeg_app_t
 {

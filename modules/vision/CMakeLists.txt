@@ -11,7 +11,7 @@ file(GLOB CALIBTARGET_INTERNAL_HEADERS
 )
 file(GLOB CALIBTARGET_SOURCES
     src/*.cpp
-    src/mtf/*.cc
+    src/mtf/*.cpp
     src/target/*.cpp
     src/target/apriltag_mit/*.cc
 )
