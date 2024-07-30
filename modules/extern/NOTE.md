@@ -13,4 +13,5 @@ git and log the changes.
 |    json    |      [Github](https://github.com/nlohmann/json)       | v3.11.3</br>(9cca280) | A modern C++ JSON parser                                             | -     |
 | magic_enum |    [Github](https://github.com/Neargye/magic_enum)    | v0.9.6</br>(dd6a39d)  | Convert enum to string, and vice versa                               | -     |
 | nanoflann  |   [Github](https://github.com/jlblancoc/nanoflann)    | v1.6.0</br>(a74fc3b)  | a header-only library for Nearest Neighbor (NN) search with KD-trees | -     |
+|  stduuid   |  [Github](https://github.com/mariusbancila/stduuid)   | v1.2.3</br>(e5da05d)  | A C++17 cross-platform implementation for UUIDs                      | -     |
 |  tabulate  |     [Github](https://github.com/p-ranav/tabulate)     | v1.5.0</br>(b35db4c)  | Table Maker for Modern C++                                           | -     |
