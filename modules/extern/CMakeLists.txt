@@ -84,6 +84,20 @@ target_compile_features(nanoflann
         cxx_std_17
 )
 
+# stduuid
+add_library(stduuid INTERFACE)
+
+target_include_directories(stduuid
+    INTERFACE
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/extern>
+)
+
+target_compile_features(stduuid
+    INTERFACE
+        cxx_std_20
+)
+
 # tabulate
 add_library(tabulate INTERFACE)
 
@@ -107,6 +121,7 @@ install(
         json
         magic_enum
         nanoflann
+        stduuid
         tabulate
     EXPORT ExternalConfig
 )
@@ -143,6 +158,11 @@ install(
 
 install(
     DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/nanoflann/
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/extern
+)
+
+install(
+    DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/stduuid/
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/extern
 )
 
