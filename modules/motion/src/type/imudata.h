@@ -196,4 +196,4 @@ inline double calcSampleRate(const Timeline& timeline)
 
 } // namespace tl
 
-#include "imudata.impl.hpp"
+#include "imudata.hpp"

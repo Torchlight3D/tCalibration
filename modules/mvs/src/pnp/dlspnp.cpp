@@ -1,5 +1,5 @@
 ﻿#include "dlspnp.h"
-#include "impl/dlspnp_impl.h"
+#include "impl/dlspnp.hpp"
 
 #include <cmath>
 

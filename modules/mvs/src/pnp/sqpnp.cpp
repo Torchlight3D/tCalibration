@@ -1,5 +1,5 @@
 ﻿#include "sqpnp.h"
-#include "impl/sqpnp_impl.h"
+#include "impl/sqpnp.hpp"
 
 #include <glog/logging.h>
 

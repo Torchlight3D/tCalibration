@@ -1,5 +1,5 @@
-﻿#include "p4p_focal_distortion.h"
-#include "impl/p4p_focal_distortion_impl.h"
+﻿#include "p4pfocalrd.h"
+#include "impl/p4pfocalrd.hpp"
 
 #include <glog/logging.h>
 
