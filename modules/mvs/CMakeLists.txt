@@ -26,6 +26,7 @@ file(GLOB_RECURSE MVS_SOURCES
     src/epipolar/*.cpp
     src/pnp/*.cpp
     src/pnp/**/*.cpp
+    src/pnp/**/*.hpp
     src/poses/*.cpp
     src/registration/*.cpp
     src/residuals/*.cpp

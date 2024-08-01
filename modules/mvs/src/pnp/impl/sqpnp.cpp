@@ -1,4 +1,6 @@
-﻿#include "sqpnp_impl.h"
+﻿#include "sqpnp.hpp"
+
+#include <Eigen/SVD>
 
 namespace tl {
 

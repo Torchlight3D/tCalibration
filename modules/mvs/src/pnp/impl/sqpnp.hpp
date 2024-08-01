@@ -1,9 +1,8 @@
 ﻿#pragma once
 
 #include <numbers>
-#include <vector>
 
-#include <Eigen/Geometry>
+#include <Eigen/Core>
 
 namespace tl {
 

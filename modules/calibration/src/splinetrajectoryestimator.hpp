@@ -14,7 +14,7 @@
 #include <tMvs/Landmark>
 #include <tMvs/View>
 
-#include "ceressplineresiduals.h"
+#include "ceressplineresiduals.hpp"
 
 namespace tl {
 

@@ -1,4 +1,4 @@
-﻿#include "dlspnp_impl.h"
+﻿#include "dlspnp.hpp"
 
 #include <glog/logging.h>
 

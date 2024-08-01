@@ -114,4 +114,4 @@ private:
 
 } // namespace tl
 
-#include "channel.impl.hpp"
+#include "channel.hpp"

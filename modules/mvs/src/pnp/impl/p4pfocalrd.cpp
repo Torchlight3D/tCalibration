@@ -1,4 +1,4 @@
-﻿#include "p4p_focal_distortion_impl.h"
+﻿#include "p4pfocalrd.hpp"
 
 #include <Eigen/Eigenvalues>
 

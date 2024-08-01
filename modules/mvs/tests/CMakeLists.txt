@@ -12,19 +12,22 @@ target_sources(${MVS_TEST_TARGET}
         tst_view.cpp
         tst_viewgraph.cpp
         # PnP
-        tst_dlspnp.cpp
-        tst_p3p.cpp
-        tst_sqpnp.cpp
+        pnp/tst_dlspnp.cpp
+        pnp/tst_mlpnp.cpp
+        pnp/tst_p3p.cpp
+        pnp/tst_p4pfocal.cpp
+        pnp/tst_p4pfocalrd.cpp
+        pnp/tst_sqpnp.cpp
         tst_calibabsolutepose.cpp
         tst_uncalibabsolutepose.cpp
         tst_distortionuncalibabsolutepose.cpp
         tst_estimateabsolutepose.cpp
         # Epipolar
-        tst_epipolar.cpp
-        tst_findessential.cpp
-        tst_findfundamental.cpp
-        tst_findhomography.cpp
-        tst_triangulation.cpp
+        epipolar/tst_epipolar.cpp
+        epipolar/tst_findessential.cpp
+        epipolar/tst_findfundamental.cpp
+        epipolar/tst_findhomography.cpp
+        epipolar/tst_triangulation.cpp
         # BA
         tst_ba.cpp
         # Global Pose

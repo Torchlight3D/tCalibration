@@ -1,5 +1,5 @@
-﻿#include "p4p_focal.h"
-#include "impl/p4p_focal_impl.h"
+﻿#include "p4pfocal.h"
+#include "impl/p4pfocal.hpp"
 
 namespace tl {
 
