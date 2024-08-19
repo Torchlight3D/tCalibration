@@ -40,9 +40,10 @@ void GetRigidTransform(const Matrix34d& points1, const Matrix34d& points2,
 
 } // namespace
 
-int FourPointPoseAndFocalLength(const Vector2dList& image_points,
-                                const Vector3dList& world_points,
-                                std::vector<Matrix34d>& projection_matrices)
+int FourPointPoseAndFocalLength(
+    const std::vector<Eigen::Vector2d>& image_points,
+    const std::vector<Eigen::Vector3d>& world_points,
+    std::vector<Matrix34d>& projection_matrices)
 {
     Eigen::Map<const Matrix24d> point2(image_points[0].data());
     Eigen::Map<const Matrix34d> point3(world_points[0].data());

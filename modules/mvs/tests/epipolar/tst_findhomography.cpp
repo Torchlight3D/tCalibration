@@ -9,7 +9,7 @@
 #include <tMVS/Epipolar/FindHomography>
 #include <tMVS/Epipolar/FindHomographyFourPoints>
 
-#include "test_utils.h"
+#include "../test_utils.h"
 
 using namespace tl;
 

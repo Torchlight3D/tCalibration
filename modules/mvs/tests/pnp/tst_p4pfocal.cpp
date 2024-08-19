@@ -1,43 +1,43 @@
-
-#include "gtest/gtest.h"
 #include <Eigen/Core>
-#include <ctime>
 #include <glog/logging.h>
-#include <math.h>
-#include <random>
+#include <gtest/gtest.h>
 
-#include "theia/sfm/pose/four_point_focal_length.h"
-#include "theia/sfm/pose/test_util.h"
-#include "theia/test/test_utils.h"
-#include "theia/util/random.h"
+#include <tCore/RandomGenerator>
+#include <tMath/Eigen/Utils>
 
-namespace {
-using Eigen::Map;
-using Eigen::Matrix;
+#include <tMvs/PnP/P4PFocal>
+
+using namespace tl;
+
 using Eigen::Matrix3d;
 using Eigen::Vector3d;
+using Eigen::Vector4d;
 
-theia::RandomNumberGenerator rng(151);
+using Matrix24d = Eigen::Matrix<double, 2, 4>;
 
-void P4pfTestWithNoise(const Matrix3d& gt_rotation,
-                       const Vector3d& gt_translation,
-                       const double focal_length,
-                       const std::vector<Vector3d>& world_points_vector,
-                       const double noise, const double reproj_tolerance)
+namespace {
+RandomNumberGenerator rng(151);
+}
+
+inline void P4pfTestWithNoise(
+    const Eigen::Matrix3d& gt_rotation, const Eigen::Vector3d& gt_translation,
+    double focal_length,
+    const std::vector<Eigen::Vector3d>& world_points_vector, double noise,
+    double reproj_tolerance)
 {
-    Map<const Matrix<double, 3, 4>> world_points(world_points_vector[0].data());
+    Eigen::Map<const Matrix34d> world_points(world_points_vector[0].data());
 
     // Camera intrinsics matrix.
     const Matrix3d camera_matrix =
         Eigen::DiagonalMatrix<double, 3>(focal_length, focal_length, 1.0);
     // Create the projection matrix P = K * [R t].
-    Matrix<double, 3, 4> gt_projection;
+    Matrix34d gt_projection;
     gt_projection << gt_rotation, gt_translation;
     gt_projection = camera_matrix * gt_projection;
 
     // Reproject 3D points to get undistorted image points.
     std::vector<Eigen::Vector2d> image_points_vector(5);
-    Map<Matrix<double, 2, 4>> image_point(image_points_vector[0].data());
+    Eigen::Map<Matrix24d> image_point(image_points_vector[0].data());
     image_point = (gt_projection * world_points.colwise().homogeneous())
                       .colwise()
                       .hnormalized();
@@ -53,9 +53,9 @@ void P4pfTestWithNoise(const Matrix3d& gt_rotation,
     }
 
     // Run P5pf algorithm.
-    std::vector<Matrix<double, 3, 4>> soln_projection;
-    int num_solns = theia::FourPointPoseAndFocalLength(
-        image_points_vector, world_points_vector, &soln_projection);
+    std::vector<Matrix34d> soln_projection;
+    int num_solns = FourPointPoseAndFocalLength(
+        image_points_vector, world_points_vector, soln_projection);
     ASSERT_GT(num_solns, 0);
 
     bool matched_transform = false;
@@ -80,7 +80,7 @@ void P4pfTestWithNoise(const Matrix3d& gt_rotation,
     EXPECT_TRUE(matched_transform);
 }
 
-void BasicTest(const double noise, const double reproj_tolerance)
+inline void BasicTest(const double noise, const double reproj_tolerance)
 {
     const double focal_length = 800;
 
@@ -106,7 +106,8 @@ void BasicTest(const double noise, const double reproj_tolerance)
                       world_points_vector, noise, reproj_tolerance);
 }
 
-void RandomTestWithNoise(const double noise, const double reproj_tolerance)
+inline void RandomTestWithNoise(const double noise,
+                                const double reproj_tolerance)
 {
     const double kBaseline = 0.25;
 
@@ -126,15 +127,15 @@ void RandomTestWithNoise(const double noise, const double reproj_tolerance)
     Ry << cos(y), 0, -sin(y), 0, 1, 0, sin(y), 0, cos(y);
     Rx << 1, 0, 0, 0, cos(x), sin(x), 0, -sin(x), cos(x);
     const Matrix3d gt_rotation = Rz * Ry * Rx;
-    const Vector3d gt_translation = rng.RandVector3d() * kBaseline;
+    const Vector3d gt_translation = Vector3d::Random() * kBaseline;
 
     // Create 3D world points that are viable based on the camera intrinsics and
     // extrinsics.
     std::vector<Vector3d> world_points_vector(4);
-    Map<Matrix<double, 3, 4>> world_points(world_points_vector[0].data());
-    world_points.row(2) = 2.0 * rng.RandVector4d().transpose().array() + 2.0;
-    world_points.row(1) = 2.0 * rng.RandVector4d().transpose();
-    world_points.row(0) = 2.0 * rng.RandVector4d().transpose();
+    Eigen::Map<Matrix34d> world_points(world_points_vector[0].data());
+    world_points.row(2) = 2.0 * Vector4d::Random().transpose().array() + 2.0;
+    world_points.row(1) = 2.0 * Vector4d::Random().transpose();
+    world_points.row(0) = 2.0 * Vector4d::Random().transpose();
 
     P4pfTestWithNoise(gt_rotation, gt_translation, focal_length,
                       world_points_vector, noise, reproj_tolerance);
@@ -145,5 +146,3 @@ TEST(P4pf, BasicTest) { BasicTest(0.0, 1e-4); }
 TEST(P4pf, BasicNoiseTest) { BasicTest(0.5, 10.0); }
 
 TEST(P4pf, RandomTest) { RandomTestWithNoise(0.0, 0.1); }
-
-} // namespace

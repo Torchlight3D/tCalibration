@@ -17,6 +17,7 @@ using Eigen::MatrixXd;
 using Eigen::Quaterniond;
 using Eigen::Vector2d;
 using Eigen::Vector3d;
+using Eigen::Vector4d;
 
 using Matrix39d = Eigen::Matrix<double, 3, 9>;
 using Matrix9d = Eigen::Matrix<double, 9, 9>;
@@ -88,7 +89,7 @@ bool DLSPnp(const std::vector<Eigen::Vector2d>& imagePoints,
 
     // We create one equation with random terms that is generally non-zero at
     // the roots of our system.
-    const Eigen::Vector4d rand_vec = 100.0 * Eigen::Vector4d::Random();
+    const Vector4d rand_vec = 100.0 * Vector4d::Random();
     const double macaulay_term[4] = {rand_vec(0), rand_vec(1), rand_vec(2),
                                      rand_vec(3)};
 

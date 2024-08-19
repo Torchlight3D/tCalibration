@@ -13,7 +13,7 @@
 #include <tMvs/Epipolar/FindFundamentalEightPoints>
 #include <tMvs/Epipolar/Triangulation>
 
-#include "test_utils.h"
+#include "../test_utils.h"
 
 using namespace tl;
 

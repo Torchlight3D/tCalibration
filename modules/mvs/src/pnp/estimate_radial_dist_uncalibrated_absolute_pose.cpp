@@ -7,7 +7,7 @@
 #include <tMath/Ransac/RansacCreator>
 #include <tMvs/Feature>
 
-#include "p4p_focal_distortion.h"
+#include "p4pfocalrd.h"
 
 namespace tl {
 

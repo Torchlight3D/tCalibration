@@ -25,8 +25,8 @@ namespace tl {
 // Return:
 //     int: number of solutions if correct execution -1 if invalid.
 
-int FourPointPoseAndFocalLength(const Vector2dList& imagePoints,
-                                const Vector3dList& worldPoints,
+int FourPointPoseAndFocalLength(const std::vector<Eigen::Vector2d>& imagePoints,
+                                const std::vector<Eigen::Vector3d>& worldPoints,
                                 std::vector<Matrix34d>& projectionMatrices);
 
 } // namespace tl
