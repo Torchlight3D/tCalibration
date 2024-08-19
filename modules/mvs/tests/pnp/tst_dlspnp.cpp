@@ -1,4 +1,3 @@
-#include <Eigen/Geometry>
 #include <gtest/gtest.h>
 
 #include <tCore/ContainerUtils>
@@ -7,7 +6,7 @@
 #include <tMath/Eigen/Types>
 #include <tMvs/PnP/DlsPnP>
 
-#include "test_utils.h"
+#include "../test_utils.h"
 
 using namespace tl;
 

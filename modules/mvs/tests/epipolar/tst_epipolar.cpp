@@ -9,7 +9,7 @@
 #include <tMvs/Epipolar/Basics>
 #include <tMvs/Feature>
 
-#include "test_utils.h"
+#include "../test_utils.h"
 
 using namespace tl;
 

@@ -17,7 +17,9 @@ target_sources(${MVS_TEST_TARGET}
         pnp/tst_p3p.cpp
         pnp/tst_p4pfocal.cpp
         pnp/tst_p4pfocalrd.cpp
+        pnp/tst_p5pfocalrd.cpp
         pnp/tst_sqpnp.cpp
+        pnp/tst_upnp.cpp
         tst_calibabsolutepose.cpp
         tst_uncalibabsolutepose.cpp
         tst_distortionuncalibabsolutepose.cpp

@@ -10,7 +10,7 @@
 #include <tMvs/Epipolar/FindEssential>
 #include <tMvs/Epipolar/FindEssentialFivePoints>
 
-#include "test_utils.h"
+#include "../test_utils.h"
 
 using namespace tl;
 

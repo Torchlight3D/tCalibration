@@ -9,11 +9,13 @@
 #include <tMath/Ransac/RansacCreator>
 #include <tMvs/Feature>
 
-#include "p4p_focal.h"
+#include "p4pfocal.h"
 
 namespace tl {
 
+using Eigen::Matrix3d;
 using Eigen::Vector2d;
+using Eigen::Vector3d;
 
 namespace {
 
@@ -40,11 +42,10 @@ public:
             return false;
         }
 
-        const Vector2dList imgPoints{corrs[0].feature, corrs[1].feature,
-                                     corrs[2].feature, corrs[3].feature};
-        const Vector3dList objPoints{corrs[0].world_point, corrs[1].world_point,
-                                     corrs[2].world_point,
-                                     corrs[3].world_point};
+        const std::vector imgPoints{corrs[0].feature, corrs[1].feature,
+                                    corrs[2].feature, corrs[3].feature};
+        const std::vector objPoints{corrs[0].world_point, corrs[1].world_point,
+                                    corrs[2].world_point, corrs[3].world_point};
 
         const int solutions =
             FourPointPoseAndFocalLength(imgPoints, objPoints, *poses);
@@ -78,8 +79,8 @@ bool EstimateUncalibratedAbsolutePose(
         ransac->Estimate(normalized_correspondences, &K, sacSummary);
 
     // Recover the focal length and pose.
-    Eigen::Matrix3d P;
-    Eigen::Vector3d rvec;
+    Matrix3d P;
+    Vector3d rvec;
     decomposeProjectionMatrix(K, P, rvec, pose->position);
 
     ceres::AngleAxisToRotationMatrix(

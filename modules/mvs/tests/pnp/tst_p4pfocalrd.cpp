@@ -1,34 +1,27 @@
+#include <glog/logging.h>
+#include <gtest/gtest.h>
 
+#include <tCore/RandomGenerator>
+#include <tMath/Eigen/Utils>
+#include <tMvs/PnP/P4PFocalRd>
 
-#include "gtest/gtest.h"
-#include <Eigen/Core>
-#include <math.h>
-#include <random>
+#include "../test_utils.h"
 
-#include "theia/sfm/pose/four_point_focal_length_radial_distortion.h"
-#include "theia/sfm/pose/test_util.h"
-#include "theia/test/test_utils.h"
-#include "theia/util/random.h"
+using namespace tl;
 
-namespace theia {
-
-namespace {
-
-const int min_nr_points = 4;
-const double image_width = 3000;
-
-using Eigen::Array;
-using Eigen::Map;
-using Eigen::Matrix;
 using Eigen::Matrix3d;
 using Eigen::Matrix4d;
 using Eigen::Vector2d;
 using Eigen::Vector3d;
 
+namespace {
+constexpr int min_nr_points = 4;
+constexpr double image_width = 3000;
 RandomNumberGenerator rng(64);
+} // namespace
 
-void DistortPoint(const Eigen::Vector2d& point2d, const double& distortion,
-                  Eigen::Vector2d* distorted_point)
+inline void DistortPoint(const Eigen::Vector2d& point2d, double distortion,
+                         Eigen::Vector2d* distorted_point)
 {
     const double r_u_sq = point2d[0] * point2d[0] + point2d[1] * point2d[1];
 
@@ -48,9 +41,9 @@ void DistortPoint(const Eigen::Vector2d& point2d, const double& distortion,
     }
 }
 
-void UndistortPoint(const Eigen::Vector2d& distorted_point,
-                    const double& radial_distortion,
-                    Eigen::Vector2d* undistorted_point)
+inline void UndistortPoint(const Eigen::Vector2d& distorted_point,
+                           double radial_distortion,
+                           Eigen::Vector2d* undistorted_point)
 {
     const double r_d_sq = distorted_point[0] * distorted_point[0] +
                           distorted_point[1] * distorted_point[1];
@@ -60,17 +53,15 @@ void UndistortPoint(const Eigen::Vector2d& distorted_point,
     (*undistorted_point)[1] = distorted_point[1] * undistortion;
 }
 
-void P4pfrTestWithNoise(const Matrix3d& gt_rotation,
-                        const Vector3d& gt_translation,
-                        const double focal_length,
-                        const double radial_distortion,
-                        const std::vector<Vector3d>& world_points_vector,
-                        const double noise)
+inline void P4pfrTestWithNoise(
+    const Eigen::Matrix3d& gt_rotation, const Eigen::Vector3d& gt_translation,
+    double focal_length, double radial_distortion,
+    const std::vector<Eigen::Vector3d>& world_points_vector, double noise)
 {
     // Camera intrinsics matrix.
     const Matrix3d camera_matrix =
         Eigen::DiagonalMatrix<double, 3>(focal_length, focal_length, 1.0);
-    Matrix<double, 3, 4> gt_transformation, gt_projection;
+    Matrix34d gt_transformation, gt_projection;
     gt_transformation << gt_rotation, gt_translation;
     gt_projection = camera_matrix * gt_transformation;
 
@@ -84,8 +75,7 @@ void P4pfrTestWithNoise(const Matrix3d& gt_rotation,
         DistortPoint(undistorted_image_point, radial_distortion,
                      &distorted_image_points_vector[i]);
         if (noise) {
-            AddNoiseToProjection(noise, &rng,
-                                 &distorted_image_points_vector[i]);
+            AddNoiseToVector2(noise, &distorted_image_points_vector[i]);
         }
     }
 
@@ -136,10 +126,10 @@ void P4pfrTestWithNoise(const Matrix3d& gt_rotation,
 
     if (solution_idx >= 0) {
         // Expect poses are near.
-        EXPECT_TRUE(test::ArraysEqualUpToScale(
+        EXPECT_TRUE(math::ArraysEqualUpToScale(
             9, gt_rotation.data(), soln_rotations[solution_idx].data(), 1e-1));
         // The position is more noisy than the rotation usually.
-        EXPECT_TRUE(test::ArraysEqualUpToScale(
+        EXPECT_TRUE(math::ArraysEqualUpToScale(
             3, gt_translation.data(), soln_translations[solution_idx].data(),
             1e-1));
 
@@ -157,7 +147,7 @@ void P4pfrTestWithNoise(const Matrix3d& gt_rotation,
     }
 }
 
-void BasicTest(const double noise)
+inline void BasicTest(const double noise)
 {
     // focal length
     const double focal_length = 1000;
@@ -179,27 +169,30 @@ void BasicTest(const double noise)
     // Create 3D world points that are viable based on the camera intrinsics and
     // extrinsics.
     std::vector<Vector3d> world_points_vector(min_nr_points);
-    Map<Matrix<double, 3, min_nr_points>> world_points(
+    Eigen::Map<Eigen::Matrix<double, 3, min_nr_points>> world_points(
         world_points_vector[0].data());
-    world_points << -0.42941, 0.000621211, -0.350949, -1.45205, 0.415794,
-        -0.556605, -1.92898, -1.89976, 1.4949, 0.838307, 1.41972, 1.25756;
+    // clang-format off
+    world_points << -0.42941, 0.000621211, -0.350949, -1.45205,
+                    0.415794,   -0.556605,  -1.92898, -1.89976,
+                      1.4949,    0.838307,   1.41972,  1.25756;
+    // clang-format on
     P4pfrTestWithNoise(gt_rotation, gt_translation, focal_length,
                        radial_distortion, world_points_vector, noise);
 }
 
-void PlanarTestWithNoise(const double noise)
+inline void PlanarTestWithNoise(const double noise)
 {
     // focal length
-    const double focal_length = 1000;
+    constexpr double focal_length = 1000;
     // radial distortion
-    const double radial_distortion = -1e-7;
+    constexpr double radial_distortion = -1e-7;
 
-    const double size = 2;
-    const double depth = 5;
+    constexpr double size = 2;
+    constexpr double depth = 5;
 
-    const double x = -0.10; // rotation of the view around x axis
-    const double y = -0.20; // rotation of the view around y axis
-    const double z = 0.10;  // rotation of the view around z axis
+    constexpr double x = -0.10; // rotation of the view around x axis
+    constexpr double y = -0.20; // rotation of the view around y axis
+    constexpr double z = 0.10;  // rotation of the view around z axis
 
     // Create a ground truth pose.
     Matrix3d Rz, Ry, Rx;
@@ -228,5 +221,3 @@ TEST(P4Pfr, BasicNoiseTest) { BasicTest(0.5); }
 TEST(P4Pfr, PlanarTestNoNoise) { PlanarTestWithNoise(0.0); }
 
 TEST(P4Pfr, PlanarTestWithNoise) { PlanarTestWithNoise(0.5); }
-} // namespace
-} // namespace theia

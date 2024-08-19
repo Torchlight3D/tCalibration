@@ -13,7 +13,7 @@ file(GLOB_RECURSE MVS_INTERNAL_HEADERS
     src/epipolar/*.h
     src/graph/*.h
     src/pnp/*.h
-    src/pnp/**/*.h
+    src/pnp/impl/*.hpp
     src/poses/*.h
     src/registration/*.h
     src/residuals/*.h
@@ -26,7 +26,6 @@ file(GLOB_RECURSE MVS_SOURCES
     src/epipolar/*.cpp
     src/pnp/*.cpp
     src/pnp/**/*.cpp
-    src/pnp/**/*.hpp
     src/poses/*.cpp
     src/registration/*.cpp
     src/residuals/*.cpp
