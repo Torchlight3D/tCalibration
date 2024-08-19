@@ -2,7 +2,6 @@
 
 #include <map>
 
-#include <Eigen/Core>
 #include <Eigen/Geometry>
 
 // static assertion failing if the type \a TYPE is not a vector type of the

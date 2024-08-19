@@ -7,6 +7,7 @@ add_library(${NS_PREFIX}::${MATH_TARGET_NAME} ALIAS ${MATH_TARGET_NAME})
 file(GLOB MATH_INTERNAL_HEADERS
     src/*.h
     src/eigen/*.h
+    src/eigen/*.hpp
     src/internal/*.h
     src/ransac/*.h
     src/sdp/*.h
