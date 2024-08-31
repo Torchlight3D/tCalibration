@@ -8,8 +8,6 @@
 #include <QPixmap>
 #include <QString>
 
-#include "CornerRadius.h"
-
 namespace tl {
 namespace qimg {
 
@@ -57,34 +55,6 @@ enum class ColorizeMode
     Tint,
 };
 
-// Gets the pixmap in the cache, or creates it if not yet there.
-QPixmap getCachedPixmap(const QPixmap& input, const QColor& color,
-                        ColorizeMode mode);
-
-/// Looks for a colorized version of the input pixmap in the cache.
-/// If not existing, generates it and adds it to the cache.
-/// Else, just returns the existing pixmap.
-/// If any error, returns the input pixmap.
-inline auto getColorizedPixmap(const QPixmap& input, const QColor& color)
-{
-    return getCachedPixmap(input, color, ColorizeMode::Colorize);
-}
-
-/// Looks for a tinted version of the input pixmap in the cache.
-/// If not existing, generates it and adds it to the cache.
-/// Else, just returns the existing pixmap.
-/// If any error, returns the input pixmap.
-inline auto getTintedPixmap(const QPixmap& input, const QColor& color)
-{
-    return getCachedPixmap(input, color, ColorizeMode::Tint);
-}
-
-/// Gets the key to use in the QPixmapCache.
-QString getColorizedPixmapKey(const QPixmap& pixmap, const QColor& color);
-
-/// Gets the key to use in the QPixmapCache.
-QString getTintedPixmapKey(const QPixmap& pixmap, const QColor& color);
-
 /// Makes an icon from the file located at the path in parameter. Fixes the
 /// standard Qt behavior.
 QIcon makeIconFromSvg(const QString& svgPath, const QSize& size);
@@ -107,13 +77,6 @@ QPixmap makeRoundedPixmap(const QPixmap& input, double topLeft, double topRight,
 inline QPixmap makeRoundedPixmap(const QPixmap& input, double radius)
 {
     return makeRoundedPixmap(input, radius, radius, radius, radius);
-}
-
-inline QPixmap makeRoundedPixmap(const QPixmap& input,
-                                 const CornerRadius& corner)
-{
-    return makeRoundedPixmap(input, corner.topLeft, corner.topRight,
-                             corner.bottomRight, corner.bottomLeft);
 }
 
 // Makes a pixmap that fits the requested size.

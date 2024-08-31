@@ -3,14 +3,10 @@
 #include <filesystem>
 
 #include <QApplication>
-#include <QDir>
 #include <QLocale>
-#include <QProcess>
 #include <QThreadPool>
 #include <QTranslator>
 
-#include "gui/TheStyle.h"
-#include "gui/qstringutils.h"
 #include "AppConfigs.h"
 
 namespace fs = std::filesystem;
@@ -33,41 +29,18 @@ void setupGlog(const char *name)
 
 void setupLanguage(QApplication &app)
 {
+    using namespace Qt::Literals::StringLiterals;
+
     const std::vector locales{
         QLocale{QLocale::Language::Chinese, QLocale::Territory::China}};
     for (const auto &locale : locales) {
-        for (const auto &qmFile : {u"qtbase"_s, u"CalibrationTool"_s}) {
+        for (const auto &qmFile : {u"qtbase"_s, u"CalibrationToolbox"_s}) {
             auto translator = new QTranslator(&app);
             if (translator->load(locale, qmFile, "_")) {
                 app.installTranslator(translator);
             }
         }
     }
-}
-
-void setupStyle(QApplication &app)
-{
-    auto *const style = new tl::QlementineStyle(&app);
-    style->setAnimationsEnabled(true);
-    style->setUseMenuForComboBoxPopup(false);
-    style->setAutoIconColorEnabled(true);
-    style->setThemeJsonPath(u":themes/light.json"_s);
-    app.setStyle(style);
-}
-
-bool invokeCameraRouter(QApplication &app)
-{
-    const auto cameraRouterPath = QDir::home().absoluteFilePath("CameraRouter");
-    if (!QFileInfo::exists(cameraRouterPath)) {
-        qCritical() << "Failed to open CameraRouter: " << cameraRouterPath
-                    << " executable not exists.";
-        return false;
-    }
-
-    // Leave it here, don't care its life time
-    auto *cameraRouter = new QProcess(&app);
-    cameraRouter->start(cameraRouterPath);
-    return true;
 }
 
 int main(int argc, char *argv[])
@@ -91,14 +64,6 @@ int main(int argc, char *argv[])
     QApplication app{argc, argv};
 
     setupLanguage(app);
-
-    if (configs.useCustomStyle) {
-        setupStyle(app);
-    }
-
-    if (configs.invokeCameraRouter && !invokeCameraRouter(app)) {
-        return 0;
-    }
 
     // Wait for the threads opened by QtConcurrent(default global QThreadPool)
     // to finish, or the app would close with crashes.

@@ -93,24 +93,20 @@
 <context>
     <name>QShortcut</name>
     <message>
-        <location filename="../gui/primitiveutils.cpp" line="1477"/>
         <source>Left</source>
-        <translation>左</translation>
+        <translation type="vanished">左</translation>
     </message>
     <message>
-        <location filename="../gui/primitiveutils.cpp" line="1479"/>
         <source>Right</source>
-        <translation>右</translation>
+        <translation type="vanished">右</translation>
     </message>
     <message>
-        <location filename="../gui/primitiveutils.cpp" line="1481"/>
         <source>Up</source>
-        <translation>上</translation>
+        <translation type="vanished">上</translation>
     </message>
     <message>
-        <location filename="../gui/primitiveutils.cpp" line="1483"/>
         <source>Down</source>
-        <translation>下</translation>
+        <translation type="vanished">下</translation>
     </message>
 </context>
 <context>
@@ -783,48 +779,40 @@ Corresponding IP address: %2</source>
         <translation type="obsolete">预期</translation>
     </message>
     <message>
-        <location filename="../StereoModuleCalibrationView.cpp" line="481"/>
         <source>Calibration Result</source>
-        <translation>标定结果</translation>
+        <translation type="vanished">标定结果</translation>
     </message>
     <message>
-        <location filename="../StereoModuleCalibrationView.cpp" line="482"/>
         <source>Undistort Rectify Map</source>
-        <translation>立体矫正映射表</translation>
+        <translation type="vanished">立体矫正映射表</translation>
     </message>
     <message>
         <source>Undistort Rectify Bin</source>
         <translation type="obsolete">立体矫正映射表bin</translation>
     </message>
     <message>
-        <location filename="../StereoModuleCalibrationView.cpp" line="483"/>
         <source>Undistort Rectify Map Bin</source>
-        <translation>立体矫正映射表bin</translation>
+        <translation type="vanished">立体矫正映射表bin</translation>
     </message>
     <message>
-        <location filename="../StereoModuleCalibrationView.cpp" line="484"/>
         <source>To Cloud</source>
-        <translation>上传云端</translation>
+        <translation type="vanished">上传云端</translation>
     </message>
     <message>
-        <location filename="../StereoModuleCalibrationView.cpp" line="524"/>
         <source>Device #%1</source>
-        <translation>设备 %1</translation>
+        <translation type="vanished">设备 %1</translation>
     </message>
     <message>
-        <location filename="../StereoModuleCalibrationView.cpp" line="543"/>
         <source>Success</source>
-        <translation>成功</translation>
+        <translation type="vanished">成功</translation>
     </message>
     <message>
-        <location filename="../StereoModuleCalibrationView.cpp" line="543"/>
         <source>Failed</source>
-        <translation>失败</translation>
+        <translation type="vanished">失败</translation>
     </message>
     <message>
-        <location filename="../StereoModuleCalibrationView.cpp" line="557"/>
         <source>NA</source>
-        <translation>不适用</translation>
+        <translation type="vanished">不适用</translation>
     </message>
 </context>
 <context>
@@ -1151,106 +1139,84 @@ Corresponding IP address: %2</source>
 <context>
     <name>tl::StereoModuleCalibrationView</name>
     <message>
-        <location filename="../StereoModuleCalibrationView.ui" line="33"/>
         <source>Live View</source>
-        <translation>实时视图</translation>
+        <translation type="vanished">实时视图</translation>
     </message>
     <message>
-        <location filename="../StereoModuleCalibrationView.ui" line="55"/>
         <source>3D View</source>
-        <translation>三维视图</translation>
+        <translation type="vanished">三维视图</translation>
     </message>
     <message>
-        <location filename="../StereoModuleCalibrationView.ui" line="77"/>
         <source>Details</source>
-        <translation>其他</translation>
+        <translation type="vanished">其他</translation>
     </message>
     <message>
-        <location filename="../StereoModuleCalibrationView.ui" line="124"/>
         <source>Device 1 SN</source>
-        <translation>设备1序列号</translation>
+        <translation type="vanished">设备1序列号</translation>
     </message>
     <message>
-        <location filename="../StereoModuleCalibrationView.ui" line="149"/>
         <source>Device 2 SN</source>
-        <translation>设备2序列号</translation>
+        <translation type="vanished">设备2序列号</translation>
     </message>
     <message>
-        <location filename="../StereoModuleCalibrationView.ui" line="174"/>
         <source>Device 3 SN</source>
-        <translation>设备3序列号</translation>
+        <translation type="vanished">设备3序列号</translation>
     </message>
     <message>
-        <location filename="../StereoModuleCalibrationView.ui" line="199"/>
         <source>Device 4 SN</source>
-        <translation>设备4序列号</translation>
+        <translation type="vanished">设备4序列号</translation>
     </message>
     <message>
-        <location filename="../StereoModuleCalibrationView.ui" line="247"/>
         <source>Refresh Devices</source>
-        <translation>刷新设备</translation>
+        <translation type="vanished">刷新设备</translation>
     </message>
     <message>
-        <location filename="../StereoModuleCalibrationView.ui" line="282"/>
-        <location filename="../StereoModuleCalibrationView.cpp" line="1136"/>
         <source>Start Capture</source>
-        <translation>开始采集</translation>
+        <translation type="vanished">开始采集</translation>
     </message>
     <message>
-        <location filename="../StereoModuleCalibrationView.ui" line="382"/>
         <source>Calibration Results</source>
-        <translation>标定结果</translation>
+        <translation type="vanished">标定结果</translation>
     </message>
     <message>
         <source>Visual Module Calibration</source>
         <translation type="vanished">视觉模组标定</translation>
     </message>
     <message>
-        <location filename="../StereoModuleCalibrationView.cpp" line="785"/>
-        <location filename="../StereoModuleCalibrationView.cpp" line="838"/>
         <source>Server is ready, searching devices...</source>
-        <translation>服务器已就绪，搜索设备...</translation>
+        <translation type="vanished">服务器已就绪，搜索设备...</translation>
     </message>
     <message>
-        <location filename="../StereoModuleCalibrationView.cpp" line="790"/>
-        <location filename="../StereoModuleCalibrationView.cpp" line="843"/>
         <source>Server is not ready, try to reconnect...</source>
-        <translation>连接服务器失败，尝试重连...</translation>
+        <translation type="vanished">连接服务器失败，尝试重连...</translation>
     </message>
     <message>
-        <location filename="../StereoModuleCalibrationView.cpp" line="794"/>
         <source>Server reconnected, searching devices...</source>
-        <translation>服务器已重连，搜索设备...</translation>
+        <translation type="vanished">服务器已重连，搜索设备...</translation>
     </message>
     <message>
-        <location filename="../StereoModuleCalibrationView.cpp" line="800"/>
         <source>Failed to reconnect server.</source>
-        <translation>重连服务器失败。</translation>
+        <translation type="vanished">重连服务器失败。</translation>
     </message>
     <message>
-        <location filename="../StereoModuleCalibrationView.cpp" line="846"/>
         <source>Failed to reconnect server, try to reconnect again...</source>
-        <translation>重连服务器失败，尝试再次重连...</translation>
+        <translation type="vanished">重连服务器失败，尝试再次重连...</translation>
     </message>
     <message>
-        <location filename="../StereoModuleCalibrationView.cpp" line="850"/>
         <source>Server reconnect, searching devices...</source>
-        <translation>服务器已重连，搜索设备...</translation>
+        <translation type="vanished">服务器已重连，搜索设备...</translation>
     </message>
     <message>
-        <location filename="../StereoModuleCalibrationView.cpp" line="855"/>
         <source>Not all (%1) the devices are available, refresh again...</source>
-        <translation>不是所有(%1)设备都在线，再次刷新...</translation>
+        <translation type="vanished">不是所有(%1)设备都在线，再次刷新...</translation>
     </message>
     <message>
-        <location filename="../StereoModuleCalibrationView.cpp" line="992"/>
         <source>Failed to send calibration result to device %1.</source>
-        <translation>上传标定结果至设备%1失败。</translation>
+        <translation type="vanished">上传标定结果至设备%1失败。</translation>
     </message>
     <message>
-        <location filename="../StereoModuleCalibrationView.cpp" line="1019"/>
         <source>Sent undistort rectify map to device %1.</source>
-        <translation>上传立体矫正映射表至设备 %1成功。</translation>
+        <translation type="vanished">上传立体矫正映射表至设备 %1成功。</translation>
     </message>
     <message>
         <source>Undistort rectify map bin files on device %1 generated.</source>
@@ -1271,14 +1237,12 @@ Start to upload calibration results to device.</source>
         <translation type="vanished">实时图像串流中。标定物在所有视野中都清晰可见时，便可开始采集。</translation>
     </message>
     <message>
-        <location filename="../StereoModuleCalibrationView.cpp" line="1121"/>
         <source>Start capturing data when the calibration target can be clearly visualized in all the views.</source>
-        <translation>标定物在所有视野中都清晰可见时，便可开始采集。</translation>
+        <translation type="vanished">标定物在所有视野中都清晰可见时，便可开始采集。</translation>
     </message>
     <message>
-        <location filename="../StereoModuleCalibrationView.cpp" line="1140"/>
         <source>Start capturing...</source>
-        <translation>采集中...</translation>
+        <translation type="vanished">采集中...</translation>
     </message>
     <message>
         <source>Capturing stop.
@@ -1286,10 +1250,9 @@ Streaming is about to stop, data preprocessing may still be running.</source>
         <translation type="vanished">采集结束。串流即将结束，数据预处理可能仍在运行。</translation>
     </message>
     <message>
-        <location filename="../StereoModuleCalibrationView.cpp" line="1157"/>
         <source>Data preprocessing finished.
 Start to calibrate...</source>
-        <translation>数据预处理完成。开始计算...</translation>
+        <translation type="vanished">数据预处理完成。开始计算...</translation>
     </message>
     <message>
         <source>Verification finished. Please check the result table below.
@@ -1308,9 +1271,8 @@ Remove devices from the dock.</source>
         <translation type="vanished">找到%1台可用设备...</translation>
     </message>
     <message>
-        <location filename="../StereoModuleCalibrationView.cpp" line="807"/>
         <source>No available devices.</source>
-        <translation>无可用设备。</translation>
+        <translation type="vanished">无可用设备。</translation>
     </message>
     <message>
         <source>About to stop live streaming...</source>
@@ -1329,20 +1291,16 @@ Remove devices from the dock.</source>
         <translation type="vanished">采集中...</translation>
     </message>
     <message>
-        <location filename="../StereoModuleCalibrationView.cpp" line="1146"/>
         <source>Capturing stop.</source>
-        <translation>采集结束。</translation>
+        <translation type="vanished">采集结束。</translation>
     </message>
     <message>
-        <location filename="../StereoModuleCalibrationView.cpp" line="812"/>
-        <location filename="../StereoModuleCalibrationView.cpp" line="866"/>
         <source>Find %1 available devices.</source>
-        <translation>找到%1台可用设备。</translation>
+        <translation type="vanished">找到%1台可用设备。</translation>
     </message>
     <message>
-        <location filename="../StereoModuleCalibrationView.cpp" line="1113"/>
         <source>Calibration tasks are ready.</source>
-        <translation>标定任务已就绪。</translation>
+        <translation type="vanished">标定任务已就绪。</translation>
     </message>
     <message>
         <source>Live streaming...</source>
@@ -1365,105 +1323,84 @@ Start to upload calibration results to device.</source>
 开始上传标定结果到设备。</translation>
     </message>
     <message>
-        <location filename="../StereoModuleCalibrationView.cpp" line="1205"/>
         <source>Remove devices from the dock.</source>
-        <translation>请将设备从固定治具上取下。</translation>
+        <translation type="vanished">请将设备从固定治具上取下。</translation>
     </message>
     <message>
-        <location filename="../StereoModuleCalibrationView.cpp" line="987"/>
         <source>Sending calibration result to device %1.</source>
-        <translation>上传标定结果至设备%1。</translation>
+        <translation type="vanished">上传标定结果至设备%1。</translation>
     </message>
     <message>
         <source>Failed to send calibration result to device %1</source>
         <translation type="vanished">上传标定结果至设备%1失败</translation>
     </message>
     <message>
-        <location filename="../StereoModuleCalibrationView.cpp" line="999"/>
         <source>Sent calibration result to device %1.</source>
-        <translation>上传标定结果至设备%1成功。</translation>
+        <translation type="vanished">上传标定结果至设备%1成功。</translation>
     </message>
     <message>
-        <location filename="../StereoModuleCalibrationView.cpp" line="1006"/>
         <source>Sending undistort rectify map to device %1.</source>
-        <translation>上传立体矫正映射表至设备%1。</translation>
+        <translation type="vanished">上传立体矫正映射表至设备%1。</translation>
     </message>
     <message>
-        <location filename="../StereoModuleCalibrationView.cpp" line="1027"/>
         <source>Undistort rectify map bin file on device %1 generated.</source>
-        <translation>设备%1生成映射表bin文件成功。</translation>
+        <translation type="vanished">设备%1生成映射表bin文件成功。</translation>
     </message>
     <message>
-        <location filename="../StereoModuleCalibrationView.cpp" line="1033"/>
         <source>Failed to generate undistort rectify map bin on device %1.</source>
-        <translation>设备%1生成映射表bin文件失败。</translation>
+        <translation type="vanished">设备%1生成映射表bin文件失败。</translation>
     </message>
     <message>
-        <location filename="../StereoModuleCalibrationView.cpp" line="1115"/>
         <source>Not enough space on the disk, saving data is disabled.</source>
-        <translation>磁盘空间不足，数据保存功能关闭。</translation>
+        <translation type="vanished">磁盘空间不足，数据保存功能关闭。</translation>
     </message>
     <message>
-        <location filename="../StereoModuleCalibrationView.cpp" line="1120"/>
         <source>About to start live streaming...</source>
-        <translation>实时串流即将开始...</translation>
+        <translation type="vanished">实时串流即将开始...</translation>
     </message>
     <message>
-        <location filename="../StereoModuleCalibrationView.cpp" line="1135"/>
         <source>Stop Capture</source>
-        <translation>结束采集</translation>
+        <translation type="vanished">结束采集</translation>
     </message>
     <message>
-        <location filename="../StereoModuleCalibrationView.cpp" line="1147"/>
         <source>Streaming is about to stop, data preprocessing may still be running.</source>
-        <translation>串流即将结束，数据预处理可能仍在运行。</translation>
+        <translation type="vanished">串流即将结束，数据预处理可能仍在运行。</translation>
     </message>
     <message>
-        <location filename="../StereoModuleCalibrationView.cpp" line="1168"/>
         <source>Calculation finished.</source>
-        <translation>计算结束。</translation>
+        <translation type="vanished">计算结束。</translation>
     </message>
     <message>
-        <location filename="../StereoModuleCalibrationView.cpp" line="1169"/>
         <source>Start to verify calibration results.</source>
-        <translation>开始上传标定结果至设备。</translation>
+        <translation type="vanished">开始上传标定结果至设备。</translation>
     </message>
     <message>
-        <location filename="../StereoModuleCalibrationView.cpp" line="1174"/>
         <source>Verification finished. Please check the results below.</source>
-        <translation>验证结束。详情如下。</translation>
+        <translation type="vanished">验证结束。详情如下。</translation>
     </message>
     <message>
-        <location filename="../StereoModuleCalibrationView.cpp" line="1195"/>
         <source>Start to upload calibration result to devices.</source>
-        <translation>开始上传标定结果至设备。</translation>
+        <translation type="vanished">开始上传标定结果至设备。</translation>
     </message>
     <message>
-        <location filename="../StereoModuleCalibrationView.cpp" line="1202"/>
         <source>Upload finished. Please check upload status below.</source>
-        <translation>上传结束，请查看下方上传结果。</translation>
+        <translation type="vanished">上传结束，请查看下方上传结果。</translation>
     </message>
     <message>
-        <location filename="../StereoModuleCalibrationView.cpp" line="1333"/>
         <source>Streaming stereo data finish %1 at dock %2.</source>
-        <translation>设备%2图片数据串流结束%1。</translation>
+        <translation type="vanished">设备%2图片数据串流结束%1。</translation>
     </message>
     <message>
-        <location filename="../StereoModuleCalibrationView.cpp" line="1334"/>
-        <location filename="../StereoModuleCalibrationView.cpp" line="1345"/>
         <source>with error</source>
-        <translation>有误</translation>
+        <translation type="vanished">有误</translation>
     </message>
     <message>
-        <location filename="../StereoModuleCalibrationView.cpp" line="1334"/>
-        <location filename="../StereoModuleCalibrationView.cpp" line="1345"/>
         <source>with no error</source>
-        <translation>成功</translation>
+        <translation type="vanished">成功</translation>
     </message>
     <message>
-        <location filename="../StereoModuleCalibrationView.cpp" line="1344"/>
         <source>Streaming IMU data finish %1 at dock %2.</source>
-        <translation>设备%2IMU数据串流结束%1。</translation>
+        <translation type="vanished">设备%2IMU数据串流结束%1。</translation>
     </message>
     <message>
         <source>Streaming stereo data error at dock %1.</source>
@@ -1488,14 +1425,12 @@ Start capturing calibration data when the calibration target can be clearly visu
 标定板在所有视图中清晰可见时便可开始采集。</translation>
     </message>
     <message>
-        <location filename="../StereoModuleCalibrationView.cpp" line="696"/>
         <source>Stereo Module Calibration</source>
-        <translation>视觉模组标定</translation>
+        <translation type="vanished">视觉模组标定</translation>
     </message>
     <message>
-        <location filename="../StereoModuleCalibrationView.cpp" line="1012"/>
         <source>Failed to send undistort rectify map to device %1.</source>
-        <translation>上传立体矫正映射表至设备%1失败。</translation>
+        <translation type="vanished">上传立体矫正映射表至设备%1失败。</translation>
     </message>
 </context>
 <context>
@@ -1675,7 +1610,7 @@ Start capturing calibration data when the calibration target can be clearly visu
 <context>
     <name>tl::StereoModuleToolView</name>
     <message>
-        <location filename="../StereoModuleToolView.cpp" line="118"/>
+        <location filename="../StereoModuleToolView.cpp" line="110"/>
         <source>Menu</source>
         <translation>菜单</translation>
     </message>
@@ -1704,37 +1639,37 @@ Start capturing calibration data when the calibration target can be clearly visu
         <translation type="vanished">视觉模组验证</translation>
     </message>
     <message>
-        <location filename="../StereoModuleToolView.cpp" line="69"/>
+        <location filename="../StereoModuleToolView.cpp" line="65"/>
         <source>Calibration Tool</source>
         <translation>标定工具</translation>
     </message>
     <message>
-        <location filename="../StereoModuleToolView.cpp" line="133"/>
+        <location filename="../StereoModuleToolView.cpp" line="121"/>
         <source>Ethernet Adaptor Helper</source>
         <translation>网口转接器助手</translation>
     </message>
     <message>
-        <location filename="../StereoModuleToolView.cpp" line="135"/>
+        <location filename="../StereoModuleToolView.cpp" line="123"/>
         <source>Exit</source>
         <translation>退出</translation>
     </message>
     <message>
-        <location filename="../StereoModuleToolView.cpp" line="157"/>
+        <location filename="../StereoModuleToolView.cpp" line="143"/>
         <source>User Name</source>
         <translation>用户名</translation>
     </message>
     <message>
-        <location filename="../StereoModuleToolView.cpp" line="159"/>
+        <location filename="../StereoModuleToolView.cpp" line="145"/>
         <source>Password</source>
         <translation>密码</translation>
     </message>
     <message>
-        <location filename="../StereoModuleToolView.cpp" line="162"/>
+        <location filename="../StereoModuleToolView.cpp" line="148"/>
         <source>Login</source>
         <translation>登录</translation>
     </message>
     <message>
-        <location filename="../StereoModuleToolView.cpp" line="164"/>
+        <location filename="../StereoModuleToolView.cpp" line="150"/>
         <source>Cancel</source>
         <translation>取消</translation>
     </message>
@@ -1829,9 +1764,8 @@ Start capturing calibration data when the calibration target can be clearly visu
         <translation type="vanished">验证</translation>
     </message>
     <message>
-        <location filename="../StereoModuleVerificationView.cpp" line="70"/>
         <source>Stereo Module Verification</source>
-        <translation>视觉模组验证</translation>
+        <translation type="vanished">视觉模组验证</translation>
     </message>
     <message>
         <source>Failed to retrieve parameters.</source>
@@ -1846,74 +1780,60 @@ Start capturing calibration data when the calibration target can be clearly visu
         <translation type="vanished">读取标定参数失败：无效文件格式。</translation>
     </message>
     <message>
-        <location filename="../StereoModuleVerificationView.cpp" line="210"/>
         <source>Server is ready, searching devices...</source>
-        <translation>服务器已就绪，搜索设备...</translation>
+        <translation type="vanished">服务器已就绪，搜索设备...</translation>
     </message>
     <message>
-        <location filename="../StereoModuleVerificationView.cpp" line="214"/>
         <source>Server is not ready, try to reconnect...</source>
-        <translation>连接服务器失败，尝试重连...</translation>
+        <translation type="vanished">连接服务器失败，尝试重连...</translation>
     </message>
     <message>
-        <location filename="../StereoModuleVerificationView.cpp" line="217"/>
         <source>Server reconnected, searching devices...</source>
-        <translation>服务器已重连，搜索设备...</translation>
+        <translation type="vanished">服务器已重连，搜索设备...</translation>
     </message>
     <message>
-        <location filename="../StereoModuleVerificationView.cpp" line="228"/>
         <source>Failed to reconnect server.</source>
-        <translation>重连服务器失败。</translation>
+        <translation type="vanished">重连服务器失败。</translation>
     </message>
     <message>
-        <location filename="../StereoModuleVerificationView.cpp" line="232"/>
         <source>%1 devices available, use the first one.</source>
-        <translation>找到%1台可用设备，使用第一台。</translation>
+        <translation type="vanished">找到%1台可用设备，使用第一台。</translation>
     </message>
     <message>
-        <location filename="../StereoModuleVerificationView.cpp" line="237"/>
         <source>Pulling camera parameters from device.</source>
-        <translation>从设备获取标定参数中。</translation>
+        <translation type="vanished">从设备获取标定参数中。</translation>
     </message>
     <message>
-        <location filename="../StereoModuleVerificationView.cpp" line="241"/>
         <source>Failed to retrieve calibration parameters from device.</source>
-        <translation>从设备获取标定参数失败。</translation>
+        <translation type="vanished">从设备获取标定参数失败。</translation>
     </message>
     <message>
-        <location filename="../StereoModuleVerificationView.cpp" line="253"/>
         <source>Invalid calibration parameters: Empty file.</source>
-        <translation>无效标定参数：空文件。</translation>
+        <translation type="vanished">无效标定参数：空文件。</translation>
     </message>
     <message>
-        <location filename="../StereoModuleVerificationView.cpp" line="259"/>
         <source>Invalid stereo images: Empty images.</source>
-        <translation>无效双目图片：空图片。</translation>
+        <translation type="vanished">无效双目图片：空图片。</translation>
     </message>
     <message>
-        <location filename="../StereoModuleVerificationView.cpp" line="269"/>
         <source>Failed to load calibration parameters: Invalid file format.</source>
-        <translation>读取标定参数失败：无效文件格式。</translation>
+        <translation type="vanished">读取标定参数失败：无效文件格式。</translation>
     </message>
     <message>
-        <location filename="../StereoModuleVerificationView.cpp" line="288"/>
         <source>Failed to verify results: Invalid input images.</source>
-        <translation>验证失败：无效输入图片。</translation>
+        <translation type="vanished">验证失败：无效输入图片。</translation>
     </message>
     <message>
-        <location filename="../StereoModuleVerificationView.cpp" line="296"/>
         <source>Failed to verify results: Failed to find chessboard corners.</source>
-        <translation>验证失败：无法找到棋盘格角点。</translation>
+        <translation type="vanished">验证失败：无法找到棋盘格角点。</translation>
     </message>
     <message>
-        <location filename="../StereoModuleVerificationView.cpp" line="363"/>
         <source>%1 See the details below.</source>
-        <translation>%1 详情如下。</translation>
+        <translation type="vanished">%1 详情如下。</translation>
     </message>
     <message>
-        <location filename="../StereoModuleVerificationView.cpp" line="365"/>
         <source>Verification passed.</source>
-        <translation>验证通过。</translation>
+        <translation type="vanished">验证通过。</translation>
     </message>
     <message>
         <source>Verification succeed.</source>
@@ -1956,9 +1876,8 @@ Start capturing calibration data when the calibration target can be clearly visu
         <translation type="vanished">用两种不同方法计算的棋盘格角点位置的相对误差中位数过大。结果  </translation>
     </message>
     <message>
-        <location filename="../StereoModuleVerificationView.cpp" line="366"/>
         <source>Verification failed.</source>
-        <translation>验证失败。</translation>
+        <translation type="vanished">验证失败。</translation>
     </message>
     <message>
         <source>Rejected points rate based on tracking end criterion is </source>
@@ -1981,14 +1900,12 @@ Start capturing calibration data when the calibration target can be clearly visu
         <translation type="vanished">用两种不同方法计算的棋盘格角点位置的相对误差中位数是</translation>
     </message>
     <message>
-        <location filename="../StereoModuleVerificationView.ui" line="120"/>
         <source>Verify</source>
-        <translation>验证</translation>
+        <translation type="vanished">验证</translation>
     </message>
     <message>
-        <location filename="../StereoModuleVerificationView.ui" line="159"/>
         <source>Verification Results</source>
-        <translation>验证结果</translation>
+        <translation type="vanished">验证结果</translation>
     </message>
 </context>
 <context>
@@ -2042,24 +1959,20 @@ Start capturing calibration data when the calibration target can be clearly visu
 <context>
     <name>tl::TestStereoModuleWidget</name>
     <message>
-        <location filename="../TestStereoModuleWidget.ui" line="73"/>
         <source>Calibration data directory...</source>
-        <translation>标定数据文件夹...</translation>
+        <translation type="vanished">标定数据文件夹...</translation>
     </message>
     <message>
-        <location filename="../TestStereoModuleWidget.ui" line="116"/>
         <source>Load All</source>
-        <translation>加载所有</translation>
+        <translation type="vanished">加载所有</translation>
     </message>
     <message>
-        <location filename="../TestStereoModuleWidget.ui" line="126"/>
         <source>Calibrate</source>
-        <translation>标定</translation>
+        <translation type="vanished">标定</translation>
     </message>
     <message>
-        <location filename="../TestStereoModuleWidget.ui" line="133"/>
         <source>Rectify</source>
-        <translation>验证</translation>
+        <translation type="vanished">验证</translation>
     </message>
 </context>
 <context>

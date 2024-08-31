@@ -4,48 +4,9 @@
 #include <QGuiApplication>
 #include <QLayout>
 #include <QScreen>
-
-#include "TheStyle.h"
+#include <QStyle>
 
 namespace tl {
-
-QWidget* makeHorizontalLine(QWidget* parent, int maxWidth)
-{
-    const auto* theStyle =
-        parent ? qobject_cast<QlementineStyle*>(parent->style()) : nullptr;
-    const auto lineThickness = theStyle ? theStyle->theme().borderWidth : 1;
-
-    auto* line = new QFrame(parent);
-    line->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
-    line->setFixedHeight(lineThickness);
-    line->setFrameShape(QFrame::HLine);
-    line->setFrameShadow(QFrame::Plain);
-
-    if (maxWidth >= 0) {
-        line->setMaximumWidth(maxWidth);
-    }
-
-    return line;
-}
-
-QWidget* makeVerticalLine(QWidget* parent, int maxHeight)
-{
-    const auto* theStyle =
-        parent ? qobject_cast<QlementineStyle*>(parent->style()) : nullptr;
-    const auto lineThickness = theStyle ? theStyle->theme().borderWidth : 1;
-
-    auto* line = new QFrame(parent);
-    line->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::MinimumExpanding);
-    line->setFixedWidth(lineThickness);
-    line->setFrameShape(QFrame::VLine);
-    line->setFrameShadow(QFrame::Plain);
-
-    if (maxHeight >= 0) {
-        line->setMaximumHeight(maxHeight);
-    }
-
-    return line;
-}
 
 void centerWidget(QWidget* widget, QWidget* host)
 {
@@ -58,7 +19,7 @@ void centerWidget(QWidget* widget, QWidget* host)
     }
     else {
         const auto screenGeometry =
-            QGuiApplication::screens().front()->geometry();
+            QGuiApplication::screens().constFirst()->geometry();
         const auto x = (screenGeometry.width() - widget->width()) / 2;
         const auto y = (screenGeometry.height() - widget->height()) / 2;
         widget->move(x, y);

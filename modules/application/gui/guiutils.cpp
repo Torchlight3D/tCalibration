@@ -4,22 +4,7 @@
 #include <QtGlobal>
 #include <QWidget>
 
-// This must be in global namespace
-void qlementineResourceInitialization()
-{
-    // Loads the QRC content.
-    Q_INIT_RESOURCE(qlementine);
-    Q_INIT_RESOURCE(qlementine_font_roboto);
-#if defined(WIN32)
-    Q_INIT_RESOURCE(qlementine_font_inter_windows);
-#else
-    Q_INIT_RESOURCE(qlementine_font_inter);
-#endif
-}
-
 namespace tl {
-
-void initializeResources() { qlementineResourceInitialization(); }
 
 void clearLayout(QLayout* layout, bool deleteWidgets)
 {

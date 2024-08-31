@@ -12,10 +12,6 @@
 #include <QStringBuilder>
 #include <QSvgRenderer>
 
-#include "blurutils.h"
-#include "primitiveutils.h"
-#include "qstringutils.h"
-
 namespace qtprivate {
 // Taken from qpixmapfilter.cpp, line 946, Qt 5.15.2
 // Grayscales the image to dest (could be same). If rect isn't defined
@@ -135,49 +131,6 @@ QPixmap tintPixmap(const QPixmap& input, const QColor& color)
     return QPixmap::fromImage(outputImage);
 }
 
-QString getColorizedPixmapKey(const QPixmap& pixmap, const QColor& color)
-{
-    return u"qlementine_color_"_s + qimg::toHex(pixmap.cacheKey()) %
-                                        QLatin1Char('_') %
-                                        qimg::toHex(color.rgba());
-}
-
-QString getTintedPixmapKey(const QPixmap& pixmap, const QColor& color)
-{
-    return u"qlementine_tint_"_s + qimg::toHex(pixmap.cacheKey()) %
-                                       QLatin1Char('_') %
-                                       qimg::toHex(color.rgba());
-}
-
-QPixmap getCachedPixmap(const QPixmap& input, const QColor& color,
-                        qimg::ColorizeMode mode)
-{
-    if (input.isNull()) {
-        return input;
-    }
-
-    const auto tint = mode == qimg::ColorizeMode::Tint;
-    // Look if pixmap already exists in cache.
-    const auto& pixmapKey = tint ? getTintedPixmapKey(input, color)
-                                 : getColorizedPixmapKey(input, color);
-    QPixmap pixmapInCache;
-    const auto found = QPixmapCache::find(pixmapKey, &pixmapInCache);
-
-    // Add colorized pixmap to cache, if not present.
-    if (!found) {
-        const auto& newPixmap = tint ? tintPixmap(input, color)
-                                     : qimg::colorizePixmap(input, color);
-        const auto successfulInsert =
-            QPixmapCache::insert(pixmapKey, newPixmap);
-        if (successfulInsert) {
-            QPixmapCache::find(pixmapKey, &pixmapInCache);
-        }
-    }
-
-    // Returns the new pixmap, or the input if any error.
-    return pixmapInCache.isNull() ? input : pixmapInCache;
-}
-
 QIcon makeIconFromSvg(const QString& svgPath, const QSize& size)
 {
     if (svgPath.isEmpty()) {
@@ -235,30 +188,6 @@ QPixmap makePixmapFromSvg(const QString& backgroundSvgPath,
     p.drawPixmap(0, 0, coloredFgPixmap);
 
     return pixmap;
-}
-
-QPixmap makeRoundedPixmap(const QPixmap& input, double topLeft, double topRight,
-                          double bottomRight, double bottomLeft)
-{
-    if (input.isNull()) {
-        return {};
-    }
-
-    QPixmap result(input.size());
-    result.fill(Qt::transparent);
-
-    QPainter p(&result);
-
-    // Mask.
-    p.setRenderHint(QPainter::Antialiasing, true);
-    drawRoundedRect(&p, result.rect(), Qt::white,
-                    {topLeft, topRight, bottomRight, bottomLeft});
-    p.setCompositionMode(QPainter::CompositionMode_SourceIn);
-    // Draw input pixmap over.
-    p.drawPixmap(result.rect(), input);
-
-    result.setDevicePixelRatio(input.devicePixelRatio());
-    return result;
 }
 
 QPixmap makeFitPixmap(const QPixmap& input, const QSize& size)
@@ -331,76 +260,6 @@ QImage getExtendedImage(const QImage& input, int padding)
         p.drawImage(x, y, input);
     }
     return inputImage;
-}
-
-QImage getBlurredImage(const QImage& inputImage, double sigma)
-{
-    if (inputImage.isNull()) {
-        return {};
-    }
-
-    auto input = inputImage.copy();
-    auto output = inputImage.copy();
-    auto* inputData = input.bits();
-    auto* outputData = output.bits();
-    constexpr auto channelCount = 4; // ARGB
-    fast_gaussian_blur(inputData, outputData, input.width(), input.height(),
-                       channelCount, sigma);
-    // Since fast_gaussian_blur does an unnecessary std::swap, the actual result
-    // is in input.
-    return input;
-}
-
-QPixmap getBlurredPixmap(const QPixmap& input, double blurRadius, bool extend)
-{
-    if (input.isNull())
-        return {};
-
-    blurRadius /= pixelToSigma;
-    if (blurRadius < 1) {
-        return input;
-    }
-
-    const auto padding = static_cast<int>(std::ceil(blurRadius * 4));
-    auto inputImage =
-        extend ? getExtendedImage(input, padding) : input.toImage();
-    const auto outputImage = getBlurredImage(inputImage, blurRadius);
-    return QPixmap::fromImage(outputImage);
-}
-
-QPixmap getDropShadowPixmap(const QPixmap& src, double blurRadius,
-                            const QColor& color)
-{
-    if (src.isNull()) {
-        return {};
-    }
-
-    if (blurRadius <= 0.) {
-        QPixmap result{src.size()};
-        result.fill(Qt::transparent);
-        return result;
-    }
-
-    const auto colorizedImage = colorizeImage(src, color);
-    const auto padding = static_cast<int>(std::ceil(blurRadius * 4));
-    const auto extendedImage = getExtendedImage(colorizedImage, padding);
-    const auto shadowImage = getBlurredImage(extendedImage, blurRadius);
-    return QPixmap::fromImage(shadowImage);
-}
-
-QPixmap getDropShadowPixmap(const QSize& size, double borderRadius,
-                            double blurRadius, const QColor& color)
-{
-    if (size.isEmpty()) {
-        return {};
-    }
-
-    QPixmap input{size};
-    {
-        QPainter p(&input);
-        drawRoundedRect(&p, QRect{QPoint{}, size}, color, borderRadius);
-    }
-    return getDropShadowPixmap(input, blurRadius, color);
 }
 
 QImage mergeImages(const QImage& src1, const QImage& src2,
