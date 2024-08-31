@@ -28,43 +28,14 @@ find_package(Qt6 REQUIRED
         LinguistTools
 )
 
-# gRPC. FIXME: Some of the gRPC dependencies need to be explicitly provided.
-set(gRPC_LOCATION ${ACTIVE_DEPENDS_PREFIX}/grpc/1.60.0)
-set(absl_DIR ${gRPC_LOCATION}/lib/cmake/absl)
-find_package(absl CONFIG REQUIRED)
-set(utf8_range_DIR ${gRPC_LOCATION}/lib/cmake/utf8_range)
-find_package(utf8_range CONFIG REQUIRED)
-set(protobuf_MODULE_COMPATIBLE TRUE)
-if(MSVC)
-    set(Protobuf_DIR ${gRPC_LOCATION}/cmake)
-elseif()
-    set(Protobuf_DIR ${gRPC_LOCATION}/lib/cmake/protobuf)
-endif()
-find_package(Protobuf CONFIG REQUIRED)
-set(gRPC_DIR ${gRPC_LOCATION}/lib/cmake/grpc)
-find_package(gRPC CONFIG REQUIRED)
-
-# Target 1. Protobuf
-add_subdirectory(protos)
-
-# Target 2. GUI Module. 
+# GUI Module. 
 # TODO:
 # 1. Make standalone library
 set(GUI_MODULE_SRCS
-    gui/AbstractItemListWidget.h
-    gui/AbstractItemListWidget.cpp
     gui/Animation.h
     gui/Animation.cpp
     gui/AutoDeleteThread.h
     gui/AutoDeleteThread.cpp
-    gui/blurutils.h
-    gui/blurutils.cpp
-    gui/ColorButton.h
-    gui/ColorButton.cpp
-    gui/ComboBoxDelegate.h
-    gui/ComboBoxDelegate.cpp
-    gui/EventFilters.h
-    gui/EventFilters.cpp
     gui/guiutils.h
     gui/guiutils.cpp
     gui/ImageView.h
@@ -73,14 +44,10 @@ set(GUI_MODULE_SRCS
     gui/IPv4LineEdit.cpp
     gui/LedIndicator.h
     gui/LedIndicator.cpp
-    gui/LineEdit.h
-    gui/LineEdit.cpp
     gui/LogWidget.h
     gui/LogWidget.cpp
-    gui/NavigationBar.h
-    gui/NavigationBar.cpp
-    gui/primitiveutils.h
-    gui/primitiveutils.cpp
+    gui/messagelogwidget.h
+    gui/messagelogwidget.cpp
     gui/qcolorutils.h
     gui/qcolorutils.cpp
     gui/qfontutils.h
@@ -91,36 +58,11 @@ set(GUI_MODULE_SRCS
     gui/qstringutils.cpp
     gui/qstyleutils.h
     gui/qstyleutils.cpp
-    gui/messagelogwidget.h
-    gui/messagelogwidget.cpp
     gui/QtOpenCV.h
     gui/QtOpenCV.cpp
     gui/qwidgetutils.h
     gui/qwidgetutils.cpp
-    gui/CornerRadius.h
-    gui/CornerRadius.cpp
-    gui/RoundedFocusFrame.h
-    gui/RoundedFocusFrame.cpp
-    gui/StatusBadge.h
-    gui/StatusBadge.cpp
     gui/StdOStreamRedirector.h
-    gui/Switch.h
-    gui/Switch.cpp
-    gui/stylestateutils.h
-    gui/stylestateutils.cpp
-    gui/SuspendableWorker.h
-    gui/SuspendableWorker.cpp
-    gui/TextLabel.h
-    gui/TextLabel.cpp
-    gui/TheStyle.h
-    gui/TheStyle.cpp
-    gui/TheStyleOptions.h
-    gui/TheStyleOptions.cpp
-    gui/TheStyleTypes.h
-    gui/TheTheme.h
-    gui/TheTheme.cpp
-    gui/TreeView.h
-    gui/TreeView.cpp
     gui/WidgetAnimation.h
     gui/WidgetAnimation.cpp
     gui/WidgetAnimationManager.h
@@ -129,14 +71,7 @@ set(GUI_MODULE_SRCS
     gui/WidgetAnimator.cpp
 )
 
-set(GUI_MODULE_RC
-    gui/resources/qlementine.qrc
-    gui/resources/qlementine_font_roboto.qrc
-    $<$<NOT:$<PLATFORM_ID:Windows>>:gui/resources/qlementine_font_inter.qrc>
-    $<$<PLATFORM_ID:Windows>:gui/resources/qlementine_font_inter_windows.qrc>
-)
-
-# Target 3. Application
+# Application
 set(APP_SRCS
     AppConfigs.h
     AppConfigs.cpp
@@ -145,22 +80,13 @@ set(APP_SRCS
     CalibBoardConfigsWidget.ui
     EthernetAdaptorHelper.h
     EthernetAdaptorHelper.cpp
-    LedIndicatorGrid.h
-    LedIndicatorGrid.cpp
-    Scene3DViewer.h
-    Scene3DViewer.cpp
     StereoModuleCalibrationConfigWidget.h
     StereoModuleCalibrationConfigWidget.cpp
     StereoModuleCalibrationConfigWidget.ui
-    StereoModuleCalibrationView.h
-    StereoModuleCalibrationView.cpp
-    StereoModuleCalibrationView.ui
     StereoModuleCalibResultView.h
     StereoModuleCalibResultView.cpp
     StereoModuleData.h
     StereoModuleData.cpp
-    StereoModuleHubClient.h
-    StereoModuleHubClient.cpp
     StereoModuleImageQualityView.h
     StereoModuleImageQualityView.cpp
     StereoModuleTask.h
@@ -170,16 +96,8 @@ set(APP_SRCS
     StereoModuleVerificationConfigWidget.h
     StereoModuleVerificationConfigWidget.cpp
     StereoModuleVerificationConfigWidget.ui
-    StereoModuleVerificationView.h
-    StereoModuleVerificationView.cpp
-    StereoModuleVerificationView.ui
     StereoModuleVerifyResultView.h
     StereoModuleVerifyResultView.cpp
-    TestStereoModuleWidget.h
-    TestStereoModuleWidget.cpp
-    TestStereoModuleWidget.ui
-    WidgetGridWidget.h
-    WidgetGridWidget.cpp
 
     main.cpp
 )
@@ -193,7 +111,7 @@ set(APP_WIN_RC
 )
 
 set(APP_TS_FILES
-    locale/CalibrationTool_zh_CN.ts
+    locale/CalibrationToolbox_zh_CN.ts
 )
 
 # Use qt_standard_project_setup() after Qt 6.3
@@ -206,29 +124,27 @@ qt_create_translation(APP_QM_FILES ${CMAKE_SOURCE_DIR} ${APP_TS_FILES})
 
 # TODO: How to use qt_add_resources()
 
-qt_add_executable(CalibrationTool
+qt_add_executable(CalibrationToolbox
     MANUAL_FINALIZATION
     ${GUI_MODULE_SRCS}
-    ${GUI_MODULE_RC}
     ${APP_SRCS}
     ${APP_RC}
     ${APP_QM_FILES}
     ${APP_WIN_RC}
 )
 
-set_target_properties(CalibrationTool
+set_target_properties(CalibrationToolbox
     PROPERTIES
         WIN32_EXECUTABLE TRUE
 )
 
-target_include_directories(CalibrationTool
+target_include_directories(CalibrationToolbox
     PRIVATE
-        ${CMAKE_SOURCE_DIR} # FIXME: This is seriously wrong. Workaround to
-                            # help locating promoted widget header files.
-        ${CMAKE_CURRENT_BINARY_DIR}/../proto
+        # FIXME: This is seriously wrong. Workaround to help locating promoted widget header files.
+        ${CMAKE_SOURCE_DIR}
 )
 
-target_link_libraries(CalibrationTool
+target_link_libraries(CalibrationToolbox
     PRIVATE
         Qt::Concurrent
         Qt::CorePrivate # For QRingBuffer
@@ -236,16 +152,13 @@ target_link_libraries(CalibrationTool
         Qt::Network
         Qt::Svg
         csv-parser
-        gRPC::grpc++
-        grpc_proto
-        ${_REFLECTION}
         ${NS_PREFIX}::Calibration
         ${NS_PREFIX}::Scene3d
         ${NS_PREFIX}::Device
 )
 
 ### Install
-install(TARGETS CalibrationTool
+install(TARGETS CalibrationToolbox
     BUNDLE DESTINATION .
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
@@ -407,5 +320,5 @@ else() # Unix compiler
 
 endif()
 
-qt_finalize_executable(CalibrationTool)
+qt_finalize_executable(CalibrationToolbox)
 

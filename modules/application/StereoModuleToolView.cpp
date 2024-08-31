@@ -8,16 +8,14 @@
 #include <QPushButton>
 #include <QStackedWidget>
 #include <QToolButton>
-#include <QVariant>
 
 #include "gui/Animation.h"
-#include "gui/qstringutils.h"
 #include "EthernetAdaptorHelper.h"
-#include "StereoModuleCalibrationView.h"
 #include "StereoModuleImageQualityView.h"
-#include "StereoModuleVerificationView.h"
 
 namespace tl {
+
+using namespace Qt::Literals::StringLiterals;
 
 namespace prop {
 constexpr char kMenu[]{"menu"};
@@ -47,8 +45,6 @@ public:
     QLabel* m_mainToolbarTitle;
     QStackedWidget* m_pages;
     StereoModuleImageQualityView* m_qualityView;
-    StereoModuleCalibrationView* m_calibView;
-    StereoModuleVerificationView* m_verifyView;
     bool m_devMode{false};
 };
 
@@ -91,10 +87,6 @@ void StereoModuleToolViewPrivate::init()
     m_pages = new QStackedWidget(q);
     m_qualityView = new StereoModuleImageQualityView(q);
     m_pages->addWidget(m_qualityView);
-    m_calibView = new StereoModuleCalibrationView(q);
-    m_pages->addWidget(m_calibView);
-    m_verifyView = new StereoModuleVerificationView(q);
-    m_pages->addWidget(m_verifyView);
 
     auto* mainLayout = new QVBoxLayout(q);
     mainLayout->setContentsMargins({});
@@ -125,10 +117,6 @@ void StereoModuleToolViewPrivate::init()
 
     auto* menuBtnQuality = new QPushButton(m_qualityView->windowTitle(), menu);
     menuBtnQuality->setProperty(prop::kMenu, true);
-    auto* menuBtnCalib = new QPushButton(m_calibView->windowTitle(), menu);
-    menuBtnCalib->setProperty(prop::kMenu, true);
-    auto* menuBtnVerify = new QPushButton(m_verifyView->windowTitle(), menu);
-    menuBtnVerify->setProperty(prop::kMenu, true);
     auto* menuBtnEthernetAdaptorHelper = new QPushButton(
         StereoModuleToolView::tr("Ethernet Adaptor Helper"), menu);
     menuBtnEthernetAdaptorHelper->setProperty(prop::kMenu, true);
@@ -140,8 +128,6 @@ void StereoModuleToolViewPrivate::init()
     menuLayout->setSpacing(0);
     menuLayout->addWidget(menuToolbar);
     menuLayout->addWidget(menuBtnQuality);
-    menuLayout->addWidget(menuBtnCalib);
-    menuLayout->addWidget(menuBtnVerify);
     menuLayout->addWidget(menuBtnEthernetAdaptorHelper);
     menuLayout->addWidget(menuBtnExit);
     menuLayout->addStretch();
@@ -210,14 +196,6 @@ void StereoModuleToolViewPrivate::init()
         Animation::sideSlideOut(menu, Animation::LeftSide);
         setCurrentPage(StereoModuleToolView::Page::ImageQuality);
     });
-    QObject::connect(menuBtnCalib, &QPushButton::clicked, q, [=, this] {
-        Animation::sideSlideOut(menu, Animation::LeftSide);
-        setCurrentPage(StereoModuleToolView::Page::Calibration);
-    });
-    QObject::connect(menuBtnVerify, &QPushButton::clicked, q, [=, this] {
-        Animation::sideSlideOut(menu, Animation::LeftSide);
-        setCurrentPage(StereoModuleToolView::Page::Verification);
-    });
 
     QObject::connect(menuBtnEthernetAdaptorHelper, &QPushButton::clicked, q,
                      [q]() {
@@ -256,8 +234,6 @@ void StereoModuleToolViewPrivate::init()
 void StereoModuleToolViewPrivate::updateUiByDevMode(bool on)
 {
     m_qualityView->setDevMode(on);
-    m_calibView->setDevMode(on);
-    m_verifyView->setDevMode(on);
 }
 
 void StereoModuleToolViewPrivate::updateToolTitle(const QString& title)
@@ -274,14 +250,6 @@ void StereoModuleToolViewPrivate::setCurrentPage(
         case Page::ImageQuality:
             m_pages->setCurrentIndex(m_pages->indexOf(m_qualityView));
             updateToolTitle(m_qualityView->windowTitle());
-            break;
-        case Page::Calibration:
-            m_pages->setCurrentIndex(m_pages->indexOf(m_calibView));
-            updateToolTitle(m_calibView->windowTitle());
-            break;
-        case Page::Verification:
-            m_pages->setCurrentIndex(m_pages->indexOf(m_verifyView));
-            updateToolTitle(m_verifyView->windowTitle());
             break;
         default:
             break;

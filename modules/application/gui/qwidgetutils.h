@@ -4,9 +4,6 @@
 
 namespace tl {
 
-QWidget* makeVerticalLine(QWidget* parentWidget, int maxHeight = -1);
-QWidget* makeHorizontalLine(QWidget* parentWidget, int maxWidth = -1);
-
 void centerWidget(QWidget* widget, QWidget* host = nullptr);
 
 QMargins getDefaultMargins(const QStyle* style);
