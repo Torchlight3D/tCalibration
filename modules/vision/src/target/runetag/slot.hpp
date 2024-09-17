@@ -1,10 +1,8 @@
 #pragma once
 
-#include <opencv2/core/core.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
 #include "ellipsepoint.hpp"
 
-namespace cv {
+namespace tl {
 namespace runetag {
 
 class Slot
@@ -49,4 +47,4 @@ public:
 };
 
 } // namespace runetag
-} // namespace cv
+} // namespace tl

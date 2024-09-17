@@ -1,8 +1,10 @@
 #pragma once
 
-#include <vector>
 #include "EDInterface.h"
 #include "Quad.h"
+
+namespace tl {
+namespace stag {
 
 class Corner
 {
@@ -25,29 +27,31 @@ class QuadDetector
     // estimated corners if detected corners are on edge segments
     double thresDist = 7;
 
-    // the maximum value of (marker's max distance from the camera) / (marker's
-    // min distance from the camera) (default: 1.5)
+    // the maximum value of (marker's max distance from the camera) /
+    // (marker's min distance from the camera) (default: 1.5)
     double thresProjectiveDistortion = 1.5;
 
     std::vector<std::vector<Corner>> cornerGroups;
     std::vector<Quad> distortedQuads;
     std::vector<Quad> quads;
 
-    // forms groups of line segments that may form a quad (line segments must be
-    // >=4 and from the same edge segment) each line group is represented by a
-    // vector<int>, and each line segment is represented by an int (its index)
+    // forms groups of line segments that may form a quad (line segments
+    // must be
+    // >=4 and from the same edge segment) each line group is represented by
+    // a vector<int>, and each line segment is represented by an int (its
+    // index)
     std::vector<std::vector<int>> groupLines(const cv::Mat& image,
                                              EDInterface* edInterface);
 
-    // detects corners as intersections of consecutive line segments on an edge
-    // segment (with the condition that the intersection lies on the same edge
-    // segment)
+    // detects corners as intersections of consecutive line segments on an
+    // edge segment (with the condition that the intersection lies on the
+    // same edge segment)
     void detectCorners(EDInterface* edInterface,
                        const std::vector<std::vector<int>>& lineGroups);
 
     // returns true if the corners form a quad
-    // will replace corners[1] or corners[3] with estimated corners if needed
-    // orders corners in clockwise
+    // will replace corners[1] or corners[3] with estimated corners if
+    // needed orders corners in clockwise
     bool checkIfCornersFormQuad(std::vector<Corner>& corners,
                                 EDInterface* edInterface);
 
@@ -62,9 +66,10 @@ public:
 
     void detectQuads(const cv::Mat& image, EDInterface* edInterface);
 
-    const std::vector<std::vector<Corner>>& getCornerGroups();
-
+    const std::vector<std::vector<Corner>>& getCornerGroups() const;
     const std::vector<Quad>& getQuads() const;
-
     const std::vector<Quad>& getDistortedQuads() const;
 };
+
+} // namespace stag
+} // namespace tl

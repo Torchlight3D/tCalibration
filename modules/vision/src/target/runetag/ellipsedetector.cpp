@@ -1,7 +1,9 @@
-
 #include "ellipsedetector.hpp"
 
-using namespace cv::runetag;
+#include <opencv2/imgproc.hpp>
+
+namespace tl {
+namespace runetag {
 
 unsigned int EllipseDetector::detectEllipses(
     const cv::Mat& frame, std::vector<cv::RotatedRect>& detected)
@@ -13,7 +15,7 @@ unsigned int EllipseDetector::detectEllipses(
 
     // Conversion of the RGB image to GRAYSCALE
     cv::Mat grayframe(frame.rows, frame.cols, CV_8UC1);
-    cv::cvtColor(frame, grayframe, CV_RGB2GRAY);
+    cv::cvtColor(frame, grayframe, cv::COLOR_RGB2GRAY);
 
     // cv::adaptiveThreshold( grayframe, aux, 255, CV_ADAPTIVE_THRESH_MEAN_C,
     // CV_THRESH_BINARY, 127 , 30); cv::threshold( grayframe, aux, 100 , 255,
@@ -21,13 +23,14 @@ unsigned int EllipseDetector::detectEllipses(
     //  Threshold
     cv::Mat thresholded;
     cv::adaptiveThreshold(grayframe, thresholded, 255,
-                          CV_ADAPTIVE_THRESH_MEAN_C, CV_THRESH_BINARY, 127, 15);
+                          cv::ADAPTIVE_THRESH_MEAN_C, cv::THRESH_BINARY, 127,
+                          15);
 
     // Detect image contours as a vector of Point
     std::vector<std::vector<cv::Point>> contours;
     std::vector<cv::Vec4i> h;
-    cv::findContours(thresholded, contours, h, CV_RETR_LIST,
-                     CV_CHAIN_APPROX_NONE);
+    cv::findContours(thresholded, contours, h, cv::RETR_LIST,
+                     cv::CHAIN_APPROX_NONE);
 
     for (std::vector<std::vector<cv::Point>>::const_iterator it =
              contours.begin();
@@ -134,3 +137,6 @@ unsigned int EllipseDetector::detectEllipses(
 
     return num_detected;
 }
+
+} // namespace runetag
+} // namespace tl

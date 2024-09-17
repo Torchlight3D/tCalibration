@@ -1,14 +1,14 @@
 #pragma once
 
-#include <opencv2/opencv.hpp>
-#include <vector>
-
-#include "DetectorTools.h"
-
 #include <fstream>
 #include <iostream>
 #include <map>
 #include <memory>
+#include <vector>
+
+#include <opencv2/core/mat.hpp>
+
+#include "DetectorTools.h"
 
 namespace orp {
 namespace calibration {
@@ -16,7 +16,7 @@ typedef std::map<std::string, std::shared_ptr<TagFamily>> TagFamilies;
 
 struct BoardDefinition
 {
-    typedef std::map<int, cv::Point2i> BoardTagMap;
+    typedef std::map<int, cv::Point> BoardTagMap;
     typedef BoardTagMap::iterator BoardTagMapIterator;
 
     int id;
@@ -70,7 +70,7 @@ bool fixFullCheckerBoardOrientation(const cv::Mat &img,
 
 struct TaggedBoardIndexer
 {
-    typedef std::map<int, std::pair<int, cv::Point2i>> TagToBoardMap;
+    typedef std::map<int, std::pair<int, cv::Point>> TagToBoardMap;
 
     TagFamilies detectors;
     std::vector<BoardDefinition> board_defs;

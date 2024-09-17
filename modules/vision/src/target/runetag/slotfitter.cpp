@@ -1,10 +1,9 @@
-
 #include "slotfitter.hpp"
-#include "auxmath.hpp"
-#include <iostream>
-#include <fstream>
 
-using namespace cv::runetag;
+#include "auxmath.hpp"
+
+namespace tl {
+namespace runetag {
 
 SlotFitter::SlotFitter(const cv::Matx33d& _VR,
                        std::vector<EllipsePoint>& _ellipses,
@@ -221,12 +220,6 @@ void SlotFitter::fit(std::vector<EllipsePoint>& ring_ellipses,
     }
 }
 
-void SlotFitter::fit(double radius_ratio, double gap_factor, int num_layers,
-                     std::vector<MarkerDetected>& possible_markers)
-{
-    fit(auto_inliers, radius_ratio, gap_factor, num_layers, possible_markers);
-}
-
 bool SlotFitter::buildCodeForLayer(int layer, int num_layers, double rSqr,
                                    std::vector<Slot>& code) const
 {
@@ -365,3 +358,6 @@ cv::Point2d SlotFitter::transformPointFromCircleToEllipse(cv::Point2d p,
     return cv::Point2d(s_cn(0, 0) / s_cn(2, 0) * f,
                        s_cn(1, 0) / s_cn(2, 0) * f);
 }
+
+} // namespace runetag
+} // namespace tl

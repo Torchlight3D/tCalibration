@@ -11,6 +11,7 @@ target_sources(${IMGPROC_TEST_TARGET}
         tst_checkergrid.cpp
         tst_circlegrid.cpp
         # tst_multiboard.cpp
+        # tst_runetag.cpp
 )
 
 set(GTest_DIR ${ACTIVE_DEPENDS_PREFIX}/googletest/1.14.0/lib/cmake/GTest)

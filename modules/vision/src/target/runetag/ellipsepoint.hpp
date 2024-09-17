@@ -1,12 +1,12 @@
 #pragma once
 
-#include <opencv2/core/core.hpp>
+#include <opencv2/core.hpp>
 
-namespace cv {
-
+namespace tl {
 namespace runetag {
 
 class EllipseFitter;
+
 class EllipsePoint
 {
 public:
@@ -27,10 +27,6 @@ private:
     mutable bool cacheValidCenter;
     mutable bool cacheValidCenterNormPlane;
 
-    // -------------
-    // AUX OPERATION
-    // -------------
-
     /*
     Set either VR1 or VR2
     Determines the setting based on the boolean input parameter
@@ -49,12 +45,12 @@ private:
     static bool checkN(const cv::Matx33d& VR);
 
 public:
-    EllipsePoint() {};
+    EllipsePoint() {}
     EllipsePoint(cv::RotatedRect _ellipse, const double cx, const double cy);
     EllipsePoint(const EllipsePoint& copy);
     const EllipsePoint& operator=(const EllipsePoint& other);
 
-    inline cv::RotatedRect get_as_rotated_rect() { return er; }
+    inline cv::RotatedRect get_as_rotated_rect() const { return er; }
 
     inline bool isAssigned() const { return !unassigned; }
 
@@ -100,4 +96,4 @@ public:
 };
 
 } // namespace runetag
-} // namespace cv
+} // namespace tl

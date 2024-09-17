@@ -31,7 +31,6 @@ public:
     int noSegments;
 
 public:
-    // constructor
     EdgeMap(int w, int h)
     {
         width = w;
@@ -42,15 +41,13 @@ public:
         pixels = new Pixel[width * height];
         segments = new EdgeSegment[width * height];
         noSegments = 0;
-    } // end-EdgeMap
-
-    // Destructor
+    }
     ~EdgeMap()
     {
         delete[] edgeImg;
         delete[] pixels;
         delete[] segments;
-    } // end-~EdgeMap
+    }
 
     void ConvertEdgeSegments2EdgeImg()
     {
@@ -63,8 +60,8 @@ public:
 
                 edgeImg[r * width + c] = 255;
             } // end-for
-        }     // end-for
-    }         // end-ConvertEdgeSegments2EdgeImg
+        } // end-for
+    } // end-ConvertEdgeSegments2EdgeImg
 
     EdgeMap *clone()
     {
@@ -81,7 +78,7 @@ public:
             for (int j = 0; j < segments[i].noPixels; j++) {
                 map2->segments[i].pixels[j] = segments[i].pixels[j];
             } // end-for
-        }     // end-for
+        } // end-for
 
         return map2;
     } // end-clone

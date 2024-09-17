@@ -53,13 +53,3 @@ unsigned char readPixelSafeBilinear(const cv::Mat& image, const cv::Point2d& p)
         return (unsigned char)128; // if the point to be read is outside image
                                    // boundaries, return 128
 }
-
-double crossProduct(const cv::Point2d& p1, const cv::Point2d& p2)
-{
-    return p1.x * p2.y - p1.y * p2.x;
-}
-
-double squaredDistance(const cv::Point2d& p1, const cv::Point2d& p2)
-{
-    return (p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y);
-}

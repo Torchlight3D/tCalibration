@@ -3,13 +3,13 @@
 #include <complex>
 #include <numeric>
 
-#include <opencv2/core/mat.hpp>
 #include <opencv2/imgproc.hpp>
 
 #include "TagFamily.h"
 
 namespace orp {
 namespace calibration {
+
 struct BoardObservation
 {
     // seen in the image
@@ -206,7 +206,7 @@ void adjustGamma(cv::InputArray input, cv::OutputArray output,
 void stretchIntensities(cv::InputArray input, cv::OutputArray output);
 int findRoot(std::vector<int> &cluster_ids, int id);
 
-bool point_comparator(const cv::Point2i &a, const cv::Point2i &b);
+bool point_comparator(const cv::Point &a, const cv::Point &b);
 
 template <typename PointType>
 double distance2(const PointType &a, const PointType &b)
@@ -458,5 +458,6 @@ void clusterPoints2(const std::vector<PointType> &pts,
 #if DEBUG_INDEXING
 extern cv::Mat DEBUG;
 #endif
+
 } // namespace calibration
 } // namespace orp

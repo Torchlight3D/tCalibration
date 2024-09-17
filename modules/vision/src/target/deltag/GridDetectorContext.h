@@ -5,7 +5,6 @@
 #include <opencv2/core/mat.hpp>
 
 #include "DetectorTools.h"
-#include "PolynomialFit.h"
 #include "PolynomialSaddleDetectorContext.h"
 
 namespace orp {

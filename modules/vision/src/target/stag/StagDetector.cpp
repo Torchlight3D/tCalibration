@@ -1,8 +1,27 @@
 #include "StagDetector.h"
-#include "Ellipse.h"
+
+#include <opencv2/imgproc.hpp>
+
+#include <tCore/Math>
+
+#include "Drawer.h"
+#include "PoseRefiner.h"
 #include "utility.h"
 
-#define HALF_PI 1.570796326794897
+namespace tl {
+namespace stag {
+
+namespace {
+cv::Mat createMatFromPolarCoords(double radius, double radians,
+                                 double circleRadius)
+{
+    cv::Mat point(3, 1, CV_64FC1);
+    point.at<double>(0) = 0.5 + cos(radians) * radius * (circleRadius / 0.5);
+    point.at<double>(1) = 0.5 - sin(radians) * radius * (circleRadius / 0.5);
+    point.at<double>(2) = 1;
+    return point;
+}
+} // namespace
 
 StagDetector::StagDetector(int libraryHD, int inErrorCorrection)
 {
@@ -11,13 +30,6 @@ StagDetector::StagDetector(int libraryHD, int inErrorCorrection)
     quadDetector = QuadDetector();
     fillCodeLocations();
     decoder = Decoder(libraryHD);
-}
-
-const std::vector<Marker>& StagDetector::getMarkers() { return markers; }
-
-const std::vector<Quad>& StagDetector::getFalseCandidates()
-{
-    return falseCandidates;
 }
 
 void StagDetector::detectMarkers(const cv::Mat& inImage)
@@ -45,22 +57,28 @@ void StagDetector::detectMarkers(const cv::Mat& inImage)
             falseCandidates.push_back(quad);
     }
 
-    for (auto& marker : markers)
-        poseRefiner.refineMarkerPose(&edInterface, marker);
+    for (auto& marker : markers) {
+        refineMarkerPose(&edInterface, marker);
+    }
 }
 
-void StagDetector::logResults(const std::string& path)
+const std::vector<Marker>& StagDetector::getMarkers() const { return markers; }
+
+const std::vector<Quad>& StagDetector::getFalseCandidates() const
 {
-    drawer.drawEdgeMap(path + "1_edges.png", image, edInterface.getEdgeMap());
-    drawer.drawLines(path + "2_lines.png", image, edInterface.getEDLines());
-    drawer.drawCorners(path + "3_corners.png", image,
-                       quadDetector.getCornerGroups());
-    drawer.drawQuads(path + "4_quads.png", image, quadDetector.getQuads());
-    drawer.drawQuads(path + "5_distorted_quads.png", image,
-                     quadDetector.getDistortedQuads());
-    drawer.drawMarkers(path + "6_markers.png", image, markers);
-    drawer.drawQuads(path + "7_false_quads.png", image, falseCandidates);
-    drawer.drawEllipses(path + "8_ellipses.png", image, markers);
+    return falseCandidates;
+}
+
+void StagDetector::logResults(const std::string& path) const
+{
+    drawEdgeMap(image, edInterface.getEdgeMap());
+    drawLines(image, edInterface.getEDLines());
+    drawCorners(image, quadDetector.getCornerGroups());
+    drawQuads(image, quadDetector.getQuads());
+    drawQuads(image, quadDetector.getDistortedQuads());
+    drawMarkers(image, markers);
+    drawQuads(image, falseCandidates);
+    drawEllipses(image, markers);
 }
 
 Codeword StagDetector::readCode(const Quad& q)
@@ -120,43 +138,43 @@ void StagDetector::fillCodeLocations()
     // these part is left as is for self-documenting purposes
     for (int i = 0; i < 4; i++) {
         codeLocs[0 + i * 12] = createMatFromPolarCoords(
-            0.088363142525988, 0.785398163397448 + i * HALF_PI,
+            0.088363142525988, 0.785398163397448 + i * half_pi,
             innerCircleRadius);
 
         codeLocs[1 + i * 12] = createMatFromPolarCoords(
-            0.206935928182607, 0.459275804122858 + i * HALF_PI,
+            0.206935928182607, 0.459275804122858 + i * half_pi,
             innerCircleRadius);
         codeLocs[2 + i * 12] = createMatFromPolarCoords(
-            0.206935928182607, HALF_PI - 0.459275804122858 + i * HALF_PI,
+            0.206935928182607, half_pi - 0.459275804122858 + i * half_pi,
             innerCircleRadius);
 
         codeLocs[3 + i * 12] = createMatFromPolarCoords(
-            0.313672146827381, 0.200579720495241 + i * HALF_PI,
+            0.313672146827381, 0.200579720495241 + i * half_pi,
             innerCircleRadius);
         codeLocs[4 + i * 12] = createMatFromPolarCoords(
-            0.327493143484516, 0.591687617505840 + i * HALF_PI,
+            0.327493143484516, 0.591687617505840 + i * half_pi,
             innerCircleRadius);
         codeLocs[5 + i * 12] = createMatFromPolarCoords(
-            0.327493143484516, HALF_PI - 0.591687617505840 + i * HALF_PI,
+            0.327493143484516, half_pi - 0.591687617505840 + i * half_pi,
             innerCircleRadius);
         codeLocs[6 + i * 12] = createMatFromPolarCoords(
-            0.313672146827381, HALF_PI - 0.200579720495241 + i * HALF_PI,
+            0.313672146827381, half_pi - 0.200579720495241 + i * half_pi,
             innerCircleRadius);
 
         codeLocs[7 + i * 12] = createMatFromPolarCoords(
-            0.437421957035861, 0.145724938287167 + i * HALF_PI,
+            0.437421957035861, 0.145724938287167 + i * half_pi,
             innerCircleRadius);
         codeLocs[8 + i * 12] = createMatFromPolarCoords(
-            0.437226762361658, 0.433363129825345 + i * HALF_PI,
+            0.437226762361658, 0.433363129825345 + i * half_pi,
             innerCircleRadius);
         codeLocs[9 + i * 12] = createMatFromPolarCoords(
-            0.430628029742607, 0.785398163397448 + i * HALF_PI,
+            0.430628029742607, 0.785398163397448 + i * half_pi,
             innerCircleRadius);
         codeLocs[10 + i * 12] = createMatFromPolarCoords(
-            0.437226762361658, HALF_PI - 0.433363129825345 + i * HALF_PI,
+            0.437226762361658, half_pi - 0.433363129825345 + i * half_pi,
             innerCircleRadius);
         codeLocs[11 + i * 12] = createMatFromPolarCoords(
-            0.437421957035861, HALF_PI - 0.145724938287167 + i * HALF_PI,
+            0.437421957035861, half_pi - 0.145724938287167 + i * half_pi,
             innerCircleRadius);
     }
 
@@ -165,8 +183,12 @@ void StagDetector::fillCodeLocations()
     blackLocs = std::vector<cv::Mat>(12);
     whiteLocs = std::vector<cv::Mat>(12);
 
-    for (int i = 0; i < 12; i++) blackLocs[i] = cv::Mat(3, 1, CV_64FC1);
-    for (int i = 0; i < 12; i++) whiteLocs[i] = cv::Mat(3, 1, CV_64FC1);
+    for (int i = 0; i < 12; i++) {
+        blackLocs[i] = cv::Mat(3, 1, CV_64FC1);
+    }
+    for (int i = 0; i < 12; i++) {
+        whiteLocs[i] = cv::Mat(3, 1, CV_64FC1);
+    }
 
     blackLocs[0].at<double>(0) = borderDist;
     blackLocs[0].at<double>(1) = borderDist * 3;
@@ -265,12 +287,5 @@ void StagDetector::fillCodeLocations()
     whiteLocs[11].at<double>(2) = 1;
 }
 
-cv::Mat StagDetector::createMatFromPolarCoords(double radius, double radians,
-                                               double circleRadius)
-{
-    cv::Mat point(3, 1, CV_64FC1);
-    point.at<double>(0) = 0.5 + cos(radians) * radius * (circleRadius / 0.5);
-    point.at<double>(1) = 0.5 - sin(radians) * radius * (circleRadius / 0.5);
-    point.at<double>(2) = 1;
-    return point;
-}
+} // namespace stag
+} // namespace tl

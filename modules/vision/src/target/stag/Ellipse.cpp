@@ -5,8 +5,78 @@
 #include <string.h>
 #include <math.h>
 
-inline double FastSinHP(double x);
-inline double FastCosHP(double x);
+namespace {
+inline double FastSinHP(double x) // High presicion 14x faster
+{
+    double res = 0;
+
+    // always wrap input angle to -PI..PI
+    if (x < -3.14159265)
+        x += 6.28318531;
+    else if (x > 3.14159265)
+        x -= 6.28318531;
+
+    // compute sine
+    if (x < 0) {
+        res = 1.27323954 * x + .405284735 * x * x;
+
+        if (res < 0)
+            res = .225 * (res * -res - res) + res;
+        else
+            res = .225 * (res * res - res) + res;
+    }
+    else {
+        res = 1.27323954 * x - 0.405284735 * x * x;
+
+        if (res < 0)
+            res = .225 * (res * -res - res) + res;
+        else
+            res = .225 * (res * res - res) + res;
+    }
+
+    return res;
+}
+
+inline double FastCosHP(double x)
+{
+    double res = 0;
+
+#if 1 // safer
+    x += 1.57079632;
+    // always wrap input angle to -PI..PI
+    if (x < -3.14159265)
+        x += 6.28318531;
+    else if (x > 3.14159265)
+        x -= 6.28318531;
+
+#else // slightly faster
+    x += 1.57079632;
+    if (x > 3.14159265)
+        x -= 6.28318531;
+
+#endif
+
+    if (x < 0) {
+        res = 1.27323954 * x + 0.405284735 * x * x;
+
+        if (res < 0)
+            res = .225 * (res * -res - res) + res;
+        else
+            res = .225 * (res * res - res) + res;
+    }
+    else {
+        res = 1.27323954 * x - 0.405284735 * x * x;
+
+        if (res < 0)
+            res = .225 * (res * -res - res) + res;
+        else
+            res = .225 * (res * res - res) + res;
+    }
+
+    return res;
+}
+
+} // namespace
 
 #define pi 3.14159265
 #define BOOKSTEIN 0 // method1
@@ -309,6 +379,7 @@ void customEllipse::InitParams()
     estRadians = NULL;
     closePoints = NULL;
 }
+
 customEllipse::customEllipse(cv::Point *points, int noPnts)
 {
     // Initializations
@@ -780,16 +851,17 @@ cv::Point customEllipse::GetCenter()
     return tmp;
 }
 
-double customEllipse::GetCenterX() { return cX; }
-double customEllipse::GetCenterY()
+double customEllipse::GetCenterX() const { return cX; }
+double customEllipse::GetCenterY() const
 {
     // dont forget to re-transform the y axis!
     return -cY;
 }
-double customEllipse::GetSemiMajorAxis() { return a; }
-double customEllipse::GetSemiMinorAxis() { return b; }
 
-double customEllipse::GetRotation() { return rotation; }
+double customEllipse::GetSemiMajorAxis() const { return a; }
+double customEllipse::GetSemiMinorAxis() const { return b; }
+
+double customEllipse::GetRotation() const { return rotation; }
 void customEllipse::GetCoefficients(double *coefs)
 {
     coefs[0] = A1;
@@ -987,36 +1059,6 @@ inline double customEllipse::SquaredDistanceBwPoints(double x1, double y1,
 
     distance = xDist * xDist + yDist * yDist;
     return distance;
-}
-
-// Returns (F / F') for one NR iteration
-inline double customEllipse::NewtonRaphsonIteration(double theta, double x,
-                                                    double y)
-{
-    // compute the frequently used terms for the sake of performance
-    double sinTheta = sin(theta);
-    double cosTheta = cos(theta);
-
-    // dikkat:there is also 'r' in the term but is always 1 in our case
-    double fTheta = a2_b2 * cosTheta * sinTheta;
-    fTheta = fTheta - x * a * sinTheta + y * b * cosTheta;
-
-    double fPrimeTheta = a2_b2 * (cosTheta * cosTheta - sinTheta * sinTheta);
-    fPrimeTheta = fPrimeTheta - x * a * cosTheta - y * b * sinTheta;
-
-    return (fTheta / fPrimeTheta);
-}
-
-// the num of iterations can be varied for higher accuracies
-double customEllipse::NewtonRaphsonThetaEstimation(double th0, double x,
-                                                   double y)
-{
-    double th1 = th0 - NewtonRaphsonIteration(th0, x, y);
-    double th2 = th1 - NewtonRaphsonIteration(th1, x, y);
-    // double th3 = th2 - NewtonRaphsonIteration(th2, x, y);
-    // double th4 = th3 - NewtonRaphsonIteration(th3, x, y);
-
-    return th2;
 }
 
 double customEllipse::GetDistance(cv::Point point, double &estimation)
@@ -1442,74 +1484,4 @@ void customEllipse::getEllipseSamples(int noOfSamples,
         yPoints[i] = -yPoints[i];
         angle += angleStep;
     }
-}
-
-inline double FastSinHP(double x) // High presicion 14x faster
-{
-    double res = 0;
-
-    // always wrap input angle to -PI..PI
-    if (x < -3.14159265)
-        x += 6.28318531;
-    else if (x > 3.14159265)
-        x -= 6.28318531;
-
-    // compute sine
-    if (x < 0) {
-        res = 1.27323954 * x + .405284735 * x * x;
-
-        if (res < 0)
-            res = .225 * (res * -res - res) + res;
-        else
-            res = .225 * (res * res - res) + res;
-    }
-    else {
-        res = 1.27323954 * x - 0.405284735 * x * x;
-
-        if (res < 0)
-            res = .225 * (res * -res - res) + res;
-        else
-            res = .225 * (res * res - res) + res;
-    }
-
-    return res;
-}
-
-inline double FastCosHP(double x)
-{
-    double res = 0;
-
-#if 1 // safer
-    x += 1.57079632;
-    // always wrap input angle to -PI..PI
-    if (x < -3.14159265)
-        x += 6.28318531;
-    else if (x > 3.14159265)
-        x -= 6.28318531;
-
-#else // slightly faster
-    x += 1.57079632;
-    if (x > 3.14159265)
-        x -= 6.28318531;
-
-#endif
-
-    if (x < 0) {
-        res = 1.27323954 * x + 0.405284735 * x * x;
-
-        if (res < 0)
-            res = .225 * (res * -res - res) + res;
-        else
-            res = .225 * (res * res - res) + res;
-    }
-    else {
-        res = 1.27323954 * x - 0.405284735 * x * x;
-
-        if (res < 0)
-            res = .225 * (res * -res - res) + res;
-        else
-            res = .225 * (res * res - res) + res;
-    }
-
-    return res;
 }

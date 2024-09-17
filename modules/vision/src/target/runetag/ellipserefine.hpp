@@ -1,13 +1,13 @@
 #pragma once
 
-#include <opencv2/core/core.hpp>
+#include <opencv2/core/mat.hpp>
 
-namespace cv {
+namespace tl {
 namespace runetag {
 
-extern bool ellipserefine(const cv::RotatedRect& ellipse,
-                          const cv::Mat& gradient_x, const cv::Mat& gradient_y,
-                          double cx, double cy, cv::Matx33d& out, cv::Mat dbg);
+bool ellipserefine(const cv::RotatedRect& ellipse, const cv::Mat& gradient_x,
+                   const cv::Mat& gradient_y, double cx, double cy,
+                   cv::Matx33d& out, cv::Mat dbg);
 
 } // namespace runetag
-} // namespace cv
+} // namespace tl

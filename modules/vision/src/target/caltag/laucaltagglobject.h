@@ -1,5 +1,4 @@
-#ifndef LAUCALTAGGLOBJECT_H
-#define LAUCALTAGGLOBJECT_H
+#pragma once
 
 #ifndef USEHEADLESS
 #include <QLabel>
@@ -27,9 +26,8 @@
 
 #include "laumemoryobject.h"
 
-namespace cv
-{
-    using std::vector;
+namespace cv {
+using std::vector;
 }
 
 #define CALTAGPOLYNOMIALORDER 2
@@ -38,9 +36,7 @@ class LAUCalTagGLObject;
 class LAUCalTagFilterWidget;
 
 #ifndef USEHEADLESS
-/****************************************************************************/
-/****************************************************************************/
-/****************************************************************************/
+
 class LAUCalTagFilterWidget : public QWidget
 {
     Q_OBJECT
@@ -57,16 +53,13 @@ private:
     QSpinBox *mednSpinBox;
     QDoubleSpinBox *offsetSpinBox;
 
-    QSpinBox *minRegionArea;     // MINIMUM REGION AREA
-    QSpinBox *maxRegionArea;     // MAXIMUM REGION AREA
-    QSpinBox *minBoxCount;       // MINIMUM BOX AREA
-    QCheckBox *flipCalTagsFlag;  // IS THE TARGET BACKLIT?
+    QSpinBox *minRegionArea;
+    QSpinBox *maxRegionArea;
+    QSpinBox *minBoxCount;
+    QCheckBox *flipCalTagsFlag; // IS THE TARGET BACKLIT?
 };
 #endif
 
-/****************************************************************************/
-/****************************************************************************/
-/****************************************************************************/
 class LAUCalTagGLObject : public QObject, protected QOpenGLFunctions
 {
     Q_OBJECT
@@ -75,65 +68,40 @@ public:
     LAUCalTagGLObject(QObject *parent = nullptr);
     ~LAUCalTagGLObject();
 
-    bool isValid() const
-    {
-        return (isValidFlag);
-    }
+    bool isValid() const { return (isValidFlag); }
 
-    bool isNull() const
-    {
-        return (!isValid());
-    }
+    bool isNull() const { return (!isValid()); }
 
-    float offset() const
-    {
-        return (quantizationOffset);
-    }
+    float offset() const { return (quantizationOffset); }
 
-    unsigned int medianRadius() const
-    {
-        return (medianFilterRadius);
-    }
+    unsigned int medianRadius() const { return (medianFilterRadius); }
 
-    unsigned int gaussianRadius() const
-    {
-        return (gaussianFilterRadius);
-    }
+    unsigned int gaussianRadius() const { return (gaussianFilterRadius); }
 
-    unsigned int iterations() const
-    {
-        return (iterationCount);
-    }
+    unsigned int iterations() const { return (iterationCount); }
 
-    int minRegion() const
-    {
-        return (minRegionArea);
-    }
+    int minRegion() const { return (minRegionArea); }
 
-    int maxRegion() const
-    {
-        return (maxRegionArea);
-    }
+    int maxRegion() const { return (maxRegionArea); }
 
-    int minBox() const
-    {
-        return (minBoxCount);
-    }
+    int minBox() const { return (minBoxCount); }
 
-    bool flipCalTags() const
-    {
-        return (flipCalTagsFlag);
-    }
+    bool flipCalTags() const { return (flipCalTagsFlag); }
 
     void initializeGL();
-    void processGL(QOpenGLTexture *videoTexture, QOpenGLFramebufferObject *outputFBO = nullptr);
+    void processGL(QOpenGLTexture *videoTexture,
+                   QOpenGLFramebufferObject *outputFBO = nullptr);
     void paintGL();
 
     LAUMemoryObject grabImage();
 
     static QPointF transformPoint(QPointF pt, cv::Mat transformMatrix);
-    static cv::Mat findBestQuadraticMapping(cv::vector<cv::Point2f> fmPoints, cv::vector<cv::Point2f> toPoints, int width, int height, int order = 4);
-    static cv::Mat findBestLinearMapping(cv::vector<cv::Point2f> fmPoints, cv::vector<cv::Point2f> toPoints);
+    static cv::Mat findBestQuadraticMapping(cv::vector<cv::Point2f> fmPoints,
+                                            cv::vector<cv::Point2f> toPoints,
+                                            int width, int height,
+                                            int order = 4);
+    static cv::Mat findBestLinearMapping(cv::vector<cv::Point2f> fmPoints,
+                                         cv::vector<cv::Point2f> toPoints);
 
 #ifndef USEHEADLESS
     LAUCalTagFilterWidget *widget(QWidget *parent = nullptr)
@@ -192,7 +160,8 @@ public slots:
     }
 
 private:
-    typedef struct {
+    typedef struct
+    {
         QPoint cr;
         QPoint xy;
     } Pairing;
@@ -200,17 +169,18 @@ private:
     bool isValidFlag;
     int numRows, numCols;
 
-    QList<LAUCalTagGLObject::Pairing> gridPairings; // KEEP TRACK OF THE LAST SET OF GRID POINT PAIRINGS
+    QList<LAUCalTagGLObject::Pairing>
+        gridPairings; // KEEP TRACK OF THE LAST SET OF GRID POINT PAIRINGS
 
     float quantizationOffset;
     unsigned int medianFilterRadius;
     unsigned int gaussianFilterRadius;
     unsigned int iterationCount;
 
-    int minRegionArea;     // MINIMUM REGION AREA
-    int maxRegionArea;     // MAXIMUM REGION AREA
-    int minBoxCount;       // MINIMUM BOX AREA
-    bool flipCalTagsFlag;  // IS THE TARGET BACKLIT?
+    int minRegionArea;
+    int maxRegionArea;
+    int minBoxCount;
+    bool flipCalTagsFlag; // IS THE TARGET BACKLIT?
 
     LAUMemoryObject memoryObject[3];
 #ifdef QT_DEBUG
@@ -231,24 +201,41 @@ private:
 
     void testFBO(QOpenGLFramebufferObject *fbo[], int cols, int rows);
 
-    void binarize(QOpenGLTexture *videoTexture, QOpenGLFramebufferObject *fboA, QOpenGLFramebufferObject *fboB, QOpenGLFramebufferObject *fboC);
+    void binarize(QOpenGLTexture *videoTexture, QOpenGLFramebufferObject *fboA,
+                  QOpenGLFramebufferObject *fboB,
+                  QOpenGLFramebufferObject *fboC);
     void sobel(QOpenGLFramebufferObject *fboA, QOpenGLFramebufferObject *fboB);
-    void cleanUp(QOpenGLFramebufferObject *fboA, QOpenGLFramebufferObject *fboB);
-    void dilationErosion(QOpenGLFramebufferObject *fboA, QOpenGLFramebufferObject *fboB);
+    void cleanUp(QOpenGLFramebufferObject *fboA,
+                 QOpenGLFramebufferObject *fboB);
+    void dilationErosion(QOpenGLFramebufferObject *fboA,
+                         QOpenGLFramebufferObject *fboB);
 
 #ifdef QT_DEBUG
-    cv::Mat detectCalTagGrid(LAUMemoryObject rwObj, LAUMemoryObject inObj, LAUMemoryObject sbObj, LAUMemoryObject dbObj, int minBoxes, int minArea, int maxArea, bool flipCalTags, QList<Pairing> &pairings, bool *okay = nullptr);
+    cv::Mat detectCalTagGrid(LAUMemoryObject rwObj, LAUMemoryObject inObj,
+                             LAUMemoryObject sbObj, LAUMemoryObject dbObj,
+                             int minBoxes, int minArea, int maxArea,
+                             bool flipCalTags, QList<Pairing> &pairings,
+                             bool *okay = nullptr);
 #else
-    cv::Mat detectCalTagGrid(LAUMemoryObject rwObj, LAUMemoryObject inObj, LAUMemoryObject sbObj, int minBoxes, int minArea, int maxArea, bool flipCalTags, QList<Pairing> &pairings, bool *okay = nullptr);
+    cv::Mat detectCalTagGrid(LAUMemoryObject rwObj, LAUMemoryObject inObj,
+                             LAUMemoryObject sbObj, int minBoxes, int minArea,
+                             int maxArea, bool flipCalTags,
+                             QList<Pairing> &pairings, bool *okay = nullptr);
 #endif
 
     cv::vector<cv::Point2f> sortPoints(cv::vector<cv::Point> points);
-    cv::vector<cv::vector<cv::Point2f>> quadArea(cv::Mat sbImage, int minArea, int maxArea);
-    cv::vector<cv::vector<cv::Point2f>> findSaddles(cv::Mat inImage, cv::vector<cv::vector<cv::Point2f> > quads);
-    cv::vector<cv::vector<cv::Point2f>> findPattern(cv::Mat inImage, cv::vector<cv::vector<cv::Point2f>> squares, bool flipCalTags);
-    cv::vector<cv::vector<cv::Point2f>> organizeSquares(cv::vector<cv::vector<cv::Point2f>> squares);
+    cv::vector<cv::vector<cv::Point2f>> quadArea(cv::Mat sbImage, int minArea,
+                                                 int maxArea);
+    cv::vector<cv::vector<cv::Point2f>> findSaddles(
+        cv::Mat inImage, cv::vector<cv::vector<cv::Point2f>> quads);
+    cv::vector<cv::vector<cv::Point2f>> findPattern(
+        cv::Mat inImage, cv::vector<cv::vector<cv::Point2f>> squares,
+        bool flipCalTags);
+    cv::vector<cv::vector<cv::Point2f>> organizeSquares(
+        cv::vector<cv::vector<cv::Point2f>> squares);
 
-    void removeOutlierPoints(cv::vector<cv::Point2f> &fmPoints, cv::vector<cv::Point2f> &toPoints);
+    void removeOutlierPoints(cv::vector<cv::Point2f> &fmPoints,
+                             cv::vector<cv::Point2f> &toPoints);
     bool checkBitCode(int code, cv::Point2f *pt);
     float length(cv::Point2f point);
     float angle(cv::Point2f point);
@@ -256,5 +243,3 @@ private:
 signals:
     void update();
 };
-
-#endif // LAUCALTAGGLOBJECT_H

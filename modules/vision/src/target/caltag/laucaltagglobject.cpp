@@ -1,158 +1,189 @@
 #include "laucaltagglobject.h"
 
 // DEFINE LOOK-UP TABLE
-const unsigned char bridgeLutA[512] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                                        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                                        0x00, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                                        0x00, 0x00, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0x00, 0x00, 0x00, 0xff,
-                                        0x00, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                                        0x00, 0x00, 0x00, 0x00, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0x00, 0x00,
-                                        0x00, 0xff, 0x00, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0x00,
-                                        0x00, 0x00, 0xff, 0x00, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0xff, 0x00, 0xff, 0xff, 0xff,
-                                        0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                                        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                                        0x00, 0xff, 0x00, 0x00, 0x00, 0xff, 0x00, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00,
-                                        0x00, 0x00, 0xff, 0x00, 0x00, 0x00, 0xff, 0x00, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0xff,
-                                        0x00, 0xff, 0xff, 0xff, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00,
-                                        0x00, 0x00, 0x00, 0x00, 0xff, 0x00, 0x00, 0x00, 0xff, 0x00, 0xff, 0xff, 0xff, 0x00, 0x00,
-                                        0x00, 0xff, 0x00, 0xff, 0xff, 0xff, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00,
-                                        0x00, 0x00, 0xff, 0x00, 0xff, 0xff, 0xff, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-                                        0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-                                        0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                                        0x00, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0x00, 0x00, 0x00, 0xff, 0x00,
-                                        0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0x00, 0x00, 0x00, 0xff,
-                                        0x00, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0xff, 0x00, 0xff, 0xff, 0xff, 0x00, 0xff, 0xff,
-                                        0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0x00, 0x00,
-                                        0x00, 0xff, 0x00, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0xff, 0x00, 0xff, 0xff, 0xff, 0x00,
-                                        0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0xff, 0x00, 0xff, 0xff, 0xff,
-                                        0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-                                        0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                                        0x00, 0xff, 0x00, 0x00, 0x00, 0xff, 0x00, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0xff, 0x00,
-                                        0xff, 0xff, 0xff, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0xff,
-                                        0x00, 0xff, 0xff, 0xff, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0xff, 0xff,
-                                        0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00,
-                                        0x00, 0xff, 0x00, 0xff, 0xff, 0xff, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00,
-                                        0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-                                        0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-                                        0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-                                        0xff, 0xff
-                                      };
+constexpr unsigned char bridgeLutA[512]{
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0x00, 0x00, 0x00, 0xff,
+    0x00, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0xff, 0x00, 0x00, 0x00, 0xff, 0x00, 0xff, 0xff, 0xff,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0x00, 0x00, 0x00, 0xff,
+    0x00, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0xff, 0x00, 0xff, 0xff, 0xff,
+    0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0x00, 0x00, 0x00, 0xff,
+    0x00, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff,
+    0x00, 0x00, 0x00, 0xff, 0x00, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0xff,
+    0x00, 0xff, 0xff, 0xff, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0x00, 0x00, 0x00, 0xff,
+    0x00, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0xff, 0x00, 0xff, 0xff, 0xff,
+    0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0xff,
+    0x00, 0xff, 0xff, 0xff, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0xff, 0x00, 0x00, 0x00, 0xff, 0x00, 0xff, 0xff, 0xff,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0x00, 0x00, 0x00, 0xff,
+    0x00, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0xff, 0x00, 0xff, 0xff, 0xff,
+    0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0xff, 0x00, 0x00, 0x00, 0xff, 0x00, 0xff, 0xff, 0xff,
+    0x00, 0x00, 0x00, 0xff, 0x00, 0xff, 0xff, 0xff, 0x00, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0xff, 0x00, 0xff, 0xff, 0xff,
+    0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0x00, 0x00, 0x00, 0xff,
+    0x00, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0xff, 0x00, 0xff, 0xff, 0xff,
+    0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0xff,
+    0x00, 0xff, 0xff, 0xff, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0xff, 0x00, 0xff, 0xff, 0xff,
+    0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
 
-const unsigned char bridgeLutB[512] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                                       0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0xff, 0xff, 0x00, 0x00, 0xff, 0xff,
-                                       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                                       0x00, 0x00, 0x00, 0xff, 0xff, 0x00, 0x00, 0xff, 0xff, 0x00, 0x00, 0xff, 0xff, 0x00, 0x00,
-                                       0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                                       0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00,
-                                       0x00, 0x00, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                                       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-                                       0xff, 0xff, 0x00, 0x00, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                                       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-                                       0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00,
-                                       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff,
-                                       0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00,
-                                       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xff,
-                                       0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00,
-                                       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                                       0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-                                       0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                                       0x00, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-                                       0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                                       0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0x00, 0x00, 0x00, 0xff, 0x00, 0x00, 0xff, 0xff, 0x00,
-                                       0x00, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                                       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-                                       0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                                       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-                                       0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                                       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff,
-                                       0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00,
-                                       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0x00,
-                                       0x00, 0x00, 0xff, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00,
-                                       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff,
-                                       0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-                                       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                                       0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-                                       0xff, 0xff
-                                      };
+constexpr unsigned char bridgeLutB[512]{
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00,
+    0xff, 0xff, 0x00, 0x00, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0xff, 0xff, 0x00, 0x00, 0xff, 0xff, 0x00, 0x00, 0xff, 0xff, 0x00, 0x00,
+    0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0xff, 0xff, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0x00, 0x00, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0x00, 0x00, 0x00, 0xff, 0x00, 0x00,
+    0xff, 0xff, 0x00, 0x00, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0xff, 0x00, 0x00, 0x00, 0xff, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
 
-const unsigned char bridgeLutC[512] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                                        0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0xff, 0xff,
-                                        0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                                        0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-                                        0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                                        0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00,
-                                        0xff, 0x00, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                                        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-                                        0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                                        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-                                        0xff, 0xff, 0x00, 0x00, 0xff, 0x00, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00,
-                                        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff,
-                                        0x00, 0xff, 0xff, 0xff, 0x00, 0x00, 0xff, 0xff, 0x00, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00,
-                                        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xff,
-                                        0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0xff, 0x00, 0xff, 0xff, 0xff, 0xff, 0x00,
-                                        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                                        0x00, 0xff, 0xff, 0xff, 0x00, 0xff, 0xff, 0xff, 0x00, 0x00, 0xff, 0xff, 0x00, 0xff, 0xff,
-                                        0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                                        0x00, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-                                        0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                                        0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-                                        0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                                        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-                                        0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                                        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-                                        0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                                        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff,
-                                        0xff, 0xff, 0xff, 0x00, 0x00, 0xff, 0x00, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00,
-                                        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xff,
-                                        0xff, 0x00, 0xff, 0xff, 0xff, 0x00, 0x00, 0xff, 0xff, 0x00, 0xff, 0xff, 0xff, 0x00, 0x00,
-                                        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                                        0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0xff, 0x00, 0xff, 0xff, 0xff, 0xff,
-                                        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                                        0x00, 0x00, 0xff, 0xff, 0xff, 0x00, 0xff, 0xff, 0xff, 0x00, 0x00, 0xff, 0xff, 0x00, 0xff,
-                                        0xff, 0xff
-                                      };
+constexpr unsigned char bridgeLutC[512]{
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0x00, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0xff, 0x00, 0xff, 0xff, 0xff, 0xff,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0xff, 0x00,
+    0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff,
+    0x00, 0xff, 0xff, 0xff, 0x00, 0x00, 0xff, 0xff, 0x00, 0xff, 0xff, 0xff,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0x00, 0x00, 0xff, 0x00, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0xff, 0xff, 0xff, 0x00, 0xff, 0xff, 0xff, 0x00, 0x00, 0xff, 0xff,
+    0x00, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff, 0x00, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0x00, 0x00, 0xff, 0x00, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0xff, 0xff, 0xff, 0x00, 0xff, 0xff, 0xff, 0x00, 0x00, 0xff, 0xff,
+    0x00, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0xff, 0x00, 0xff, 0xff, 0xff, 0xff,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0x00, 0xff, 0xff, 0xff,
+    0x00, 0x00, 0xff, 0xff, 0x00, 0xff, 0xff, 0xff};
 
-const unsigned char bridgeLutD[512] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                                        0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0xff, 0xff,
-                                        0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                                        0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-                                        0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                                        0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00,
-                                        0xff, 0x00, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                                        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-                                        0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                                        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-                                        0xff, 0xff, 0x00, 0x00, 0xff, 0x00, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00,
-                                        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff,
-                                        0x00, 0xff, 0xff, 0xff, 0x00, 0x00, 0xff, 0xff, 0x00, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00,
-                                        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xff,
-                                        0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0xff, 0x00, 0xff, 0xff, 0xff, 0xff, 0x00,
-                                        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                                        0x00, 0xff, 0xff, 0xff, 0x00, 0xff, 0xff, 0xff, 0x00, 0x00, 0xff, 0xff, 0x00, 0xff, 0xff,
-                                        0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                                        0x00, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-                                        0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                                        0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-                                        0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                                        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-                                        0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                                        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-                                        0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                                        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff,
-                                        0xff, 0xff, 0xff, 0x00, 0x00, 0xff, 0x00, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00,
-                                        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xff,
-                                        0xff, 0x00, 0xff, 0xff, 0xff, 0x00, 0x00, 0xff, 0xff, 0x00, 0xff, 0xff, 0xff, 0x00, 0x00,
-                                        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                                        0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0xff, 0x00, 0xff, 0xff, 0xff, 0xff,
-                                        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                                        0x00, 0x00, 0xff, 0xff, 0xff, 0x00, 0xff, 0xff, 0xff, 0x00, 0x00, 0xff, 0xff, 0x00, 0xff,
-                                        0xff, 0xff
-                                      };
+constexpr unsigned char bridgeLutD[512]{
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0x00, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0xff, 0x00, 0xff, 0xff, 0xff, 0xff,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0xff, 0x00,
+    0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff,
+    0x00, 0xff, 0xff, 0xff, 0x00, 0x00, 0xff, 0xff, 0x00, 0xff, 0xff, 0xff,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0x00, 0x00, 0xff, 0x00, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0xff, 0xff, 0xff, 0x00, 0xff, 0xff, 0xff, 0x00, 0x00, 0xff, 0xff,
+    0x00, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff, 0x00, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0x00, 0x00, 0xff, 0x00, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0xff, 0xff, 0xff, 0x00, 0xff, 0xff, 0xff, 0x00, 0x00, 0xff, 0xff,
+    0x00, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0xff, 0x00, 0xff, 0xff, 0xff, 0xff,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0x00, 0xff, 0xff, 0xff,
+    0x00, 0x00, 0xff, 0xff, 0x00, 0xff, 0xff, 0xff};
 
-/****************************************************************************/
-/****************************************************************************/
-/****************************************************************************/
-LAUCalTagFilterWidget::LAUCalTagFilterWidget(LAUCalTagGLObject *object, QWidget *parent) : QWidget(parent)
+LAUCalTagFilterWidget::LAUCalTagFilterWidget(LAUCalTagGLObject *object,
+                                             QWidget *parent)
+    : QWidget(parent)
 {
     this->setLayout(new QVBoxLayout());
     this->setWindowTitle(QString("LAUCalTag Dialog"));
@@ -172,26 +203,32 @@ LAUCalTagFilterWidget::LAUCalTagFilterWidget(LAUCalTagGLObject *object, QWidget 
     iterSpinBox->setMaximum(5);
     iterSpinBox->setFixedWidth(80);
     iterSpinBox->setAlignment(Qt::AlignRight);
-    connect(iterSpinBox, SIGNAL(valueChanged(int)), object, SLOT(onSetIterations(int)));
+    connect(iterSpinBox, SIGNAL(valueChanged(int)), object,
+            SLOT(onSetIterations(int)));
 
     QLabel *label = new QLabel(QString("Gaussian Smoother Iterations:"));
     label->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     label->setAlignment(Qt::AlignRight);
-    ((QGridLayout *)(box->layout()))->addWidget(label, 0, 0, 1, 1, Qt::AlignRight);
-    ((QGridLayout *)(box->layout()))->addWidget(iterSpinBox, 0, 1, 1, 1, Qt::AlignLeft);
+    ((QGridLayout *)(box->layout()))
+        ->addWidget(label, 0, 0, 1, 1, Qt::AlignRight);
+    ((QGridLayout *)(box->layout()))
+        ->addWidget(iterSpinBox, 0, 1, 1, 1, Qt::AlignLeft);
 
     gausSpinBox = new QSpinBox();
     gausSpinBox->setMinimum(1);
     gausSpinBox->setMaximum(127);
     gausSpinBox->setFixedWidth(80);
     gausSpinBox->setAlignment(Qt::AlignRight);
-    connect(gausSpinBox, SIGNAL(valueChanged(int)), object, SLOT(onSetGaussianRadius(int)));
+    connect(gausSpinBox, SIGNAL(valueChanged(int)), object,
+            SLOT(onSetGaussianRadius(int)));
 
     label = new QLabel(QString("Guassian Smoother Radius:"));
     label->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     label->setAlignment(Qt::AlignRight);
-    ((QGridLayout *)(box->layout()))->addWidget(label, 0, 2, 1, 1, Qt::AlignRight);
-    ((QGridLayout *)(box->layout()))->addWidget(gausSpinBox, 0, 3, 1, 1, Qt::AlignLeft);
+    ((QGridLayout *)(box->layout()))
+        ->addWidget(label, 0, 2, 1, 1, Qt::AlignRight);
+    ((QGridLayout *)(box->layout()))
+        ->addWidget(gausSpinBox, 0, 3, 1, 1, Qt::AlignLeft);
 
     offsetSpinBox = new QDoubleSpinBox();
     offsetSpinBox->setMinimum(-1.0);
@@ -200,26 +237,32 @@ LAUCalTagFilterWidget::LAUCalTagFilterWidget(LAUCalTagGLObject *object, QWidget 
     offsetSpinBox->setDecimals(4);
     offsetSpinBox->setFixedWidth(80);
     offsetSpinBox->setAlignment(Qt::AlignRight);
-    connect(offsetSpinBox, SIGNAL(valueChanged(double)), object, SLOT(onSetOffset(double)));
+    connect(offsetSpinBox, SIGNAL(valueChanged(double)), object,
+            SLOT(onSetOffset(double)));
 
     label = new QLabel(QString("Gaussian Filter Offset:"));
     label->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     label->setAlignment(Qt::AlignRight);
-    ((QGridLayout *)(box->layout()))->addWidget(label, 1, 0, 1, 1, Qt::AlignRight);
-    ((QGridLayout *)(box->layout()))->addWidget(offsetSpinBox, 1, 1, 1, 1, Qt::AlignLeft);
+    ((QGridLayout *)(box->layout()))
+        ->addWidget(label, 1, 0, 1, 1, Qt::AlignRight);
+    ((QGridLayout *)(box->layout()))
+        ->addWidget(offsetSpinBox, 1, 1, 1, 1, Qt::AlignLeft);
 
     mednSpinBox = new QSpinBox();
     mednSpinBox->setMinimum(0);
     mednSpinBox->setMaximum(127);
     mednSpinBox->setFixedWidth(80);
     mednSpinBox->setAlignment(Qt::AlignRight);
-    connect(mednSpinBox, SIGNAL(valueChanged(int)), object, SLOT(onSetMedianRadius(int)));
+    connect(mednSpinBox, SIGNAL(valueChanged(int)), object,
+            SLOT(onSetMedianRadius(int)));
 
     label = new QLabel(QString("Median Smoother Radius:"));
     label->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     label->setAlignment(Qt::AlignRight);
-    ((QGridLayout *)(box->layout()))->addWidget(label, 1, 2, 1, 1, Qt::AlignRight);
-    ((QGridLayout *)(box->layout()))->addWidget(mednSpinBox, 1, 3, 1, 1, Qt::AlignLeft);
+    ((QGridLayout *)(box->layout()))
+        ->addWidget(label, 1, 2, 1, 1, Qt::AlignRight);
+    ((QGridLayout *)(box->layout()))
+        ->addWidget(mednSpinBox, 1, 3, 1, 1, Qt::AlignLeft);
 
     box = new QGroupBox(QString("CalTag Parameters"));
     box->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
@@ -234,51 +277,63 @@ LAUCalTagFilterWidget::LAUCalTagFilterWidget(LAUCalTagGLObject *object, QWidget 
     minRegionArea->setMaximum(1000000);
     minRegionArea->setValue(128 - 32);
     minRegionArea->setFixedWidth(80);
-    connect(minRegionArea, SIGNAL(valueChanged(int)), object, SLOT(onSetMinRegionArea(int)));
+    connect(minRegionArea, SIGNAL(valueChanged(int)), object,
+            SLOT(onSetMinRegionArea(int)));
 
     label = new QLabel(QString("Minimum Region Area:"));
     label->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     label->setAlignment(Qt::AlignRight);
-    ((QGridLayout *)(box->layout()))->addWidget(label, 0, 0, 1, 1, Qt::AlignRight);
-    ((QGridLayout *)(box->layout()))->addWidget(minRegionArea, 0, 1, 1, 1, Qt::AlignLeft);
+    ((QGridLayout *)(box->layout()))
+        ->addWidget(label, 0, 0, 1, 1, Qt::AlignRight);
+    ((QGridLayout *)(box->layout()))
+        ->addWidget(minRegionArea, 0, 1, 1, 1, Qt::AlignLeft);
 
     maxRegionArea = new QSpinBox();
     maxRegionArea->setMinimum(0);
     maxRegionArea->setMaximum(1000000);
     maxRegionArea->setValue((640 * 480) / 16);
     maxRegionArea->setFixedWidth(80);
-    connect(maxRegionArea, SIGNAL(valueChanged(int)), object, SLOT(onSetMaxRegionArea(int)));
+    connect(maxRegionArea, SIGNAL(valueChanged(int)), object,
+            SLOT(onSetMaxRegionArea(int)));
 
     label = new QLabel(QString("Maximum Region Area:"));
     label->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     label->setAlignment(Qt::AlignRight);
-    ((QGridLayout *)(box->layout()))->addWidget(label, 0, 2, 1, 1, Qt::AlignRight);
-    ((QGridLayout *)(box->layout()))->addWidget(maxRegionArea, 0, 3, 1, 1, Qt::AlignLeft);
+    ((QGridLayout *)(box->layout()))
+        ->addWidget(label, 0, 2, 1, 1, Qt::AlignRight);
+    ((QGridLayout *)(box->layout()))
+        ->addWidget(maxRegionArea, 0, 3, 1, 1, Qt::AlignLeft);
 
     minBoxCount = new QSpinBox();
     minBoxCount->setMinimum(0);
     minBoxCount->setMaximum(1000000);
     minBoxCount->setValue(128);
     minBoxCount->setFixedWidth(80);
-    connect(minBoxCount, SIGNAL(valueChanged(int)), object, SLOT(onSetMinBoxCount(int)));
+    connect(minBoxCount, SIGNAL(valueChanged(int)), object,
+            SLOT(onSetMinBoxCount(int)));
 
     label = new QLabel(QString("Minimum Box Count:"));
     label->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     label->setAlignment(Qt::AlignRight);
-    ((QGridLayout *)(box->layout()))->addWidget(label, 1, 0, 1, 1, Qt::AlignRight);
-    ((QGridLayout *)(box->layout()))->addWidget(minBoxCount, 1, 1, 1, 1, Qt::AlignLeft);
+    ((QGridLayout *)(box->layout()))
+        ->addWidget(label, 1, 0, 1, 1, Qt::AlignRight);
+    ((QGridLayout *)(box->layout()))
+        ->addWidget(minBoxCount, 1, 1, 1, 1, Qt::AlignLeft);
 
     flipCalTagsFlag = new QCheckBox();
     flipCalTagsFlag->setCheckable(true);
     flipCalTagsFlag->setChecked(false);
     flipCalTagsFlag->setFixedWidth(80);
-    connect(flipCalTagsFlag, SIGNAL(toggled(bool)), object, SLOT(onSetFlipCalTagsFlag(bool)));
+    connect(flipCalTagsFlag, SIGNAL(toggled(bool)), object,
+            SLOT(onSetFlipCalTagsFlag(bool)));
 
     label = new QLabel(QString("Flip CalTag (backlight):"));
     label->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     label->setAlignment(Qt::AlignRight);
-    ((QGridLayout *)(box->layout()))->addWidget(label, 1, 2, 1, 1, Qt::AlignRight);
-    ((QGridLayout *)(box->layout()))->addWidget(flipCalTagsFlag, 1, 3, 1, 1, Qt::AlignLeft);
+    ((QGridLayout *)(box->layout()))
+        ->addWidget(label, 1, 2, 1, 1, Qt::AlignRight);
+    ((QGridLayout *)(box->layout()))
+        ->addWidget(flipCalTagsFlag, 1, 3, 1, 1, Qt::AlignLeft);
 
     // SET THE INITIAL VALUES FROM THE SUPPLIED GLOBJECT
     iterSpinBox->setValue(object->iterations());
@@ -292,48 +347,80 @@ LAUCalTagFilterWidget::LAUCalTagFilterWidget(LAUCalTagGLObject *object, QWidget 
     flipCalTagsFlag->setChecked(object->flipCalTags());
 }
 
-/****************************************************************************/
-/****************************************************************************/
-/****************************************************************************/
 void LAUCalTagFilterWidget::load()
 {
     // LOAD THE PARAMETERS FROM SETTINGS
     QSettings settings;
 
-    iterSpinBox->setValue(settings.value(QString("LAUCalTagScanWidget::iterSpinBox"), iterSpinBox->value()).toInt());
-    gausSpinBox->setValue(settings.value(QString("LAUCalTagScanWidget::gausSpinBox"), gausSpinBox->value()).toInt());
-    mednSpinBox->setValue(settings.value(QString("LAUCalTagScanWidget::mednSpinBox"), mednSpinBox->value()).toInt());
-    offsetSpinBox->setValue(settings.value(QString("LAUCalTagScanWidget::offsetSpinBox"), offsetSpinBox->value()).toDouble());
+    iterSpinBox->setValue(
+        settings
+            .value(QString("LAUCalTagScanWidget::iterSpinBox"),
+                   iterSpinBox->value())
+            .toInt());
+    gausSpinBox->setValue(
+        settings
+            .value(QString("LAUCalTagScanWidget::gausSpinBox"),
+                   gausSpinBox->value())
+            .toInt());
+    mednSpinBox->setValue(
+        settings
+            .value(QString("LAUCalTagScanWidget::mednSpinBox"),
+                   mednSpinBox->value())
+            .toInt());
+    offsetSpinBox->setValue(
+        settings
+            .value(QString("LAUCalTagScanWidget::offsetSpinBox"),
+                   offsetSpinBox->value())
+            .toDouble());
 
-    minRegionArea->setValue(settings.value(QString("LAUCalTagScanWidget::minRegionArea"), minRegionArea->value()).toInt());
-    maxRegionArea->setValue(settings.value(QString("LAUCalTagScanWidget::maxRegionArea"), maxRegionArea->value()).toInt());
-    minBoxCount->setValue(settings.value(QString("LAUCalTagScanWidget::minBoxCount"), minBoxCount->value()).toInt());
-    flipCalTagsFlag->setChecked(settings.value(QString("LAUCalTagScanWidget::flipCalTagsFlag"), flipCalTagsFlag->isChecked()).toBool());
+    minRegionArea->setValue(
+        settings
+            .value(QString("LAUCalTagScanWidget::minRegionArea"),
+                   minRegionArea->value())
+            .toInt());
+    maxRegionArea->setValue(
+        settings
+            .value(QString("LAUCalTagScanWidget::maxRegionArea"),
+                   maxRegionArea->value())
+            .toInt());
+    minBoxCount->setValue(
+        settings
+            .value(QString("LAUCalTagScanWidget::minBoxCount"),
+                   minBoxCount->value())
+            .toInt());
+    flipCalTagsFlag->setChecked(
+        settings
+            .value(QString("LAUCalTagScanWidget::flipCalTagsFlag"),
+                   flipCalTagsFlag->isChecked())
+            .toBool());
 }
 
-/****************************************************************************/
-/****************************************************************************/
-/****************************************************************************/
 void LAUCalTagFilterWidget::save()
 {
     // LOAD THE PARAMETERS FROM SETTINGS
     QSettings settings;
 
-    settings.setValue(QString("LAUCalTagScanWidget::iterSpinBox"), iterSpinBox->value());
-    settings.setValue(QString("LAUCalTagScanWidget::gausSpinBox"), gausSpinBox->value());
-    settings.setValue(QString("LAUCalTagScanWidget::mednSpinBox"), mednSpinBox->value());
-    settings.setValue(QString("LAUCalTagScanWidget::offsetSpinBox"), offsetSpinBox->value());
+    settings.setValue(QString("LAUCalTagScanWidget::iterSpinBox"),
+                      iterSpinBox->value());
+    settings.setValue(QString("LAUCalTagScanWidget::gausSpinBox"),
+                      gausSpinBox->value());
+    settings.setValue(QString("LAUCalTagScanWidget::mednSpinBox"),
+                      mednSpinBox->value());
+    settings.setValue(QString("LAUCalTagScanWidget::offsetSpinBox"),
+                      offsetSpinBox->value());
 
-    settings.setValue(QString("LAUCalTagScanWidget::minRegionArea"), minRegionArea->value());
-    settings.setValue(QString("LAUCalTagScanWidget::maxRegionArea"), maxRegionArea->value());
-    settings.setValue(QString("LAUCalTagScanWidget::minBoxCount"), minBoxCount->value());
-    settings.setValue(QString("LAUCalTagScanWidget::flipCalTagsFlag"), flipCalTagsFlag->isChecked());
+    settings.setValue(QString("LAUCalTagScanWidget::minRegionArea"),
+                      minRegionArea->value());
+    settings.setValue(QString("LAUCalTagScanWidget::maxRegionArea"),
+                      maxRegionArea->value());
+    settings.setValue(QString("LAUCalTagScanWidget::minBoxCount"),
+                      minBoxCount->value());
+    settings.setValue(QString("LAUCalTagScanWidget::flipCalTagsFlag"),
+                      flipCalTagsFlag->isChecked());
 }
 
-/****************************************************************************/
-/****************************************************************************/
-/****************************************************************************/
-LAUCalTagGLObject::LAUCalTagGLObject(QObject *parent) : QObject(parent), isValidFlag(false)
+LAUCalTagGLObject::LAUCalTagGLObject(QObject *parent)
+    : QObject(parent), isValidFlag(false)
 {
     // INITIALIZE PRIVATE VARIABLES
     textureLUT = nullptr;
@@ -349,15 +436,12 @@ LAUCalTagGLObject::LAUCalTagGLObject(QObject *parent) : QObject(parent), isValid
     iterationCount = 1;
 
     // INITIALIZE CLASS VARIABLES
-    minBoxCount     = 32;                   // 2X2 PIXELS TIMES 8X8 BOX SIZE
-    maxRegionArea   = (640 * 480) / 16;     // NEEDS IMAGE SIZE AND BYTES PER PIXEL
-    minRegionArea   = maxRegionArea / 10;
+    minBoxCount = 32;                 // 2X2 PIXELS TIMES 8X8 BOX SIZE
+    maxRegionArea = (640 * 480) / 16; // NEEDS IMAGE SIZE AND BYTES PER PIXEL
+    minRegionArea = maxRegionArea / 10;
     flipCalTagsFlag = false;
 }
 
-/****************************************************************************/
-/****************************************************************************/
-/****************************************************************************/
 LAUCalTagGLObject::~LAUCalTagGLObject()
 {
     if (textureLUT) {
@@ -383,9 +467,6 @@ LAUCalTagGLObject::~LAUCalTagGLObject()
     qDebug() << "LAUCalTagGLObject::~LAUCalTagGLObject()";
 }
 
-/****************************************************************************/
-/****************************************************************************/
-/****************************************************************************/
 void LAUCalTagGLObject::initializeGL()
 {
     // INITIALIZE OUR GL CALLS AND SET THE CLEAR COLOR
@@ -396,20 +477,21 @@ void LAUCalTagGLObject::initializeGL()
     quadVertexBuffer.create();
     quadVertexBuffer.setUsagePattern(QOpenGLBuffer::StaticDraw);
     if (quadVertexBuffer.bind()) {
-        // ALLOCATE THE VERTEX BUFFER FOR HOLDING THE FOUR CORNERS OF A RECTANGLE
+        // ALLOCATE THE VERTEX BUFFER FOR HOLDING THE FOUR CORNERS OF A
+        // RECTANGLE
         quadVertexBuffer.allocate(16 * sizeof(float));
         float *buffer = (float *)quadVertexBuffer.map(QOpenGLBuffer::WriteOnly);
         if (buffer) {
-            buffer[0]  = -1.0;
-            buffer[1]  = -1.0;
-            buffer[2]  = 0.0;
-            buffer[3]  = 1.0;
-            buffer[4]  = +1.0;
-            buffer[5]  = -1.0;
-            buffer[6]  = 0.0;
-            buffer[7]  = 1.0;
-            buffer[8]  = +1.0;
-            buffer[9]  = +1.0;
+            buffer[0] = -1.0;
+            buffer[1] = -1.0;
+            buffer[2] = 0.0;
+            buffer[3] = 1.0;
+            buffer[4] = +1.0;
+            buffer[5] = -1.0;
+            buffer[6] = 0.0;
+            buffer[7] = 1.0;
+            buffer[8] = +1.0;
+            buffer[9] = +1.0;
             buffer[10] = 0.0;
             buffer[11] = 1.0;
             buffer[12] = -1.0;
@@ -417,8 +499,10 @@ void LAUCalTagGLObject::initializeGL()
             buffer[14] = 0.0;
             buffer[15] = 1.0;
             quadVertexBuffer.unmap();
-        } else {
-            qDebug() << QString("quadVertexBuffer not allocated.") << glGetError();
+        }
+        else {
+            qDebug() << QString("quadVertexBuffer not allocated.")
+                     << glGetError();
         }
         quadVertexBuffer.release();
     }
@@ -429,7 +513,8 @@ void LAUCalTagGLObject::initializeGL()
     quadIndexBuffer.setUsagePattern(QOpenGLBuffer::StaticDraw);
     if (quadIndexBuffer.bind()) {
         quadIndexBuffer.allocate(6 * sizeof(unsigned int));
-        unsigned int *indices = (unsigned int *)quadIndexBuffer.map(QOpenGLBuffer::WriteOnly);
+        unsigned int *indices =
+            (unsigned int *)quadIndexBuffer.map(QOpenGLBuffer::WriteOnly);
         if (indices) {
             indices[0] = 0;
             indices[1] = 1;
@@ -438,7 +523,8 @@ void LAUCalTagGLObject::initializeGL()
             indices[4] = 2;
             indices[5] = 3;
             quadIndexBuffer.unmap();
-        } else {
+        }
+        else {
             qDebug() << QString("indiceBufferA buffer mapped from GPU.");
         }
         quadIndexBuffer.release();
@@ -455,48 +541,74 @@ void LAUCalTagGLObject::initializeGL()
 
     // NOW ADD OUR LIST OF HARRIS CORNER SHADER PROGRAMS
     setlocale(LC_NUMERIC, "C");
-    programA.addShaderFromSourceFile(QOpenGLShader::Vertex,   ":/shaders/Shaders/filterRGBAtoGray.vert");
-    programA.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shaders/Shaders/filterRGBAtoGray.frag");
+    programA.addShaderFromSourceFile(QOpenGLShader::Vertex,
+                                     ":/shaders/Shaders/filterRGBAtoGray.vert");
+    programA.addShaderFromSourceFile(QOpenGLShader::Fragment,
+                                     ":/shaders/Shaders/filterRGBAtoGray.frag");
     programA.link();
 
-    programB.addShaderFromSourceFile(QOpenGLShader::Vertex,   ":/shaders/Shaders/filterXGaussian.vert");
-    programB.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shaders/Shaders/filterXGaussian.frag");
+    programB.addShaderFromSourceFile(QOpenGLShader::Vertex,
+                                     ":/shaders/Shaders/filterXGaussian.vert");
+    programB.addShaderFromSourceFile(QOpenGLShader::Fragment,
+                                     ":/shaders/Shaders/filterXGaussian.frag");
     programB.link();
 
-    programC.addShaderFromSourceFile(QOpenGLShader::Vertex,   ":/shaders/Shaders/filterYGaussian.vert");
-    programC.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shaders/Shaders/filterYGaussian.frag");
+    programC.addShaderFromSourceFile(QOpenGLShader::Vertex,
+                                     ":/shaders/Shaders/filterYGaussian.vert");
+    programC.addShaderFromSourceFile(QOpenGLShader::Fragment,
+                                     ":/shaders/Shaders/filterYGaussian.frag");
     programC.link();
 
-    programD.addShaderFromSourceFile(QOpenGLShader::Vertex,   ":/shaders/Shaders/filterAdaptiveThreshold.vert");
-    programD.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shaders/Shaders/filterAdaptiveThreshold.frag");
+    programD.addShaderFromSourceFile(
+        QOpenGLShader::Vertex,
+        ":/shaders/Shaders/filterAdaptiveThreshold.vert");
+    programD.addShaderFromSourceFile(
+        QOpenGLShader::Fragment,
+        ":/shaders/Shaders/filterAdaptiveThreshold.frag");
     programD.link();
 
-    programE.addShaderFromSourceFile(QOpenGLShader::Vertex,   ":/shaders/Shaders/filterBinaryMedian.vert");
-    programE.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shaders/Shaders/filterBinaryMedian.frag");
+    programE.addShaderFromSourceFile(
+        QOpenGLShader::Vertex, ":/shaders/Shaders/filterBinaryMedian.vert");
+    programE.addShaderFromSourceFile(
+        QOpenGLShader::Fragment, ":/shaders/Shaders/filterBinaryMedian.frag");
     programE.link();
 
-    programF.addShaderFromSourceFile(QOpenGLShader::Vertex,   ":/shaders/Shaders/filterSobelEdge.vert");
-    programF.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shaders/Shaders/filterSobelEdge.frag");
+    programF.addShaderFromSourceFile(QOpenGLShader::Vertex,
+                                     ":/shaders/Shaders/filterSobelEdge.vert");
+    programF.addShaderFromSourceFile(QOpenGLShader::Fragment,
+                                     ":/shaders/Shaders/filterSobelEdge.frag");
     programF.link();
 
-    programG.addShaderFromSourceFile(QOpenGLShader::Vertex,   ":/shaders/Shaders/filterBinaryLookUpTable.vert");
-    programG.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shaders/Shaders/filterBinaryLookUpTable.frag");
+    programG.addShaderFromSourceFile(
+        QOpenGLShader::Vertex,
+        ":/shaders/Shaders/filterBinaryLookUpTable.vert");
+    programG.addShaderFromSourceFile(
+        QOpenGLShader::Fragment,
+        ":/shaders/Shaders/filterBinaryLookUpTable.frag");
     programG.link();
 
-    programH.addShaderFromSourceFile(QOpenGLShader::Vertex,   ":/shaders/Shaders/filterMaxRGBA.vert");
-    programH.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shaders/Shaders/filterMaxRGBA.frag");
+    programH.addShaderFromSourceFile(QOpenGLShader::Vertex,
+                                     ":/shaders/Shaders/filterMaxRGBA.vert");
+    programH.addShaderFromSourceFile(QOpenGLShader::Fragment,
+                                     ":/shaders/Shaders/filterMaxRGBA.frag");
     programH.link();
 
-    programI.addShaderFromSourceFile(QOpenGLShader::Vertex,   ":/shaders/Shaders/filterMinRGBA.vert");
-    programI.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shaders/Shaders/filterMinRGBA.frag");
+    programI.addShaderFromSourceFile(QOpenGLShader::Vertex,
+                                     ":/shaders/Shaders/filterMinRGBA.vert");
+    programI.addShaderFromSourceFile(QOpenGLShader::Fragment,
+                                     ":/shaders/Shaders/filterMinRGBA.frag");
     programI.link();
 
-    programJ.addShaderFromSourceFile(QOpenGLShader::Vertex,   ":/shaders/Shaders/calTagXYZW.vert");
-    programJ.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shaders/Shaders/calTagXYZW.frag");
+    programJ.addShaderFromSourceFile(QOpenGLShader::Vertex,
+                                     ":/shaders/Shaders/calTagXYZW.vert");
+    programJ.addShaderFromSourceFile(QOpenGLShader::Fragment,
+                                     ":/shaders/Shaders/calTagXYZW.frag");
     programJ.link();
 
-    programK.addShaderFromSourceFile(QOpenGLShader::Vertex,   ":/shaders/Shaders/displayCalTag.vert");
-    programK.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shaders/Shaders/displayCalTag.frag");
+    programK.addShaderFromSourceFile(QOpenGLShader::Vertex,
+                                     ":/shaders/Shaders/displayCalTag.vert");
+    programK.addShaderFromSourceFile(QOpenGLShader::Fragment,
+                                     ":/shaders/Shaders/displayCalTag.frag");
     programK.link();
     setlocale(LC_ALL, "");
 
@@ -504,60 +616,83 @@ void LAUCalTagGLObject::initializeGL()
     isValidFlag = true;
 }
 
-/****************************************************************************/
-/****************************************************************************/
-/****************************************************************************/
-void LAUCalTagGLObject::processGL(QOpenGLTexture *videoTexture, QOpenGLFramebufferObject *outputFBO)
+void LAUCalTagGLObject::processGL(QOpenGLTexture *videoTexture,
+                                  QOpenGLFramebufferObject *outputFBO)
 {
     if (isValid()) {
         // SEE IF WE NEED NEW FBOS
-        testFBO(&frameBufferObjectA, videoTexture->width(), videoTexture->height());
-        testFBO(&frameBufferObjectB, videoTexture->width(), videoTexture->height());
-        testFBO(&frameBufferObjectC, videoTexture->width(), videoTexture->height());
-        testFBO(&frameBufferObjectD, videoTexture->width(), videoTexture->height());
+        testFBO(&frameBufferObjectA, videoTexture->width(),
+                videoTexture->height());
+        testFBO(&frameBufferObjectB, videoTexture->width(),
+                videoTexture->height());
+        testFBO(&frameBufferObjectC, videoTexture->width(),
+                videoTexture->height());
+        testFBO(&frameBufferObjectD, videoTexture->width(),
+                videoTexture->height());
 
         // RESIZE THE BYTE ARRAYS AS NEEDED
-        if (memoryObject[0].width() != (unsigned int)videoTexture->width() || memoryObject[0].height() != (unsigned int)videoTexture->height()) {
-            memoryObject[0] = LAUMemoryObject(videoTexture->width(), videoTexture->height(), 1, sizeof(unsigned char));
-            memoryObject[1] = LAUMemoryObject(videoTexture->width(), videoTexture->height(), 1, sizeof(unsigned char));
-            memoryObject[2] = LAUMemoryObject(videoTexture->width(), videoTexture->height(), 1, sizeof(unsigned char));
+        if (memoryObject[0].width() != (unsigned int)videoTexture->width() ||
+            memoryObject[0].height() != (unsigned int)videoTexture->height()) {
+            memoryObject[0] =
+                LAUMemoryObject(videoTexture->width(), videoTexture->height(),
+                                1, sizeof(unsigned char));
+            memoryObject[1] =
+                LAUMemoryObject(videoTexture->width(), videoTexture->height(),
+                                1, sizeof(unsigned char));
+            memoryObject[2] =
+                LAUMemoryObject(videoTexture->width(), videoTexture->height(),
+                                1, sizeof(unsigned char));
 #ifdef QT_DEBUG
-            debugObject = LAUMemoryObject(videoTexture->width(), videoTexture->height(), 3, sizeof(unsigned char));
+            debugObject =
+                LAUMemoryObject(videoTexture->width(), videoTexture->height(),
+                                3, sizeof(unsigned char));
 #endif
         }
 
         // BINARIZE THE INCOMING BUFFER
-        binarize(videoTexture, frameBufferObjectA, frameBufferObjectB, frameBufferObjectC);
+        binarize(videoTexture, frameBufferObjectA, frameBufferObjectB,
+                 frameBufferObjectC);
         sobel(frameBufferObjectC, frameBufferObjectB);
         cleanUp(frameBufferObjectB, frameBufferObjectA);
         dilationErosion(frameBufferObjectA, frameBufferObjectB);
 
-        // DOWNLOAD THE RESULTING BINARY TEXTURE TO OUR MEMORY BUFFER FOR FURTHER PROCESSING
+        // DOWNLOAD THE RESULTING BINARY TEXTURE TO OUR MEMORY BUFFER FOR
+        // FURTHER PROCESSING
         glBindTexture(GL_TEXTURE_2D, frameBufferObjectA->texture());
         glPixelStorei(GL_PACK_ALIGNMENT, 1);
-        glGetTexImage(GL_TEXTURE_2D, 0, GL_RED, GL_UNSIGNED_BYTE, (unsigned char *)memoryObject[0].constPointer());
-        //memoryObject[0].save(QString("C:/memoryA.tif"));
+        glGetTexImage(GL_TEXTURE_2D, 0, GL_RED, GL_UNSIGNED_BYTE,
+                      (unsigned char *)memoryObject[0].constPointer());
+        // memoryObject[0].save(QString("C:/memoryA.tif"));
 
         glBindTexture(GL_TEXTURE_2D, frameBufferObjectC->texture());
         glPixelStorei(GL_PACK_ALIGNMENT, 1);
-        glGetTexImage(GL_TEXTURE_2D, 0, GL_RED, GL_UNSIGNED_BYTE, (unsigned char *)memoryObject[1].constPointer());
-        //memoryObject[1].save(QString("C:/memoryB.tif"));
+        glGetTexImage(GL_TEXTURE_2D, 0, GL_RED, GL_UNSIGNED_BYTE,
+                      (unsigned char *)memoryObject[1].constPointer());
+        // memoryObject[1].save(QString("C:/memoryB.tif"));
 
-        // DOWNLOAD THE ORIGINAL FRAME TEXTURE TO OUR MEMORY BUFFER FOR FURTHER PROCESSING
+        // DOWNLOAD THE ORIGINAL FRAME TEXTURE TO OUR MEMORY BUFFER FOR FURTHER
+        // PROCESSING
         videoTexture->bind();
         glPixelStorei(GL_PACK_ALIGNMENT, 1);
-        glGetTexImage(GL_TEXTURE_2D, 0, GL_RED, GL_UNSIGNED_BYTE, (unsigned char *)memoryObject[2].constPointer());
-        //memoryObject[2].save(QString("C:/memoryC.tif"));
+        glGetTexImage(GL_TEXTURE_2D, 0, GL_RED, GL_UNSIGNED_BYTE,
+                      (unsigned char *)memoryObject[2].constPointer());
+        // memoryObject[2].save(QString("C:/memoryC.tif"));
 
         // LOOK FOR CALTAGS AND GET THE CR TO XYZ TRANSFORM
         bool okay = false;
 #ifdef QT_DEBUG
         glBindTexture(GL_TEXTURE_2D, frameBufferObjectA->texture());
         glPixelStorei(GL_PACK_ALIGNMENT, 1);
-        glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE, (unsigned char *)debugObject.constPointer());
-        cv::Mat transform = detectCalTagGrid(memoryObject[2], memoryObject[0], memoryObject[1], debugObject, minBoxCount, minRegionArea, maxRegionArea, flipCalTagsFlag, gridPairings, &okay);
+        glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE,
+                      (unsigned char *)debugObject.constPointer());
+        cv::Mat transform = detectCalTagGrid(
+            memoryObject[2], memoryObject[0], memoryObject[1], debugObject,
+            minBoxCount, minRegionArea, maxRegionArea, flipCalTagsFlag,
+            gridPairings, &okay);
 #else
-        cv::Mat transform = detectCalTagGrid(memoryObject[0], memoryObject[1], minBoxCount, minRegionArea, maxRegionArea, flipCalTagsFlag, gridPairings, &okay);
+        cv::Mat transform = detectCalTagGrid(
+            memoryObject[0], memoryObject[1], minBoxCount, minRegionArea,
+            maxRegionArea, flipCalTagsFlag, gridPairings, &okay);
 #endif
         float transformAsVector[30];
         for (int n = 0; n < 30; n++) {
@@ -569,7 +704,8 @@ void LAUCalTagGLObject::processGL(QOpenGLTexture *videoTexture, QOpenGLFramebuff
         if (frameBufferObjectB && frameBufferObjectB->bind()) {
             if (programJ.bind()) {
                 // CLEAR THE FRAME BUFFER OBJECT
-                glViewport(0, 0, frameBufferObjectB->width(), frameBufferObjectB->height());
+                glViewport(0, 0, frameBufferObjectB->width(),
+                           frameBufferObjectB->height());
                 glClearColor(NAN, NAN, NAN, NAN);
                 glClear(GL_COLOR_BUFFER_BIT);
 
@@ -578,19 +714,29 @@ void LAUCalTagGLObject::processGL(QOpenGLTexture *videoTexture, QOpenGLFramebuff
                     if (quadIndexBuffer.bind()) {
                         // BIND THE TEXTURE FROM THE FRAME BUFFER OBJECT
                         glActiveTexture(GL_TEXTURE0);
-                        glBindTexture(GL_TEXTURE_2D, frameBufferObjectC->texture());
+                        glBindTexture(GL_TEXTURE_2D,
+                                      frameBufferObjectC->texture());
                         programJ.setUniformValue("qt_texture", 0);
 
                         // SET THE TRANSFORM PARAMETERS ON THE SHADER
-                        programJ.setUniformValue("qt_offset", QPointF((float)frameBufferObjectB->width() / 2.0f, (float)frameBufferObjectB->height() / 2.0f));
-                        programJ.setUniformValueArray("qt_transform", transformAsVector, 30, 1);
+                        programJ.setUniformValue(
+                            "qt_offset",
+                            QPointF(
+                                (float)frameBufferObjectB->width() / 2.0f,
+                                (float)frameBufferObjectB->height() / 2.0f));
+                        programJ.setUniformValueArray("qt_transform",
+                                                      transformAsVector, 30, 1);
 
-                        // TELL OPENGL PROGRAMMABLE PIPELINE HOW TO LOCATE VERTEX POSITION DATA
-                        glVertexAttribPointer(programJ.attributeLocation("qt_vertex"), 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
+                        // TELL OPENGL PROGRAMMABLE PIPELINE HOW TO LOCATE
+                        // VERTEX POSITION DATA
+                        glVertexAttribPointer(
+                            programJ.attributeLocation("qt_vertex"), 4,
+                            GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
                         programJ.enableAttributeArray("qt_vertex");
                         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
-                        // RELEASE THE FRAME BUFFER OBJECT AND ITS ASSOCIATED GLSL PROGRAMS
+                        // RELEASE THE FRAME BUFFER OBJECT AND ITS ASSOCIATED
+                        // GLSL PROGRAMS
                         quadIndexBuffer.release();
                     }
                     quadVertexBuffer.release();
@@ -602,39 +748,41 @@ void LAUCalTagGLObject::processGL(QOpenGLTexture *videoTexture, QOpenGLFramebuff
 
         // COPY THE LOCAL FRAME BUFFER OBJECT TO THE USER SUPPLIED BUFFER
         if (outputFBO) {
-            QOpenGLFramebufferObject::blitFramebuffer(outputFBO, frameBufferObjectB);
+            QOpenGLFramebufferObject::blitFramebuffer(outputFBO,
+                                                      frameBufferObjectB);
         }
     }
 }
 
-/****************************************************************************/
-/****************************************************************************/
-/****************************************************************************/
-void LAUCalTagGLObject::testFBO(QOpenGLFramebufferObject *fbo[], int cols, int rows)
+void LAUCalTagGLObject::testFBO(QOpenGLFramebufferObject *fbo[], int cols,
+                                int rows)
 {
     if ((*fbo) == nullptr) {
         // CREATE A FORMAT OBJECT FOR CREATING THE FRAME BUFFER
         QOpenGLFramebufferObjectFormat frameBufferObjectFormat;
         frameBufferObjectFormat.setInternalTextureFormat(GL_RGBA32F);
 
-        (*fbo) = new QOpenGLFramebufferObject(cols, rows, frameBufferObjectFormat);
+        (*fbo) =
+            new QOpenGLFramebufferObject(cols, rows, frameBufferObjectFormat);
         (*fbo)->release();
-    } else if ((*fbo)->width() != cols || (*fbo)->height() != rows) {
+    }
+    else if ((*fbo)->width() != cols || (*fbo)->height() != rows) {
         delete (*fbo);
 
         // CREATE A FORMAT OBJECT FOR CREATING THE FRAME BUFFER
         QOpenGLFramebufferObjectFormat frameBufferObjectFormat;
         frameBufferObjectFormat.setInternalTextureFormat(GL_RGBA32F);
 
-        (*fbo) = new QOpenGLFramebufferObject(cols, rows, frameBufferObjectFormat);
+        (*fbo) =
+            new QOpenGLFramebufferObject(cols, rows, frameBufferObjectFormat);
         (*fbo)->release();
     }
 }
 
-/****************************************************************************/
-/****************************************************************************/
-/****************************************************************************/
-void LAUCalTagGLObject::binarize(QOpenGLTexture *videoTexture, QOpenGLFramebufferObject *fboA, QOpenGLFramebufferObject *fboB, QOpenGLFramebufferObject *fboC)
+void LAUCalTagGLObject::binarize(QOpenGLTexture *videoTexture,
+                                 QOpenGLFramebufferObject *fboA,
+                                 QOpenGLFramebufferObject *fboB,
+                                 QOpenGLFramebufferObject *fboC)
 {
     // BIND THE FRAME BUFFER OBJECT FOR PROCESSING
     if (fboA && fboA->bind()) {
@@ -651,12 +799,16 @@ void LAUCalTagGLObject::binarize(QOpenGLTexture *videoTexture, QOpenGLFramebuffe
                     videoTexture->bind();
                     programA.setUniformValue("qt_texture", 0);
 
-                    // Tell OpenGL programAmable pipeline how to locate vertex position data
-                    glVertexAttribPointer(programA.attributeLocation("qt_vertex"), 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
+                    // Tell OpenGL programAmable pipeline how to locate vertex
+                    // position data
+                    glVertexAttribPointer(
+                        programA.attributeLocation("qt_vertex"), 4, GL_FLOAT,
+                        GL_FALSE, 4 * sizeof(float), 0);
                     programA.enableAttributeArray("qt_vertex");
                     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
-                    // RELEASE THE FRAME BUFFER OBJECT AND ITS ASSOCIATED GLSL PROGRAMS
+                    // RELEASE THE FRAME BUFFER OBJECT AND ITS ASSOCIATED GLSL
+                    // PROGRAMS
                     quadIndexBuffer.release();
                 }
                 quadVertexBuffer.release();
@@ -686,15 +838,21 @@ void LAUCalTagGLObject::binarize(QOpenGLTexture *videoTexture, QOpenGLFramebuffe
                         glBindTexture(GL_TEXTURE_2D, fboC->texture());
                         programB.setUniformValue("qt_texture", 1);
 
-                        // TELL THE SHADER HOW MANY PIXELS WIDE TO APPLY GAUSSIAN FILTER
-                        programB.setUniformValue("qt_width", (int)gaussianFilterRadius);
+                        // TELL THE SHADER HOW MANY PIXELS WIDE TO APPLY
+                        // GAUSSIAN FILTER
+                        programB.setUniformValue("qt_width",
+                                                 (int)gaussianFilterRadius);
 
-                        // TELL OPENGL PROGRAMMABLE PIPELINE HOW TO LOCATE VERTEX POSITION DATA
-                        glVertexAttribPointer(programB.attributeLocation("qt_vertex"), 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
+                        // TELL OPENGL PROGRAMMABLE PIPELINE HOW TO LOCATE
+                        // VERTEX POSITION DATA
+                        glVertexAttribPointer(
+                            programB.attributeLocation("qt_vertex"), 4,
+                            GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
                         programB.enableAttributeArray("qt_vertex");
                         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
-                        // RELEASE THE FRAME BUFFER OBJECT AND ITS ASSOCIATED GLSL PROGRAMS
+                        // RELEASE THE FRAME BUFFER OBJECT AND ITS ASSOCIATED
+                        // GLSL PROGRAMS
                         quadIndexBuffer.release();
                     }
                     quadVertexBuffer.release();
@@ -720,15 +878,21 @@ void LAUCalTagGLObject::binarize(QOpenGLTexture *videoTexture, QOpenGLFramebuffe
                         glBindTexture(GL_TEXTURE_2D, fboB->texture());
                         programC.setUniformValue("qt_texture", 2);
 
-                        // TELL THE SHADER HOW MANY PIXELS WIDE TO APPLY GAUSSIAN FILTER
-                        programC.setUniformValue("qt_width", (int)gaussianFilterRadius);
+                        // TELL THE SHADER HOW MANY PIXELS WIDE TO APPLY
+                        // GAUSSIAN FILTER
+                        programC.setUniformValue("qt_width",
+                                                 (int)gaussianFilterRadius);
 
-                        // Tell OpenGL programmable pipeline how to locate vertex position data
-                        glVertexAttribPointer(programC.attributeLocation("qt_vertex"), 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
+                        // Tell OpenGL programmable pipeline how to locate
+                        // vertex position data
+                        glVertexAttribPointer(
+                            programC.attributeLocation("qt_vertex"), 4,
+                            GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
                         programC.enableAttributeArray("qt_vertex");
                         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
-                        // RELEASE THE FRAME BUFFER OBJECT AND ITS ASSOCIATED GLSL PROGRAMS
+                        // RELEASE THE FRAME BUFFER OBJECT AND ITS ASSOCIATED
+                        // GLSL PROGRAMS
                         quadIndexBuffer.release();
                     }
                     quadVertexBuffer.release();
@@ -764,12 +928,16 @@ void LAUCalTagGLObject::binarize(QOpenGLTexture *videoTexture, QOpenGLFramebuffe
                     // SET THE FLOATING POINT OFFSET FOR QUANTIZATION
                     programD.setUniformValue("qt_offset", quantizationOffset);
 
-                    // Tell OpenGL programmable pipeline how to locate vertex position data
-                    glVertexAttribPointer(programD.attributeLocation("qt_vertex"), 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
+                    // Tell OpenGL programmable pipeline how to locate vertex
+                    // position data
+                    glVertexAttribPointer(
+                        programD.attributeLocation("qt_vertex"), 4, GL_FLOAT,
+                        GL_FALSE, 4 * sizeof(float), 0);
                     programD.enableAttributeArray("qt_vertex");
                     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
-                    // RELEASE THE FRAME BUFFER OBJECT AND ITS ASSOCIATED GLSL PROGRAMS
+                    // RELEASE THE FRAME BUFFER OBJECT AND ITS ASSOCIATED GLSL
+                    // PROGRAMS
                     quadIndexBuffer.release();
                 }
                 quadVertexBuffer.release();
@@ -797,15 +965,24 @@ void LAUCalTagGLObject::binarize(QOpenGLTexture *videoTexture, QOpenGLFramebuffe
                         programE.setUniformValue("qt_texture", 4);
 
                         // SET THE MEDIAN FILTER RADIUS
-                        programE.setUniformValue("qt_radius", (int)medianFilterRadius);
-                        programE.setUniformValue("qt_threshold", (float)((2 * medianFilterRadius + 1) * (2 * medianFilterRadius + 1)) / 2.0f);
+                        programE.setUniformValue("qt_radius",
+                                                 (int)medianFilterRadius);
+                        programE.setUniformValue(
+                            "qt_threshold",
+                            (float)((2 * medianFilterRadius + 1) *
+                                    (2 * medianFilterRadius + 1)) /
+                                2.0f);
 
-                        // Tell OpenGL programmable pipeline how to locate vertex position data
-                        glVertexAttribPointer(programE.attributeLocation("qt_vertex"), 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
+                        // Tell OpenGL programmable pipeline how to locate
+                        // vertex position data
+                        glVertexAttribPointer(
+                            programE.attributeLocation("qt_vertex"), 4,
+                            GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
                         programE.enableAttributeArray("qt_vertex");
                         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
-                        // RELEASE THE FRAME BUFFER OBJECT AND ITS ASSOCIATED GLSL PROGRAMS
+                        // RELEASE THE FRAME BUFFER OBJECT AND ITS ASSOCIATED
+                        // GLSL PROGRAMS
                         quadIndexBuffer.release();
                     }
                     quadVertexBuffer.release();
@@ -814,16 +991,15 @@ void LAUCalTagGLObject::binarize(QOpenGLTexture *videoTexture, QOpenGLFramebuffe
             }
             fboC->release();
         }
-    } else {
+    }
+    else {
         // COPY THE RESCALED IMAGE BACK TO FRAME BUFFER OBJECT A TO FBO C
         QOpenGLFramebufferObject::blitFramebuffer(fboC, fboB);
     }
 }
 
-/****************************************************************************/
-/****************************************************************************/
-/****************************************************************************/
-void LAUCalTagGLObject::sobel(QOpenGLFramebufferObject *fboA, QOpenGLFramebufferObject *fboB)
+void LAUCalTagGLObject::sobel(QOpenGLFramebufferObject *fboA,
+                              QOpenGLFramebufferObject *fboB)
 {
     // APPLY A SOBEL EDGE DETECTING FILTER TO THE BINARY IMAGE
     if (fboB && fboB->bind()) {
@@ -841,12 +1017,16 @@ void LAUCalTagGLObject::sobel(QOpenGLFramebufferObject *fboA, QOpenGLFramebuffer
                     glBindTexture(GL_TEXTURE_2D, fboA->texture());
                     programF.setUniformValue("qt_texture", 5);
 
-                    // TELL OPENGL PROGRAMMABLE PIPELINE HOW TO LOCATE VERTEX POSITION DATA
-                    glVertexAttribPointer(programF.attributeLocation("qt_vertex"), 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
+                    // TELL OPENGL PROGRAMMABLE PIPELINE HOW TO LOCATE VERTEX
+                    // POSITION DATA
+                    glVertexAttribPointer(
+                        programF.attributeLocation("qt_vertex"), 4, GL_FLOAT,
+                        GL_FALSE, 4 * sizeof(float), 0);
                     programF.enableAttributeArray("qt_vertex");
                     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 
-                    // RELEASE THE FRAME BUFFER OBJECT AND ITS ASSOCIATED GLSL PROGRAMS
+                    // RELEASE THE FRAME BUFFER OBJECT AND ITS ASSOCIATED GLSL
+                    // PROGRAMS
                     quadIndexBuffer.release();
                 }
                 quadVertexBuffer.release();
@@ -857,10 +1037,8 @@ void LAUCalTagGLObject::sobel(QOpenGLFramebufferObject *fboA, QOpenGLFramebuffer
     }
 }
 
-/****************************************************************************/
-/****************************************************************************/
-/****************************************************************************/
-void LAUCalTagGLObject::cleanUp(QOpenGLFramebufferObject *fboA, QOpenGLFramebufferObject *fboB)
+void LAUCalTagGLObject::cleanUp(QOpenGLFramebufferObject *fboA,
+                                QOpenGLFramebufferObject *fboB)
 {
     for (int n = 0; n < 4; n++) {
         QOpenGLFramebufferObject *inFBO = nullptr;
@@ -870,22 +1048,26 @@ void LAUCalTagGLObject::cleanUp(QOpenGLFramebufferObject *fboA, QOpenGLFramebuff
             case 0:
                 inFBO = fboA;
                 otFBO = fboB;
-                textureLUT->setData(QOpenGLTexture::Red, QOpenGLTexture::UInt8, (const void *)bridgeLutA);
+                textureLUT->setData(QOpenGLTexture::Red, QOpenGLTexture::UInt8,
+                                    (const void *)bridgeLutA);
                 break;
             case 1:
                 inFBO = fboA;
                 otFBO = fboB;
-                textureLUT->setData(QOpenGLTexture::Red, QOpenGLTexture::UInt8, (const void *)bridgeLutB);
+                textureLUT->setData(QOpenGLTexture::Red, QOpenGLTexture::UInt8,
+                                    (const void *)bridgeLutB);
                 break;
             case 2:
                 inFBO = fboB;
                 otFBO = fboA;
-                textureLUT->setData(QOpenGLTexture::Red, QOpenGLTexture::UInt8, (const void *)bridgeLutC);
+                textureLUT->setData(QOpenGLTexture::Red, QOpenGLTexture::UInt8,
+                                    (const void *)bridgeLutC);
                 break;
             case 3:
                 inFBO = fboA;
                 otFBO = fboB;
-                textureLUT->setData(QOpenGLTexture::Red, QOpenGLTexture::UInt8, (const void *)bridgeLutD);
+                textureLUT->setData(QOpenGLTexture::Red, QOpenGLTexture::UInt8,
+                                    (const void *)bridgeLutD);
                 break;
         }
 
@@ -910,12 +1092,16 @@ void LAUCalTagGLObject::cleanUp(QOpenGLFramebufferObject *fboA, QOpenGLFramebuff
                         textureLUT->bind();
                         programG.setUniformValue("qt_lookUpTable", 7);
 
-                        // TELL OPENGL PROGRAMMABLE PIPELINE HOW TO LOCATE VERTEX POSITION DATA
-                        glVertexAttribPointer(programG.attributeLocation("qt_vertex"), 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
+                        // TELL OPENGL PROGRAMMABLE PIPELINE HOW TO LOCATE
+                        // VERTEX POSITION DATA
+                        glVertexAttribPointer(
+                            programG.attributeLocation("qt_vertex"), 4,
+                            GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
                         programG.enableAttributeArray("qt_vertex");
                         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
-                        // RELEASE THE FRAME BUFFER OBJECT AND ITS ASSOCIATED GLSL PROGRAMS
+                        // RELEASE THE FRAME BUFFER OBJECT AND ITS ASSOCIATED
+                        // GLSL PROGRAMS
                         quadIndexBuffer.release();
                     }
                     quadVertexBuffer.release();
@@ -944,12 +1130,16 @@ void LAUCalTagGLObject::cleanUp(QOpenGLFramebufferObject *fboA, QOpenGLFramebuff
                         programE.setUniformValue("qt_radius", 1);
                         programE.setUniformValue("qt_threshold", 4.5f);
 
-                        // Tell OpenGL programmable pipeline how to locate vertex position data
-                        glVertexAttribPointer(programE.attributeLocation("qt_vertex"), 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
+                        // Tell OpenGL programmable pipeline how to locate
+                        // vertex position data
+                        glVertexAttribPointer(
+                            programE.attributeLocation("qt_vertex"), 4,
+                            GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
                         programE.enableAttributeArray("qt_vertex");
                         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
-                        // RELEASE THE FRAME BUFFER OBJECT AND ITS ASSOCIATED GLSL PROGRAMS
+                        // RELEASE THE FRAME BUFFER OBJECT AND ITS ASSOCIATED
+                        // GLSL PROGRAMS
                         quadIndexBuffer.release();
                     }
                     quadVertexBuffer.release();
@@ -964,10 +1154,8 @@ void LAUCalTagGLObject::cleanUp(QOpenGLFramebufferObject *fboA, QOpenGLFramebuff
     QOpenGLFramebufferObject::blitFramebuffer(fboB, fboA);
 }
 
-/****************************************************************************/
-/****************************************************************************/
-/****************************************************************************/
-void LAUCalTagGLObject::dilationErosion(QOpenGLFramebufferObject *fboA, QOpenGLFramebufferObject *fboB)
+void LAUCalTagGLObject::dilationErosion(QOpenGLFramebufferObject *fboA,
+                                        QOpenGLFramebufferObject *fboB)
 {
     // APPLY EROSION AS THE MIN FILTER OPERATION
     if (fboB && fboB->bind()) {
@@ -988,12 +1176,16 @@ void LAUCalTagGLObject::dilationErosion(QOpenGLFramebufferObject *fboA, QOpenGLF
                     // SET THE MEDIAN FILTER RADIUS
                     programH.setUniformValue("qt_radius", 1);
 
-                    // TELL OPENGL PROGRAMMABLE PIPELINE HOW TO LOCATE VERTEX POSITION DATA
-                    glVertexAttribPointer(programH.attributeLocation("qt_vertex"), 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
+                    // TELL OPENGL PROGRAMMABLE PIPELINE HOW TO LOCATE VERTEX
+                    // POSITION DATA
+                    glVertexAttribPointer(
+                        programH.attributeLocation("qt_vertex"), 4, GL_FLOAT,
+                        GL_FALSE, 4 * sizeof(float), 0);
                     programH.enableAttributeArray("qt_vertex");
                     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
-                    // RELEASE THE FRAME BUFFER OBJECT AND ITS ASSOCIATED GLSL PROGRAMS
+                    // RELEASE THE FRAME BUFFER OBJECT AND ITS ASSOCIATED GLSL
+                    // PROGRAMS
                     quadIndexBuffer.release();
                 }
                 quadVertexBuffer.release();
@@ -1022,12 +1214,16 @@ void LAUCalTagGLObject::dilationErosion(QOpenGLFramebufferObject *fboA, QOpenGLF
                     // SET THE MEDIAN FILTER RADIUS
                     programI.setUniformValue("qt_radius", 1);
 
-                    // TELL OPENGL PROGRAMMABLE PIPELINE HOW TO LOCATE VERTEX POSITION DATA
-                    glVertexAttribPointer(programI.attributeLocation("qt_vertex"), 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
+                    // TELL OPENGL PROGRAMMABLE PIPELINE HOW TO LOCATE VERTEX
+                    // POSITION DATA
+                    glVertexAttribPointer(
+                        programI.attributeLocation("qt_vertex"), 4, GL_FLOAT,
+                        GL_FALSE, 4 * sizeof(float), 0);
                     programI.enableAttributeArray("qt_vertex");
                     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
-                    // RELEASE THE FRAME BUFFER OBJECT AND ITS ASSOCIATED GLSL PROGRAMS
+                    // RELEASE THE FRAME BUFFER OBJECT AND ITS ASSOCIATED GLSL
+                    // PROGRAMS
                     quadIndexBuffer.release();
                 }
                 quadVertexBuffer.release();
@@ -1041,13 +1237,16 @@ void LAUCalTagGLObject::dilationErosion(QOpenGLFramebufferObject *fboA, QOpenGLF
     // QOpenGLFramebufferObject::blitFramebuffer(fboA, fboB);
 }
 
-/***************************************************************************/
-/***************************************************************************/
-/***************************************************************************/
 #ifdef QT_DEBUG
-cv::Mat LAUCalTagGLObject::detectCalTagGrid(LAUMemoryObject rwObj, LAUMemoryObject sbObj, LAUMemoryObject inObj, LAUMemoryObject dbObj, int minBoxes, int minRegion, int maxRegion, bool flipCalTags, QList<Pairing> &pairings, bool *okay)
+cv::Mat LAUCalTagGLObject::detectCalTagGrid(
+    LAUMemoryObject rwObj, LAUMemoryObject sbObj, LAUMemoryObject inObj,
+    LAUMemoryObject dbObj, int minBoxes, int minRegion, int maxRegion,
+    bool flipCalTags, QList<Pairing> &pairings, bool *okay)
 #else
-cv::Mat LAUCalTagGLObject::detectCalTagGrid(LAUMemoryObject rwObj, LAUMemoryObject sbObj, LAUMemoryObject inObj, int minBoxes, int minRegion, int maxRegion, bool flipCalTags, QList<Pairing> &pairings, bool *okay)
+cv::Mat LAUCalTagGLObject::detectCalTagGrid(
+    LAUMemoryObject rwObj, LAUMemoryObject sbObj, LAUMemoryObject inObj,
+    int minBoxes, int minRegion, int maxRegion, bool flipCalTags,
+    QList<Pairing> &pairings, bool *okay)
 #endif
 {
     qDebug() << minBoxes << minRegion << maxRegion << flipCalTags;
@@ -1059,25 +1258,31 @@ cv::Mat LAUCalTagGLObject::detectCalTagGrid(LAUMemoryObject rwObj, LAUMemoryObje
     cv::Mat localTransform(1, 30, CV_64F);
 
     // CREATE CV::MAT WRAPPER AROUND OUR MEMORY OBJECT
-    cv::Mat rwImage(rwObj.height(), rwObj.width(), CV_8UC1, (unsigned char *)rwObj.constPointer(), rwObj.step());
-    cv::Mat inImage(inObj.height(), inObj.width(), CV_8UC1, (unsigned char *)inObj.constPointer(), inObj.step());
-    cv::Mat sbImage(sbObj.height(), sbObj.width(), CV_8UC1, (unsigned char *)sbObj.constPointer(), sbObj.step());
+    cv::Mat rwImage(rwObj.height(), rwObj.width(), CV_8UC1,
+                    (unsigned char *)rwObj.constPointer(), rwObj.step());
+    cv::Mat inImage(inObj.height(), inObj.width(), CV_8UC1,
+                    (unsigned char *)inObj.constPointer(), inObj.step());
+    cv::Mat sbImage(sbObj.height(), sbObj.width(), CV_8UC1,
+                    (unsigned char *)sbObj.constPointer(), sbObj.step());
 #ifdef QT_DEBUG
-    cv::Mat dbImage(dbObj.height(), dbObj.width(), CV_8UC3, (unsigned char *)dbObj.constPointer(), dbObj.step());
+    cv::Mat dbImage(dbObj.height(), dbObj.width(), CV_8UC3,
+                    (unsigned char *)dbObj.constPointer(), dbObj.step());
 #endif
 
     // FIND QUADRILATERALS IN THE SOBEL EDGE IMAGE
-    cv::vector<cv::vector<cv::Point2f>> quads = quadArea(sbImage, minRegion, maxRegion);
+    cv::vector<cv::vector<cv::Point2f>> quads =
+        quadArea(sbImage, minRegion, maxRegion);
 
     // GET A GOOD APPROXIMATION OF WHERE THE SADDLE POINTS ARE
     quads = findSaddles(rwImage, quads);
-    //quads = organizeSquares(quads);
+    // quads = organizeSquares(quads);
 
 #ifdef QT_DEBUG
     for (unsigned int n = 0; n < quads.size(); n++) {
         for (unsigned int m = 0; m < quads[n].size(); m++) {
             if (qIsNaN(quads[n][m].x * quads[n][m].y) == false) {
-                cv::circle(dbImage, quads[n][m], 4, cv::Scalar(255, 255, 0), -1);
+                cv::circle(dbImage, quads[n][m], 4, cv::Scalar(255, 255, 0),
+                           -1);
             }
         }
     }
@@ -1085,13 +1290,15 @@ cv::Mat LAUCalTagGLObject::detectCalTagGrid(LAUMemoryObject rwObj, LAUMemoryObje
 #endif
 
     // DECODE THE CALTAG SQUARES
-    cv::vector<cv::vector<cv::Point2f>> coordinates = findPattern(inImage, quads, flipCalTags);
+    cv::vector<cv::vector<cv::Point2f>> coordinates =
+        findPattern(inImage, quads, flipCalTags);
 
 #ifdef QT_DEBUG
     for (unsigned int n = 0; n < coordinates.size(); n++) {
         for (unsigned int m = 0; m < coordinates[n].size(); m++) {
             if (qIsNaN(coordinates[n][m].x * coordinates[n][m].y) == false) {
-                cv::circle(dbImage, quads[n][m], 4, cv::Scalar(255, 255, 0), -1);
+                cv::circle(dbImage, quads[n][m], 4, cv::Scalar(255, 255, 0),
+                           -1);
             }
         }
     }
@@ -1100,37 +1307,43 @@ cv::Mat LAUCalTagGLObject::detectCalTagGrid(LAUMemoryObject rwObj, LAUMemoryObje
 
     // MAKE SURE WE HAVE ENOUGH DETECTED RECTANGLES
     if (quads.size() > (unsigned long)minBoxes) {
-        // PRINT OUT A REPORT ON HOW IMAGE SQUARES ARE ALIGNED AND HOW THEY GET MAPPED TO CALTAG SQUARES
-        //QFile file(QString("/tmp/squaresReport.txt"));
-        //if (file.open(QIODevice::WriteOnly)) {
+        // PRINT OUT A REPORT ON HOW IMAGE SQUARES ARE ALIGNED AND HOW THEY GET
+        // MAPPED TO CALTAG SQUARES
+        // QFile file(QString("/tmp/squaresReport.txt"));
+        // if (file.open(QIODevice::WriteOnly)) {
         //    QTextStream stream(&file);
         //    for (unsigned int n = 0; n < squares.size(); n++) {
         //        for (int c = 0; c < 4; c++) {
-        //            stream << QString("%1, %2, %3, %4\n").arg(squares[n][c].x).arg(squares[n][c].y).arg(coordinates[n][c].x).arg(coordinates[n][c].y);
+        //            stream << QString("%1, %2, %3,
+        //            %4\n").arg(squares[n][c].x).arg(squares[n][c].y).arg(coordinates[n][c].x).arg(coordinates[n][c].y);
         //        }
         //    }
         //    file.close();
         //}
 
-        // DELETE INVALID SQUARES WHILE ACCUMULATING POINTS FROM IMAGE TO GRID SPACE
+        // DELETE INVALID SQUARES WHILE ACCUMULATING POINTS FROM IMAGE TO GRID
+        // SPACE
         cv::vector<cv::Point2f> toPoints, fmPoints;
         for (unsigned int i = 0; i < coordinates.size(); i++) {
             for (unsigned int j = 0; j < 4; j++) {
                 // SEE IF THIS COORDINATE IS A NAN
-                if (qIsNaN(coordinates[i][j].x * coordinates[i][j].y) == false) {
+                if (qIsNaN(coordinates[i][j].x * coordinates[i][j].y) ==
+                    false) {
                     fmPoints.push_back(quads[i][j]);
                     toPoints.push_back(coordinates[i][j]);
                 }
             }
         }
 
-        // LETS REMOVE OUTLIERS FROM OUR FMPOINTS BY USING A LINEAR MAPPING BETWEEN THE TWO
+        // LETS REMOVE OUTLIERS FROM OUR FMPOINTS BY USING A LINEAR MAPPING
+        // BETWEEN THE TWO
         removeOutlierPoints(fmPoints, toPoints);
 
         // MAKE SURE WE HAVE ENOUGH DETECTED POINTS
         if (toPoints.size() > (unsigned long)minBoxes) {
             // MAKE A LOCAL COPY OF THE POINT PAIRINGS
-            for (unsigned int n = 0; n < toPoints.size() && n < fmPoints.size(); n++) {
+            for (unsigned int n = 0; n < toPoints.size() && n < fmPoints.size();
+                 n++) {
                 Pairing pairing;
                 pairing.cr = QPoint(fmPoints[n].x, fmPoints[n].y);
                 pairing.xy = QPoint(toPoints[n].x, toPoints[n].y);
@@ -1138,18 +1351,22 @@ cv::Mat LAUCalTagGLObject::detectCalTagGrid(LAUMemoryObject rwObj, LAUMemoryObje
             }
 
             // FIND BEST TRANSFORM FROM CAMERA TO CALIBRATION WORLD COORDINATES
-            localTransform = findBestQuadraticMapping(fmPoints, toPoints, inObj.width(), inObj.height(), CALTAGPOLYNOMIALORDER);
+            localTransform =
+                findBestQuadraticMapping(fmPoints, toPoints, inObj.width(),
+                                         inObj.height(), CALTAGPOLYNOMIALORDER);
             if (okay) {
                 *okay = true;
             }
-        } else {
+        }
+        else {
             // SET THE TRANSFORM TO AN INVALID MATRIX
             localTransform.setTo(NAN);
             if (okay) {
                 *okay = false;
             }
         }
-    } else {
+    }
+    else {
         // SET THE TRANSFORM TO AN INVALID MATRIX
         localTransform.setTo(NAN);
         if (okay) {
@@ -1159,17 +1376,17 @@ cv::Mat LAUCalTagGLObject::detectCalTagGrid(LAUMemoryObject rwObj, LAUMemoryObje
     return (localTransform);
 }
 
-/***************************************************************************/
-/***************************************************************************/
-/***************************************************************************/
-cv::vector<cv::vector<cv::Point2f>> LAUCalTagGLObject::quadArea(cv::Mat sbImage, int minArea, int maxArea)
+cv::vector<cv::vector<cv::Point2f>> LAUCalTagGLObject::quadArea(cv::Mat sbImage,
+                                                                int minArea,
+                                                                int maxArea)
 {
     // CREATE ASSOCIATED DATA STRUCTURES TO HOLD INTERMEDIATE RESULTS
     cv::vector<cv::vector<cv::Point>> contours;
     cv::vector<cv::Vec4i> hierarchy;
 
     // SEARCH AND STORE ANY CONTOURS IN THE IMAGE
-    cv::findContours(sbImage.clone(), contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_NONE, cv::Point(0, 0));
+    cv::findContours(sbImage.clone(), contours, hierarchy, CV_RETR_TREE,
+                     CV_CHAIN_APPROX_NONE, cv::Point(0, 0));
 
     cv::vector<cv::vector<cv::Point>> contoursPoly;
     cv::vector<cv::vector<cv::Point2f>> quadrilaterals;
@@ -1178,7 +1395,8 @@ cv::vector<cv::vector<cv::Point2f>> LAUCalTagGLObject::quadArea(cv::Mat sbImage,
     for (unsigned int i = 0; i < contours.size(); ++i) {
         contoursPoly.push_back(contours[i]);
         cv::approxPolyDP(contours[i], contoursPoly[i], 5.0, true);
-        if (contoursPoly[i].size() == 4 && cv::isContourConvex(contoursPoly[i])) {
+        if (contoursPoly[i].size() == 4 &&
+            cv::isContourConvex(contoursPoly[i])) {
             int area = cv::contourArea(contoursPoly[i]);
             if (area > minArea && area < maxArea) {
                 quadrilaterals.push_back(sortPoints(contoursPoly[i]));
@@ -1189,21 +1407,22 @@ cv::vector<cv::vector<cv::Point2f>> LAUCalTagGLObject::quadArea(cv::Mat sbImage,
     return (quadrilaterals);
 }
 
-/***************************************************************************/
-/***************************************************************************/
-/***************************************************************************/
-cv::vector<cv::vector<cv::Point2f>> LAUCalTagGLObject::findSaddles(cv::Mat inImage, cv::vector<cv::vector<cv::Point2f>> quads)
+cv::vector<cv::vector<cv::Point2f>> LAUCalTagGLObject::findSaddles(
+    cv::Mat inImage, cv::vector<cv::vector<cv::Point2f>> quads)
 {
     for (unsigned int n = 0; n < quads.size(); n++) {
-        cv::TermCriteria criteria = cv::TermCriteria(cv::TermCriteria::EPS + cv::TermCriteria::COUNT, 400, 0.0001);
-        cv::cornerSubPix(inImage, quads[n], cv::Size(9, 9), cv::Size(3, 3), criteria);
+        cv::TermCriteria criteria = cv::TermCriteria(
+            cv::TermCriteria::EPS + cv::TermCriteria::COUNT, 400, 0.0001);
+        cv::cornerSubPix(inImage, quads[n], cv::Size(9, 9), cv::Size(3, 3),
+                         criteria);
     }
 
     QList<unsigned int> indices;
     for (unsigned int m = 0; m < 4 * quads.size(); m++) {
         cv::Point2f meanPt(0.0f, 0.0f);
         for (unsigned int n = m; n < 4 * quads.size(); n++) {
-            if (LAUCalTagGLObject::length(quads[m / 4][m % 4] - quads[n / 4][n % 4]) < 20.0f) {
+            if (LAUCalTagGLObject::length(quads[m / 4][m % 4] -
+                                          quads[n / 4][n % 4]) < 20.0f) {
                 meanPt = meanPt + quads[n / 4][n % 4];
                 indices << n;
             }
@@ -1220,10 +1439,9 @@ cv::vector<cv::vector<cv::Point2f>> LAUCalTagGLObject::findSaddles(cv::Mat inIma
     return (quads);
 }
 
-/****************************************************************************/
-/****************************************************************************/
-/****************************************************************************/
-cv::vector<cv::vector<cv::Point2f>> LAUCalTagGLObject::findPattern(cv::Mat inImage, cv::vector<cv::vector<cv::Point2f>> squares, bool flipCalTags)
+cv::vector<cv::vector<cv::Point2f>> LAUCalTagGLObject::findPattern(
+    cv::Mat inImage, cv::vector<cv::vector<cv::Point2f>> squares,
+    bool flipCalTags)
 {
     // CREATE OUTPUT DATA STRUCTURE
     cv::vector<cv::vector<cv::Point2f>> outputSquares;
@@ -1263,25 +1481,30 @@ cv::vector<cv::vector<cv::Point2f>> LAUCalTagGLObject::findPattern(cv::Mat inIma
         decodingMatrix.at<int>(i / 4, i % 4) = qRound(pow(2.0, (double)i));
     }
 
-    // NOW LET'S TRY ALL ORIENTATIONS TO SEE WHICH IS THE MOST LIKELY ORIENTATION
-    int hist[4] = { 0, 0, 0, 0};
+    // NOW LET'S TRY ALL ORIENTATIONS TO SEE WHICH IS THE MOST LIKELY
+    // ORIENTATION
+    int hist[4] = {0, 0, 0, 0};
     for (unsigned int n = 0; n < squares.size(); n++) {
-        // DERIVE SQUARE COORDINATES TO IMAGE PIXEL COORDINATES BASED ON CURRENT SQUARE
+        // DERIVE SQUARE COORDINATES TO IMAGE PIXEL COORDINATES BASED ON CURRENT
+        // SQUARE
         cv::vector<cv::Point2f> inPoints;
         for (int c = 0; c < 4; c++) {
             inPoints.push_back(squares[n][c]);
         }
-        cv::Mat localTransform = cv::getPerspectiveTransform(sqPoints, inPoints);
+        cv::Mat localTransform =
+            cv::getPerspectiveTransform(sqPoints, inPoints);
 
         // MAP THE CODE BIT COORDINATES TO IMAGE PIXEL COORDINATES
         cv::Mat codeMatrix(4, 4, CV_32S);
         cv::transform(gdPoints, kgPoints, localTransform);
         for (unsigned int i = 0; i < kgPoints.size(); i++) {
-            // ACCUMULATE THE SUM OF PIXELS WITHIN A SMALL WINDOW ABOUT CURRENT PIXEL
+            // ACCUMULATE THE SUM OF PIXELS WITHIN A SMALL WINDOW ABOUT CURRENT
+            // PIXEL
             int row = qRound(kgPoints[i].y / kgPoints[i].z);
             int col = qRound(kgPoints[i].x / kgPoints[i].z);
 
-            // MAKE SURE THE CURRENT COORDINATE IS WITHIN THE BOUNDS OF THE IMAGE
+            // MAKE SURE THE CURRENT COORDINATE IS WITHIN THE BOUNDS OF THE
+            // IMAGE
             if (row > 0 && row < inImage.rows - 1) {
                 if (col > 0 && col < inImage.cols - 1) {
                     int sum = 0;
@@ -1293,7 +1516,8 @@ cv::vector<cv::vector<cv::Point2f>> LAUCalTagGLObject::findPattern(cv::Mat inIma
                     // COPY THE CURRENT BIT TO THE CODE MATRIX
                     if (sum > 4) {
                         codeMatrix.at<int>(i / 4, 3 - i % 4) = 1;
-                    } else {
+                    }
+                    else {
                         codeMatrix.at<int>(i / 4, 3 - i % 4) = 0;
                     }
                 }
@@ -1342,30 +1566,36 @@ cv::vector<cv::vector<cv::Point2f>> LAUCalTagGLObject::findPattern(cv::Mat inIma
     int orientation = 3;
     if (hist[0] > hist[1] && hist[0] > hist[2] && hist[0] > hist[3]) {
         orientation = 0;
-    } else if (hist[1] > hist[0] && hist[1] > hist[2] && hist[1] > hist[3]) {
+    }
+    else if (hist[1] > hist[0] && hist[1] > hist[2] && hist[1] > hist[3]) {
         orientation = 1;
-    } else if (hist[2] > hist[0] && hist[2] > hist[1] && hist[2] > hist[3]) {
+    }
+    else if (hist[2] > hist[0] && hist[2] > hist[1] && hist[2] > hist[3]) {
         orientation = 2;
     }
 
     int validCodeCounter = 0;
     for (unsigned int n = 0; n < squares.size(); n++) {
-        // DERIVE SQUARE COORDINATES TO IMAGE PIXEL COORDINATES BASED ON CURRENT SQUARE
+        // DERIVE SQUARE COORDINATES TO IMAGE PIXEL COORDINATES BASED ON CURRENT
+        // SQUARE
         cv::vector<cv::Point2f> inPoints;
         for (int c = 0; c < 4; c++) {
             inPoints.push_back(squares[n][c]);
         }
-        cv::Mat localTransform = cv::getPerspectiveTransform(sqPoints, inPoints);
+        cv::Mat localTransform =
+            cv::getPerspectiveTransform(sqPoints, inPoints);
 
         // MAP THE CODE BIT COORDINATES TO IMAGE PIXEL COORDINATES
         cv::Mat codeMatrix(4, 4, CV_32S);
         cv::transform(gdPoints, kgPoints, localTransform);
         for (unsigned int i = 0; i < kgPoints.size(); i++) {
-            // ACCUMULATE THE SUM OF PIXELS WITHIN A SMALL WINDOW ABOUT CURRENT PIXEL
+            // ACCUMULATE THE SUM OF PIXELS WITHIN A SMALL WINDOW ABOUT CURRENT
+            // PIXEL
             int row = qRound(kgPoints[i].y / kgPoints[i].z);
             int col = qRound(kgPoints[i].x / kgPoints[i].z);
 
-            // MAKE SURE THE CURRENT COORDINATE IS WITHIN THE BOUNDS OF THE IMAGE
+            // MAKE SURE THE CURRENT COORDINATE IS WITHIN THE BOUNDS OF THE
+            // IMAGE
             if (row > 0 && row < inImage.rows - 1) {
                 if (col > 0 && col < inImage.cols - 1) {
                     int sum = 0;
@@ -1377,7 +1607,8 @@ cv::vector<cv::vector<cv::Point2f>> LAUCalTagGLObject::findPattern(cv::Mat inIma
                     // COPY THE CURRENT BIT TO THE CODE MATRIX
                     if (sum > 4) {
                         codeMatrix.at<int>(i / 4, 3 - i % 4) = 1;
-                    } else {
+                    }
+                    else {
                         codeMatrix.at<int>(i / 4, 3 - i % 4) = 0;
                     }
                 }
@@ -1402,19 +1633,22 @@ cv::vector<cv::vector<cv::Point2f>> LAUCalTagGLObject::findPattern(cv::Mat inIma
                     cv::flip(matrix, matrix, 1);
                     code = decodingMatrix.dot(matrix);
 
-                    if (orientation != 2 || checkBitCode(code, &point) == false) {
+                    if (orientation != 2 ||
+                        checkBitCode(code, &point) == false) {
                         cv::transpose(matrix, matrix);
                         cv::flip(matrix, matrix, 1);
                         code = decodingMatrix.dot(matrix);
 
-                        if (orientation != 3 || checkBitCode(code, &point) == false) {
+                        if (orientation != 3 ||
+                            checkBitCode(code, &point) == false) {
                             cv::vector<cv::Point2f> square;
                             square.push_back(cv::Point2f(NAN, NAN));
                             square.push_back(cv::Point2f(NAN, NAN));
                             square.push_back(cv::Point2f(NAN, NAN));
                             square.push_back(cv::Point2f(NAN, NAN));
                             outputSquares.push_back(square);
-                        } else {
+                        }
+                        else {
                             validCodeCounter++;
                             cv::vector<cv::Point2f> square;
                             square.push_back(sqPoints[3] + point);
@@ -1423,7 +1657,8 @@ cv::vector<cv::vector<cv::Point2f>> LAUCalTagGLObject::findPattern(cv::Mat inIma
                             square.push_back(sqPoints[0] + point);
                             outputSquares.push_back(square);
                         }
-                    } else {
+                    }
+                    else {
                         validCodeCounter++;
                         cv::vector<cv::Point2f> square;
                         square.push_back(sqPoints[2] + point);
@@ -1432,7 +1667,8 @@ cv::vector<cv::vector<cv::Point2f>> LAUCalTagGLObject::findPattern(cv::Mat inIma
                         square.push_back(sqPoints[3] + point);
                         outputSquares.push_back(square);
                     }
-                } else {
+                }
+                else {
                     validCodeCounter++;
                     cv::vector<cv::Point2f> square;
                     square.push_back(sqPoints[1] + point);
@@ -1441,7 +1677,8 @@ cv::vector<cv::vector<cv::Point2f>> LAUCalTagGLObject::findPattern(cv::Mat inIma
                     square.push_back(sqPoints[2] + point);
                     outputSquares.push_back(square);
                 }
-            } else {
+            }
+            else {
                 cv::vector<cv::Point2f> square;
                 square.push_back(sqPoints[0] + point);
                 square.push_back(sqPoints[3] + point);
@@ -1449,7 +1686,8 @@ cv::vector<cv::vector<cv::Point2f>> LAUCalTagGLObject::findPattern(cv::Mat inIma
                 square.push_back(sqPoints[1] + point);
                 outputSquares.push_back(square);
             }
-        } else {
+        }
+        else {
             cv::Point2f point;
             unsigned int code = decodingMatrix.dot(codeMatrix);
             if (orientation != 0 || checkBitCode(code, &point) == false) {
@@ -1463,19 +1701,22 @@ cv::vector<cv::vector<cv::Point2f>> LAUCalTagGLObject::findPattern(cv::Mat inIma
                     cv::flip(matrix, matrix, 1);
                     code = decodingMatrix.dot(matrix);
 
-                    if (orientation != 2 || checkBitCode(code, &point) == false) {
+                    if (orientation != 2 ||
+                        checkBitCode(code, &point) == false) {
                         cv::transpose(matrix, matrix);
                         cv::flip(matrix, matrix, 1);
                         code = decodingMatrix.dot(matrix);
 
-                        if (orientation != 3 || checkBitCode(code, &point) == false) {
+                        if (orientation != 3 ||
+                            checkBitCode(code, &point) == false) {
                             cv::vector<cv::Point2f> square;
                             square.push_back(cv::Point2f(NAN, NAN));
                             square.push_back(cv::Point2f(NAN, NAN));
                             square.push_back(cv::Point2f(NAN, NAN));
                             square.push_back(cv::Point2f(NAN, NAN));
                             outputSquares.push_back(square);
-                        } else {
+                        }
+                        else {
                             validCodeCounter++;
                             cv::vector<cv::Point2f> square;
                             square.push_back(sqPoints[0] + point);
@@ -1484,7 +1725,8 @@ cv::vector<cv::vector<cv::Point2f>> LAUCalTagGLObject::findPattern(cv::Mat inIma
                             square.push_back(sqPoints[3] + point);
                             outputSquares.push_back(square);
                         }
-                    } else {
+                    }
+                    else {
                         validCodeCounter++;
                         cv::vector<cv::Point2f> square;
                         square.push_back(sqPoints[3] + point);
@@ -1493,7 +1735,8 @@ cv::vector<cv::vector<cv::Point2f>> LAUCalTagGLObject::findPattern(cv::Mat inIma
                         square.push_back(sqPoints[2] + point);
                         outputSquares.push_back(square);
                     }
-                } else {
+                }
+                else {
                     validCodeCounter++;
                     cv::vector<cv::Point2f> square;
                     square.push_back(sqPoints[2] + point);
@@ -1502,7 +1745,8 @@ cv::vector<cv::vector<cv::Point2f>> LAUCalTagGLObject::findPattern(cv::Mat inIma
                     square.push_back(sqPoints[1] + point);
                     outputSquares.push_back(square);
                 }
-            } else {
+            }
+            else {
                 cv::vector<cv::Point2f> square;
                 square.push_back(sqPoints[1] + point);
                 square.push_back(sqPoints[2] + point);
@@ -1511,8 +1755,12 @@ cv::vector<cv::vector<cv::Point2f>> LAUCalTagGLObject::findPattern(cv::Mat inIma
                 outputSquares.push_back(square);
 
                 // PRINT OUT THE IMAGE COORDINATES AND THE DETECTED CODE
-                //qDebug() << n << squares[n][0].x << squares[n][0].y << squares[n][1].x << squares[n][1].y << squares[n][2].x << squares[n][2].y << squares[n][3].x << squares[n][3].y <<  code;
-                //qDebug() << n << square[0].x << square[0].y << square[1].x << square[1].y << square[2].x << square[2].y << square[3].x << square[3].y <<  code;
+                // qDebug() << n << squares[n][0].x << squares[n][0].y <<
+                // squares[n][1].x << squares[n][1].y << squares[n][2].x <<
+                // squares[n][2].y << squares[n][3].x << squares[n][3].y <<
+                // code; qDebug() << n << square[0].x << square[0].y <<
+                // square[1].x << square[1].y << square[2].x << square[2].y <<
+                // square[3].x << square[3].y <<  code;
             }
         }
     }
@@ -1522,10 +1770,8 @@ cv::vector<cv::vector<cv::Point2f>> LAUCalTagGLObject::findPattern(cv::Mat inIma
     return (outputSquares);
 }
 
-/****************************************************************************/
-/****************************************************************************/
-/****************************************************************************/
-cv::vector<cv::Point2f> LAUCalTagGLObject::sortPoints(cv::vector<cv::Point> points)
+cv::vector<cv::Point2f> LAUCalTagGLObject::sortPoints(
+    cv::vector<cv::Point> points)
 {
     cv::Point2f center;
     for (unsigned int n = 0; n < points.size(); n++) {
@@ -1536,7 +1782,8 @@ cv::vector<cv::Point2f> LAUCalTagGLObject::sortPoints(cv::vector<cv::Point> poin
     QList<float> angles;
     QList<int> indices;
     for (unsigned int n = 0; n < points.size(); n++) {
-        angles << atan2((float)points[n].y - center.y, (float)points[n].x - center.x);
+        angles << atan2((float)points[n].y - center.y,
+                        (float)points[n].x - center.x);
         indices << n;
     }
 
@@ -1553,27 +1800,32 @@ cv::vector<cv::Point2f> LAUCalTagGLObject::sortPoints(cv::vector<cv::Point> poin
     // RECONSTRUCT SQUARE IN CLOCKWISE ORDER
     cv::vector<cv::Point2f> output;
     for (unsigned int n = 0; n < points.size(); n++) {
-        output.push_back(cv::Point2f((float)points[indices.at(n)].x, (float)points[indices.at(n)].y));
+        output.push_back(cv::Point2f((float)points[indices.at(n)].x,
+                                     (float)points[indices.at(n)].y));
     }
     return (output);
 }
 
-/****************************************************************************/
-/****************************************************************************/
-/****************************************************************************/
-cv::vector<cv::vector<cv::Point2f>> LAUCalTagGLObject::organizeSquares(cv::vector<cv::vector<cv::Point2f>> squares)
+cv::vector<cv::vector<cv::Point2f>> LAUCalTagGLObject::organizeSquares(
+    cv::vector<cv::vector<cv::Point2f>> squares)
 {
     cv::vector<cv::vector<cv::Point2f>> outputSquares;
 
     for (unsigned int n = 0; n < squares.size(); n++) {
-        cv::Point2f center = (squares[n][0] + squares[n][1] + squares[n][2] + squares[n][3]) / 4.0f;
+        cv::Point2f center =
+            (squares[n][0] + squares[n][1] + squares[n][2] + squares[n][3]) /
+            4.0f;
         float angles[4];
-        int indices[4] = { 0, 1, 2, 3 };
+        int indices[4] = {0, 1, 2, 3};
 
-        angles[0] = atan2(squares[n][0].y - center.y, squares[n][0].x - center.x);
-        angles[1] = atan2(squares[n][1].y - center.y, squares[n][1].x - center.x);
-        angles[2] = atan2(squares[n][2].y - center.y, squares[n][2].x - center.x);
-        angles[3] = atan2(squares[n][3].y - center.y, squares[n][3].x - center.x);
+        angles[0] =
+            atan2(squares[n][0].y - center.y, squares[n][0].x - center.x);
+        angles[1] =
+            atan2(squares[n][1].y - center.y, squares[n][1].x - center.x);
+        angles[2] =
+            atan2(squares[n][2].y - center.y, squares[n][2].x - center.x);
+        angles[3] =
+            atan2(squares[n][3].y - center.y, squares[n][3].x - center.x);
 
         // SORT ANGLES
         for (int m = 0; m < 3; m++) {
@@ -1599,13 +1851,15 @@ cv::vector<cv::vector<cv::Point2f>> LAUCalTagGLObject::organizeSquares(cv::vecto
         outputSquares.push_back(square);
     }
 
-    // PRINT OUT A REPORT ON HOW IMAGE SQUARES ARE ALIGNED AND HOW THEY GET MAPPED TO CALTAG SQUARES
-    //QFile file(QString("/tmp/organizeReport.txt"));
-    //if (file.open(QIODevice::WriteOnly)) {
+    // PRINT OUT A REPORT ON HOW IMAGE SQUARES ARE ALIGNED AND HOW THEY GET
+    // MAPPED TO CALTAG SQUARES
+    // QFile file(QString("/tmp/organizeReport.txt"));
+    // if (file.open(QIODevice::WriteOnly)) {
     //    QTextStream stream(&file);
     //    for (unsigned int n = 0; n < squares.size(); n++) {
     //        for (int c = 0; c < 4; c++) {
-    //            stream << QString("%1, %2, %3, %4\n").arg(squares[n][c].x).arg(squares[n][c].y).arg(outputSquares[n][c].x).arg(outputSquares[n][c].y);
+    //            stream << QString("%1, %2, %3,
+    //            %4\n").arg(squares[n][c].x).arg(squares[n][c].y).arg(outputSquares[n][c].x).arg(outputSquares[n][c].y);
     //        }
     //    }
     //    file.close();
@@ -1614,20 +1868,15 @@ cv::vector<cv::vector<cv::Point2f>> LAUCalTagGLObject::organizeSquares(cv::vecto
     return (outputSquares);
 }
 
-/****************************************************************************/
-/****************************************************************************/
-/****************************************************************************/
 bool LAUCalTagGLObject::checkBitCode(int code, cv::Point2f *pt)
 {
     qDebug() << "Code:" << code;
-    //#define USE4x4CALTAGTARGET
+    // #define USE4x4CALTAGTARGET
 #ifdef USE4x4CALTAGTARGET
-    static const int realBitCodes[4][4] = {
-        {55832,	36200,	48172,	36446},
-        {52024,	40282,	44062,	40830},
-        {48648,	35962,	48446,	53085},
-        {44840,	56409,	60701,	56957}
-    };
+    static const int realBitCodes[4][4] = {{55832, 36200, 48172, 36446},
+                                           {52024, 40282, 44062, 40830},
+                                           {48648, 35962, 48446, 53085},
+                                           {44840, 56409, 60701, 56957}};
 
     for (int i = 0; i < 4; i++) {
         for (int j = 3; j >= 0; j--) {
@@ -1638,25 +1887,39 @@ bool LAUCalTagGLObject::checkBitCode(int code, cv::Point2f *pt)
         }
     }
 #else
-//#define USESQUARECALTAGTARGET
+// #define USESQUARECALTAGTARGET
 #ifdef USESQUARECALTAGTARGET
-    static const int realBitCodes[15][15] = {
-        {8578, 12720, 56439, 52567, 56677, 52293, 40038, 36166, 40308, 63606, 59734, 63844, 59460, 47207, 43335},
-        {47477, 65079, 61207, 60933, 48678, 48948, 55862, 51990, 56100, 51716, 39463, 35591, 39733, 35349, 53107},
-        {56915, 57153, 36706, 40514, 36464, 40784, 60274, 64082, 60000, 43875, 47683, 43633, 47953, 60723, 64531},
-        {60449, 64769, 44322, 48130, 44080, 51506, 55314, 55552, 35107, 38915, 34865, 39185, 23879, 19829, 3190},
-        {7510, 3428, 7236, 31046, 26996, 30804, 10359, 14679, 14405, 28199, 32519, 28469, 32277, 11830, 16150},
-        {12068, 15876, 18982, 23302, 19252, 23060, 6935, 2853, 6661, 24419, 24177, 20305, 8050, 3666, 7776},
-        {31586, 27202, 31344, 27472, 15219, 10835, 14945, 11073, 32035, 27651, 31793, 27921, 15666, 11282, 11520},
-        {22818, 22576, 18704, 6451, 6177, 54646, 50262, 54372, 50500, 38247, 33863, 38005, 34133, 61815, 57431},
-        {57669, 45414, 41030, 45172, 41300, 63286, 58902, 63012, 59140, 46887, 42503, 46645, 42773, 54071, 49687},
-        {53797, 49925, 37670, 33286, 37428, 50802, 55122, 51040, 34403, 38723, 34673, 38481, 57971, 62291, 58209},
-        {62017, 41570, 45890, 41840, 45648, 58418, 62738, 58656, 62464, 42019, 46339, 42289, 46097, 49203, 53523},
-        {49441, 53249, 37122, 33072, 17766, 21574, 17524, 21844, 5207, 1125, 5445, 24935, 28743, 24693, 29013},
-        {8566, 12374, 8292, 12612, 26406, 30214, 26164, 30484, 10039, 13847, 9765, 14085, 17191, 20999, 16949},
-        {21269, 822, 4630, 4868, 22114, 18242, 22384, 18000, 5747, 1875, 5985, 1601, 29283, 25411, 29553},
-        {25169, 12914, 9042, 13152, 29730, 25858, 30000, 25616, 13363, 9491, 13601, 20515, 16643, 20785, 4146}
-    };
+    constexpr int realBitCodes[15][15]{
+        {8578, 12720, 56439, 52567, 56677, 52293, 40038, 36166, 40308, 63606,
+         59734, 63844, 59460, 47207, 43335},
+        {47477, 65079, 61207, 60933, 48678, 48948, 55862, 51990, 56100, 51716,
+         39463, 35591, 39733, 35349, 53107},
+        {56915, 57153, 36706, 40514, 36464, 40784, 60274, 64082, 60000, 43875,
+         47683, 43633, 47953, 60723, 64531},
+        {60449, 64769, 44322, 48130, 44080, 51506, 55314, 55552, 35107, 38915,
+         34865, 39185, 23879, 19829, 3190},
+        {7510, 3428, 7236, 31046, 26996, 30804, 10359, 14679, 14405, 28199,
+         32519, 28469, 32277, 11830, 16150},
+        {12068, 15876, 18982, 23302, 19252, 23060, 6935, 2853, 6661, 24419,
+         24177, 20305, 8050, 3666, 7776},
+        {31586, 27202, 31344, 27472, 15219, 10835, 14945, 11073, 32035, 27651,
+         31793, 27921, 15666, 11282, 11520},
+        {22818, 22576, 18704, 6451, 6177, 54646, 50262, 54372, 50500, 38247,
+         33863, 38005, 34133, 61815, 57431},
+        {57669, 45414, 41030, 45172, 41300, 63286, 58902, 63012, 59140, 46887,
+         42503, 46645, 42773, 54071, 49687},
+        {53797, 49925, 37670, 33286, 37428, 50802, 55122, 51040, 34403, 38723,
+         34673, 38481, 57971, 62291, 58209},
+        {62017, 41570, 45890, 41840, 45648, 58418, 62738, 58656, 62464, 42019,
+         46339, 42289, 46097, 49203, 53523},
+        {49441, 53249, 37122, 33072, 17766, 21574, 17524, 21844, 5207, 1125,
+         5445, 24935, 28743, 24693, 29013},
+        {8566, 12374, 8292, 12612, 26406, 30214, 26164, 30484, 10039, 13847,
+         9765, 14085, 17191, 20999, 16949},
+        {21269, 822, 4630, 4868, 22114, 18242, 22384, 18000, 5747, 1875, 5985,
+         1601, 29283, 25411, 29553},
+        {25169, 12914, 9042, 13152, 29730, 25858, 30000, 25616, 13363, 9491,
+         13601, 20515, 16643, 20785, 4146}};
 
     for (int i = 0; i < 15; i++) {
         for (int j = 14; j >= 0; j--) {
@@ -1667,28 +1930,47 @@ bool LAUCalTagGLObject::checkBitCode(int code, cv::Point2f *pt)
         }
     }
 #else
-    static const int realBitCodes[20][14] = {
-        {19853,	19918,	20121,	20186,	20373,	20438,	20497,	20562,	20692,	20765,	20830,	20891,	20952,	21001},
-        {18674,	18747,	18808,	18877,	18942,	18991,	19052,	19113,	19235,	19296,	19365,	19650,	19723,	19784},
-        {17633,	17704,	17771,	17838,	17901,	17980,	18047,	18106,	18224,	18291,	18358,	18421,	18487,	18609},
-        {16530,	16593,	16664,	16731,	16798,	16861,	16908,	16975,	17034,	17286,	17349,	17444,	17511,	17570},
-        {15514,	15577,	15632,	15699,	15766,	15829,	15943,	16002,	16065,	16136,	16203,	16270,	16333,	16471},
-        {14380,	14447,	14506,	14569,	14624,	14691,	14758,	14821,	14967,	15089,	15160,	15294,	15357,	15455},
-        {13375,	13436,	13497,	13562,	13680,	13749,	13814,	13863,	13924,	13985,	14050,	14123,	14253,	14318},
-        {12303,	12364,	12425,	12490,	12547,	12677,	12742,	12884,	12945,	13010,	13083,	13144,	13213,	13278},
-        {11195,	11256,	11289,	11423,	11484,	11541,	11606,	11667,	11777,	11842,	11911,	11972,	12110,	12171},
-        {10219,	10281,	10346,	10415,	10533,	10598,	10659,	10720,	10801,	10866,	10935,	10996,	11069,	11134},
-        {9179,	9274,	9337,	9404,	9471,	9526,	9589,	9648,	9715,	9825,	9892,	9959,	10030,	10093},
-        {8001,	8068,	8135,	8265,	8399,	8454,	8517,	8643,	8722,	8852,	8919,	8990,	9053,	9112},
-        {7092,	7159,	7190,	7253,	7312,	7379,	7450,	7580,	7647,	7694,	7757,	7816,	7883,	7938},
-        {6116,	6245,	6304,	6371,	6442,	6505,	6572,	6639,	6718,	6781,	6840,	6907,	6962,	7025},
-        {5173,	5238,	5299,	5360,	5433,	5498,	5567,	5628,	5677,	5742,	5803,	5864,	5986,	6055},
-        {4166,	4227,	4361,	4426,	4495,	4556,	4637,	4702,	4763,	4824,	4881,	4946,	5015,	5076},
-        {3152,	3221,	3286,	3359,	3420,	3481,	3546,	3595,	3656,	3725,	3847,	3908,	3969,	4034},
-        {2278,	2351,	2412,	2473,	2538,	2619,	2680,	2749,	2814,	2871,	2932,	2993,	3058,	3091},
-        {1340,	1407,	1466,	1529,	1576,	1643,	1710,	1773,	1828,	1895,	1954,	2017,	2083,	2213},
-        {197,   335,	394,	457,	603,	670,	733,	788,	855,	914,	977,	1139,	1206,	1269}
-    };
+    constexpr int realBitCodes[20][14]{
+        {19853, 19918, 20121, 20186, 20373, 20438, 20497, 20562, 20692, 20765,
+         20830, 20891, 20952, 21001},
+        {18674, 18747, 18808, 18877, 18942, 18991, 19052, 19113, 19235, 19296,
+         19365, 19650, 19723, 19784},
+        {17633, 17704, 17771, 17838, 17901, 17980, 18047, 18106, 18224, 18291,
+         18358, 18421, 18487, 18609},
+        {16530, 16593, 16664, 16731, 16798, 16861, 16908, 16975, 17034, 17286,
+         17349, 17444, 17511, 17570},
+        {15514, 15577, 15632, 15699, 15766, 15829, 15943, 16002, 16065, 16136,
+         16203, 16270, 16333, 16471},
+        {14380, 14447, 14506, 14569, 14624, 14691, 14758, 14821, 14967, 15089,
+         15160, 15294, 15357, 15455},
+        {13375, 13436, 13497, 13562, 13680, 13749, 13814, 13863, 13924, 13985,
+         14050, 14123, 14253, 14318},
+        {12303, 12364, 12425, 12490, 12547, 12677, 12742, 12884, 12945, 13010,
+         13083, 13144, 13213, 13278},
+        {11195, 11256, 11289, 11423, 11484, 11541, 11606, 11667, 11777, 11842,
+         11911, 11972, 12110, 12171},
+        {10219, 10281, 10346, 10415, 10533, 10598, 10659, 10720, 10801, 10866,
+         10935, 10996, 11069, 11134},
+        {9179, 9274, 9337, 9404, 9471, 9526, 9589, 9648, 9715, 9825, 9892, 9959,
+         10030, 10093},
+        {8001, 8068, 8135, 8265, 8399, 8454, 8517, 8643, 8722, 8852, 8919, 8990,
+         9053, 9112},
+        {7092, 7159, 7190, 7253, 7312, 7379, 7450, 7580, 7647, 7694, 7757, 7816,
+         7883, 7938},
+        {6116, 6245, 6304, 6371, 6442, 6505, 6572, 6639, 6718, 6781, 6840, 6907,
+         6962, 7025},
+        {5173, 5238, 5299, 5360, 5433, 5498, 5567, 5628, 5677, 5742, 5803, 5864,
+         5986, 6055},
+        {4166, 4227, 4361, 4426, 4495, 4556, 4637, 4702, 4763, 4824, 4881, 4946,
+         5015, 5076},
+        {3152, 3221, 3286, 3359, 3420, 3481, 3546, 3595, 3656, 3725, 3847, 3908,
+         3969, 4034},
+        {2278, 2351, 2412, 2473, 2538, 2619, 2680, 2749, 2814, 2871, 2932, 2993,
+         3058, 3091},
+        {1340, 1407, 1466, 1529, 1576, 1643, 1710, 1773, 1828, 1895, 1954, 2017,
+         2083, 2213},
+        {197, 335, 394, 457, 603, 670, 733, 788, 855, 914, 977, 1139, 1206,
+         1269}};
 
     for (int i = 0; i < 20; i++) {
         for (int j = 13; j >= 0; j--) {
@@ -1700,25 +1982,25 @@ bool LAUCalTagGLObject::checkBitCode(int code, cv::Point2f *pt)
     }
 #endif
 #endif
-    return(false);
+    return (false);
 }
 
-/******************************************************************************/
-/******************************************************************************/
-/******************************************************************************/
-void LAUCalTagGLObject::removeOutlierPoints(cv::vector<cv::Point2f> &fmPoints, cv::vector<cv::Point2f> &toPoints)
+void LAUCalTagGLObject::removeOutlierPoints(cv::vector<cv::Point2f> &fmPoints,
+                                            cv::vector<cv::Point2f> &toPoints)
 {
     // MAKE SURE WE HAVE ENOUGH POINTS TO MAKE THIS WORTH WHILE
     if (fmPoints.size() < 20) {
         return;
     }
 
-    // PRINT OUT A REPORT ON HOW IMAGE SQUARES ARE ALIGNED AND HOW THEY GET MAPPED TO CALTAG SQUARES
-    //QFile file(QString("/tmp/outlierReport.txt"));
-    //if (file.open(QIODevice::WriteOnly)) {
+    // PRINT OUT A REPORT ON HOW IMAGE SQUARES ARE ALIGNED AND HOW THEY GET
+    // MAPPED TO CALTAG SQUARES
+    // QFile file(QString("/tmp/outlierReport.txt"));
+    // if (file.open(QIODevice::WriteOnly)) {
     //    QTextStream stream(&file);
     //    for (unsigned int n = 0; n < fmPoints.size(); n++) {
-    //        stream << QString("%1, %2, %3, %4\n").arg(fmPoints[n].x).arg(fmPoints[n].y).arg(toPoints[n].x).arg(toPoints[n].y);
+    //        stream << QString("%1, %2, %3,
+    //        %4\n").arg(fmPoints[n].x).arg(fmPoints[n].y).arg(toPoints[n].x).arg(toPoints[n].y);
     //    }
     //    file.close();
     //}
@@ -1734,7 +2016,8 @@ void LAUCalTagGLObject::removeOutlierPoints(cv::vector<cv::Point2f> &fmPoints, c
         // TRANSFORM POINTS USING CURRENT TRANSFORM
         cv::perspectiveTransform(fmPoints, toPts, transform);
 
-        // SEARCH THROUGH LIST LOOKING FOR WORST CASE POINT AND DELETE IT FROM THE LIST
+        // SEARCH THROUGH LIST LOOKING FOR WORST CASE POINT AND DELETE IT FROM
+        // THE LIST
         double optError = 0.0;
         unsigned int optIndex = 0;
         for (unsigned int n = 0; n < fmPoints.size(); n++) {
@@ -1756,14 +2039,10 @@ void LAUCalTagGLObject::removeOutlierPoints(cv::vector<cv::Point2f> &fmPoints, c
         toPoints.erase(toPoints.begin() + optIndex);
         toPts.erase(toPts.begin() + optIndex);
     }
-
-    return;
 }
 
-/******************************************************************************/
-/******************************************************************************/
-/******************************************************************************/
-cv::Mat LAUCalTagGLObject::findBestLinearMapping(cv::vector<cv::Point2f> fmPoints, cv::vector<cv::Point2f> toPoints)
+cv::Mat LAUCalTagGLObject::findBestLinearMapping(
+    cv::vector<cv::Point2f> fmPoints, cv::vector<cv::Point2f> toPoints)
 {
     cv::Mat transformMatrix(3, 3, CV_64F);
 
@@ -1813,10 +2092,9 @@ cv::Mat LAUCalTagGLObject::findBestLinearMapping(cv::vector<cv::Point2f> fmPoint
     return (transformMatrix);
 }
 
-/****************************************************************************/
-/****************************************************************************/
-/****************************************************************************/
-cv::Mat LAUCalTagGLObject::findBestQuadraticMapping(cv::vector<cv::Point2f> fmPoints, cv::vector<cv::Point2f> toPoints, int width, int height, int order)
+cv::Mat LAUCalTagGLObject::findBestQuadraticMapping(
+    cv::vector<cv::Point2f> fmPoints, cv::vector<cv::Point2f> toPoints,
+    int width, int height, int order)
 {
     cv::Mat lVec(30, 1, CV_64F);
     lVec.setTo(0.0);
@@ -1843,31 +2121,41 @@ cv::Mat LAUCalTagGLObject::findBestQuadraticMapping(cv::vector<cv::Point2f> fmPo
             // CREATE MATRIX TO HOLD THE 4TH ORDER TRANSFORM
             cv::Mat A(2 * numPoints, 30, CV_64F);
             A.setTo(0.0);
-            cv::Mat B(2 * numPoints,  1, CV_64F);
+            cv::Mat B(2 * numPoints, 1, CV_64F);
 
             for (int r = 0; r < numPoints; r++) {
                 // POPULATE THE ODD NUMBERED ROWS
-                A.at<double>(2 * r + 0, 0)  = cVec[r] * cVec[r] * cVec[r] * cVec[r];
-                A.at<double>(2 * r + 0, 1)  = cVec[r] * cVec[r] * cVec[r] * rVec[r];
-                A.at<double>(2 * r + 0, 2)  = cVec[r] * cVec[r] * rVec[r] * rVec[r];
-                A.at<double>(2 * r + 0, 3)  = cVec[r] * rVec[r] * rVec[r] * rVec[r];
-                A.at<double>(2 * r + 0, 4)  = rVec[r] * rVec[r] * rVec[r] * rVec[r];
-                A.at<double>(2 * r + 0, 5)  = cVec[r] * cVec[r] * cVec[r];
-                A.at<double>(2 * r + 0, 6)  = cVec[r] * cVec[r] * rVec[r];
-                A.at<double>(2 * r + 0, 7)  = cVec[r] * rVec[r] * rVec[r];
-                A.at<double>(2 * r + 0, 8)  = rVec[r] * rVec[r] * rVec[r];
-                A.at<double>(2 * r + 0, 9)  = cVec[r] * cVec[r];
+                A.at<double>(2 * r + 0, 0) =
+                    cVec[r] * cVec[r] * cVec[r] * cVec[r];
+                A.at<double>(2 * r + 0, 1) =
+                    cVec[r] * cVec[r] * cVec[r] * rVec[r];
+                A.at<double>(2 * r + 0, 2) =
+                    cVec[r] * cVec[r] * rVec[r] * rVec[r];
+                A.at<double>(2 * r + 0, 3) =
+                    cVec[r] * rVec[r] * rVec[r] * rVec[r];
+                A.at<double>(2 * r + 0, 4) =
+                    rVec[r] * rVec[r] * rVec[r] * rVec[r];
+                A.at<double>(2 * r + 0, 5) = cVec[r] * cVec[r] * cVec[r];
+                A.at<double>(2 * r + 0, 6) = cVec[r] * cVec[r] * rVec[r];
+                A.at<double>(2 * r + 0, 7) = cVec[r] * rVec[r] * rVec[r];
+                A.at<double>(2 * r + 0, 8) = rVec[r] * rVec[r] * rVec[r];
+                A.at<double>(2 * r + 0, 9) = cVec[r] * cVec[r];
                 A.at<double>(2 * r + 0, 10) = cVec[r] * rVec[r];
                 A.at<double>(2 * r + 0, 11) = rVec[r] * rVec[r];
                 A.at<double>(2 * r + 0, 12) = cVec[r];
                 A.at<double>(2 * r + 0, 13) = rVec[r];
                 A.at<double>(2 * r + 0, 14) = 1.0;
 
-                A.at<double>(2 * r + 1, 15) = cVec[r] * cVec[r] * cVec[r] * cVec[r];
-                A.at<double>(2 * r + 1, 16) = cVec[r] * cVec[r] * cVec[r] * rVec[r];
-                A.at<double>(2 * r + 1, 17) = cVec[r] * cVec[r] * rVec[r] * rVec[r];
-                A.at<double>(2 * r + 1, 18) = cVec[r] * rVec[r] * rVec[r] * rVec[r];
-                A.at<double>(2 * r + 1, 19) = rVec[r] * rVec[r] * rVec[r] * rVec[r];
+                A.at<double>(2 * r + 1, 15) =
+                    cVec[r] * cVec[r] * cVec[r] * cVec[r];
+                A.at<double>(2 * r + 1, 16) =
+                    cVec[r] * cVec[r] * cVec[r] * rVec[r];
+                A.at<double>(2 * r + 1, 17) =
+                    cVec[r] * cVec[r] * rVec[r] * rVec[r];
+                A.at<double>(2 * r + 1, 18) =
+                    cVec[r] * rVec[r] * rVec[r] * rVec[r];
+                A.at<double>(2 * r + 1, 19) =
+                    rVec[r] * rVec[r] * rVec[r] * rVec[r];
                 A.at<double>(2 * r + 1, 20) = cVec[r] * cVec[r] * cVec[r];
                 A.at<double>(2 * r + 1, 21) = cVec[r] * cVec[r] * rVec[r];
                 A.at<double>(2 * r + 1, 22) = cVec[r] * rVec[r] * rVec[r];
@@ -1884,13 +2172,14 @@ cv::Mat LAUCalTagGLObject::findBestQuadraticMapping(cv::vector<cv::Point2f> fmPo
             }
             lVec = (A.t() * A).inv() * A.t() * B;
         }
-    } else if (order == 3) {
+    }
+    else if (order == 3) {
         // MAKE SURE WE FOUND ENOUGH CLUSTERS TO DO A DECENT INTERPOLATION
         if (fmPoints.size() >= 10) {
             // CREATE MATRIX TO HOLD THE 4TH ORDER TRANSFORM
             cv::Mat A(2 * numPoints, 20, CV_64F);
             A.setTo(0.0);
-            cv::Mat B(2 * numPoints,  1, CV_64F);
+            cv::Mat B(2 * numPoints, 1, CV_64F);
 
             for (int r = 0; r < numPoints; r++) {
                 // POPULATE THE ODD NUMBERED ROWS
@@ -1927,13 +2216,14 @@ cv::Mat LAUCalTagGLObject::findBestQuadraticMapping(cv::vector<cv::Point2f> fmPo
                 lVec.at<double>(n + 20) = sVec.at<double>(n + 10);
             }
         }
-    } else if (order == 2) {
+    }
+    else if (order == 2) {
         // MAKE SURE WE FOUND ENOUGH CLUSTERS TO DO A DECENT INTERPOLATION
         if (fmPoints.size() >= 6) {
             // CREATE MATRIX TO HOLD THE 4TH ORDER TRANSFORM
             cv::Mat A(2 * numPoints, 12, CV_64F);
             A.setTo(0.0);
-            cv::Mat B(2 * numPoints,  1, CV_64F);
+            cv::Mat B(2 * numPoints, 1, CV_64F);
 
             for (int r = 0; r < numPoints; r++) {
                 // POPULATE THE ODD NUMBERED ROWS
@@ -1944,10 +2234,10 @@ cv::Mat LAUCalTagGLObject::findBestQuadraticMapping(cv::vector<cv::Point2f> fmPo
                 A.at<double>(2 * r + 0, 4) = rVec[r];
                 A.at<double>(2 * r + 0, 5) = 1.0;
 
-                A.at<double>(2 * r + 1, 6)  = cVec[r] * cVec[r];
-                A.at<double>(2 * r + 1, 7)  = cVec[r] * rVec[r];
-                A.at<double>(2 * r + 1, 8)  = rVec[r] * rVec[r];
-                A.at<double>(2 * r + 1, 9)  = cVec[r];
+                A.at<double>(2 * r + 1, 6) = cVec[r] * cVec[r];
+                A.at<double>(2 * r + 1, 7) = cVec[r] * rVec[r];
+                A.at<double>(2 * r + 1, 8) = rVec[r] * rVec[r];
+                A.at<double>(2 * r + 1, 9) = cVec[r];
                 A.at<double>(2 * r + 1, 10) = rVec[r];
                 A.at<double>(2 * r + 1, 11) = 1.0;
 
@@ -1962,7 +2252,8 @@ cv::Mat LAUCalTagGLObject::findBestQuadraticMapping(cv::vector<cv::Point2f> fmPo
                 lVec.at<double>(n + 24) = sVec.at<double>(n + 6);
             }
         }
-    } else if (order == 1) {
+    }
+    else if (order == 1) {
         // MAKE SURE WE FOUND ENOUGH CLUSTERS TO DO A DECENT INTERPOLATION
         if (fmPoints.size() >= 3) {
             // CREATE MATRIX TO HOLD THE 4TH ORDER TRANSFORM
@@ -1995,9 +2286,6 @@ cv::Mat LAUCalTagGLObject::findBestQuadraticMapping(cv::vector<cv::Point2f> fmPo
     return (lVec);
 }
 
-/****************************************************************************/
-/****************************************************************************/
-/****************************************************************************/
 QPointF LAUCalTagGLObject::transformPoint(QPointF pt, cv::Mat tMat)
 {
     double x = (double)pt.x();
@@ -2037,42 +2325,33 @@ QPointF LAUCalTagGLObject::transformPoint(QPointF pt, cv::Mat tMat)
     yp += y * tMat.at<double>(28);
     yp += tMat.at<double>(28);
 
-    return(QPointF(xp,yp));
+    return (QPointF(xp, yp));
 }
 
-/****************************************************************************/
-/****************************************************************************/
-/****************************************************************************/
 float LAUCalTagGLObject::length(cv::Point2f point)
 {
     return (sqrt(point.x * point.x + point.y * point.y));
 }
 
-/****************************************************************************/
-/****************************************************************************/
-/****************************************************************************/
 float LAUCalTagGLObject::angle(cv::Point2f point)
 {
     return (atan2(point.y, point.x));
 }
 
-/****************************************************************************/
-/****************************************************************************/
-/****************************************************************************/
 LAUMemoryObject LAUCalTagGLObject::grabImage()
 {
     LAUMemoryObject object;
     if (frameBufferObjectB) {
-        object = LAUMemoryObject(frameBufferObjectB->width(), frameBufferObjectB->height(), 3, sizeof(float));
+        object =
+            LAUMemoryObject(frameBufferObjectB->width(),
+                            frameBufferObjectB->height(), 3, sizeof(float));
         glBindTexture(GL_TEXTURE_2D, frameBufferObjectB->texture());
-        glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_FLOAT, object.constPointer());
+        glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_FLOAT,
+                      object.constPointer());
     }
     return (object);
 }
 
-/****************************************************************************/
-/****************************************************************************/
-/****************************************************************************/
 void LAUCalTagGLObject::paintGL()
 {
     if (frameBufferObjectB) {
@@ -2085,8 +2364,10 @@ void LAUCalTagGLObject::paintGL()
                     glBindTexture(GL_TEXTURE_2D, frameBufferObjectB->texture());
                     programK.setUniformValue("qt_texture", 0);
 
-                    // TELL OPENGL PROGRAMMABLE PIPELINE HOW TO LOCATE VERTEX POSITION DATA
-                    programK.setAttributeBuffer("qt_vertex", GL_FLOAT, 0, 4, 4 * sizeof(float));
+                    // TELL OPENGL PROGRAMMABLE PIPELINE HOW TO LOCATE VERTEX
+                    // POSITION DATA
+                    programK.setAttributeBuffer("qt_vertex", GL_FLOAT, 0, 4,
+                                                4 * sizeof(float));
                     programK.enableAttributeArray("qt_vertex");
 
                     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);

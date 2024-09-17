@@ -1,9 +1,10 @@
 #pragma once
 
-#include <opencv2/core/core.hpp>
+#include <opencv2/imgproc.hpp>
+
 #include <sstream>
 
-namespace cv {
+namespace tl {
 namespace runetag {
 
 struct DefGreenText
@@ -58,13 +59,6 @@ public:
         unsigned char b;
     };
 
-    class scale
-    {
-    public:
-        scale(double _scale) : s(_scale) {}
-        double s;
-    };
-
     class thickness
     {
     public:
@@ -91,9 +85,9 @@ public:
         return _ts;
     }
 
-    friend ImgTextStream& operator<<(ImgTextStream& _ts, const scale& _scale)
+    friend ImgTextStream& operator<<(ImgTextStream& _ts, double _scale)
     {
-        _ts.fontScale = _scale.s;
+        _ts.fontScale = _scale;
         return _ts;
     }
 
@@ -106,11 +100,11 @@ public:
 
     friend ImgTextStream& operator<<(ImgTextStream& _ts, endl_type e)
     {
-        cv::Size tsize =
+        cv::Size textSize =
             cv::getTextSize(std::string("M"), cv::FONT_HERSHEY_SIMPLEX,
-                            _ts.fontScale, _ts.thickness, 0);
+                            _ts.fontScale, _ts.thickness, nullptr);
         _ts.x = _ts.base_x;
-        _ts.y += tsize.height + 3;
+        _ts.y += textSize.height + 3;
         return _ts;
     }
 
@@ -120,18 +114,20 @@ public:
         std::stringstream ss(std::stringstream::out);
         ss << _v;
 
-        if (_ts.drop_shadow)
+        if (_ts.drop_shadow) {
             cv::putText(_ts.frame, ss.str(), cv::Point2f(_ts.x + 1, _ts.y + 1),
                         cv::FONT_HERSHEY_SIMPLEX, _ts.fontScale,
                         CV_RGB(50, 50, 50), _ts.thickness + 2);
+        }
 
         cv::putText(_ts.frame, ss.str(), cv::Point2f(_ts.x, _ts.y),
                     cv::FONT_HERSHEY_SIMPLEX, _ts.fontScale, _ts.color,
                     _ts.thickness);
 
-        cv::Size tsize = cv::getTextSize(ss.str(), cv::FONT_HERSHEY_SIMPLEX,
-                                         _ts.fontScale, _ts.thickness, 0);
-        _ts.x += tsize.width;
+        const auto textSize =
+            cv::getTextSize(ss.str(), cv::FONT_HERSHEY_SIMPLEX, _ts.fontScale,
+                            _ts.thickness, 0);
+        _ts.x += textSize.width;
 
         return _ts;
     }
@@ -150,4 +146,4 @@ private:
 typedef ImgTextStream<> its;
 
 } // namespace runetag
-} // namespace cv
+} // namespace tl

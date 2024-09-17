@@ -1,27 +1,36 @@
-
 #include "markerdetector.hpp"
-#include "ellipsefitter.hpp"
-#include "slotfitter.hpp"
-#include "auxrenderer.hpp"
+
 #include <fstream>
 #include <iostream>
 
-using namespace cv::runetag;
+#include <opencv2/imgproc.hpp>
 
-void print_code(std::ostream& os, std::vector<long> code)
+#include "auxrenderer.hpp"
+#include "ellipsefitter.hpp"
+#include "slotfitter.hpp"
+
+std::ostream& operator<<(std::ostream& os, const std::vector<long>& code)
 {
-    for (size_t i = 0; i < code.size(); ++i) os << code[i] << " ";
-    os << std::endl;
+    for (const auto& b : code) {
+        os << b << " ";
+    }
+    os << "\n";
+    return os;
 }
 
-void print_code(std::ostream& os, std::vector<bool> code)
+std::ostream& operator<<(std::ostream& os, const std::vector<bool>& code)
 {
-    for (size_t i = 0; i < code.size(); ++i) os << (code[i] ? "1" : "0") << " ";
-    os << std::endl;
+    for (auto b : code) {
+        os << (b ? "1" : "0") << " ";
+    }
+    os << "\n";
+    return os;
 }
 
-void show_detected_marker(const cv::Mat& dbg_img,
-                          const cv::runetag::MarkerDetected& marker,
+namespace tl {
+namespace runetag {
+
+void show_detected_marker(const cv::Mat& dbg_img, const MarkerDetected& marker,
                           const cv::Mat& intrinsics)
 {
     std::cout << "Marker detected: IDX " << marker.associatedModel()->getIDX()
@@ -29,9 +38,7 @@ void show_detected_marker(const cv::Mat& dbg_img,
               << " discarded: " << marker.num_discarded << std::endl;
 
     cv::Mat dbg = dbg_img.clone();
-    AuxRenderer::drawDetectedMarker(dbg, marker, intrinsics);
-    cv::imshow("dbg", dbg);
-    while (cv::waitKey(0) != 'a');
+    drawDetectedMarker(dbg, marker, intrinsics);
 }
 
 MarkerDetector::MarkerDetector(const cv::Mat& _intrinsics)
@@ -74,8 +81,7 @@ int MarkerDetector::addModelsFromFile(std::string filename)
 void MarkerDetector::toEllipsePoints(
     const std::vector<cv::RotatedRect>& ellipses)
 {
-    for (std::vector<cv::RotatedRect>::const_iterator it = ellipses.begin();
-         it != ellipses.end(); it++) {
+    for (auto it = ellipses.begin(); it != ellipses.end(); it++) {
         cv::RotatedRect r = *it;
         EllipsePoint newep(r, intrinsics.at<double>(0, 2),
                            intrinsics.at<double>(1, 2));
@@ -96,39 +102,40 @@ bool MarkerDetector::tryFit(SlotFitter& fitter,
                models.begin()->second.getNumLayers(), possible_markers);
 
     if (findModel(possible_markers, found_markers)) {
-#if 0 
+#if 0
         // A marker was found. so we can try to refine it
-        //std::cout << "Marker detected: IDX " << found_markers[0].associatedModel()->getIDX() << " errors: " << found_markers[0].num_errors << " discarded: " << found_markers[0].num_discarded << std::endl;
-        show_detected_marker( dbgimage, found_markers[0], intrinsics );
+        // std::cout << "Marker detected: IDX " <<
+        // found_markers[0].associatedModel()->getIDX() << " errors: " <<
+        // found_markers[0].num_errors << " discarded: " <<
+        // found_markers[0].num_discarded << std::endl;
+        show_detected_marker(dbgimage, found_markers[0], intrinsics);
         std::cout << "Refining..." << std::endl;
 
         unsigned int fullest_layer = found_markers[0].getFullestLayer();
 
-        std::vector< cv::Point2d > refit_pts;
+        std::vector<cv::Point2d> refit_pts;
 
         std::vector<EllipsePoint> fullest_layer_ellipses;
-        for( MarkerDetected::SlotIterator it=found_markers[0].begin_by_layer(fullest_layer); it!=found_markers[0].end_by_layer(fullest_layer); ++it )
-        {
-            if( it->value() )
-            {
+        for (MarkerDetected::SlotIterator it =
+                 found_markers[0].begin_by_layer(fullest_layer);
+             it != found_markers[0].end_by_layer(fullest_layer); ++it) {
+            if (it->value()) {
                 EllipsePoint ep = *(it->getPayload());
-                refit_pts.push_back( ep.getCenter() );
+                refit_pts.push_back(ep.getCenter());
             }
         }
 
-        cv::RotatedRect refit_ellipse = cv::fitEllipse( refit_pts );
-        
+        cv::RotatedRect refit_ellipse = cv::fitEllipse(refit_pts);
 
-        
         // Modify fitters inliers to hopefully obtain a better estimation
         std::vector<EllipsePoint> fullest_layer_ellipses;
-        for( MarkerDetected::SlotIterator it=found_markers[0].begin_by_layer(fullest_layer); it!=found_markers[0].end_by_layer(fullest_layer); ++it )
-        {
-            if( it->value() )
-            {
+        for (MarkerDetected::SlotIterator it =
+                 found_markers[0].begin_by_layer(fullest_layer);
+             it != found_markers[0].end_by_layer(fullest_layer); ++it) {
+            if (it->value()) {
                 EllipsePoint ep = *(it->getPayload());
-                ep.toCircle( found_markers[0].getVR() );
-                fullest_layer_ellipses.push_back( ep );
+                ep.toCircle(found_markers[0].getVR());
+                fullest_layer_ellipses.push_back(ep);
             }
         }
 #endif
@@ -137,36 +144,34 @@ bool MarkerDetector::tryFit(SlotFitter& fitter,
 
         possible_markers.clear();
         found_markers.clear();
-        fitter.fit( fullest_layer_ellipses,
-            models.begin()->second.getRadiusRatio(), 
-            models.begin()->second.getGapFactor(), 
-            models.begin()->second.getNumLayers(), 
-            possible_markers );
+        fitter.fit(fullest_layer_ellipses,
+                   models.begin()->second.getRadiusRatio(),
+                   models.begin()->second.getGapFactor(),
+                   models.begin()->second.getNumLayers(), possible_markers);
 
-        if( findModel(possible_markers, found_markers) )
-        {
+        if (findModel(possible_markers, found_markers)) {
             std::cout << "refined FIT" << std::endl;
-            show_detected_marker( dbgimage, found_markers[0], intrinsics );
+            show_detected_marker(dbgimage, found_markers[0], intrinsics);
             return true;
         }
 #endif
 
         // Set detected marker ellipses as "assigned" to speed up computation of
         // the subsequent markers
-        /*for( unsigned int i=0; i<found_markers[0].getNumSlots(); ++i )
-        {
-            if( found_markers[0].getSlot(i).value() )
-            {
-                found_markers[0].getSlot(i).getPayload()->setAssigned();
-            }
-        }*/
+        // for (unsigned int i = 0; i < found_markers[0].getNumSlots(); ++i) {
+        //     if (found_markers[0].getSlot(i).value()) {
+        //         found_markers[0].getSlot(i).getPayload()->setAssigned();
+        //     }
+        // }
+
         long marker_idx = found_markers[0].associatedModel()->getIDX();
         if (markers_by_id.find(marker_idx) != markers_by_id.end()) {
             // This marker was already found, so we overwrite the old one if
             // this one was better recognized
             if (found_markers[0].getNumFilledSlots() >
-                markers_by_id[marker_idx].getNumFilledSlots())
+                markers_by_id[marker_idx].getNumFilledSlots()) {
                 markers_by_id[marker_idx] = found_markers[0];
+            }
         }
         else {
             markers_by_id[marker_idx] = found_markers[0];
@@ -174,6 +179,7 @@ bool MarkerDetector::tryFit(SlotFitter& fitter,
 
         return true;
     }
+
     return false;
 }
 
@@ -234,10 +240,9 @@ int MarkerDetector::detectMarkers(const std::vector<cv::RotatedRect>& ellipses,
         }
     }
 
-    for (std::map<int, MarkerDetected>::const_iterator it =
-             markers_by_id.begin();
-         it != markers_by_id.end(); ++it)
+    for (auto it = markers_by_id.begin(); it != markers_by_id.end(); ++it) {
         markers_detected.push_back(it->second);
+    }
 
     return (int)markers_detected.size();
 }
@@ -253,7 +258,7 @@ bool MarkerDetector::findModel(
     const std::vector<MarkerDetected>& possible_markers,
     std::vector<MarkerDetected>& markers_detected)
 {
-    cv::runetag::Coding coding;
+    Coding coding;
     coding.init();
 
     bool found = false;
@@ -300,8 +305,9 @@ bool MarkerDetector::findModel(
                             curr_det.num_errors++;
                             curr_det.invalidateSlot(i);
 
-                            if (curr_det.getSlot(i).value())
+                            if (curr_det.getSlot(i).value()) {
                                 curr_det.num_discarded++;
+                            }
                         }
                     }
 
@@ -315,3 +321,6 @@ bool MarkerDetector::findModel(
     }
     return false;
 }
+
+} // namespace runetag
+} // namespace tl

@@ -7,10 +7,8 @@
 #include "markerdetected.hpp"
 #include "slot.hpp"
 
-namespace cv {
+namespace tl {
 namespace runetag {
-
-namespace AuxRenderer {
 
 void drawEllipse(cv::Mat& frame, const cv::RotatedRect& el,
                  const cv::Mat& intrinsics)
@@ -23,7 +21,7 @@ void drawEllipse(cv::Mat& frame, const cv::RotatedRect& el,
                 static_cast<float>(el.center.y + intrinsics.at<double>(1, 2))),
             cv::Size(static_cast<int>(el.size.width / 2),
                      static_cast<int>(el.size.height / 2)),
-            el.angle, 0.0, 360.0, CV_RGB(255, 0, 255), 1, CV_AA);
+            el.angle, 0.0, 360.0, CV_RGB(255, 0, 255), 1, cv::LINE_AA);
     }
     catch (cv::Exception& e) {
         e.what();
@@ -74,14 +72,14 @@ void drawEllipsePoint(cv::Mat frame, const EllipsePoint& e,
                        2.0 * E * y + F;
             if (!set && v < 0.0) {
                 set = true;
-                AuxRenderer::drawPoint(frame, cv::Point2f((float)x, (float)y),
-                                       intrinsics, color);
+                drawPoint(frame, cv::Point2f((float)x, (float)y), intrinsics,
+                          color);
             }
 
             if (set && v > 0.0) {
                 set = false;
-                AuxRenderer::drawPoint(frame, cv::Point2f((float)x, (float)y),
-                                       intrinsics, color);
+                drawPoint(frame, cv::Point2f((float)x, (float)y), intrinsics,
+                          color);
             }
         }
     }
@@ -108,14 +106,14 @@ void drawEllipse(cv::Mat frame, const cv::Mat& e, const cv::Mat& intrinsics,
                        2.0 * E * y + F;
             if (!set && v < 0.0) {
                 set = true;
-                AuxRenderer::drawPoint(frame, cv::Point2f((float)x, (float)y),
-                                       intrinsics, color);
+                drawPoint(frame, cv::Point2f((float)x, (float)y), intrinsics,
+                          color);
             }
 
             if (set && v > 0.0) {
                 set = false;
-                AuxRenderer::drawPoint(frame, cv::Point2f((float)x, (float)y),
-                                       intrinsics, color);
+                drawPoint(frame, cv::Point2f((float)x, (float)y), intrinsics,
+                          color);
             }
         }
     }
@@ -140,8 +138,8 @@ void fillEllipse(cv::Mat frame, const cv::Mat& e, const cv::Mat& intrinsics,
             double v = A * x * x + 2.0 * B * x * y + C * y * y + 2.0 * D * x +
                        2.0 * E * y + F;
             if (v < 0.0) {
-                AuxRenderer::drawPoint(frame, cv::Point2f((float)x, (float)y),
-                                       intrinsics, color);
+                drawPoint(frame, cv::Point2f((float)x, (float)y), intrinsics,
+                          color);
             }
         }
     }
@@ -155,8 +153,8 @@ void fillSlot(cv::Mat& frame, const Slot& slot, cv::Scalar color,
             float x = static_cast<float>(xe - intrinsics.at<double>(0, 2));
             float y = static_cast<float>(ye - intrinsics.at<double>(1, 2));
             if (slot.checkInside(cv::Point2f(x, y))) {
-                AuxRenderer::drawPoint(frame, cv::Point2f((float)x, (float)y),
-                                       intrinsics, color);
+                drawPoint(frame, cv::Point2f((float)x, (float)y), intrinsics,
+                          color);
             }
         }
     }
@@ -205,12 +203,14 @@ void drawDetectedMarker(cv::Mat& frame, const MarkerDetected& m,
             // stream << its::position( pos ) << i;
             //
             if (m.getSlot(i).discarded())
-                cv::circle(frame, pos, 5, CV_RGB(255, 0, 0), CV_FILLED, CV_AA);
+                cv::circle(frame, pos, 5, CV_RGB(255, 0, 0), cv::FILLED,
+                           cv::LINE_AA);
             else if (m.getSlot(i).value()) {
-                cv::circle(frame, pos, 5, CV_RGB(0, 255, 0), CV_FILLED, CV_AA);
+                cv::circle(frame, pos, 5, CV_RGB(0, 255, 0), cv::FILLED,
+                           cv::LINE_AA);
             }
             else {
-                cv::circle(frame, pos, 5, CV_RGB(255, 0, 0), 1, CV_AA);
+                cv::circle(frame, pos, 5, CV_RGB(255, 0, 0), 1, cv::LINE_AA);
             }
         }
     }
@@ -332,7 +332,7 @@ void drawDetectedMarker3DSlots(cv::Mat& frame, const MarkerDetected& m,
 
     for (unsigned int i = 1; i < num_slots + 1; i++) {
         cv::line(frame, out_points[0], out_points_outer[i - 1], color, 1,
-                 CV_AA);
+                 cv::LINE_AA);
     }
 
     cv::RotatedRect fit = cv::fitEllipse(cv::Mat(out_points_outer));
@@ -350,7 +350,7 @@ void drawDetectedMarker3DSlots(cv::Mat& frame, const MarkerDetected& m,
     // cv::ellipse( frame, inner.center, inner.size, inner.angle, 0, 360,
     // CV_RGB(20,150,30),1,CV_AA  );
     cv::ellipse(frame, fit.center, fit.size, fit.angle, 0, 360,
-                CV_RGB(20, 150, 30), 1, CV_AA);
+                CV_RGB(20, 150, 30), 1, cv::LINE_AA);
 }
 
 void drawDetectedMarker3DCylinder(cv::Mat& frame, const MarkerDetected& m,
@@ -395,10 +395,13 @@ void drawDetectedMarker3DCylinder(cv::Mat& frame, const MarkerDetected& m,
         unsigned int inext = (i + 1) % (num_symbols);
         unsigned int inext2 = (i + 2) % (num_symbols);
         unsigned int inext3 = (i + 3) % (num_symbols);
-        cv::line(frame, out_points[i], out_points[inext], color, 1, CV_AA);
+        cv::line(frame, out_points[i], out_points[inext], color, 1,
+                 cv::LINE_AA);
 
-        cv::line(frame, out_points[i], out_points[inext2], color, 1, CV_AA);
-        cv::line(frame, out_points[inext], out_points[inext3], color, 1, CV_AA);
+        cv::line(frame, out_points[i], out_points[inext2], color, 1,
+                 cv::LINE_AA);
+        cv::line(frame, out_points[inext], out_points[inext3], color, 1,
+                 cv::LINE_AA);
     }
 
     for (unsigned int i = 0; i < m.getNumSlots(); i++) {
@@ -424,10 +427,9 @@ void drawDetectedMarker3DCylinder2(cv::Mat& frame, const MarkerDetected& m,
     std::vector<cv::Point3f> marker_center(2);
 
     float model_rad = static_cast<float>(m.associatedModel()->getWorldSize());
-    for (MarkerDetected::SlotIterator it = m.begin_by_layer(0);
-         it != m.end_by_layer(0); ++it) {
+    for (auto it = m.begin_by_layer(0); it != m.end_by_layer(0); ++it) {
         try {
-            cv::Point2d ptcenter = cv::runetag::ellipseCenter(
+            cv::Point2d ptcenter = ellipseCenter(
                 m.associatedModel()->modelEllipseAtSlot(it.slotIDX()));
 
             bottom_vertices.push_back(
@@ -435,19 +437,19 @@ void drawDetectedMarker3DCylinder2(cv::Mat& frame, const MarkerDetected& m,
             top_vertices.push_back(bottom_vertices.back() +
                                    cv::Point3f(0, 0, -model_rad / 2.0f));
         }
-        catch (cv::runetag::DigitalMarkerModel::MarkerModelOperationException) {
+        catch (DigitalMarkerModel::MarkerModelOperationException) {
         }
     }
 
     for (unsigned int i = 0; i < m.getNumSlots(); ++i) {
         try {
-            cv::Point2d ptcenter = cv::runetag::ellipseCenter(
-                m.associatedModel()->modelEllipseAtSlot(i));
+            cv::Point2d ptcenter =
+                ellipseCenter(m.associatedModel()->modelEllipseAtSlot(i));
             marker_dots.push_back(
                 cv::Point3f((float)ptcenter.x, (float)ptcenter.y, 0));
             valid_slots.push_back(m.getSlot(i).value());
         }
-        catch (cv::runetag::DigitalMarkerModel::MarkerModelOperationException) {
+        catch (DigitalMarkerModel::MarkerModelOperationException) {
         }
     }
 
@@ -472,24 +474,24 @@ void drawDetectedMarker3DCylinder2(cv::Mat& frame, const MarkerDetected& m,
     cv::Scalar color = CV_RGB(0, 50, 255);
     for (size_t i = 0; i < bottom_vertices_img.size(); ++i) {
         cv::line(frame, bottom_vertices_img[i], top_vertices_img[i], color, 2,
-                 CV_AA);
+                 cv::LINE_AA);
         cv::line(frame, bottom_vertices_img[i],
                  bottom_vertices_img[(i + 1) % bottom_vertices_img.size()],
-                 color, 2, CV_AA);
+                 color, 2, cv::LINE_AA);
         cv::line(frame, top_vertices_img[i],
                  top_vertices_img[(i + 1) % top_vertices_img.size()], color, 2,
-                 CV_AA);
+                 cv::LINE_AA);
     }
 
     // Render marker dots
     for (size_t i = 0; i < marker_dots_img.size(); ++i) {
         cv::circle(frame, marker_dots_img[i], 3,
                    valid_slots[i] ? CV_RGB(0, 255, 0) : CV_RGB(255, 0, 0), -1,
-                   CV_AA);
+                   cv::LINE_AA);
     }
 
     cv::line(frame, marker_center_img[0], marker_center_img[1], color, 2,
-             CV_AA);
+             cv::LINE_AA);
     its stream = its(frame);
     stream << its::position(marker_center_img[0].x, marker_center_img[0].y)
            << m.associatedModel()->getName();
@@ -571,7 +573,7 @@ void drawDetectedMarker3Dfits(cv::Mat& frame, const MarkerDetected& m,
         rr.center.y += static_cast<float>(intrinsics.at<double>(1, 2));
         rr.angle = rr.angle;
         cv::ellipse(frame, rr.center, rr.size, rr.angle, 0, 360,
-                    CV_RGB(0, 255, 0), 1, CV_AA);
+                    CV_RGB(0, 255, 0), 1, cv::LINE_AA);
     }
 
     if (m.getSlot(real_slot2).value()) {
@@ -581,7 +583,7 @@ void drawDetectedMarker3Dfits(cv::Mat& frame, const MarkerDetected& m,
         rr.center.y += static_cast<float>(intrinsics.at<double>(1, 2));
         rr.angle = rr.angle;
         cv::ellipse(frame, rr.center, rr.size, rr.angle, 0, 360,
-                    CV_RGB(255, 255, 0), 1, CV_AA);
+                    CV_RGB(255, 255, 0), 1, cv::LINE_AA);
     }
 
     cv::RotatedRect fit1 = cv::fitEllipse(cv::Mat(out_points));
@@ -595,9 +597,9 @@ void drawDetectedMarker3Dfits(cv::Mat& frame, const MarkerDetected& m,
     fit2.angle = 180.0f - fit2.angle;
 
     cv::ellipse(frame, fit1.center, fit1.size, fit1.angle, 0, 360,
-                CV_RGB(0, 0, 255), 1, CV_AA);
+                CV_RGB(0, 0, 255), 1, cv::LINE_AA);
     cv::ellipse(frame, fit2.center, fit2.size, fit2.angle, 0, 360,
-                CV_RGB(0, 0, 255), 1, CV_AA);
+                CV_RGB(0, 0, 255), 1, cv::LINE_AA);
 }
 
 void drawVector(cv::Mat& frame, const cv::Point2f center,
@@ -627,7 +629,5 @@ void drawLine(cv::Mat& frame, const cv::Point2f p1, const cv::Point2f p2,
         color, 1);
 }
 
-} // namespace AuxRenderer
-
 } // namespace runetag
-} // namespace cv
+} // namespace tl

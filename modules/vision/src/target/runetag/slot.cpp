@@ -1,7 +1,7 @@
-
 #include "slot.hpp"
 
-using namespace cv::runetag;
+namespace tl {
+namespace runetag {
 
 Slot::Slot() : _value(false), _discarded(false), payload(0) {}
 
@@ -70,3 +70,6 @@ bool Slot::setIfInside(const cv::Point2d& p, EllipsePoint* _payload)
     }
     return false;
 }
+
+} // namespace runetag
+} // namespace tl

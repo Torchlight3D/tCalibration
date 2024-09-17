@@ -2,6 +2,9 @@
 
 #include <opencv2/imgproc.hpp>
 
+namespace tl {
+namespace stag {
+
 Marker::Marker(const Quad &q, int inId)
 {
     corners = q.corners;
@@ -29,39 +32,39 @@ Marker::Marker(const Marker &m)
 void Marker::shiftCorners2(int shift)
 {
     if (shift == 1) {
-        cv::Point2d t = corners[0];
+        auto temp = corners[0];
         corners[0] = corners[1];
         corners[1] = corners[2];
         corners[2] = corners[3];
-        corners[3] = t;
+        corners[3] = temp;
     }
     else if (shift == 2) {
-        cv::Point2d t1 = corners[0];
-        cv::Point2d t2 = corners[1];
+        auto temp1 = corners[0];
+        auto temp2 = corners[1];
         corners[0] = corners[2];
         corners[1] = corners[3];
-        corners[2] = t1;
-        corners[3] = t2;
+        corners[2] = temp1;
+        corners[3] = temp2;
     }
     else if (shift == 3) {
-        cv::Point2d t = corners[0];
+        auto temp = corners[0];
         corners[0] = corners[3];
         corners[3] = corners[2];
         corners[2] = corners[1];
-        corners[1] = t;
+        corners[1] = temp;
     }
-    else
+    else {
         return;
+    }
 
     // have to recalculate homography after shift
     estimateHomography();
 }
 
-bool Marker::isSimilarIn(std::vector<Marker> collection)
+bool Marker::isSimilarIn(const std::vector<Marker> &markers) const
 {
-    for (auto &marker : collection) {
-        // calculate distance between centers
-        double dist = norm(center - marker.center);
+    for (const auto &marker : markers) {
+        double dist = cv::norm(center - marker.center);
 
         // convert corners from double to float
         std::vector<cv::Point2f> fcorners1(corners.size());
@@ -73,16 +76,21 @@ bool Marker::isSimilarIn(std::vector<Marker> collection)
         double area1 = cv::contourArea(fcorners1);
         double area2 = cv::contourArea(fcorners2);
         double areaMean = (area1 + area2) / 2;
-        double distArea = fabs(area1 - area2);
+        double distArea = std::abs(area1 - area2);
 
-        // markers are similar if
-        // - ids are identical
-        // - distance between centers is less than 0.2% of mean area
-        // - difference of areas is less than 25% of mean area
-        if (id == marker.id && dist < areaMean * 0.002 &&
-            distArea < areaMean * 0.25) {
+        // Markers are similar if
+        // 1. Ids are identical
+        // 2. Distance between centers is less than ??? percent of mean area
+        // 3. Difference of areas is less than ??? of mean area
+        constexpr auto kMaxCenterDistanceRatio{2e-3};
+        constexpr auto kMaxAreaDiffRatio{0.25};
+        if (id == marker.id && dist < areaMean * kMaxCenterDistanceRatio &&
+            distArea < areaMean * kMaxAreaDiffRatio) {
             return true;
         }
     }
     return false;
 }
+
+} // namespace stag
+} // namespace tl

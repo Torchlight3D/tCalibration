@@ -1,15 +1,13 @@
 #pragma once
 
 #include "ellipsepoint.hpp"
-#include "slot.hpp"
 #include "markerdetected.hpp"
-#include <set>
-#include <vector>
+#include "slot.hpp"
 
-namespace cv {
+namespace tl {
 namespace runetag {
 
-#define FIT_CACHE_SIZE 16
+inline constexpr auto FIT_CACHE_SIZE = 16;
 
 class SlotFitter
 {
@@ -54,11 +52,15 @@ public:
     void fit(std::vector<EllipsePoint>& ring_ellipses, double radius_ratio,
              double gap_factor, int num_layers,
              std::vector<MarkerDetected>& possible_markers);
-    void fit(double radius_ratio, double gap_factor, int num_layers,
-             std::vector<MarkerDetected>& possible_markers);
+    inline void fit(double radius_ratio, double gap_factor, int num_layers,
+                    std::vector<MarkerDetected>& possible_markers)
+    {
+        fit(auto_inliers, radius_ratio, gap_factor, num_layers,
+            possible_markers);
+    }
 
     inline bool isValid() const { return valid; }
 };
 
 } // namespace runetag
-} // namespace cv
+} // namespace tl

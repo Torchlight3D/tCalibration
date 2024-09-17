@@ -235,7 +235,7 @@ void readBoardDefinitions(std::istream &in, std::vector<BoardDefinition> &defs,
                 continue;
 
             cur->second.tag_locations.insert(
-                std::make_pair(tagid, cv::Point2i(lx, ly)));
+                std::make_pair(tagid, cv::Point(lx, ly)));
         }
     }
 
