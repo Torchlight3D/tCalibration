@@ -1,15 +1,9 @@
 #include "qimageutils.h"
 
-#include <array>
-
 #include <QIcon>
 #include <QImageReader>
-#include <QLatin1Char>
-#include <QLatin1String>
 #include <QPainter>
 #include <QPixmap>
-#include <QPixmapCache>
-#include <QStringBuilder>
 #include <QSvgRenderer>
 
 namespace qtprivate {
@@ -61,16 +55,16 @@ void grayscale(const QImage& image, QImage& dest, const QRect& rect = {})
 namespace tl {
 namespace qimg {
 
-QImage colorizeImage(const QPixmap& input, const QColor& color)
+QImage colorizeImage(const QPixmap& src, const QColor& color)
 {
-    if (input.isNull()) {
+    if (src.isNull()) {
         return {};
     }
 
     // Convert input QPixmap to QImage, because it is better for fast pixel
     // manipulation.
-    const auto imageSize = input.size();
-    auto inputImage = input.toImage();
+    const auto imageSize = src.size();
+    auto inputImage = src.toImage();
     inputImage = std::move(inputImage).convertToFormat(QImage::Format_ARGB32);
 
     // Create output QImage with same format and size as input QImage.
@@ -131,41 +125,40 @@ QPixmap tintPixmap(const QPixmap& input, const QColor& color)
     return QPixmap::fromImage(outputImage);
 }
 
-QIcon makeIconFromSvg(const QString& svgPath, const QSize& size)
+QIcon makeIconFromSvg(const QString& filename, const QSize& size)
 {
-    if (svgPath.isEmpty()) {
+    if (filename.isEmpty()) {
         return {};
     }
 
     QIcon icon;
-    QSvgRenderer renderer(svgPath);
-    constexpr auto ratios = std::array<int, 2>{1, 2};
-    for (const auto& ratio : ratios) {
+    QSvgRenderer renderer{filename};
+    for (const auto& ratio : {1, 2}) {
         const auto pixmapSize = size * ratio;
-        QPixmap pixmap(pixmapSize);
-        pixmap.fill(Qt::transparent);
-        QPainter painter(&pixmap);
+        QPixmap pm{pixmapSize};
+        pm.fill(Qt::transparent);
+        QPainter painter{&pm};
         painter.setRenderHint(QPainter::Antialiasing, true);
-        renderer.render(&painter, pixmap.rect());
-        pixmap.setDevicePixelRatio(static_cast<double>(ratio));
-        icon.addPixmap(pixmap);
+        renderer.render(&painter, pm.rect());
+        pm.setDevicePixelRatio(static_cast<double>(ratio));
+        icon.addPixmap(pm);
     }
     return icon;
 }
 
-QPixmap makePixmapFromSvg(const QString& svgPath, const QSize& size)
+QPixmap makePixmapFromSvg(const QString& filename, const QSize& size)
 {
-    if (svgPath.isEmpty()) {
+    if (filename.isEmpty()) {
         return {};
     }
 
-    QSvgRenderer renderer(svgPath);
-    QPixmap pixmap(size);
-    pixmap.fill(Qt::transparent);
-    QPainter painter(&pixmap);
+    QPixmap pm{size};
+    pm.fill(Qt::transparent);
+    QPainter painter{&pm};
     painter.setRenderHint(QPainter::Antialiasing, true);
-    renderer.render(&painter, pixmap.rect());
-    return pixmap;
+    QSvgRenderer renderer(filename);
+    renderer.render(&painter, pm.rect());
+    return pm;
 }
 
 QPixmap makePixmapFromSvg(const QString& backgroundSvgPath,
@@ -220,8 +213,7 @@ double getImageAspectRatio(const QString& path)
 
     const QImageReader reader(path);
     const auto size = reader.size();
-    const auto aspectRatio = size.width() / static_cast<double>(size.height());
-    return aspectRatio;
+    return size.width() / static_cast<double>(size.height());
 }
 
 QImage getExtendedImage(const QPixmap& input, int padding)
