@@ -137,7 +137,7 @@ void MyRGB2Lab(unsigned char *redImg, unsigned char *greenImg,
                (x / y); // This is wrong but gives better results. Why?
                         //    a[i] = 500*(x-y); // This is the correct formula
         b[i] = 200 * (y - z);
-    } // end-for
+    }
 
     // Scale L to [0-255]
     double min = 1e10;
@@ -147,7 +147,7 @@ void MyRGB2Lab(unsigned char *redImg, unsigned char *greenImg,
             min = L[i];
         else if (L[i] > max)
             max = L[i];
-    } // end-for
+    }
 
     double scale = 255.0 / (max - min);
     for (int i = 0; i < width * height; i++) {
@@ -164,7 +164,7 @@ void MyRGB2Lab(unsigned char *redImg, unsigned char *greenImg,
             min = a[i];
         else if (a[i] > max)
             max = a[i];
-    } // end-for
+    }
 
     scale = 255.0 / (max - min);
     for (int i = 0; i < width * height; i++) {
@@ -181,7 +181,7 @@ void MyRGB2Lab(unsigned char *redImg, unsigned char *greenImg,
             min = b[i];
         else if (b[i] > max)
             max = b[i];
-    } // end-for
+    }
 
     scale = 255.0 / (max - min);
     for (int i = 0; i < width * height; i++) {
@@ -270,7 +270,7 @@ void MyRGB2LabFast(unsigned char *redImg, unsigned char *greenImg,
         aImg[i] =
             (unsigned char)(500 * (x - y) + 128); // This is the correct formula
         bImg[i] = (unsigned char)(200 * (y - z) + 128);
-    } // end-for
+    }
 
     timer.Stop();
     printf("Loop takes: %4.2lf\n", timer.ElapsedTime());
@@ -347,7 +347,7 @@ void StdRGB2Lab(unsigned char *redImg, unsigned char *greenImg,
         L[i] = (116.0 * y) - 16;
         a[i] = 500 * (x - y); // This is the correct formula
         b[i] = 200 * (y - z);
-    } // end-for
+    }
 
     // Scale L to [0-255]
     double min = 1e10;
@@ -357,7 +357,7 @@ void StdRGB2Lab(unsigned char *redImg, unsigned char *greenImg,
             min = L[i];
         else if (L[i] > max)
             max = L[i];
-    } // end-for
+    }
 
     double scale = 255.0 / (max - min);
     for (int i = 0; i < width * height; i++) {
@@ -372,7 +372,7 @@ void StdRGB2Lab(unsigned char *redImg, unsigned char *greenImg,
             min = a[i];
         else if (a[i] > max)
             max = a[i];
-    } // end-for
+    }
 
     scale = 255.0 / (max - min);
     for (int i = 0; i < width * height; i++) {
@@ -387,7 +387,7 @@ void StdRGB2Lab(unsigned char *redImg, unsigned char *greenImg,
             min = b[i];
         else if (b[i] > max)
             max = b[i];
-    } // end-for
+    }
 
     scale = 255.0 / (max - min);
     for (int i = 0; i < width * height; i++) {
@@ -397,7 +397,7 @@ void StdRGB2Lab(unsigned char *redImg, unsigned char *greenImg,
     delete L;
     delete a;
     delete b;
-} // end-StdRGB2Lab
+}
 
 ///-------------------------------------------------------------------------------------
 /// My formulation on an IplImage
@@ -476,8 +476,8 @@ void RGB2Lab(IplImage *rgbImg, IplImage *labImg)
 
             rgbLine += 3;
             labLine += 3;
-        } // end-for
-    }     // end-for
+        }
+    }
 } // end-RGB2Lab
 
 ///-------------------------------------------------------------------------------------
@@ -514,7 +514,7 @@ void RGB2Lab2(unsigned char *redImg, unsigned char *greenImg,
         else {
             fY = 7.787 * Y + 16.0 / 116.0;
             L = 903.3 * Y;
-        } // end-else
+        }
 
         if (X > 0.008856)
             fX = pow(X, 1.0 / 3.0);
@@ -533,7 +533,7 @@ void RGB2Lab2(unsigned char *redImg, unsigned char *greenImg,
             a *= exp((L - BLACK) / (BLACK / 4));
             b *= exp((L - BLACK) / (BLACK / 4));
             L = BLACK;
-        } // end-if
+        }
 
         if (b > YELLOW)
             b = YELLOW;
@@ -549,7 +549,7 @@ void RGB2Lab2(unsigned char *redImg, unsigned char *greenImg,
                                     //    LImg[i] = (unsigned char)(2.55*L);
         aImg[i] = (unsigned char)(a + 128);
         bImg[i] = (unsigned char)(b + 128);
-    } // end-for
+    }
 
 #if 0
   // Scale L
@@ -683,8 +683,8 @@ void RGB2LabOpenCV(unsigned char *redImg, unsigned char *greenImg,
             p[1] = greenImg[index];
             p[2] = redImg[index];
             index++;
-        } // end-for
-    }     // end-for
+        }
+    }
 
     // Convert from BGR2Lab
     cvCvtColor(iplImg, iplLabImg, CV_BGR2Lab);
@@ -699,8 +699,8 @@ void RGB2LabOpenCV(unsigned char *redImg, unsigned char *greenImg,
             aImg[index] = p[1];
             bImg[index] = p[2];
             index++;
-        } // end-for
-    }     // end-for
+        }
+    }
 
     cvReleaseImage(&iplImg);
     cvReleaseImage(&iplLabImg);
@@ -826,7 +826,7 @@ void RGB2Luv(unsigned char *redImg, unsigned char *greenImg,
         L[i] = (116 * var_Y) - 16;
         u[i] = 13 * L[i] * (var_U - ref_U);
         v[i] = 13 * L[i] * (var_V - ref_V);
-    } // end-for
+    }
 
     // Scale L to [0-255]
     double min = 1e10;
@@ -836,7 +836,7 @@ void RGB2Luv(unsigned char *redImg, unsigned char *greenImg,
             min = L[i];
         else if (L[i] > max)
             max = L[i];
-    } // end-for
+    }
 
     double scale = 255.0 / (max - min);
     for (int i = 0; i < width * height; i++) {
@@ -851,7 +851,7 @@ void RGB2Luv(unsigned char *redImg, unsigned char *greenImg,
             min = u[i];
         else if (u[i] > max)
             max = u[i];
-    } // end-for
+    }
 
     scale = 255.0 / (max - min);
     for (int i = 0; i < width * height; i++) {
@@ -866,7 +866,7 @@ void RGB2Luv(unsigned char *redImg, unsigned char *greenImg,
             min = v[i];
         else if (v[i] > max)
             max = v[i];
-    } // end-for
+    }
 
     scale = 255.0 / (max - min);
     for (int i = 0; i < width * height; i++) {
@@ -970,8 +970,8 @@ void RGB2HSL(unsigned char *redImg, unsigned char *greenImg,
                 H[i] += 1.0;
             if (H[i] > 1)
                 H[i] -= 1.0;
-        } // end-else
-    }     // end-for
+        }
+    }
 
     // Scale H to [0-255]
     min = 1e10;
@@ -981,7 +981,7 @@ void RGB2HSL(unsigned char *redImg, unsigned char *greenImg,
             min = H[i];
         else if (H[i] > max)
             max = H[i];
-    } // end-for
+    }
 
     double scale = 255.0 / (max - min);
     for (int i = 0; i < width * height; i++) {
@@ -996,7 +996,7 @@ void RGB2HSL(unsigned char *redImg, unsigned char *greenImg,
             min = S[i];
         else if (S[i] > max)
             max = S[i];
-    } // end-for
+    }
 
     scale = 255.0 / (max - min);
     for (int i = 0; i < width * height; i++) {
@@ -1011,7 +1011,7 @@ void RGB2HSL(unsigned char *redImg, unsigned char *greenImg,
             min = L[i];
         else if (L[i] > max)
             max = L[i];
-    } // end-for
+    }
 
     scale = 255.0 / (max - min);
     for (int i = 0; i < width * height; i++) {
@@ -1021,7 +1021,7 @@ void RGB2HSL(unsigned char *redImg, unsigned char *greenImg,
     delete H;
     delete S;
     delete L;
-} // end-RGB2HSL
+}
 
 void RGB2YUV(unsigned char *redImg, unsigned char *greenImg,
              unsigned char *blueImg, unsigned char *YImg, unsigned char *UImg,
@@ -1034,8 +1034,8 @@ void RGB2YUV(unsigned char *redImg, unsigned char *greenImg,
                                   0.436 * blueImg[i]);
         VImg[i] = (unsigned char)(0.615 * redImg[i] - 0.51499 * greenImg[i] -
                                   0.10001 * blueImg[i]);
-    } // end-for
-} // end-RGB2YUV
+    }
+}
 
 ///-------------------------------------------------------------------------------------------
 /// Dumps the gradient image: Scaled to [0-255]
@@ -1048,18 +1048,18 @@ void DumpGradImage(char *file, short *gradImg, int width, int height)
     for (int i = 0; i < width * height; i++) {
         if (gradImg[i] > max)
             max = gradImg[i];
-    } // end-for
+    }
 
     double scale = 255.0 / max;
 
     for (int i = 0; i < width * height; i++) {
         out[i] = (unsigned char)(scale * gradImg[i]);
-    } // end-for
+    }
 
     // Burak - commented the line below, it was making a fuss
     // SaveImage(file, (char *)out, width, height, 8);
     delete out;
-} // end-DumpGradImg
+}
 
 ///-------------------------------------------------------------------------------------------
 /// Dumps the gradient image
@@ -1074,12 +1074,12 @@ void DumpGradImage(char *file, short *gradImg, int width, int height,
             out[i] = 255;
         else
             out[i] = 0;
-    } // end-for
+    }
 
     // Burak - commented the line below, it was making a fuss
     // SaveImage(file, (char *)out, width, height, 8);
     delete out;
-} // end-DumpGradImg
+}
 
 ///-------------------------------------------------------------------------------------------
 /// Dumps the edge segments to a file
@@ -1098,8 +1098,8 @@ void DumpEdgeSegments(char *file, EdgeMap *map)
             int c = map->segments[i].pixels[j].c;
 
             edgeImg[r * width + c] = 255;
-        } // end-for
-    }     // end-for
+        }
+    }
 
     // Burak - commented the line below, it was making a fuss
     // SaveImage(file, (char *)edgeImg, width, height, 8);
@@ -1124,8 +1124,8 @@ void ColorEdgeSegments(EdgeMap *map, unsigned char *colorImg,
             colorImg[i * 3] = srcImg[i];
             colorImg[i * 3 + 1] = srcImg[i];
             colorImg[i * 3 + 2] = srcImg[i];
-        } // end-for
-    }     // end-for
+        }
+    }
 
     ColorGenerator cg;
     int red, blue, green;
@@ -1148,8 +1148,8 @@ void ColorEdgeSegments(EdgeMap *map, unsigned char *colorImg,
             colorImg[(r * width + c) * 3] = blue;
             colorImg[(r * width + c) * 3 + 1] = green;
             colorImg[(r * width + c) * 3 + 2] = red;
-        } // end-for
-    }     // end-for
+        }
+    }
 } // end-ColorEdgeSegments
 
 ///-------------------------------------------------------------------------------------------
@@ -1188,8 +1188,8 @@ void ShowJointPoints(char *file, EdgeMap *map, unsigned char *jointPoints,
             colorImg[i * 3] = srcImg[i];
             colorImg[i * 3 + 1] = srcImg[i];
             colorImg[i * 3 + 2] = srcImg[i];
-        } // end-for
-    }     // end-for
+        }
+    }
 
     ColorGenerator cg;
     int red, blue, green;
@@ -1206,8 +1206,8 @@ void ShowJointPoints(char *file, EdgeMap *map, unsigned char *jointPoints,
             colorImg[(r * width + c) * 3] = blue;
             colorImg[(r * width + c) * 3 + 1] = green;
             colorImg[(r * width + c) * 3 + 2] = red;
-        } // end-for
-    }     // end-for
+        }
+    }
 
     for (int i = 0; i < width * height; i++) {
         if (jointPoints[i] == 0)
@@ -1216,7 +1216,7 @@ void ShowJointPoints(char *file, EdgeMap *map, unsigned char *jointPoints,
         colorImg[i * 3] = 0;
         colorImg[i * 3 + 1] = 0;
         colorImg[i * 3 + 2] = 255;
-    } // end-for
+    }
 
     // Burak - commented the line below, it was making a fuss
     // SaveImage(file, (char *)colorImg, width, height, 24);
@@ -1264,19 +1264,19 @@ int GetFilenamesInDirectory(char *dirname, DirectoryEntry *items)
                     break;
                 items[index + 1] = items[index];
                 index--;
-            } // end-while
+            }
 
             index++;
             strcpy(items[index].filename, filename);
             noItems++;
-        } // end-if
+        }
 
         if (!FindNextFile(hList, &FileData)) {
             if (GetLastError() == ERROR_NO_MORE_FILES) {
                 fFinished = TRUE;
-            } // end-if
-        }     // end-if
-    }         // end-while
+            }
+        }
+    }
 
     FindClose(hList);
 
@@ -1564,7 +1564,7 @@ unsigned char *ScaleImage(unsigned char *srcImg, int width, int height,
     unsigned char *outImg = new unsigned char[w * h];
     for (int i = 0; i < w * h; i++) {
         outImg[i] = (unsigned char)(scaledImg->data[i]);
-    } // end-for
+    }
 
     free_image_double(doubleImg);
     free_image_double(scaledImg);
@@ -1626,7 +1626,7 @@ void StdRGB2LabOne(unsigned char r, unsigned char g, unsigned char bl, double *L
   *L = (116.0*y)-16;
   *a = 500*(x-y);
   *b = 200*(y-z);
-} //end-StdRGB2LabOne
+}
 
 #else
 ///---------------------------------------------------------------------------------------------------
@@ -1678,7 +1678,7 @@ void StdRGB2LabOne(unsigned char r, unsigned char g, unsigned char bl,
     *L = (116.0 * y) - 16;
     *a = 500 * (x - y);
     *b = 200 * (y - z);
-} // end-StdRGB2LabOne
+}
 #endif
 
 // Burak - restores _CRT_SECURE_NO_DEPRECATE warnings

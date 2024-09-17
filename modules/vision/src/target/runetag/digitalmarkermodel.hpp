@@ -1,6 +1,5 @@
 #pragma once
 
-// #include "precomp.hpp"
 #include <opencv2/core/core.hpp>
 
 #include <fstream>
@@ -10,8 +9,7 @@
 
 #include "coding.h"
 
-namespace cv {
-
+namespace tl {
 namespace runetag {
 
 class MarkerDetected;
@@ -32,20 +30,16 @@ private:
     std::vector<long> code;
     long idx;
 
-    cv::runetag::Coding coding;
+    Coding coding;
 
-    mutable std::map<int, cv::Matx<double, 3, 3>> model_ellipses;
+    mutable std::map<int, cv::Matx33d> model_ellipses;
     mutable std::vector<unsigned int> detected_errors;
 
 public:
     DigitalMarkerModel();
-
     DigitalMarkerModel(std::ifstream& ifs);
-
     DigitalMarkerModel(const DigitalMarkerModel& other);
-
     DigitalMarkerModel& operator=(const DigitalMarkerModel& other);
-
     ~DigitalMarkerModel();
 
     ///< summary>Checks if a detected marker can be matched with this model, and
@@ -75,8 +69,7 @@ public:
                 gap_factor == other.gap_factor);
     }
 
-    inline const cv::Matx<double, 3, 3>& modelEllipseAtSlot(
-        unsigned int slot_num) const
+    inline const cv::Matx33d& modelEllipseAtSlot(unsigned int slot_num) const
     {
         if (bcode[slot_num]) {
             return model_ellipses[slot_num];
@@ -87,13 +80,7 @@ public:
 
     inline unsigned int numSymbols() const
     {
-        unsigned int count = 0;
-        for (unsigned int i = 0; i < bcode.size(); i++) {
-            if (bcode[i]) {
-                count++;
-            }
-        }
-        return count;
+        return std::ranges::count(bcode, true);
     }
 
     inline bool isInternal(unsigned int slot_num) const
@@ -129,17 +116,15 @@ public:
     class MarkerModelLoadException : public std::runtime_error
     {
     public:
-        MarkerModelLoadException(const std::string& reason)
-            : std::runtime_error(reason) {};
+        using std::runtime_error::runtime_error;
     };
 
     class MarkerModelOperationException : public std::runtime_error
     {
     public:
-        MarkerModelOperationException(const std::string& reason)
-            : std::runtime_error(reason) {};
+        using std::runtime_error::runtime_error;
     };
 };
 
 } // namespace runetag
-} // namespace cv
+} // namespace tl

@@ -1,13 +1,8 @@
 #pragma once
 
-// #include "precomp.h"
+#include <opencv2/core/mat.hpp>
 
-#include <opencv2/core/core.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
-#include <vector>
-
-namespace cv {
-
+namespace tl {
 namespace runetag {
 
 /// <summary> Image ellipses detector</summary>
@@ -63,7 +58,7 @@ public:
           size_compensation(_size_compensation)
     {
     }
-    ~EllipseDetector(void) {};
+    ~EllipseDetector() {}
 
     /// <summary> Detects ellipses inside an image</summary>
     /// <param name="frame"> Input image </param>
@@ -74,4 +69,4 @@ public:
 };
 
 } // namespace runetag
-} // namespace cv
+} // namespace tl

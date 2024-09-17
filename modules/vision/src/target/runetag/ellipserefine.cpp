@@ -1,14 +1,11 @@
-
-#include <opencv2/core/core.hpp>
 #include "ellipserefine.hpp"
-#include <iostream>
-#include <highgui.h>
-#include <iostream>
-#include "ellipsedetector.hpp"
-#include "../include/auxrenderer.hpp"
-#include "../include/auxmath.hpp"
 
-inline void points(cv::RotatedRect& ellipse, cv::Point2f pt[])
+#include <opencv2/core.hpp>
+
+namespace tl {
+namespace runetag {
+
+inline void points(const cv::RotatedRect& ellipse, cv::Point2f pt[])
 {
     double _angle = ellipse.angle * CV_PI / 180.;
     float a = (float)cos(_angle) * 0.5f;
@@ -22,10 +19,8 @@ inline void points(cv::RotatedRect& ellipse, cv::Point2f pt[])
         ellipse.center.x + a * ellipse.size.width - b * ellipse.size.height;
     pt[1].y =
         ellipse.center.y - b * ellipse.size.width - a * ellipse.size.height;
-    pt[2].x = 2 * ellipse.center.x - pt[0].x;
-    pt[2].y = 2 * ellipse.center.y - pt[0].y;
-    pt[3].x = 2 * ellipse.center.x - pt[1].x;
-    pt[3].y = 2 * ellipse.center.y - pt[1].y;
+    pt[2] = 2 * ellipse.center - pt[0];
+    pt[3] = 2 * ellipse.center - pt[1];
 }
 
 bool point_inside(cv::Point2f p, cv::Point2f pt[4])
@@ -77,10 +72,9 @@ bool point_inside(cv::Point2f p, cv::Point2f pt[4])
     return true;
 }
 
-bool cv::runetag::ellipserefine(const cv::RotatedRect& ellipse,
-                                const cv::Mat& gradient_x,
-                                const cv::Mat& gradient_y, double cx, double cy,
-                                cv::Matx33d& out, cv::Mat dbg)
+bool ellipserefine(const cv::RotatedRect& ellipse, const cv::Mat& gradient_x,
+                   const cv::Mat& gradient_y, double cx, double cy,
+                   cv::Matx33d& out, cv::Mat dbg)
 {
     const double major_axis = ellipse.size.width > ellipse.size.height
                                   ? ellipse.size.width
@@ -89,9 +83,9 @@ bool cv::runetag::ellipserefine(const cv::RotatedRect& ellipse,
 
     cv::Point2d center = ellipse.center;
 
-    cv::Point2i topleft(static_cast<int>(ellipse.center.x - major_axis * 2.0),
-                        static_cast<int>(ellipse.center.y - major_axis * 2.0));
-    cv::Point2i bottomright(
+    cv::Point topleft(static_cast<int>(ellipse.center.x - major_axis * 2.0),
+                      static_cast<int>(ellipse.center.y - major_axis * 2.0));
+    cv::Point bottomright(
         static_cast<int>(ellipse.center.x + major_axis * 2.0),
         static_cast<int>(ellipse.center.y + major_axis * 2.0));
 
@@ -250,3 +244,6 @@ bool cv::runetag::ellipserefine(const cv::RotatedRect& ellipse,
     out = res;
     return true;
 }
+
+} // namespace runetag
+} // namespace tl

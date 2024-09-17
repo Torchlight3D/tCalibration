@@ -1,7 +1,8 @@
 #pragma once
 
-#include "opencv2/opencv.hpp"
+#include <opencv2/core/mat.hpp>
 
+namespace tl {
 namespace stag {
 
 /**
@@ -98,3 +99,4 @@ void drawDetectedMarkers(cv::Mat& image,
                                                                     50));
 
 } // namespace stag
+} // namespace tl

@@ -2,8 +2,6 @@
 
 #include "DetectorParams.h"
 
-#include <opencv2/opencv.hpp>
-
 namespace orp {
 namespace calibration {
 
@@ -199,7 +197,7 @@ void stretchIntensities(cv::InputArray input, cv::OutputArray output)
     }
 }
 
-bool point_comparator(const cv::Point2i &a, const cv::Point2i &b)
+bool point_comparator(const cv::Point &a, const cv::Point &b)
 {
     if (a.y != b.y)
         return a.y < b.y;
@@ -273,14 +271,13 @@ void drawCheckerboardCornersOnly(cv::Mat &result, const BoardObservation &obs,
 void drawCheckerboardCorners(cv::Mat &result, const BoardObservation &obs,
                              int thickness, bool triangular_board)
 {
-    const int line_max = 10;
-    static const cv::Scalar line_colors[line_max] = {
-        //            R, G, B
-        cv::Scalar(0, 0, 255),   cv::Scalar(0, 128, 255),
-        cv::Scalar(0, 224, 224), cv::Scalar(0, 255, 0),
-        cv::Scalar(224, 224, 0), cv::Scalar(255, 128, 0),
-        cv::Scalar(255, 0, 0),   cv::Scalar(255, 0, 128),
-        cv::Scalar(224, 0, 224), cv::Scalar(128, 0, 255)};
+    static const cv::Scalar line_colors[]{
+        CV_RGB(0, 0, 255),  CV_RGB(0, 128, 255), cv::Scalar(0, 224, 224),
+        CV_RGB(0, 255, 0),  CV_RGB(224, 224, 0), CV_RGB(255, 128, 0),
+        CV_RGB(255, 0, 0),  CV_RGB(255, 0, 128), cv::Scalar(224, 0, 224),
+        CV_RGB(128, 0, 255)};
+    constexpr int line_max = std::size(line_colors);
+
     float rs = 1.0f + thickness;
     const cv::Mat &checkerboard = obs.board;
     const std::vector<cv::Point2f> &corners = obs.corner_locations;
@@ -294,6 +291,7 @@ void drawCheckerboardCorners(cv::Mat &result, const BoardObservation &obs,
             color[1] = std::max(128, int(color[1]));
             color[2] = std::max(128, int(color[2]));
         }
+
         for (int c = 0; c < checkerboard.cols; ++c) {
             int id1, id2;
             bool both = true;

@@ -1,11 +1,11 @@
-
 #include "ellipsefitter.hpp"
 
-// #include "auxmath.hpp"
-#include <limits>
+#include <opencv2/core/quaternion.hpp>
 
-using std::vector;
-using namespace cv::runetag;
+#include "auxmath.hpp"
+
+namespace tl {
+namespace runetag {
 
 EllipseFitter::CandidateVR::CandidateVR(const cv::Matx33d& _VR1,
                                         const cv::Matx31d& _normal1,
@@ -46,7 +46,7 @@ bool EllipseFitter::chooseAvgVR(const EllipsePoint& ep1,
     CandidateVR q1vr2_q2vr2(ep1.getVR2(), Q1_VR2_normal, ep2.getVR2(),
                             Q2_VR2_normal);
 
-    vector<CandidateVR> candidates;
+    std::vector<CandidateVR> candidates;
     // Normal filtering
     if (q1vr1_q2vr1.cosAngle() > coplanar_threshold) {
         candidates.push_back(q1vr1_q2vr1);
@@ -70,15 +70,16 @@ bool EllipseFitter::chooseAvgVR(const EllipsePoint& ep1,
     const cv::Matx33d& Q1 = ep1.getEllipseNorm();
     const cv::Matx33d& Q2 = ep2.getEllipseNorm();
 
-    for (vector<CandidateVR>::iterator it = candidates.begin();
-         it != candidates.end(); it++) {
+    for (auto it = candidates.begin(); it != candidates.end(); it++) {
         // For each candidate we create the average rotation
-        Quaternion<double> qr1(it->getVR1());
-        Quaternion<double> qr2(it->getVR2());
+        // TODO: Duplicated, make a function
 
-        Quaternion<double> qavg = qr1.dot(qr2) > 0.0 ? qr1 + qr2 : qr1 - qr2;
-        qavg.normalize();
-        cv::Matx33d VR_avg = qavg.toRotationMatrix();
+        const auto qr1 = cv::Quatd::createFromRotMat(it->getVR1());
+        const auto qr2 = cv::Quatd::createFromRotMat(it->getVR2());
+
+        auto qavg = qr1.dot(qr2) > 0.0 ? qr1 + qr2 : qr1 - qr2;
+        qavg = qavg.normalize();
+        cv::Matx33d VR_avg = qavg.toRotMat3x3();
 
         cv::Matx33d Q1c_vravg, Q2c_vravg;
         transformToCircle(Q1, VR_avg, Q1c_vravg);
@@ -120,8 +121,7 @@ bool EllipseFitter::fitEllipseAvg(double radius_ratio)
 
     const double rad_avgSqr = (r1 + r2) * 0.5;
     const double radiusSqr = rad_avgSqr * radius_ratio * radius_ratio;
-    const double dsqr = (center1.x - center2.x) * (center1.x - center2.x) +
-                        (center1.y - center2.y) * (center1.y - center2.y);
+    const double dsqr = cv::norm(center1 - center2);
 
     /*
     if( dsqr > radiusSqr*2.0  || dsqr < radiusSqr*0.4  )
@@ -133,12 +133,7 @@ bool EllipseFitter::fitEllipseAvg(double radius_ratio)
     rad_avg = sqrt(rad_avgSqr);
     radius = sqrt(radiusSqr);
 
-    bool canfit = fitCircles(center1, center2, radiusSqr, Qfit1c, Qfit2c);
-    if (!canfit) {
-        return false;
-    }
-
-    return true;
+    return fitCircles(center1, center2, radiusSqr, Qfit1c, Qfit2c);
 }
 
 // pass another parameter to use transformToEllipse with a specific 3� parameter
@@ -295,3 +290,6 @@ void EllipseFitter::normalize(cv::Matx31d& vector)
     vector(1, 0) /= magnitude;
     vector(2, 0) /= magnitude;
 }
+
+} // namespace runetag
+} // namespace tl

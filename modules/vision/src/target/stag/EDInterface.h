@@ -20,9 +20,8 @@ public:
     // runs EDPF and EDLines, keeps the results in memory
     void runEDPFandEDLines(const cv::Mat& image);
 
-    EdgeMap* getEdgeMap();
-
-    EDLines* getEDLines();
+    EdgeMap* getEdgeMap() const;
+    EDLines* getEDLines() const;
 
     // ensures that when going from the start to end of a line segment,
     // right-hand side is darker

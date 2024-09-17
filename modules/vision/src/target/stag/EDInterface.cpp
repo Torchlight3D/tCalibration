@@ -16,9 +16,9 @@ void EDInterface::runEDPFandEDLines(const cv::Mat& image)
                                 image.size().height, false, 0);
 }
 
-EdgeMap* EDInterface::getEdgeMap() { return edgeMap; }
+EdgeMap* EDInterface::getEdgeMap() const { return edgeMap; }
 
-EDLines* EDInterface::getEDLines() { return edLines; }
+EDLines* EDInterface::getEDLines() const { return edLines; }
 
 void EDInterface::correctLineDirection(const cv::Mat& image, LineSegment& ls)
 {

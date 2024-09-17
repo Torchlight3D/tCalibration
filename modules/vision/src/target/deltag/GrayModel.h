@@ -4,6 +4,7 @@
 
 namespace orp {
 namespace calibration {
+
 //! Fits a grayscale model over an area of pixels.
 /*! The model is of the form: c1*x + c2*y + c3*x*y + c4 = value
  *

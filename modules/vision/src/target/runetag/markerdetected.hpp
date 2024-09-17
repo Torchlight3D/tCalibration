@@ -1,11 +1,10 @@
 #pragma once
 
-#include <opencv2/core/core.hpp>
 #include "slot.hpp"
 #include "ellipsepoint.hpp"
 #include "digitalmarkermodel.hpp"
 
-namespace cv {
+namespace tl {
 namespace runetag {
 
 class MarkerDetected
@@ -116,7 +115,7 @@ public:
                 }
             }
         }
-        spl;
+        return spl;
     }
 
     // Returns the layer with the highest number of filled slots
@@ -189,4 +188,4 @@ public:
 };
 
 } // namespace runetag
-} // namespace cv
+} // namespace tl

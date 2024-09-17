@@ -1,10 +1,10 @@
-
 #include "ellipsepoint.hpp"
+
 #include "ellipserefine.hpp"
 #include "auxmath.hpp"
-#include <iostream>
 
-using namespace cv::runetag;
+namespace tl {
+namespace runetag {
 
 EllipsePoint::EllipsePoint(cv::RotatedRect _ellipse, const double cx,
                            const double cy)
@@ -221,3 +221,6 @@ cv::Point2d EllipsePoint::getCenter() const
     }
     return centerCache;
 }
+
+} // namespace runetag
+} // namespace tl

@@ -2,7 +2,9 @@
 
 #include <opencv2/core/types.hpp>
 
-static std::vector<cv::Scalar> colors{
+namespace tl {
+
+inline static std::vector<cv::Scalar> colors{
     cv::Scalar(81, 112, 215),  cv::Scalar(255, 0, 13),
     cv::Scalar(154, 14, 234),  cv::Scalar(21, 176, 26),
     cv::Scalar(255, 129, 192),
@@ -42,3 +44,4 @@ static std::vector<cv::Scalar> colors{
     cv::Scalar(6, 154, 243),   cv::Scalar(255, 167, 86),
     cv::Scalar(135, 174, 115), cv::Scalar(150, 249, 123),
     cv::Scalar(255, 255, 194)};
+}

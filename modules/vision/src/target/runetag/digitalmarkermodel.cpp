@@ -1,8 +1,9 @@
-// #include "precomp.hpp"
 #include "digitalmarkermodel.hpp"
+
 #include "markerdetected.hpp"
 
-using namespace cv::runetag;
+namespace tl {
+namespace runetag {
 
 DigitalMarkerModel::DigitalMarkerModel() : radius_ratio(0.0), num_slots(0)
 {
@@ -230,3 +231,6 @@ bool DigitalMarkerModel::valueAtSlot(unsigned int slot_num) const
 {
     return bcode[slot_num % num_slots];
 }
+
+} // namespace runetag
+} // namespace tl

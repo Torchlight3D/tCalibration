@@ -1,9 +1,10 @@
+#include "QuadDetector.h"
+
 #include <vector>
 #include <algorithm>
-#include "opencv2/opencv.hpp"
 
-#include "QuadDetector.h"
-#include "utility.h"
+namespace tl {
+namespace stag {
 
 QuadDetector::QuadDetector() = default;
 
@@ -22,25 +23,22 @@ void QuadDetector::detectQuads(const cv::Mat& image, EDInterface* edInterface)
     detectCorners(edInterface, lineGroups);
 
     // create quads using corner groups
-    for (int indCornerGroup = 0; indCornerGroup < cornerGroups.size();
-         indCornerGroup++) {
+    for (const auto& corners : cornerGroups) {
         // assumed that at least 3 corners are needed. actually, we need at
         // least two opposite corners. however, it is assumed that there is an
         // additional corner between opposite corners, hence the need for 3
         // corners
-        if (cornerGroups[indCornerGroup].size() < 3)
+        if (corners.size() < 3) {
             continue;
+        }
 
-        std::vector<Corner> currCornerGroup = cornerGroups[indCornerGroup];
-
-        for (unsigned int cornerInd = 0; cornerInd < currCornerGroup.size();
+        for (unsigned int cornerInd = 0; cornerInd < corners.size();
              cornerInd++) {
-            int i1 = cornerInd, i2 = (i1 + 1) % currCornerGroup.size(),
-                i3 = (i1 + 2) % currCornerGroup.size(),
-                i4 = (i1 + 3) % currCornerGroup.size();
+            int i1 = cornerInd, i2 = (i1 + 1) % corners.size(),
+                i3 = (i1 + 2) % corners.size(), i4 = (i1 + 3) % corners.size();
 
-            Corner c1 = currCornerGroup[i1], c2 = currCornerGroup[i2],
-                   c3 = currCornerGroup[i3], c4 = currCornerGroup[i4];
+            Corner c1 = corners[i1], c2 = corners[i2], c3 = corners[i3],
+                   c4 = corners[i4];
 
             // if there are only 3 corners, replace the 4th corner with an
             // invalid one
@@ -53,8 +51,8 @@ void QuadDetector::detectQuads(const cv::Mat& image, EDInterface* edInterface)
             if (!checkIfCornersFormQuad(corners, edInterface))
                 continue;
 
-            std::vector<cv::Point2d> cornerLocs = {
-                corners[0].loc, corners[1].loc, corners[2].loc, corners[3].loc};
+            const std::array cornerLocs{corners[0].loc, corners[1].loc,
+                                        corners[2].loc, corners[3].loc};
 
             Quad quad(cornerLocs);
 
@@ -69,7 +67,7 @@ void QuadDetector::detectQuads(const cv::Mat& image, EDInterface* edInterface)
     }
 }
 
-const std::vector<std::vector<Corner>>& QuadDetector::getCornerGroups()
+const std::vector<std::vector<Corner>>& QuadDetector::getCornerGroups() const
 {
     return cornerGroups;
 }
@@ -160,8 +158,9 @@ void QuadDetector::detectCorners(
             // the below condition direction (<=) looks for quads that are
             // darker inside if you are looking for quads that are lighter
             // inside, simply change the condition direction (>=)
-            if (crossProduct(vec1start1end, vec1start2end) <= 0)
+            if (vec1start1end.cross(vec1start2end) <= 0) {
                 continue;
+            }
 
             cv::Point2d inters =
                 edInterface->intersectionOfLineSegments(line1, line2);
@@ -231,10 +230,10 @@ bool QuadDetector::checkIfCornersFormQuad(std::vector<Corner>& corners,
 
     // check the distances between detected corners and estimated corners
     // if they are close enough, detected corners are used
-    double distC1estC1 = squaredDistance(corners[1].loc, estC1.loc);
-    double distC1estC3 = squaredDistance(corners[1].loc, estC3.loc);
-    double distC3estC1 = squaredDistance(corners[3].loc, estC1.loc);
-    double distC3estC3 = squaredDistance(corners[3].loc, estC3.loc);
+    double distC1estC1 = cv::norm(corners[1].loc - estC1.loc);
+    double distC1estC3 = cv::norm(corners[1].loc - estC3.loc);
+    double distC3estC1 = cv::norm(corners[3].loc - estC1.loc);
+    double distC3estC3 = cv::norm(corners[3].loc - estC3.loc);
     double thresDistSquared = thresDist * thresDist;
 
     // corners[1] - estC1 is a good match
@@ -278,12 +277,10 @@ bool QuadDetector::checkIfCornersFormQuad(std::vector<Corner>& corners,
         return false;
 
     // order corners in clockwise
-    cv::Point2d vec13(corners[2].loc.x - corners[0].loc.x,
-                      corners[2].loc.y - corners[0].loc.y);
-    cv::Point2d vec12(corners[1].loc.x - corners[0].loc.x,
-                      corners[1].loc.y - corners[0].loc.y);
+    cv::Point2d vec13 = corners[2].loc - corners[0].loc;
+    cv::Point2d vec12 = corners[1].loc - corners[0].loc;
 
-    if (crossProduct(vec13, vec12) > 0) {
+    if (vec13.cross(vec12) > 0) {
         Corner temp = corners[1];
         corners[1] = corners[3];
         corners[3] = temp;
@@ -294,25 +291,19 @@ bool QuadDetector::checkIfCornersFormQuad(std::vector<Corner>& corners,
 
 bool QuadDetector::checkIfQuadIsSimple(const std::vector<Corner>& corners)
 {
-    cv::Point2d vec13(corners[2].loc.x - corners[0].loc.x,
-                      corners[2].loc.y - corners[0].loc.y);
-    cv::Point2d vec12(corners[1].loc.x - corners[0].loc.x,
-                      corners[1].loc.y - corners[0].loc.y);
-    cv::Point2d vec14(corners[3].loc.x - corners[0].loc.x,
-                      corners[3].loc.y - corners[0].loc.y);
+    cv::Point2d vec13 = corners[2].loc - corners[0].loc;
+    cv::Point2d vec12 = corners[1].loc - corners[0].loc;
+    cv::Point2d vec14 = corners[3].loc - corners[0].loc;
 
-    double product = crossProduct(vec13, vec12) * crossProduct(vec13, vec14);
+    double product = vec13.cross(vec12) * vec13.cross(vec14);
     if (isnan(product) || product >= 0)
         return false;
 
-    cv::Point2d vec24(corners[3].loc.x - corners[1].loc.x,
-                      corners[3].loc.y - corners[1].loc.y);
-    cv::Point2d vec21(corners[0].loc.x - corners[1].loc.x,
-                      corners[0].loc.y - corners[1].loc.y);
-    cv::Point2d vec23(corners[2].loc.x - corners[1].loc.x,
-                      corners[2].loc.y - corners[1].loc.y);
+    cv::Point2d vec24 = corners[3].loc - corners[1].loc;
+    cv::Point2d vec21 = corners[0].loc - corners[1].loc;
+    cv::Point2d vec23 = corners[2].loc - corners[1].loc;
 
-    product = crossProduct(vec24, vec21) * crossProduct(vec24, vec23);
+    product = vec24.cross(vec21) * vec24.cross(vec23);
     if (isnan(product) || product >= 0)
         return false;
 
@@ -333,8 +324,7 @@ bool QuadDetector::checkIfTwoCornersFaceEachother(const Corner& c1,
     // choose a point for c1 from its line segment #1
     linePoint1 = cv::Point2d(c1.l1.sx, c1.l1.sy);
     linePoint2 = cv::Point2d(c1.l1.ex, c1.l1.ey);
-    if (squaredDistance(c1.loc, linePoint1) >
-        squaredDistance(c1.loc, linePoint2))
+    if (cv::norm(c1.loc - linePoint1) > cv::norm(c1.loc - linePoint2))
         c1p1 = cv::Point2d(c1.l1.sx - c1.loc.x, c1.l1.sy - c1.loc.y);
     else
         c1p1 = cv::Point2d(c1.l1.ex - c1.loc.x, c1.l1.ey - c1.loc.y);
@@ -342,8 +332,7 @@ bool QuadDetector::checkIfTwoCornersFaceEachother(const Corner& c1,
     // choose a point for c1 from its line segment #2
     linePoint1 = cv::Point2d(c1.l2.sx, c1.l2.sy);
     linePoint2 = cv::Point2d(c1.l2.ex, c1.l2.ey);
-    if (squaredDistance(c1.loc, linePoint1) >
-        squaredDistance(c1.loc, linePoint2))
+    if (cv::norm(c1.loc - linePoint1) > cv::norm(c1.loc - linePoint2))
         c1p2 = cv::Point2d(c1.l2.sx - c1.loc.x, c1.l2.sy - c1.loc.y);
     else
         c1p2 = cv::Point2d(c1.l2.ex - c1.loc.x, c1.l2.ey - c1.loc.y);
@@ -351,8 +340,7 @@ bool QuadDetector::checkIfTwoCornersFaceEachother(const Corner& c1,
     // choose a point for c2 from its line segment #1
     linePoint1 = cv::Point2d(c2.l1.sx, c2.l1.sy);
     linePoint2 = cv::Point2d(c2.l1.ex, c2.l1.ey);
-    if (squaredDistance(c2.loc, linePoint1) >
-        squaredDistance(c2.loc, linePoint2))
+    if (cv::norm(c2.loc - linePoint1) > cv::norm(c2.loc - linePoint2))
         c2p1 = cv::Point2d(c2.l1.sx - c2.loc.x, c2.l1.sy - c2.loc.y);
     else
         c2p1 = cv::Point2d(c2.l1.ex - c2.loc.x, c2.l1.ey - c2.loc.y);
@@ -360,8 +348,7 @@ bool QuadDetector::checkIfTwoCornersFaceEachother(const Corner& c1,
     // choose a point for c2 from its line segment #2
     linePoint1 = cv::Point2d(c2.l2.sx, c2.l2.sy);
     linePoint2 = cv::Point2d(c2.l2.ex, c2.l2.ey);
-    if (squaredDistance(c2.loc, linePoint1) >
-        squaredDistance(c2.loc, linePoint2))
+    if (cv::norm(c2.loc - linePoint1) > cv::norm(c2.loc - linePoint2))
         c2p2 = cv::Point2d(c2.l2.sx - c2.loc.x, c2.l2.sy - c2.loc.y);
     else
         c2p2 = cv::Point2d(c2.l2.ex - c2.loc.x, c2.l2.ey - c2.loc.y);
@@ -372,18 +359,21 @@ bool QuadDetector::checkIfTwoCornersFaceEachother(const Corner& c1,
 
     // check if these two corners mutually have each other in their fan
     // is c2 inside c1's fan?
-    if (crossProduct(c1c2, c1p1) * crossProduct(c1c2, c1p2) >= 0)
+    if (c1c2.cross(c1p1) * c1c2.cross(c1p2) >= 0)
         return false;
     // is it behind it or in front of it?
-    if (crossProduct(c1p1, c1c2) * crossProduct(c1p1, c1p2) <= 0)
+    if (c1p1.cross(c1c2) * c1p1.cross(c1p2) <= 0)
         return false;
 
     // is c1 inside c2's fan?
-    if (crossProduct(c2c1, c2p1) * crossProduct(c2c1, c2p2) >= 0)
+    if (c2c1.cross(c2p1) * c2c1.cross(c2p2) >= 0)
         return false;
     // is it behind it or in front of it?
-    if (crossProduct(c2p1, c2c1) * crossProduct(c2p1, c2p2) <= 0)
+    if (c2p1.cross(c2c1) * c2p1.cross(c2p2) <= 0)
         return false;
 
     return true;
 }
+
+} // namespace stag
+} // namespace tl

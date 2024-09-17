@@ -1,18 +1,16 @@
 #include "auxmath.hpp"
 
-#include <iomanip>
-#include <iostream>
+#include <opencv2/calib3d.hpp>
 
-namespace cv {
+namespace tl {
 namespace runetag {
 
-extern double TDelta(const cv::Mat& T1, const cv::Mat& T2)
+double TDelta(const cv::Mat& T1, const cv::Mat& T2)
 {
-    cv::Mat Td = T2 - T1;
-    return cv::norm(Td);
+    return cv::norm(T2 - T1);
 }
 
-extern double RDelta(const cv::Mat& R1, const cv::Mat& R2)
+double RDelta(const cv::Mat& R1, const cv::Mat& R2)
 {
     cv::Matx31d rv1, rv2;
 
@@ -163,4 +161,4 @@ cv::Matx33d& scalarDivision(cv::Matx33d& targetMatrix, double scalar)
 }
 
 } // namespace runetag
-} // namespace cv
+} // namespace tl

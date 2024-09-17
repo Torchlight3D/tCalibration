@@ -8,6 +8,60 @@
 // Thus, all points' y component are reflected for a convenient transform.
 class customEllipse
 {
+public:
+    // Computes and returns of a pixels' distance to the ellipse
+    // overload for double version
+    double GetDistance(double pX, double pY, double &estimation);
+
+    customEllipse() {}
+    customEllipse(double coefs[6]);
+    customEllipse(cv::Point *points, int numPoints);
+    customEllipse(double *pX, double *pY, int numPoints);
+    ~customEllipse();
+
+    cv::Point GetCenter();
+
+    double GetCenterX() const;
+
+    double GetCenterY() const;
+
+    double GetRotation() const;
+
+    double GetSemiMajorAxis() const;
+
+    double GetSemiMinorAxis() const;
+
+    // Gets the coefficients of the ellipse in conic form
+    void GetCoefficients(double *);
+
+    // Draws an ellipse with the desired resolution i.t.o. points
+    // resolution may be selected wrt the perimeter
+    cv::Point *DrawEllipse(int resolution);
+
+    double GetPerimeter();
+
+    // Computes and returns the fitting error of the points that
+    // are used to generate the ellipse equation
+    double GetAverageFittingError();
+
+    // Computes and returns the fitting error of the points that
+    // are used to generate the ellipse equation
+    double GetRmsFittingError();
+
+    // Computes and returns the closest points to the fitting points
+    // GetFittingError has to be invoked before calling this fcn
+    cv::Point *GetClosestPoints();
+
+    // Gets the closest point to the test point and returns the distance
+    double GetClosestPointAndDistance(cv::Point test, cv::Point &closest);
+
+    // overload for the double version
+    double GetClosestPointAndDistance(double testX, double testY,
+                                      cv::Point &closest);
+
+    void getEllipseSamples(int noOfSamples, std::vector<double> &xPoints,
+                           std::vector<double> &yPoints);
+
 private:
     // Ellipse coefficients
     double A1, B1, C1, D1, E1, F1; // ellipse coefficients
@@ -63,64 +117,6 @@ private:
 
     // overload for double version
     double GetSquaredDistance(double pX, double pY, double &estimation);
-
-public:
-    // Computes and returns of a pixels' distance to the ellipse
-    // overload for double version
-    double GetDistance(double pX, double pY, double &estimation);
-
-    customEllipse() {}
-
-    customEllipse(double coefs[6]);
-
-    customEllipse(cv::Point *points, int numPoints);
-
-    customEllipse(double *pX, double *pY, int numPoints);
-
-    ~customEllipse();
-
-    cv::Point GetCenter();
-
-    double GetCenterX();
-
-    double GetCenterY();
-
-    double GetRotation();
-
-    double GetSemiMajorAxis();
-
-    double GetSemiMinorAxis();
-
-    // Gets the coefficients of the ellipse in conic form
-    void GetCoefficients(double *);
-
-    // Draws an ellipse with the desired resolution i.t.o. points
-    // resolution may be selected wrt the perimeter
-    cv::Point *DrawEllipse(int resolution);
-
-    double GetPerimeter();
-
-    // Computes and returns the fitting error of the points that
-    // are used to generate the ellipse equation
-    double GetAverageFittingError();
-
-    // Computes and returns the fitting error of the points that
-    // are used to generate the ellipse equation
-    double GetRmsFittingError();
-
-    // Computes and returns the closest points to the fitting points
-    // GetFittingError has to be invoked before calling this fcn
-    cv::Point *GetClosestPoints();
-
-    // Gets the closest point to the test point and returns the distance
-    double GetClosestPointAndDistance(cv::Point test, cv::Point &closest);
-
-    // overload for the double version
-    double GetClosestPointAndDistance(double testX, double testY,
-                                      cv::Point &closest);
-
-    void getEllipseSamples(int noOfSamples, std::vector<double> &xPoints,
-                           std::vector<double> &yPoints);
 };
 
 bool CircleFit(const std::vector<double> &Xs, const std::vector<double> &Ys,

@@ -1,10 +1,11 @@
-
 #include "markerpose.hpp"
+
 #include "ellipsepoint.hpp"
 #include "digitalmarkermodel.hpp"
 #include "auxmath.hpp"
 
-using namespace cv::runetag;
+namespace tl {
+namespace runetag {
 
 bool dist_ordering(std::pair<float, unsigned int> a,
                    std::pair<float, unsigned int> b)
@@ -32,12 +33,9 @@ double avg_reprojection_error(const std::vector<cv::Point3f>& ref_points,
     return avg_dist;
 }
 
-extern cv::runetag::Pose cv::runetag::findPose(const MarkerDetected& detected,
-                                               const cv::Mat& intrinsics,
-                                               const cv::Mat& distortion,
-                                               bool* pose_ok,
-                                               unsigned int method,
-                                               unsigned int flag)
+Pose findPose(const MarkerDetected& detected, const cv::Mat& intrinsics,
+              const cv::Mat& distortion, bool* pose_ok, unsigned int method,
+              unsigned int flag)
 {
     cv::Mat Rvec(1, 3, CV_64F);
     cv::Mat Tvec(1, 3, CV_64F);
@@ -231,3 +229,6 @@ extern cv::runetag::Pose cv::runetag::findPose(const MarkerDetected& detected,
     outPose.t = Tvec;
     return outPose;
 }
+
+} // namespace runetag
+} // namespace tl
