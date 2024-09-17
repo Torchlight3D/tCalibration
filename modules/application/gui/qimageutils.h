@@ -2,7 +2,6 @@
 
 #include <iomanip>
 #include <sstream>
-#include <type_traits>
 
 #include <QColor>
 #include <QPixmap>
@@ -12,21 +11,18 @@ namespace tl {
 namespace qimg {
 
 // Converts an integer to its std::string hex form.
-template <typename T,
-          typename std::enable_if_t<std::is_integral_v<T>, T>* = nullptr>
+template <std::integral T>
 std::string to_hex(T i, bool prefix = false)
 {
-    std::stringstream stream;
+    std::stringstream ss;
     if (prefix) {
-        stream << "0x";
+        ss << "0x";
     }
-    stream << std::setfill('0') << std::setw(sizeof(T) * 2) << std::hex << i;
-    return stream.str();
+    ss << std::setfill('0') << std::setw(sizeof(T) * 2) << std::hex << i;
+    return ss.str();
 }
 
-// Convets an integer to its QString hex form.
-template <typename T,
-          typename std::enable_if_t<std::is_integral_v<T>, T>* = nullptr>
+template <std::integral T>
 inline QString toHex(T i, bool prefix = false)
 {
     return QString::fromStdString(to_hex(i, prefix));
@@ -35,7 +31,6 @@ inline QString toHex(T i, bool prefix = false)
 // Colorize the QPixmap and returns a QImage.
 QImage colorizeImage(const QPixmap& input, const QColor& color);
 
-// Colorize the QPixmap.
 inline QPixmap colorizePixmap(const QPixmap& input, const QColor& color)
 {
     return QPixmap::fromImage(colorizeImage(input, color));
