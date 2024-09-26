@@ -1,57 +1,52 @@
 #include "GLine2D.h"
 
+#include "MathUtil.h"
+
 namespace AprilTags {
 
-GLine2D::GLine2D()
-    : dx(0), dy(0), p(0, 0), didNormalizeSlope(false), didNormalizeP(false)
-{
-}
+GLine2D::GLine2D() : didNormalizeSlope(false), didNormalizeP(false) {}
 
 GLine2D::GLine2D(float slope, float b)
-    : dx(1), dy(slope), p(0, b), didNormalizeSlope(false), didNormalizeP(false)
+    : delta(1.f, slope), p(0, b), didNormalizeSlope(false), didNormalizeP(false)
 {
 }
 
-GLine2D::GLine2D(float dX, float dY, const std::pair<float, float>& pt)
-    : dx(dX), dy(dY), p(pt), didNormalizeSlope(false), didNormalizeP(false)
+GLine2D::GLine2D(float dX, float dY, const cv::Point2f& pt)
+    : delta(dX, dY), p(pt), didNormalizeSlope(false), didNormalizeP(false)
 {
 }
 
-GLine2D::GLine2D(const std::pair<float, float>& p1,
-                 const std::pair<float, float>& p2)
-    : dx(p2.first - p1.first),
-      dy(p2.second - p1.second),
-      p(p1),
-      didNormalizeSlope(false),
-      didNormalizeP(false)
+GLine2D::GLine2D(const cv::Point2f& p1, const cv::Point2f& p2)
+    : delta(p2 - p1), p(p1), didNormalizeSlope(false), didNormalizeP(false)
 {
 }
 
-float GLine2D::getLineCoordinate(const std::pair<float, float>& pt)
+float GLine2D::getLineCoordinate(const cv::Point2f& pt)
 {
     normalizeSlope();
-    return pt.first * dx + pt.second * dy;
+    return pt.dot(delta);
 }
 
-std::pair<float, float> GLine2D::getPointOfCoordinate(float coord)
+cv::Point2f GLine2D::getPointOfCoordinate(float coord)
 {
     normalizeP();
-    return std::pair<float, float>(p.first + coord * dx, p.second + coord * dy);
+    return p + coord * delta;
 }
 
-std::pair<float, float> GLine2D::intersectionWith(const GLine2D& line) const
+cv::Point2f GLine2D::intersectionWith(const GLine2D& line) const
 {
-    float m00 = dx;
+    float m00 = delta.x;
     float m01 = -line.getDx();
-    float m10 = dy;
+    float m10 = delta.y;
     float m11 = -line.getDy();
 
     // determinant of 'm'
     float det = m00 * m11 - m01 * m10;
 
     // parallel lines? if so, return (-1,0).
-    if (fabs(det) < 1e-10)
-        return std::pair<float, float>(-1, 0);
+    if (std::abs(det) < 1e-10) {
+        return {-1.f, 0.f};
+    }
 
     // inverse of 'm'
     float i00 = m11 / det;
@@ -59,12 +54,12 @@ std::pair<float, float> GLine2D::intersectionWith(const GLine2D& line) const
     float i01 = -m01 / det;
     // float i10 = -m10/det;
 
-    float b00 = line.getFirst() - p.first;
-    float b10 = line.getSecond() - p.second;
+    float b00 = line.getFirst() - p.x;
+    float b10 = line.getSecond() - p.y;
 
     float x00 = i00 * b00 + i01 * b10;
 
-    return std::pair<float, float>(dx * x00 + p.first, dy * x00 + p.second);
+    return delta * x00 + p;
 }
 
 GLine2D GLine2D::lsqFitXYW(const std::vector<XYWeight>& xyweights)
@@ -75,8 +70,8 @@ GLine2D GLine2D::lsqFitXYW(const std::vector<XYWeight>& xyweights)
 
     int idx = 0;
     for (unsigned int i = 0; i < xyweights.size(); i++) {
-        float x = xyweights[i].x;
-        float y = xyweights[i].y;
+        float x = xyweights[i].pos.x;
+        float y = xyweights[i].pos.y;
         float alpha = xyweights[i].weight;
 
         mY += y * alpha;
@@ -97,20 +92,19 @@ GLine2D GLine2D::lsqFitXYW(const std::vector<XYWeight>& xyweights)
 
     // find dominant direction via SVD
     float phi = 0.5f * std::atan2(-2 * Cxy, (Cyy - Cxx));
-    // float rho = Ex*cos(phi) + Ey*sin(phi); //why is this needed if he never
-    // uses it?
-    std::pair<float, float> pts = std::pair<float, float>(Ex, Ey);
+
+    // why is this needed if he never uses it?
+    //  float rho = Ex*cos(phi) + Ey*sin(phi);
 
     // compute line parameters
-    return GLine2D(-std::sin(phi), std::cos(phi), pts);
+    return {-std::sin(phi), std::cos(phi), cv::Point2f{Ex, Ey}};
 }
 
 void GLine2D::normalizeSlope()
 {
     if (!didNormalizeSlope) {
-        float mag = std::sqrt(dx * dx + dy * dy);
-        dx /= mag;
-        dy /= mag;
+        float mag = cv::norm(delta);
+        delta /= mag;
         didNormalizeSlope = true;
     }
 }
@@ -121,8 +115,8 @@ void GLine2D::normalizeP()
         normalizeSlope();
         // we already have a point (P) on the line, and we know the line vector
         // U and its perpendicular vector V: so, P'=P.*V *V
-        float dotprod = -dy * p.first + dx * p.second;
-        p = std::pair<float, float>(-dy * dotprod, dx * dotprod);
+        float dotprod = delta.cross(p);
+        p = {-delta.y * dotprod, delta.x * dotprod};
         didNormalizeP = true;
     }
 }

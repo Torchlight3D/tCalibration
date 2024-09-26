@@ -1,6 +1,6 @@
-#include <iostream>
-
 #include "TagFamily.h"
+
+#include <iostream>
 
 /**
 
@@ -24,7 +24,7 @@ TagFamily *tag36h11 = new TagFamily(tagCodes36h11);
 
 namespace AprilTags {
 
-TagFamily::TagFamily(const TagCodes& tagCodes, const size_t blackBorder)
+TagFamily::TagFamily(const tl::TagCodes& tagCodes, size_t blackBorder)
     : blackBorder(blackBorder),
       bits(tagCodes.bits),
       dimension((int)std::sqrt((float)bits)),
@@ -55,8 +55,9 @@ unsigned long long TagFamily::rotate90(unsigned long long w, int d)
             int b = r + d * c;
             wr = wr << 1;
 
-            if ((w & (oneLongLong << b)) != 0)
+            if ((w & (oneLongLong << b)) != 0) {
                 wr |= 1;
+            }
         }
     }
     return wr;
@@ -100,8 +101,8 @@ void TagFamily::decode(TagDetection& det, unsigned long long rCode) const
     rCodes[2] = rotate90(rCodes[1], dimension);
     rCodes[3] = rotate90(rCodes[2], dimension);
 
-    for (unsigned int id = 0; id < codes.size(); id++) {
-        for (unsigned int rot = 0; rot < 4; rot++) {
+    for (size_t id = 0; id < codes.size(); id++) {
+        for (auto rot{0}; rot < 4; rot++) {
             int thisHamming = hammingDistance(rCodes[rot], codes[id]);
             if (thisHamming < bestHamming) {
                 bestHamming = thisHamming;
@@ -122,22 +123,22 @@ void TagFamily::decode(TagDetection& det, unsigned long long rCode) const
 void TagFamily::printHammingDistances() const
 {
     std::vector<int> hammings(dimension * dimension + 1);
-    for (unsigned i = 0; i < codes.size(); i++) {
-        unsigned long long r0 = codes[i];
-        unsigned long long r1 = rotate90(r0, dimension);
-        unsigned long long r2 = rotate90(r1, dimension);
-        unsigned long long r3 = rotate90(r2, dimension);
-        for (unsigned int j = i + 1; j < codes.size(); j++) {
-            int d = std::min(std::min(hammingDistance(r0, codes[j]),
-                                      hammingDistance(r1, codes[j])),
-                             std::min(hammingDistance(r2, codes[j]),
-                                      hammingDistance(r3, codes[j])));
+    for (size_t i{0}; i < codes.size(); i++) {
+        const auto& r0 = codes[i];
+        const auto& r1 = rotate90(r0, dimension);
+        const auto& r2 = rotate90(r1, dimension);
+        const auto& r3 = rotate90(r2, dimension);
+        for (size_t j = i + 1; j < codes.size(); j++) {
+            int d = std::min(
+                {hammingDistance(r0, codes[j]), hammingDistance(r1, codes[j]),
+                 hammingDistance(r2, codes[j]), hammingDistance(r3, codes[j])});
             hammings[d]++;
         }
     }
 
-    for (unsigned int i = 0; i < hammings.size(); i++)
+    for (unsigned int i = 0; i < hammings.size(); i++) {
         printf("hammings: %u = %d\n", i, hammings[i]);
+    }
 }
 
 unsigned char TagFamily::popCountTable[TagFamily::popCountTableSize];

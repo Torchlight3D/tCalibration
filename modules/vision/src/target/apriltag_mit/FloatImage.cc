@@ -1,6 +1,8 @@
 #include "FloatImage.h"
-#include "Gaussian.h"
+
 #include <iostream>
+
+#include "Gaussian.h"
 
 namespace AprilTags {
 

@@ -1,9 +1,8 @@
+#include "GrayModel.h"
+
 #include <iostream>
 
-#include <Eigen/Dense>
 #include <Eigen/LU>
-
-#include "GrayModel.h"
 
 namespace AprilTags {
 
@@ -42,8 +41,9 @@ void GrayModel::addObservation(float x, float y, float gray)
 
 float GrayModel::interpolate(float x, float y)
 {
-    if (dirty)
+    if (dirty) {
         compute();
+    }
     return v[0] * x + v[1] * y + v[2] * x * y + v[3];
 }
 
@@ -58,8 +58,11 @@ void GrayModel::compute()
     if (nobs >= 6) {
         // make symmetric
         Eigen::Matrix4d Ainv;
-        for (int i = 0; i < 4; i++)
-            for (int j = i + 1; j < 4; j++) A(j, i) = A(i, j);
+        for (int i = 0; i < 4; i++) {
+            for (int j = i + 1; j < 4; j++) {
+                A(j, i) = A(i, j);
+            }
+        }
 
         //    try {
         //      Ainv = A.inverse();

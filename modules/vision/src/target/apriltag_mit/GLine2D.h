@@ -1,11 +1,7 @@
-#ifndef GLINE2D_H
-#define GLINE2D_H
+#pragma once
 
-#include <cmath>
-#include <utility>
-#include <vector>
+#include <opencv2/core/types.hpp>
 
-#include "MathUtil.h"
 #include "XYWeight.h"
 
 namespace AprilTags {
@@ -28,14 +24,13 @@ public:
      *  @param dy A change in Y corresponding to dx
      *  @param p A point that the line passes through
      */
-    GLine2D(float dX, float dY, const std::pair<float, float>& pt);
+    GLine2D(float dX, float dY, const cv::Point2f& pt);
 
     //! Create a new line through two points.
     /*  @param p1 the first point
      *  @param p2 the second point
      */
-    GLine2D(const std::pair<float, float>& p1,
-            const std::pair<float, float>& p2);
+    GLine2D(const cv::Point2f& p1, const cv::Point2f& p2);
 
     //! Get the coordinate of a point (on this line), with zero corresponding to
     //! the point on the that is perpendicular toa line passing through the
@@ -45,35 +40,33 @@ public:
      * a<=b<=c. This is implemented by computing the dot product of the vector
      * 'p' with the line's direct unit vector.
      */
-    float getLineCoordinate(const std::pair<float, float>& p);
+    float getLineCoordinate(const cv::Point2f& p);
 
     //! The inverse of getLineCoordinate.
-    std::pair<float, float> getPointOfCoordinate(float coord);
+    cv::Point2f getPointOfCoordinate(float coord);
 
     //! Compute the point where two lines intersect, or (-1,0) if the lines are
     //! parallel.
-    std::pair<float, float> intersectionWith(const GLine2D& line) const;
+    cv::Point2f intersectionWith(const GLine2D& line) const;
 
     static GLine2D lsqFitXYW(const std::vector<XYWeight>& xyweights);
 
-    inline float getDx() const { return dx; }
-    inline float getDy() const { return dy; }
-    inline float getFirst() const { return p.first; }
-    inline float getSecond() const { return p.second; }
+    inline float getDx() const { return delta.x; }
+    inline float getDy() const { return delta.y; }
+    inline float getFirst() const { return p.x; }
+    inline float getSecond() const { return p.y; }
 
 protected:
     void normalizeSlope();
     void normalizeP();
 
 private:
-    float dx, dy;
-    std::pair<float, float>
-        p; //!< A point the line passes through; when normalized, it is the
-           //!< point closest to the origin (hence perpendicular to the line)
+    cv::Point2f delta;
+    //!< A point the line passes through; when normalized, it is the
+    //!< point closest to the origin (hence perpendicular to the line)
+    cv::Point2f p;
     bool didNormalizeSlope;
     bool didNormalizeP;
 };
 
 } // namespace AprilTags
-
-#endif

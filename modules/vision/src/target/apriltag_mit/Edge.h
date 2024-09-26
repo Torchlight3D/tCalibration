@@ -1,17 +1,11 @@
-#ifndef EDGE_H
-#define EDGE_H
+#pragma once
 
 #include <vector>
-
-#include "FloatImage.h"
 
 namespace AprilTags {
 
 class FloatImage;
 class UnionFindSimple;
-
-using std::min;
-using std::max;
 
 //! Represents an edge between adjacent pixels in the image.
 /*! The edge is encoded by the indices of the two pixels. Edge cost
@@ -32,7 +26,6 @@ public:
     int pixelIdxB;
     int cost;
 
-    //! Constructor
     Edge() : pixelIdxA(), pixelIdxB(), cost() {}
 
     //! Compare edges based on cost
@@ -63,5 +56,3 @@ public:
 };
 
 } // namespace AprilTags
-
-#endif

@@ -1,13 +1,7 @@
-#ifndef TAGDETECTOR_H
-#define TAGDETECTOR_H
-
-#include <vector>
-
-#include "opencv2/opencv.hpp"
+#pragma once
 
 #include "TagDetection.h"
 #include "TagFamily.h"
-#include "FloatImage.h"
 
 namespace AprilTags {
 
@@ -18,7 +12,7 @@ public:
 
     //! Constructor
     // note: TagFamily is instantiated here from TagCodes
-    TagDetector(const TagCodes& tagCodes, const size_t blackBorder = 2)
+    explicit TagDetector(const TagCodes& tagCodes, size_t blackBorder = 2)
         : thisTagFamily(tagCodes, blackBorder)
     {
     }
@@ -27,5 +21,3 @@ public:
 };
 
 } // namespace AprilTags
-
-#endif
