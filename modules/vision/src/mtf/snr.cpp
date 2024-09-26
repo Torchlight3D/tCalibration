@@ -1,5 +1,6 @@
 #include "snr.h"
 
+#include <algorithm>
 #include <cmath>
 
 Snr::Snr(double dark_mean, double dark_sd, double bright_mean, double bright_sd)

@@ -30,8 +30,9 @@ set(Spectra_DIR ${ACTIVE_DEPENDS_PREFIX}/spectra/1.0.1/share/spectra/cmake)
 find_package(Spectra REQUIRED)
 
 # glog, apt default 0.4.0
+# fixme: already declare in Core module, declare here again for ceres
 set(gflags_DIR ${ACTIVE_DEPENDS_PREFIX}/gflags/2.2.2/lib/cmake/gflags)
-set(glog_DIR ${ACTIVE_DEPENDS_PREFIX}/glog/0.6.0/lib/cmake/glog)
+set(glog_DIR ${ACTIVE_DEPENDS_PREFIX}/glog/0.7.0/lib/cmake/glog)
 find_package(glog REQUIRED)
 
 # ceres-solver
