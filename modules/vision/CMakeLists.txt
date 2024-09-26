@@ -8,6 +8,7 @@ file(GLOB CALIBTARGET_INTERNAL_HEADERS
     src/mtf/*.h
     src/target/*.h
     src/target/apriltag_mit/*.h
+    src/target/codec/*.h
 )
 file(GLOB CALIBTARGET_SOURCES
     src/*.cpp

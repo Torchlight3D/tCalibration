@@ -1,63 +1,63 @@
+#pragma once
+
+#include "TagCodes.h"
+
+namespace tl {
+
 /** Tag family with 5329 distinct codes.
     bits: 36,  minimum hamming: 9,  minimum complexity: 10
 
-    Max bits corrected       False positive rate
-            0                    0.000008 %
-            1                    0.000287 %
-            2                    0.005172 %
-            3                    0.060541 %
-            4                    0.517333 %
+ Max bits corrected       False positive rate
+         0                    0.000008 %
+         1                    0.000287 %
+         2                    0.005172 %
+         3                    0.060541 %
+         4                    0.517333 %
 
-    Generation time: 1121504.896000 s
+ Generation time: 1121504.896000 s
 
-    Hamming distance between pairs of codes (accounting for rotation):
+ Hamming distance between pairs of codes (accounting for rotation):
 
-       0  0
-       1  0
-       2  0
-       3  0
-       4  0
-       5  0
-       6  0
-       7  0
-       8  0
-       9  88978
-      10  237109
-      11  493264
-      12  979401
-      13  1619560
-      14  2297837
-      15  2681251
-      16  2470697
-      17  1772734
-      18  969816
-      19  406950
-      20  134210
-      21  35419
-      22  7666
-      23  1342
-      24  199
-      25  20
-      26  3
-      27  0
-      28  0
-      29  0
-      30  0
-      31  0
-      32  0
-      33  0
-      34  0
-      35  0
-      36  0
+    0  0
+    1  0
+    2  0
+    3  0
+    4  0
+    5  0
+    6  0
+    7  0
+    8  0
+    9  88978
+   10  237109
+   11  493264
+   12  979401
+   13  1619560
+   14  2297837
+   15  2681251
+   16  2470697
+   17  1772734
+   18  969816
+   19  406950
+   20  134210
+   21  35419
+   22  7666
+   23  1342
+   24  199
+   25  20
+   26  3
+   27  0
+   28  0
+   29  0
+   30  0
+   31  0
+   32  0
+   33  0
+   34  0
+   35  0
+   36  0
 **/
 
-#pragma once
-
-#include "TagFamily.h"
-
-namespace AprilTags {
-
-const unsigned long long t36h9[] = {
+constexpr unsigned long long t36h9[]{
     0x131b29edaLL, 0x16c41a49fLL, 0x1a6d0aa64LL, 0x1e15fb029LL, 0x21beeb5eeLL,
     0x2567dbbb3LL, 0x2910cc178LL, 0x340b9d2c7LL, 0x37b48d88cLL, 0x42af5e9dbLL,
     0x4a013f565LL, 0x54fc106b4LL, 0x58a500c79LL, 0x6748c238dLL, 0x6e9aa2f17LL,
@@ -1125,7 +1125,6 @@ const unsigned long long t36h9[] = {
     0xea2405d10LL, 0x8f51802b0LL, 0xb2ab1513bLL, 0xf31e33ae6LL, 0x55a48d565LL,
     0x57cd5d243LL, 0xe705530c5LL, 0xf0908bfd5LL, 0x37a4d3e77LL};
 
-static const TagCodes tagCodes36h9 =
-    TagCodes(36, 9, t36h9, sizeof(t36h9) / sizeof(t36h9[0]));
+static const TagCodes tagCodes36h9{36, 9, t36h9, std::size(t36h9)};
 
-} // namespace AprilTags
+} // namespace tl

@@ -1,4 +1,5 @@
 #include "Edge.h"
+
 #include "FloatImage.h"
 #include "MathUtil.h"
 #include "UnionFindSimple.h"
@@ -113,9 +114,10 @@ void Edge::mergeEdges(std::vector<Edge> &edges, UnionFindSimple &uf,
 
         // merge these two clusters?
         float costab = (tmaxab - tminab);
-        if (costab <= (min(costa, costb) + Edge::thetaThresh / (sza + szb)) &&
+        if (costab <=
+                (std::min(costa, costb) + Edge::thetaThresh / (sza + szb)) &&
             (mmaxab - mminab) <=
-                min(mmax[ida] - mmin[ida], mmax[idb] - mmin[idb]) +
+                std::min(mmax[ida] - mmin[ida], mmax[idb] - mmin[idb]) +
                     Edge::magThresh / (sza + szb)) {
             int idab = uf.connectNodes(ida, idb);
 

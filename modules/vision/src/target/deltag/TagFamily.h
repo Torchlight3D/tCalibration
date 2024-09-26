@@ -13,7 +13,6 @@ public:
     const char *family;
 
 public:
-    // created vector for all entries of codesA
     TagCodes(const char *family, int bits, int minHammingDistance,
              const unsigned long long *codesA, int num)
         : bits(bits),
@@ -87,31 +86,37 @@ public:
 
     // where to take bit i from in the rotated output
     static const int triangularRotationTable[8][49];
-    /*
-     const int rotate2d[4]  = {3, 1, 0,
-     2};
-     const int rotate3d[9]  = {8, 6, 5, 1, 0,
-     7, 3, 2,
-     4};
-     const int rotate4d[16] = {15, 13, 12, 8, 7, 1, 0,
-     14, 10, 9, 3, 2,
-     11, 5, 4,
-     6};
-     const int rotate5d[25] = {24, 22, 21, 17, 16, 10, 9, 1, 0,
-     23, 19, 18, 12, 11, 3, 2,
-     20, 14, 13,  5, 4,
-     15,  7,  6,
-     8};
-     const int rotate6d[36] = {35, 33, 32, 28, 27, 21, 20, 12, 11, 1, 0,
-     34, 30, 29, 23, 22, 14, 13,  3, 2,
-     31, 25, 24, 16, 15,  5,  4,
-     26, 18, 17,  7,  6,
-     19,  9,  8,
-     10};
-     const int rotate7d[49] = {48, 46, 45, 41, 40, 34, 33, 25, 24, 14, 13,  1,
-     0, 47, 43, 42, 36, 35, 27, 26, 16, 15,  3,  2, 44, 38, 37, 29, 28, 18, 17,
-     5,  4, 39, 31, 30, 20, 19,  7,  6, 32, 22, 21,  9,  8, 23, 11, 10, 12};
-     */
+
+    // clang-format off
+    // const int rotate2d[4]  = {3, 1, 0,
+    //                           2};
+    // const int rotate3d[9]  = {8, 6, 5, 1, 0,
+    //                           7, 3, 2,
+    //                           4};
+    // const int rotate4d[16] = {15, 13, 12, 8, 7, 1, 0,
+    //                           14, 10, 9, 3, 2,
+    //                           11, 5, 4,
+    //                           6};
+    // const int rotate5d[25] = {24, 22, 21, 17, 16, 10, 9, 1, 0,
+    //                           23, 19, 18, 12, 11, 3, 2,
+    //                           20, 14, 13,  5, 4,
+    //                           15,  7,  6,
+    //                            8};
+    // const int rotate6d[36] = {35, 33, 32, 28, 27, 21, 20, 12, 11, 1, 0,
+    //                           34, 30, 29, 23, 22, 14, 13,  3, 2,
+    //                           31, 25, 24, 16, 15,  5,  4,
+    //                           26, 18, 17,  7,  6,
+    //                           19,  9,  8,
+    //                           10};
+    // const int rotate7d[49] = {48, 46, 45, 41, 40, 34, 33, 25, 24, 14, 13,  1, 0,
+    //                           47, 43, 42, 36, 35, 27, 26, 16, 15,  3,  2,
+    //                           44, 38, 37, 29, 28, 18, 17, 5,  4,
+    //                           39, 31, 30, 20, 19,  7,  6,
+    //                           32, 22, 21,  9,  8,
+    //                           23, 11, 10,
+    //                           12};
+    // clang-format on
+
     /* if the bits in w were arranged in a d*d triangle and that grid was
      * rotated, what would the new bits in w be?
      * The bits are organized like this (for d = 3):
@@ -122,7 +127,6 @@ public:
      *   1   3              6   1                  3   6
      * 0   2   4          8   5   0              4   7   8
      */
-    //  static unsigned long long rotateTriangle(unsigned long long w, int d);
     static unsigned long long rotateTriangle(unsigned long long w, int d);
 
     //! Computes the hamming distance between two unsigned long longs.

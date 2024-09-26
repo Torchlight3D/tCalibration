@@ -6,11 +6,11 @@
 #include <opencv2/imgproc.hpp>
 
 #include "apriltag_mit/TagDetector.h"
-// #include "apriltag_mit/Tag16h5.h"
-// #include "apriltag_mit/Tag25h7.h"
-// #include "apriltag_mit/Tag25h9.h"
-// #include "apriltag_mit/Tag36h9.h"
-#include "apriltag_mit/Tag36h11.h"
+// #include "codec/Tag16h5.h"
+// #include "codec/Tag25h7.h"
+// #include "codec/Tag25h9.h"
+// #include "codec/Tag36h9.h"
+#include "codec/Tag36h11.h"
 
 namespace tl {
 
@@ -133,8 +133,7 @@ TargetDetection KalibrAprilTagBoard::computeObservation(
 
         // Check if all four corners in image
         for (const auto &corner : it->p) {
-            remove |= (!inBorderROI.contains(
-                cv::Point2f{corner.first, corner.second}));
+            remove |= (!inBorderROI.contains(corner));
         }
 
         // Check if the tag is flagged as bad
@@ -190,7 +189,7 @@ TargetDetection KalibrAprilTagBoard::computeObservation(
     tagCorners.reserve(4 * detections.size());
     for (const auto &detection : detections) {
         for (const auto &pt : detection.p) {
-            tagCorners.emplace_back(pt.first, pt.second);
+            tagCorners.push_back(pt);
         }
     }
 

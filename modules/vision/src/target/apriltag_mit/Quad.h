@@ -1,10 +1,9 @@
-#ifndef QUAD_H
-#define QUAD_H
+#pragma once
 
-#include <utility>
 #include <vector>
 
 #include <Eigen/Dense>
+#include <opencv2/core/types.hpp>
 
 #include "Homography33.h"
 
@@ -12,9 +11,6 @@ namespace AprilTags {
 
 class FloatImage;
 class Segment;
-
-using std::min;
-using std::max;
 
 //! Represents four segments that form a loop, and might be a tag.
 class Quad
@@ -29,21 +25,20 @@ public:
     //! Constructor
     /*! (x,y) are the optical center of the camera, which is
      *   needed to correctly compute the homography. */
-    Quad(const std::vector<std::pair<float, float>>& p,
-         const std::pair<float, float>& opticalCenter);
+    Quad(const std::vector<cv::Point2f>& p, const cv::Point2f& opticalCenter);
 
     //! Interpolate given that the lower left corner of the lower left cell is
     //! at (-1,-1) and the upper right corner of the upper right cell is at
     //! (1,1).
-    std::pair<float, float> interpolate(float x, float y);
+    cv::Point2f interpolate(float x, float y);
 
     //! Same as interpolate, except that the coordinates are interpreted between
     //! 0 and 1, instead of -1 and 1.
-    std::pair<float, float> interpolate01(float x, float y);
+    cv::Point2f interpolate01(float x, float y);
 
     //! Points for the quad (in pixel coordinates), in counter clockwise order.
     //! These points are the intersections of segments.
-    std::vector<std::pair<float, float>> quadPoints;
+    std::vector<cv::Point2f> quadPoints;
 
     //! Segments composing this quad
     std::vector<Segment*> segments;
@@ -69,7 +64,7 @@ public:
      */
     static void search(const FloatImage& fImage, std::vector<Segment*>& path,
                        Segment& parent, int depth, std::vector<Quad>& quads,
-                       const std::pair<float, float>& opticalCenter);
+                       const cv::Point2f& opticalCenter);
 
 #ifdef INTERPOLATE
 private:
@@ -78,5 +73,3 @@ private:
 };
 
 } // namespace AprilTags
-
-#endif

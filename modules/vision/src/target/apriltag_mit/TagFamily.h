@@ -1,44 +1,18 @@
-﻿#ifndef TAGFAMILY_H
-#define TAGFAMILY_H
+﻿#pragma once
 
-#include <climits>
-#include <cmath>
-#include <stdio.h>
-#include <vector>
-#include <map>
-
+#include "../codec/TagCodes.h"
 #include "TagDetection.h"
 
 namespace AprilTags {
 
-class TagCodes
-{
-public:
-    int bits;
-    int minHammingDistance;
-    std::vector<unsigned long long> codes;
-
-public:
-    TagCodes(int bits, int minHammingDistance, const unsigned long long* codesA,
-             int num)
-        : bits(bits),
-          minHammingDistance(minHammingDistance),
-          codes(codesA,
-                codesA + num) // created vector for all entries of codesA
-    {
-    }
-};
-
-//! Generic class for all tag encoding families
 class TagFamily
 {
 public:
     //! The codes array is not copied internally and so must not be modified
     //! externally.
-    TagFamily(const TagCodes& tagCodes, const size_t blackBorder);
+    TagFamily(const tl::TagCodes& tagCodes, size_t blackBorder);
 
     void setErrorRecoveryBits(int b);
-
     void setErrorRecoveryFraction(float v);
 
     /* if the bits in w were arranged in a d*d grid and that grid was
@@ -110,5 +84,3 @@ public:
 };
 
 } // namespace AprilTags
-
-#endif

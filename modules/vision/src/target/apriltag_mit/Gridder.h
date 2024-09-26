@@ -1,11 +1,8 @@
-#ifndef GRIDDER_H
-#define GRIDDER_H
+#pragma once
 
 #include <algorithm>
-#include <iterator>
-#include <vector>
 
-#include "Segment.h"
+#include <opencv2/core/types.hpp>
 
 namespace AprilTags {
 
@@ -72,7 +69,6 @@ public:
         gridderInit(x0Arg, y0Arg, x1Arg, y1Arg, ppCell);
     }
 
-    // Destructor
     ~Gridder()
     {
         for (unsigned int i = 0; i < cells.size(); i++) {
@@ -81,10 +77,10 @@ public:
         }
     }
 
-    void add(float x, float y, T* object)
+    void add(const cv::Point2f& pt, T* object)
     {
-        int ix = (int)((x - x0) / pixelsPerCell);
-        int iy = (int)((y - y0) / pixelsPerCell);
+        int ix = (int)((pt.x - x0) / pixelsPerCell);
+        int iy = (int)((pt.y - y0) / pixelsPerCell);
 
         if (ix >= 0 && iy >= 0 && ix < width && iy < height) {
             Cell* c = new Cell;
@@ -206,12 +202,10 @@ public:
     };
 
     typedef Iterator iterator;
-    iterator find(float x, float y, float range)
+    iterator find(const cv::Point2f& pt, float range)
     {
-        return Iterator(this, x, y, range);
+        return Iterator(this, pt.x, pt.y, range);
     }
 };
 
 } // namespace AprilTags
-
-#endif

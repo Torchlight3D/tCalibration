@@ -1,51 +1,51 @@
+#pragma once
+
+#include "TagCodes.h"
+
+namespace tl {
+
 /** Tag family with 242 distinct codes.
     bits: 25,  minimum hamming: 7,  minimum complexity: 8
 
-    Max bits corrected       False positive rate
-            0                    0.000721 %
-            1                    0.018752 %
-            2                    0.235116 %
-            3                    1.893914 %
+ Max bits corrected       False positive rate
+         0                    0.000721 %
+         1                    0.018752 %
+         2                    0.235116 %
+         3                    1.893914 %
 
-    Generation time: 72.585000 s
+ Generation time: 72.585000 s
 
-    Hamming distance between pairs of codes (accounting for rotation):
+ Hamming distance between pairs of codes (accounting for rotation):
 
-       0  0
-       1  0
-       2  0
-       3  0
-       4  0
-       5  0
-       6  0
-       7  2076
-       8  4161
-       9  5299
-      10  6342
-      11  5526
-      12  3503
-      13  1622
-      14  499
-      15  114
-      16  16
-      17  3
-      18  0
-      19  0
-      20  0
-      21  0
-      22  0
-      23  0
-      24  0
-      25  0
+    0  0
+    1  0
+    2  0
+    3  0
+    4  0
+    5  0
+    6  0
+    7  2076
+    8  4161
+    9  5299
+   10  6342
+   11  5526
+   12  3503
+   13  1622
+   14  499
+   15  114
+   16  16
+   17  3
+   18  0
+   19  0
+   20  0
+   21  0
+   22  0
+   23  0
+   24  0
+   25  0
 **/
 
-#pragma once
-
-#include "TagFamily.h"
-
-namespace AprilTags {
-
-const unsigned long long t25h7[] = {
+constexpr unsigned long long t25h7[]{
     0x4b770dLL,  0x11693e6LL, 0x1a599abLL, 0xc3a535LL,  0x152aafaLL,
     0xaccd98LL,  0x1cad922LL, 0x2c2fadLL,  0xbb3572LL,  0x14a3b37LL,
     0x186524bLL, 0xc99d4cLL,  0x23bfeaLL,  0x141cb74LL, 0x1d0d139LL,
@@ -96,7 +96,6 @@ const unsigned long long t25h7[] = {
     0x13c9f77LL, 0x110ee8fLL, 0xf17beaLL,  0x99fb5dLL,  0x337141LL,
     0x02b54dLL,  0x1233a70LL};
 
-static const TagCodes tagCodes25h7 =
-    TagCodes(25, 7, t25h7, sizeof(t25h7) / sizeof(t25h7[0]));
+static const TagCodes tagCodes25h7{25, 7, t25h7, std::size(t25h7)};
 
-} // namespace AprilTags
+} // namespace tl

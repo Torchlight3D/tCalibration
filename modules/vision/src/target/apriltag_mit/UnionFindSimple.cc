@@ -1,4 +1,5 @@
 #include "UnionFindSimple.h"
+
 #include <iostream>
 
 namespace AprilTags {

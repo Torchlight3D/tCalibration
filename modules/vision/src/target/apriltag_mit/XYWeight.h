@@ -1,19 +1,13 @@
-#ifndef XYWeight_H_
-#define XYWeight_H_
+#pragma once
+
+#include <opencv2/core/types.hpp>
 
 namespace AprilTags {
 
-//! Represents a triple holding an x value, y value, and weight value.
-struct XYWeight {
-  float x;
-  float y;
-  float weight;
-
-  XYWeight(float xval, float yval, float weightval) :
-    x(xval), y(yval), weight(weightval) {}
-
+struct XYWeight
+{
+    cv::Point2f pos;
+    float weight;
 };
 
-} // namespace
-
-#endif
+} // namespace AprilTags

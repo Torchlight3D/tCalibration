@@ -1,4 +1,5 @@
 #include "Gaussian.h"
+
 #include <iostream>
 
 namespace AprilTags {
