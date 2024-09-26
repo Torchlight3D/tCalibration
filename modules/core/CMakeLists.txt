@@ -20,7 +20,7 @@ target_sources(${CORE_TARGET_NAME}
 
 # glog, apt default 0.4.0
 set(gflags_DIR ${ACTIVE_DEPENDS_PREFIX}/gflags/2.2.2/lib/cmake/gflags)
-set(glog_DIR ${ACTIVE_DEPENDS_PREFIX}/glog/0.6.0/lib/cmake/glog)
+set(glog_DIR ${ACTIVE_DEPENDS_PREFIX}/glog/0.7.0/lib/cmake/glog)
 find_package(glog REQUIRED)
 if(glog_FOUND)
     message(STATUS "Found glog (${glog_VERSION})")
