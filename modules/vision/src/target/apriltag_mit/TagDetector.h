@@ -3,6 +3,8 @@
 #include "TagDetection.h"
 #include "TagFamily.h"
 
+#include "../codec/TagCodes.h"
+
 namespace AprilTags {
 
 class TagDetector
@@ -12,7 +14,7 @@ public:
 
     //! Constructor
     // note: TagFamily is instantiated here from TagCodes
-    explicit TagDetector(const TagCodes& tagCodes, size_t blackBorder = 2)
+    explicit TagDetector(const tl::TagCodes& tagCodes, size_t blackBorder = 2)
         : thisTagFamily(tagCodes, blackBorder)
     {
     }
