@@ -70,6 +70,21 @@ target_compile_features(magic_enum
         cxx_std_17
 )
 
+# MIPP
+add_library(mipp INTERFACE)
+add_library(MIPP::mipp ALIAS mipp)
+
+target_include_directories(mipp 
+    INTERFACE
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/extern>
+)
+
+target_compile_features(mipp 
+    INTERFACE
+        cxx_std_17
+)
+
 # nanoflann
 add_library(nanoflann INTERFACE)
 
@@ -120,6 +135,7 @@ install(
         graaf
         json
         magic_enum
+        mipp
         nanoflann
         stduuid
         tabulate
@@ -153,6 +169,11 @@ install(
 
 install(
     DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/magic_enum/
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/extern
+)
+
+install(
+    DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/mipp/
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/extern
 )
 
