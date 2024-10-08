@@ -70,6 +70,7 @@ target_link_libraries(${IMGPROC_TARGET_NAME}
         json
     PRIVATE
         apriltag::apriltag
+        mipp
 )
 
 install(
