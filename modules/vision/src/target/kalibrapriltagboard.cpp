@@ -26,7 +26,7 @@ public:
     DetectOptions _detectOpts;
 
     // Apriltag
-    AprilTags::TagCodes _tagCodes = AprilTags::tagCodes36h11;
+    tl::TagCodes _tagCodes = tl::tagCodes36h11;
     std::unique_ptr<AprilTags::TagDetector> _tagDetector;
 };
 
@@ -37,7 +37,7 @@ void KalibrAprilTagBoard::Impl::init(const Options &opts,
 {
     // Board
     _opts = opts;
-    _tagCodes = AprilTags::tagCodes36h11;
+    _tagCodes = tl::tagCodes36h11;
 
     // Detector
     _detectOpts = detectOpts;
