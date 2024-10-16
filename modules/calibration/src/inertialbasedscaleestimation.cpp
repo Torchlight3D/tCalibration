@@ -3,6 +3,8 @@
 #include <unsupported/Eigen/MatrixFunctions>
 #include <glog/logging.h>
 
+#include <tCore/Math>
+
 namespace tl {
 
 using Eigen::ArrayXXd;
@@ -11,6 +13,8 @@ using Eigen::MatrixXd;
 using Eigen::Quaterniond;
 using Eigen::Vector3d;
 using Eigen::VectorXd;
+
+using Matrix63d = Eigen::Matrix<double, 6, 3>;
 
 namespace {
 
@@ -24,12 +28,12 @@ namespace {
 // OUTPUT:   A   : Transition matrix
 //           Q   : Discrete process covariance matrix
 //
-void ltiDisc(const Matrix3d& F, const Vector3d& L, double qc, double dt,
-             Matrix3d& out_A, Matrix3d& out_Q)
+void ltiDisc(const Eigen::Matrix3d& F, const Eigen::Vector3d& L, double qc,
+             double dt, Matrix3d& out_A, Matrix3d& out_Q)
 {
     // Closed form integration of the covariance by matrix fraction
     // decomposition
-    MatrixXd Phi(6, 6);
+    Eigen::Matrix<double, 6, 6> Phi;
     Phi.block<3, 3>(0, 0) = F;
     Phi.block<3, 3>(0, 3) = L * qc * L.transpose();
     Phi.block<3, 3>(3, 0) = Matrix3d::Zero();
@@ -37,12 +41,11 @@ void ltiDisc(const Matrix3d& F, const Vector3d& L, double qc, double dt,
 
     out_A = (F * dt).exp();
 
-    MatrixXd zeroone(6, 3);
+    Matrix63d zeroone;
     zeroone.block<3, 3>(0, 0) = Matrix3d::Zero();
     zeroone.block<3, 3>(3, 0) = Matrix3d::Identity();
 
-    MatrixXd AB(6, 3);
-    AB = (Phi * dt).exp() * zeroone;
+    const Matrix63d AB = (Phi * dt).exp() * zeroone;
     out_Q = AB.block<3, 3>(0, 0) * (AB.block<3, 3>(3, 0).inverse());
 }
 
@@ -55,45 +58,41 @@ void ltiDisc(const Matrix3d& F, const Vector3d& L, double qc, double dt,
 //
 // OUTPUT:          : Smoothed estimates of the acceleratio of the input
 //
-ArrayXXd KalmanRTS(const std::vector<Vector3d>& pose, double dt)
+Eigen::ArrayXXd KalmanRTS(const std::vector<Eigen::Vector3d>& positions,
+                          double dt)
 {
     // Assume that we have roughly uniform sampling to optimize computations,
-    //  otherwise we would need to recompute A and Q in the loop which is
-    //  slower.
-    const size_t numPts = pose.size();
-
-    ArrayXXd acc_kfs(3, numPts);
+    // otherwise we would need to recompute A and Q in the loop which is slower.
+    const auto numPositions = positions.size();
 
     // clang-format off
     Matrix3d F;
-    F << 0, 1, 0,
-         0, 0, 1,
-         0, 0, 0;
+    F << 0., 1., 0.,
+         0., 0., 1.,
+         0., 0., 0.;
     // clang-format on
-    double R = 0.01;
-    Vector3d L(0, 0, 1);
-    Vector3d H(1, 0, 0);
-    Vector3d m0(0, 0, 0);
-    Matrix3d P0 = Matrix3d::Identity() * 1e4;
+    constexpr double R = 0.01;
+    const Vector3d L = Vector3d::UnitZ();
+    const Vector3d H = Vector3d::UnitX();
+    const Vector3d m0 = Vector3d::Zero();
+    const Matrix3d P0 = Matrix3d::Identity() * 1e4;
 
-    // Compute maximum likelihood estimate of qc on a grid
-    std::vector<double> qc_list = {45, 55, 65, 75, 85, 95, 105, 115, 125};
-    std::vector<double> lh_list = {0, 0, 0, 0, 0, 0, 0, 0, 0};
-
-    ArrayXXd pos(3, numPts);
-    for (size_t pp = 0; pp < numPts; ++pp) {
-        pos(0, pp) = pose[pp].x();
-        pos(1, pp) = pose[pp].y();
-        pos(2, pp) = pose[pp].z();
+    ArrayXXd pos(3, numPositions);
+    for (size_t pp = 0; pp < numPositions; ++pp) {
+        pos(0, pp) = positions[pp].x();
+        pos(1, pp) = positions[pp].y();
+        pos(2, pp) = positions[pp].z();
     }
 
-    const size_t numQc = qc_list.size();
-    for (size_t jj = 0; jj < numQc; ++jj) {
+    // Compute maximum likelihood estimate of qc on a grid
+    constexpr std::array qc_list{45., 55.,  65.,  75., 85.,
+                                 95., 105., 115., 125.};
+    std::array<double, qc_list.size()> lh_list{0.};
+    for (size_t jj = 0; jj < qc_list.size(); ++jj) {
         double qc = qc_list[jj];
 
         Matrix3d A;
         Matrix3d Q;
-
         ltiDisc(F, L, qc, dt, A, Q);
 
         double lh = 0;
@@ -101,10 +100,10 @@ ArrayXXd KalmanRTS(const std::vector<Vector3d>& pose, double dt)
             // Kalman filter
             Vector3d m = m0;
             Matrix3d P = P0;
-            MatrixXd kf_m = MatrixXd::Zero(3, numPts);
-            std::vector<Matrix3d> kf_P(numPts);
+            MatrixXd kf_m = MatrixXd::Zero(3, numPositions);
+            std::vector<Matrix3d> kf_P(numPositions);
 
-            for (size_t kk = 0; kk < numPts; ++kk) {
+            for (size_t kk = 0; kk < numPositions; ++kk) {
                 m = A * m;
                 P = A * P * A.transpose() + Q;
 
@@ -112,11 +111,10 @@ ArrayXXd KalmanRTS(const std::vector<Vector3d>& pose, double dt)
                 double S = H.transpose() * P * H + R;
                 Vector3d K = (P * H) / S;
 
-                m = m + K * nu;
-                P = P - K * S * K.transpose();
+                m += K * nu;
+                P -= K * S * K.transpose();
 
-                lh =
-                    lh + 0.5 * log(2 * M_PI) + 0.5 * log(S) + 0.5 * nu * nu / S;
+                lh += 0.5 * (std::log(2 * pi) + std::log(S) + nu * nu / S);
 
                 kf_m.block<3, 1>(0, kk) = m;
                 kf_P[kk] = P;
@@ -125,31 +123,31 @@ ArrayXXd KalmanRTS(const std::vector<Vector3d>& pose, double dt)
         lh_list[jj] = lh;
     }
 
-    size_t idx =
-        std::min_element(lh_list.begin(), lh_list.end()) - lh_list.begin();
-    double qc = qc_list[idx];
+    const auto& qc = qc_list[std::distance(lh_list.begin(),
+                                           std::ranges::min_element(lh_list))];
 
     // Kalman filter and smoother
     Matrix3d A;
     Matrix3d Q;
     ltiDisc(F, L, qc, dt, A, Q);
 
+    ArrayXXd acc_kfs(3, numPositions);
     for (int ii = 0; ii < 3; ++ii) {
         // Kalman filter
         Vector3d m = m0;
         Matrix3d P = P0;
-        MatrixXd kf_m = MatrixXd::Zero(3, numPts);
-        std::vector<Matrix3d> kf_P(numPts);
+        MatrixXd kf_m = MatrixXd::Zero(3, numPositions);
+        std::vector<Matrix3d> kf_P(numPositions);
 
-        for (size_t kk = 0; kk < numPts; ++kk) {
+        for (size_t kk = 0; kk < numPositions; ++kk) {
             m = A * m;
             P = A * P * A.transpose() + Q;
 
             double S = H.transpose() * P * H + R;
             Vector3d K = (P * H) / S;
 
-            m = m + K * (pos(ii, kk) - H.transpose() * m);
-            P = P - K * S * K.transpose();
+            m += K * (pos(ii, kk) - H.transpose() * m);
+            P -= K * S * K.transpose();
 
             kf_m.block<3, 1>(0, kk) = m;
             kf_P[kk] = P;
@@ -158,12 +156,12 @@ ArrayXXd KalmanRTS(const std::vector<Vector3d>& pose, double dt)
         // Rauch–Tung–Striebel smoother
         Vector3d ms = m;
         Matrix3d Ps = P;
-        MatrixXd rts_m = MatrixXd::Zero(3, numPts);
-        rts_m.block<3, 1>(0, numPts - 1) = ms;
-        std::vector<Matrix3d> rts_P(numPts);
+        MatrixXd rts_m = MatrixXd::Zero(3, numPositions);
+        rts_m.block<3, 1>(0, numPositions - 1) = ms;
+        std::vector<Matrix3d> rts_P(numPositions);
         rts_P.back() = Ps;
 
-        for (int kk = numPts - 2; kk >= 0; --kk) {
+        for (int kk = numPositions - 2; kk >= 0; --kk) {
             MatrixXd mp(3, 1);
             mp = A * kf_m.block<3, 1>(0, kk);
 
@@ -190,8 +188,9 @@ ArrayXXd KalmanRTS(const std::vector<Vector3d>& pose, double dt)
 // OUTPUT:
 //     Interpolated values of Y along X_I
 //
-VectorXd linearInterpolation(const VectorXd& x, const VectorXd& y,
-                             const std::vector<double>& x_i)
+Eigen::VectorXd linearInterpolation(const Eigen::VectorXd& x,
+                                    const Eigen::VectorXd& y,
+                                    const std::vector<double>& x_i)
 {
     const size_t sz_x = x.size();
     const size_t sz_xi = x_i.size();
@@ -235,7 +234,8 @@ VectorXd linearInterpolation(const VectorXd& x, const VectorXd& y,
 //
 // OUTPUT: Rotated point(s) as Nx3 array
 //
-ArrayXXd rotatePoints(const ArrayXXd& quats, const ArrayXXd& pts)
+Eigen::ArrayXXd rotatePoints(const Eigen::ArrayXXd& quats,
+                             const Eigen::ArrayXXd& pts)
 {
     assert(quats.rows() == pts.rows());
     const size_t N = pts.rows();
@@ -253,7 +253,7 @@ ArrayXXd rotatePoints(const ArrayXXd& quats, const ArrayXXd& pts)
 
 // "Direct Form II Transposed" implementation of the standard difference
 //  equation, assuming 'b' vector is all ones
-std::vector<double> df2t(const MatrixXd& x, size_t window)
+std::vector<double> df2t(const Eigen::MatrixXd& x, size_t window)
 {
     const int x_sz = x.rows();
     std::vector<double> y(x_sz, 0);
@@ -270,11 +270,8 @@ std::vector<double> df2t(const MatrixXd& x, size_t window)
     return y;
 }
 
-MatrixXd movingAverage(const MatrixXd& in, int window)
+Eigen::MatrixXd movingAverage(const Eigen::MatrixXd& in, int window)
 {
-    MatrixXd out(in.rows(), in.cols());
-    int row_ct = 0;
-
     std::vector<double> y_filt = df2t(in, window);
 
     std::vector<double> begin(window - 2);
@@ -283,6 +280,8 @@ MatrixXd movingAverage(const MatrixXd& in, int window)
         begin[ii] = in(ii, 0) + begin[ii - 1];
     }
 
+    MatrixXd out(in.rows(), in.cols());
+    int row_ct = 0;
     for (int ii = 0; ii < window - 2; ii += 2, row_ct++) {
         out(row_ct, 0) = begin[ii] / (ii + 1);
     }
@@ -317,9 +316,10 @@ MatrixXd movingAverage(const MatrixXd& in, int window)
 //           bias    : Gyroscope bias [rad/s] (1x3 vector)
 //           f       : Function value (sum of squared differences)
 //
-void solveClosedForm(const MatrixXd& angVis, const MatrixXd& angImu,
-                     const std::vector<double>& t, double td, Matrix3d& Rs,
-                     MatrixXd& bias, double& f)
+void solveClosedForm(const Eigen::MatrixXd& angVis,
+                     const Eigen::MatrixXd& angImu,
+                     const std::vector<double>& t, double td,
+                     Eigen::Matrix3d& Rs, MatrixXd& bias, double& f)
 {
     assert(angVis.rows() == angImu.rows());
     assert(angVis.rows() == (int)t.size());
@@ -404,11 +404,11 @@ void solveClosedForm(const MatrixXd& angVis, const MatrixXd& angImu,
 //
 // RETURN:   Number of golden-section search iterations
 //
-int estimateAlignment(const ArrayXXd& in_qtVis,
+int estimateAlignment(const Eigen::ArrayXXd& in_qtVis,
                       const std::vector<double>& in_tVis,
-                      const ArrayXXd& in_angImu,
-                      const std::vector<double>& in_tImu, Matrix3d& Rs,
-                      double& td, Vector3d& bg)
+                      const Eigen::ArrayXXd& in_angImu,
+                      const std::vector<double>& in_tImu, Eigen::Matrix3d& Rs,
+                      double& td, Eigen::Vector3d& bg)
 {
     assert(in_qtVis.rows() == (int)in_tVis.size());
     assert(in_angImu.rows() == (int)in_tImu.size());
@@ -541,12 +541,14 @@ int estimateAlignment(const ArrayXXd& in_qtVis,
 //           accImu  : Aligned inertial accelerations [m/s^2] (Kx3 matrix)
 //           t       : Timestamps in seconds (Kx1 vector)
 //
-void alignCameraAndIMU(const ArrayXXd& in_accVis, const ArrayXXd& in_qtVis,
+void alignCameraAndIMU(const Eigen::ArrayXXd& in_accVis,
+                       const Eigen::ArrayXXd& in_qtVis,
                        const std::vector<double>& in_tVis,
-                       const ArrayXXd& in_accImu,
-                       const std::vector<double>& in_tImu, const Matrix3d& Rs,
-                       double td, ArrayXXd& out_accVis, ArrayXXd& out_qtVis,
-                       MatrixXd& out_accImu, std::vector<double>& out_t)
+                       const Eigen::ArrayXXd& in_accImu,
+                       const std::vector<double>& in_tImu,
+                       const Eigen::Matrix3d& Rs, double td,
+                       Eigen::ArrayXXd& out_accVis, Eigen::ArrayXXd& out_qtVis,
+                       Eigen::MatrixXd& out_accImu, std::vector<double>& out_t)
 {
     // Only use time spans where both sensors have values
     const double timeStop = std::min(in_tVis.back(), in_tImu.back());
@@ -611,9 +613,11 @@ void alignCameraAndIMU(const ArrayXXd& in_accVis, const ArrayXXd& in_qtVis,
 //           gravity : The initial gravity vector estimate (3x1 vector)
 //           bias    : Initial estimate at gyroscope bias(3x1 vector)
 //
-void initializeEstimates(const ArrayXXd& accVis, const ArrayXXd& qtVis,
-                         const ArrayXXd& accImu, MatrixXd& A, MatrixXd& b,
-                         double& scale, Vector3d& g, Vector3d& bias)
+void initializeEstimates(const Eigen::ArrayXXd& accVis,
+                         const Eigen::ArrayXXd& qtVis,
+                         const Eigen::ArrayXXd& accImu, Eigen::MatrixXd& A,
+                         Eigen::MatrixXd& b, double& scale, Eigen::Vector3d& g,
+                         Eigen::Vector3d& bias)
 {
     const size_t N = accVis.rows();
 
@@ -643,118 +647,110 @@ void initializeEstimates(const ArrayXXd& accVis, const ArrayXXd& qtVis,
 
 } // namespace
 
+enum class InternalState
+{
+    NotStarted = 0,
+    DataSet,
+    InitialAlignment,
+    ScaleEstimated,
+};
+
 class InertialBasedScaleEstimation::Impl
 {
-public:
-    enum class InternalState
-    {
-        NotStarted = 0,
-        DataSet,
-        InitialAlignment,
-        ScaleEstimated,
-    };
-
-    ErrorCode setVisualData(const std::vector<double>& time,
-                            const std::vector<Vector3d>& position,
-                            const std::vector<Quaterniond>& rotation);
-
-    ErrorCode setInertialData(const std::vector<double>& accelerometer_time,
-                              const std::vector<Vector3d>& linear_acceleration,
-                              const std::vector<double>& gyroscope_time,
-                              const std::vector<Vector3d>& angular_velocity);
-
-    ErrorCode initialAlignmentEstimation();
-
-    ErrorCode estimateScale(double& scale, Vector3d& g, Vector3d& bias,
-                            double fMax);
-
 public:
     InternalState _state;
 
     // Visual data
     std::vector<double> _visTime;
     double _visDt;
-    std::vector<Vector3d> _visPosition;
+    std::vector<Eigen::Vector3d> _visPosition;
     ArrayXXd _visQuat;
 
     // Inertial data
     std::vector<double> _imuTime;
-    ArrayXXd _imuAccleration;
-    ArrayXXd _imuAngVel;
+    Eigen::ArrayXXd _imuAccleration;
+    Eigen::ArrayXXd _imuAngVel;
 
     // generated by initialAlignmentEstimation
-    Matrix3d _Rs; // IMU to camera rotation
-    MatrixXd _A;
-    MatrixXd _b;
+    Eigen::Matrix3d _Rs; // IMU to camera rotation
+    Eigen::MatrixXd _A;
+    Eigen::MatrixXd _b;
     double _scale0;
     double _td; // IMU to camera time offset
-    Vector3d _g0;
-    Vector3d _bias0;
+    Eigen::Vector3d _g0;
+    Eigen::Vector3d _bias0;
     std::vector<double> _alignTime;
 };
 
-InertialBasedScaleEstimation::ErrorCode
-InertialBasedScaleEstimation::Impl::setVisualData(
-    const std::vector<double>& time, const std::vector<Vector3d>& position,
-    const std::vector<Quaterniond>& rotation)
+///------- InertialBaseScaleEstimation starts from here
+InertialBasedScaleEstimation::InertialBasedScaleEstimation()
+    : d(std::make_unique<Impl>())
 {
-    if ((time.size() != position.size()) ||
-        (position.size() != rotation.size())) {
-        return ErrorCode::InconsistentDataSizes;
-    }
-
-    _visTime = time;
-    // Normalize time data
-    double t0 = _visTime[0];
-    for (auto& tt : _visTime) {
-        tt = tt - t0;
-    }
-
-    _visDt = 0;
-    const size_t szTime = _visTime.size();
-    for (size_t ii = 1; ii < szTime; ++ii) {
-        _visDt += (_visTime[ii] - _visTime[ii - 1]);
-    }
-    _visDt = _visDt / (szTime - 1);
-
-    _visPosition = position;
-
-    // Copy the rotations into an ArrayXX for faster processing later
-    const size_t szRot = rotation.size();
-    _visQuat.resize(szRot, 4);
-    for (size_t ii = 0; ii < szRot; ++ii) {
-        _visQuat.row(ii) << rotation[ii].w(), rotation[ii].x(),
-            rotation[ii].y(), rotation[ii].z();
-    }
-
-    _state = InternalState::DataSet;
-    return ErrorCode::Success;
 }
 
-InertialBasedScaleEstimation::ErrorCode
-InertialBasedScaleEstimation::Impl::setInertialData(
-    const std::vector<double>& accTime, const std::vector<Vector3d>& accData,
-    const std::vector<double>& gyrTime, const std::vector<Vector3d>& gyrData)
+InertialBasedScaleEstimation::~InertialBasedScaleEstimation() = default;
+
+bool InertialBasedScaleEstimation::setVisualData(
+    const std::vector<double>& stamps,
+    const std::vector<Eigen::Vector3d>& positions,
+    const std::vector<Eigen::Quaterniond>& orientations)
 {
-    if (accData.empty() || gyrData.empty()) {
-        return ErrorCode::NoData;
+    if (stamps.empty() || (stamps.size() != positions.size()) ||
+        (stamps.size() != orientations.size())) {
+        return false;
     }
-    if ((accTime.size() != accData.size()) ||
-        (gyrTime.size() != gyrData.size())) {
-        return ErrorCode::InconsistentDataSizes;
+
+    d->_visTime = stamps;
+    // Normalize time data
+    double t0 = d->_visTime[0];
+    for (auto& stamp : d->_visTime) {
+        stamp -= t0;
+    }
+
+    d->_visDt = 0;
+    const size_t szTime = d->_visTime.size();
+    for (size_t ii = 1; ii < szTime; ++ii) {
+        d->_visDt += (d->_visTime[ii] - d->_visTime[ii - 1]);
+    }
+    d->_visDt = d->_visDt / (szTime - 1);
+
+    d->_visPosition = positions;
+
+    // Copy the rotations into an ArrayXX for faster processing later
+    const size_t szRot = orientations.size();
+    d->_visQuat.resize(szRot, 4);
+    for (size_t ii = 0; ii < szRot; ++ii) {
+        d->_visQuat.row(ii) << orientations[ii].w(), orientations[ii].x(),
+            orientations[ii].y(), orientations[ii].z();
+    }
+
+    d->_state = InternalState::DataSet;
+    return true;
+}
+
+bool InertialBasedScaleEstimation::setInertialData(
+    const std::vector<double>& accTime,
+    const std::vector<Eigen::Vector3d>& accData,
+    const std::vector<double>& gyrTime,
+    const std::vector<Eigen::Vector3d>& gyrData)
+{
+    if (accTime.empty() || (accTime.size() != accData.size()) ||
+        (accTime.size() != gyrTime.size()) ||
+        (accTime.size() != gyrData.size())) {
+        return false;
     }
 
     // Copy the linear accelerations into an ArrayXX for faster processing later
-    _imuAccleration.resize(accData.size(), 3);
+    d->_imuAccleration.resize(accData.size(), 3);
     for (size_t i{0}; i < accData.size(); ++i) {
-        _imuAccleration.row(i) = accData[i];
+        d->_imuAccleration.row(i) = accData[i];
     }
 
     // Resample gyroscope readings to match the sampling of the accelerometer
     double t0 = std::min(accTime[0], gyrTime[0]);
-    _imuTime.clear();
+    d->_imuTime.clear();
     for (const auto& tt : accTime) {
-        _imuTime.push_back(tt - t0);
+        d->_imuTime.push_back(tt - t0);
     }
 
     const size_t gyrCount = gyrTime.size();
@@ -772,114 +768,72 @@ InertialBasedScaleEstimation::Impl::setInertialData(
         gyrImu_z(i) = gyrData[i].z();
     }
 
-    _imuAngVel.resize(_imuTime.size(), 3);
-    _imuAngVel.col(0) = linearInterpolation(timeGyr, gyrImu_x, _imuTime);
-    _imuAngVel.col(1) = linearInterpolation(timeGyr, gyrImu_y, _imuTime);
-    _imuAngVel.col(2) = linearInterpolation(timeGyr, gyrImu_z, _imuTime);
+    d->_imuAngVel.resize(d->_imuTime.size(), 3);
+    d->_imuAngVel.col(0) = linearInterpolation(timeGyr, gyrImu_x, d->_imuTime);
+    d->_imuAngVel.col(1) = linearInterpolation(timeGyr, gyrImu_y, d->_imuTime);
+    d->_imuAngVel.col(2) = linearInterpolation(timeGyr, gyrImu_z, d->_imuTime);
 
-    _state = InternalState::DataSet;
-    return ErrorCode::Success;
-};
+    d->_state = InternalState::DataSet;
+    return true;
+}
 
-InertialBasedScaleEstimation::ErrorCode
-InertialBasedScaleEstimation::Impl::initialAlignmentEstimation()
+InertialBasedScaleEstimation::Error
+InertialBasedScaleEstimation::initialAlignmentEstimation()
 {
-    if (_state == InternalState::NotStarted) {
-        return ErrorCode::NoData;
+    if (d->_state == InternalState::NotStarted) {
+        return Error::NoData;
     }
 
     // Kalman & RTS filtering
-    ArrayXXd visAcc = KalmanRTS(_visPosition, _visDt).transpose();
+    ArrayXXd visAcc = KalmanRTS(d->_visPosition, d->_visDt).transpose();
 
     // Estimate visual and IMU alignment
     double td;
     Vector3d bg;
-    estimateAlignment(_visQuat, _visTime, _imuAngVel, _imuTime, _Rs, td, bg);
+    estimateAlignment(d->_visQuat, d->_visTime, d->_imuAngVel, d->_imuTime,
+                      d->_Rs, td, bg);
 
     // Align camera and IMU measurements
     ArrayXXd out_accVis;
     ArrayXXd out_qtVis;
     MatrixXd out_accImu;
-    alignCameraAndIMU(visAcc, _visQuat, _visTime, _imuAccleration, _imuTime,
-                      _Rs, td, out_accVis, out_qtVis, out_accImu, _alignTime);
+    alignCameraAndIMU(visAcc, d->_visQuat, d->_visTime, d->_imuAccleration,
+                      d->_imuTime, d->_Rs, td, out_accVis, out_qtVis,
+                      out_accImu, d->_alignTime);
 
     // Transform visual accelerations from world frame to local frame
     ArrayXXd rotAccVis = rotatePoints(out_qtVis, out_accVis);
 
     // Find initial estimates for the scale, gravity and bias by solving
     // an unconstrained linear system of equations Ax = b
-    initializeEstimates(rotAccVis, out_qtVis, out_accImu, _A, _b, _scale0, _g0,
-                        _bias0);
+    initializeEstimates(rotAccVis, out_qtVis, out_accImu, d->_A, d->_b,
+                        d->_scale0, d->_g0, d->_bias0);
 
-    _state = InternalState::InitialAlignment;
-    return ErrorCode::Success;
+    d->_state = InternalState::InitialAlignment;
+    return Error::None;
 }
 
-InertialBasedScaleEstimation::ErrorCode
-InertialBasedScaleEstimation::Impl::estimateScale(double& scale, Vector3d& g,
-                                                  Vector3d& bias, double fMax)
+InertialBasedScaleEstimation::Error InertialBasedScaleEstimation::estimateScale(
+    double& scale, Eigen::Vector3d& g, Eigen::Vector3d& bias, double fMax)
 {
-    if (_state == InternalState::NotStarted) {
-        return ErrorCode::NoData;
+    if (d->_state == InternalState::NotStarted) {
+        return Error::NoData;
     }
-    if (_state == InternalState::DataSet) {
-        return ErrorCode::NoInitialAlignment;
+    if (d->_state == InternalState::DataSet) {
+        return Error::NoInitialAlignment;
     }
 
-    // TODO: Finish here
     // Final estimation in the frequency domain
-    // bool success = optimizeEstimate(_A, _b, _scale0, _g0, _bias0, _alignTime,
-    //                                 fMax, scale, g, bias);
-
-    // if (success) {
-    //     _state = InternalState::SCALE_ESTIMATED;
-    //     return ErrorCode::SUCCESS;
+    // if (optimizeEstimate(d->_A, d->_b, d->_scale0, d->_g0, d->_bias0,
+    //                      d->_alignTime, fMax, scale, g, bias)) {
+    //     d->_state = InternalState::ScaleEstimated;
+    //     return Error::None;
     // }
 
-    return ErrorCode::FailedFinalEstimation;
+    return Error::FailedFinalEstimation;
 }
 
-///------- InertialBaseScaleEstimation starts from here
-InertialBasedScaleEstimation::InertialBasedScaleEstimation()
-    : d(std::make_unique<Impl>())
-{
-}
-
-InertialBasedScaleEstimation::~InertialBasedScaleEstimation() = default;
-
-InertialBasedScaleEstimation::ErrorCode
-InertialBasedScaleEstimation::setVisualData(
-    const std::vector<double>& time, const std::vector<Vector3d>& position,
-    const std::vector<Quaterniond>& rotation)
-{
-    return d->setVisualData(time, position, rotation);
-}
-
-InertialBasedScaleEstimation::ErrorCode
-InertialBasedScaleEstimation::setInertialData(
-    const std::vector<double>& accelerometer_time,
-    const std::vector<Vector3d>& linear_acceleration,
-    const std::vector<double>& gyroscope_time,
-    const std::vector<Vector3d>& angular_velocity)
-{
-    return d->setInertialData(accelerometer_time, linear_acceleration,
-                              gyroscope_time, angular_velocity);
-}
-
-InertialBasedScaleEstimation::ErrorCode
-InertialBasedScaleEstimation::initialAlignmentEstimation()
-{
-    return d->initialAlignmentEstimation();
-}
-
-InertialBasedScaleEstimation::ErrorCode
-InertialBasedScaleEstimation::estimateScale(double& scale, Vector3d& g,
-                                            Vector3d& bias, double fMax)
-{
-    return d->estimateScale(scale, g, bias, fMax);
-}
-
-Matrix3d InertialBasedScaleEstimation::imuToCameraRotation() const
+Eigen::Matrix3d InertialBasedScaleEstimation::imuToCameraRotation() const
 {
     return d->_Rs;
 }

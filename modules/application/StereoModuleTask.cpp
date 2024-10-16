@@ -244,13 +244,10 @@ bool StereoModuleTask::Impl::calibCameraImuTransform()
     }
 
     InertialBasedScaleEstimation ibse;
-    const auto errCode =
-        ibse.setInertialData(acc_times, linear_accs, gyr_times, ang_vels);
 
-    if (errCode != InertialBasedScaleEstimation::ErrorCode::Success) {
+    if (!ibse.setInertialData(acc_times, linear_accs, gyr_times, ang_vels)) {
         LOG(ERROR) << "Failed to estimate visual scale: "
-                      "Invalid input inertial data. "
-                   << int(errCode);
+                      "Invalid input inertial data. ";
         return false;
     }
 
@@ -271,7 +268,9 @@ bool StereoModuleTask::Impl::calibCameraImuTransform()
             vis_rots.push_back(q);
         }
 
-        ibse.setVisualData(vis_times, vis_poses, vis_rots);
+        if (!ibse.setVisualData(vis_times, vis_poses, vis_rots)) {
+            return false;
+        }
 
         LOG(INFO) << "======= "
                      "Start Estimating "
@@ -279,7 +278,7 @@ bool StereoModuleTask::Impl::calibCameraImuTransform()
                   << " scale"
                      " =======";
         const auto errCode = ibse.initialAlignmentEstimation();
-        if (errCode != InertialBasedScaleEstimation::ErrorCode::Success) {
+        if (errCode != InertialBasedScaleEstimation::Error::None) {
             LOG(ERROR) << "Failed to estimate " << hint << " scale.";
             return false;
         }
