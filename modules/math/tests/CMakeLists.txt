@@ -7,6 +7,7 @@ target_sources(${MATH_TEST_TARGET}
         test_utils.h
         tst_brent.cpp
         tst_eigen.cpp
+        tst_kalman.cpp
 
         # RANSAC
         tst_exhaustiveransac.cpp
