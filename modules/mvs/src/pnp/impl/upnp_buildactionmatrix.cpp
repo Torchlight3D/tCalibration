@@ -1,6 +1,5 @@
 #include "upnp.hpp"
 
-
 #include <Eigen/Dense>
 #include <glog/logging.h>
 
@@ -26,20 +25,21 @@
 
 namespace tl {
 
-typedef Eigen::Matrix<double, 8, 8> Matrix8d;
-typedef Eigen::Matrix<double, 10, 10> Matrix10d;
-typedef Eigen::Matrix<double, 16, 16> Matrix16d;
-typedef Eigen::Matrix<double, 10, 1> Vector10d;
-typedef Eigen::Matrix<double, 5, 29> Matrix5x29d;
-
-namespace {
 using Eigen::Dynamic;
 using Eigen::Matrix;
 using Eigen::Matrix4d;
 using Eigen::RowMajor;
 
-const int kTemplateRows = 395;
-const int kTemplateCols = 412;
+using Matrix8d = Eigen::Matrix<double, 8, 8>;
+using Matrix10d = Eigen::Matrix<double, 10, 10>;
+using Matrix16d = Eigen::Matrix<double, 16, 16>;
+using Vector10d = Eigen::Matrix<double, 10, 1>;
+using Matrix5x29d = Eigen::Matrix<double, 5, 29>;
+
+namespace {
+
+constexpr int kTemplateRows = 395;
+constexpr int kTemplateCols = 412;
 
 using RowMajorMatrixXd =
     Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;

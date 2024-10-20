@@ -1,4 +1,4 @@
-#include "FeatureVector.h"
+#include "featurevector.h"
 
 #include <iostream>
 
@@ -6,49 +6,34 @@ namespace tl {
 
 void FeatureVector::addFeature(NodeId id, unsigned int i_feature)
 {
-    FeatureVector::iterator vit = this->lower_bound(id);
-
-    if (vit != this->end() && vit->first == id) {
-        vit->second.push_back(i_feature);
+    if (auto low = this->lower_bound(id);
+        low != this->end() && low->first == id) {
+        low->second.push_back(i_feature);
     }
     else {
-        vit = this->insert(
-            vit, FeatureVector::value_type(id, std::vector<unsigned int>()));
-        vit->second.push_back(i_feature);
+        low = this->insert(low, {id, std::vector<unsigned int>()});
+        low->second.push_back(i_feature);
     }
 }
 
 std::ostream &operator<<(std::ostream &out, const FeatureVector &v)
 {
-    if (!v.empty()) {
-        FeatureVector::const_iterator vit = v.begin();
+    if (v.empty()) {
+        return out;
+    }
 
-        const std::vector<unsigned int> *f = &vit->second;
+    // Example:
+    // <NodeId>: [index0 index1 index2 ...]
 
-        out << "<" << vit->first << ": [";
-        if (!f->empty())
-            out << (*f)[0];
-        for (unsigned int i = 1; i < f->size(); ++i) {
-            out << ", " << (*f)[i];
+    for (const auto &[nodeId, indices] : v) {
+        out << "<" << nodeId << ">: [";
+        for (const auto &index : indices) {
+            out << index << " ";
         }
-        out << "]>";
-
-        for (++vit; vit != v.end(); ++vit) {
-            f = &vit->second;
-
-            out << ", <" << vit->first << ": [";
-            if (!f->empty())
-                out << (*f)[0];
-            for (unsigned int i = 1; i < f->size(); ++i) {
-                out << ", " << (*f)[i];
-            }
-            out << "]>";
-        }
+        out << "]\n";
     }
 
     return out;
 }
-
-// ---------------------------------------------------------------------------
 
 } // namespace tl
