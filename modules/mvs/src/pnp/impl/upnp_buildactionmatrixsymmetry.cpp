@@ -23,10 +23,10 @@
 #endif
 #define M2(X, Y) template_matrix->data()[X * template_matrix->cols() + Y]
 
-typedef Eigen::Matrix<double, 8, 8> Matrix8d;
-typedef Eigen::Matrix<double, 10, 10> Matrix10d;
-typedef Eigen::Matrix<double, 16, 16> Matrix16d;
-typedef Eigen::Matrix<double, 10, 1> Vector10d;
+using Matrix8d = Eigen::Matrix<double, 8, 8>;
+using Matrix10d = Eigen::Matrix<double, 10, 10>;
+using Matrix16d = Eigen::Matrix<double, 16, 16>;
+using Vector10d = Eigen::Matrix<double, 10, 1>;
 
 using Eigen::Dynamic;
 using Eigen::Matrix;

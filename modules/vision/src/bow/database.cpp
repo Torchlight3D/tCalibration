@@ -1,4 +1,4 @@
-#include "Database.h"
+#include "database.h"
 
 namespace tl {
 
@@ -204,9 +204,8 @@ void Database::queryL1(const BowVector &vec, QueryResults &results,
                                           entry_id, value));
                 }
             }
-
-        } // for each inverted row
-    } // for each query word
+        }
+    }
 
     // move to vector
     results.reserve(pairs.size());

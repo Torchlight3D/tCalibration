@@ -263,7 +263,7 @@ public:
 
 protected:
     ///  reference to descriptor
-    typedef const cv::Mat pDescriptor;
+    using pDescriptor = const cv::Mat;
 
     /// Tree node
     struct Node
