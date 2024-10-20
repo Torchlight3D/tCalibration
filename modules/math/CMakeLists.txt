@@ -9,6 +9,7 @@ file(GLOB MATH_INTERNAL_HEADERS
     src/eigen/*.h
     src/eigen/*.hpp
     src/internal/*.h
+    src/kalman/*.hpp
     src/ransac/*.h
     src/sdp/*.h
     src/solvers/*.h
