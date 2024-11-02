@@ -29,8 +29,8 @@ target_include_directories(${IMU_TARGET_NAME}
 
 target_link_libraries(${IMU_TARGET_NAME}
     PUBLIC   
-        ${NS_PREFIX}::Core
         ${NS_PREFIX}::Math
+        json
 )
 
 install(

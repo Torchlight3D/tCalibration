@@ -2,6 +2,8 @@
 
 #include <Eigen/Core>
 
+#include <json/json.hpp>
+
 namespace tl {
 
 namespace imu {
@@ -113,4 +115,94 @@ private:
 
 using ImuIntrinsics = ImuIntrinsics_<double>;
 
+template <typename _Scalar>
+class _ImuIntrinsics : public Eigen::Matrix<_Scalar, 3, 4>
+{
+    using Matrix3 = Eigen::Matrix3<_Scalar>;
+    using Vector3 = Eigen::Vector3<_Scalar>;
+
+public:
+    using Base = Eigen::Matrix<_Scalar, 3, 4>;
+    using Scalar = _Scalar;
+
+    enum
+    {
+        ScaleSize = 3,
+        BiasSize = 3,
+    };
+
+    inline _ImuIntrinsics() : Base()
+    {
+        this->setZero();
+        this->diagonal().setOnes();
+    }
+
+    inline void setMisalignment(const Eigen::Matrix3<Scalar>& mat)
+    {
+        const Vector3 scale = this->scale();
+        this->block<3, 3>(0, 0) = mat;
+        this->scale() = scale;
+    }
+    inline const auto misalignment() const
+    {
+        Matrix3 mat = this->template block<3, 3>(0, 0);
+        mat.diagonal().setOnes();
+        return mat;
+    }
+
+    inline const auto scale() const { return this->diagonal(); }
+    inline auto scale() { return this->diagonal(); }
+
+    inline const auto bias() const { return this->col(3); }
+    inline auto bias() { return this->col(3); }
+
+    inline auto normalize(const Eigen::Vector3<Scalar>& data) const
+    {
+        return this->template block<3, 3>(0, 0) * data;
+    }
+
+    inline auto unbias(const Eigen::Vector3<Scalar>& data) const
+    {
+        return data - bias();
+    }
+
+    inline auto unbiasNormalize(const Eigen::Vector3<Scalar>& data) const
+    {
+        return normalize(unbias(data));
+    }
+};
+
+template <typename _Scalar>
+std::ostream& operator<<(std::ostream& os, const _ImuIntrinsics<_Scalar>& intri)
+{
+    os << "Imu intrinsics:"
+          "\n"
+          "Misalignment: "
+          "\n"
+       << intri.misalignment()
+       << "\n"
+          "Scale: "
+       << intri.scale().transpose()
+       << "\n"
+          "Bias: "
+       << intri.bias().transpose() << "\n";
+    return os;
+}
+
 } // namespace tl
+
+namespace nlohmann {
+
+template <typename T>
+void to_json(json& j, const tl::_ImuIntrinsics<T>& intrinsics)
+{
+    // TODO:
+}
+
+template <typename T>
+void from_json(const json& j, tl::_ImuIntrinsics<T>& intrinsics)
+{
+    // TODO:
+}
+
+} // namespace nlohmann

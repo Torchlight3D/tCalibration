@@ -4,10 +4,10 @@ add_executable(${CALIBRATION_TEST_TARGET})
 
 target_sources(${CALIBRATION_TEST_TARGET}
     PRIVATE
-        tst_cam_intrinsics.cpp
+        tst_camintrinsics.cpp
         tst_ibse.cpp
         tst_io.cpp
-        tst_imu_intrinsics.cpp
+        tst_imuintrinsics.cpp
         tst_spline.cpp
         tst_stereo.cpp
 )
