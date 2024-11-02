@@ -4,6 +4,8 @@ add_executable(${IMU_TEST_TARGET})
 
 target_sources(${IMU_TEST_TARGET}
     PRIVATE
+        tst_imudata.cpp
+        tst_imuintrinsics.cpp
         tst_sew.cpp
 )
 

@@ -1,7 +1,5 @@
 #pragma once
 
-#include <string>
-
 #include <json/json.hpp>
 #include <yaml-cpp/yaml.h>
 
@@ -15,18 +13,6 @@ class ImuNoise;
 
 void to_json(nlohmann::json& json, const ImuNoise& noise);
 void from_json(const nlohmann::json& json, ImuNoise& noise);
-
-template <typename T>
-void to_json(nlohmann::json& json, const ImuIntrinsics_<T>& intrinsics)
-{
-    // TODO:
-}
-
-template <typename T>
-void from_json(const nlohmann::json& json, ImuIntrinsics_<T>& intrinsics)
-{
-    // TODO:
-}
 
 } // namespace tl
 
