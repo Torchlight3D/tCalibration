@@ -9,8 +9,6 @@
 #include <opencv2/imgproc.hpp>
 
 #include "Edge.h"
-#include "FloatImage.h"
-#include "Gaussian.h"
 #include "GrayModel.h"
 #include "GLine2D.h"
 #include "GLineSegment2D.h"
@@ -23,185 +21,80 @@
 #include "UnionFindSimple.h"
 #include "XYWeight.h"
 
-// #define DEBUG_APRIL
-
-#ifdef DEBUG_APRIL
-#include <opencv/cv.h>
-#endif
-
 namespace AprilTags {
 
 using Eigen::Matrix3d;
 
 std::vector<TagDetection> TagDetector::extractTags(const cv::Mat &image)
 {
-    // convert to internal AprilTags image (todo: slow, change internally to
-    // OpenCV)
     int width = image.cols;
     int height = image.rows;
-    FloatImage fimOrig(width, height);
-    int i = 0;
-    for (int y = 0; y < height; y++) {
-        for (int x = 0; x < width; x++) {
-            fimOrig.set(x, y, image.data[i] / 255.);
-            i++;
-        }
-    }
+
+    // std::pair<int, int> opticalCenter(width / 2, height / 2);
+
+    // Normalize image
+    cv::Mat fimOrigCV;
+    image.convertTo(fimOrigCV, CV_32FC1, 1.0 / 255.0);
 
     cv::Point2f opticalCenter(width / 2, height / 2);
-
-#ifdef DEBUG_APRIL
-#if 0
-  { // debug - write
-    int height_ = fimOrig.getHeight();
-    int width_  = fimOrig.getWidth();
-    cv::Mat image(height_, width_, CV_8UC3);
-    {
-      for (int y=0; y<height_; y++) {
-        for (int x=0; x<width_; x++) {
-          cv::Vec3b v;
-          //        float vf = fimMag.get(x,y);
-          float vf = fimOrig.get(x,y);
-          int val = (int)(vf * 255.);
-          if ((val & 0xffff00) != 0) {printf("problem... %i\n", val);}
-          for (int k=0; k<3; k++) {
-            v(k) = val;
-          }
-          image.at<cv::Vec3b>(y, x) = v;
-        }
-      }
-    }
-    imwrite("out.bmp", image);
-  }
-#endif
-#if 0
-  FloatImage fimOrig = fimOrig_;
-  { // debug - read
-
-    cv::Mat image = cv::imread("test.bmp");
-    int height_ = fimOrig.getHeight();
-    int width_  = fimOrig.getWidth();
-    {
-      for (int y=0; y<height_; y++) {
-        for (int x=0; x<width_; x++) {
-          cv::Vec3b v = image.at<cv::Vec3b>(y,x);
-          float val = (float)v(0)/255.;
-          fimOrig.set(x,y,val);
-        }
-      }
-    }
-  }
-#endif
-#endif
 
     //================================================================
     // Step one: preprocess image (convert to grayscale) and low pass if
     // necessary
 
-    FloatImage fim = fimOrig;
-
-    //! Gaussian smoothing kernel applied to image (0 == no filter).
-    /*! Used when sampling bits. Filtering is a good idea in cases
-     * where A) a cheap camera is introducing artifical sharpening, B)
-     * the bayer pattern is creating artifcats, C) the sensor is very
-     * noisy and/or has hot/cold pixels. However, filtering makes it
-     * harder to decode very small tags. Reasonable values are 0, or
-     * [0.8, 1.5].
-     */
     float sigma = 0;
-
-    //! Gaussian smoothing kernel applied to image (0 == no filter).
-    /*! Used when detecting the outline of the box. It is almost always
-     * useful to have some filtering, since the loss of small details
-     * won't hurt. Recommended value = 0.8. The case where sigma ==
-     * segsigma has been optimized to avoid a redundant filter
-     * operation.
-     */
     float segSigma = 0.8f;
 
+    cv::Mat fimCV, fimSegCV;
     if (sigma > 0) {
-        int filtsz = ((int)std::max(3.f, 3 * sigma)) | 1;
-        std::vector<float> filt = Gaussian::makeGaussianFilter(sigma, filtsz);
-        fim.filterFactoredCentered(filt, filt);
+        int filtsz = ((int)std::max(3.0f, 3 * sigma)) | 1; // Forces to be odd
+        cv::Size ksize(filtsz, filtsz);
+        cv::GaussianBlur(fimOrigCV, fimCV, ksize, sigma, sigma);
+    }
+    else {
+        fimOrigCV.copyTo(fimCV);
     }
 
-    //================================================================
-    // Step two: Compute the local gradient. We store the direction and
-    // magnitude. This step is quite sensitve to noise, since a few bad theta
-    // estimates will break up segments, causing us to miss Quads. It is useful
-    // to do a Gaussian low pass on this step even if we don't want it for
-    // encoding.
-
-    FloatImage fimSeg;
     if (segSigma > 0) {
         if (segSigma == sigma) {
-            fimSeg = fim;
+            fimCV.copyTo(fimSegCV);
         }
         else {
             // blur anew
-            int filtsz = ((int)std::max(3.f, 3 * segSigma)) | 1;
-            std::vector<float> filt =
-                Gaussian::makeGaussianFilter(segSigma, filtsz);
-            fimSeg = fimOrig;
-            fimSeg.filterFactoredCentered(filt, filt);
+            int filtsz = ((int)std::max(3.0f, 3 * segSigma)) | 1;
+            cv::Size ksize(filtsz, filtsz);
+            cv::GaussianBlur(fimOrigCV, fimSegCV, ksize, segSigma, segSigma);
         }
     }
     else {
-        fimSeg = fimOrig;
+        fimOrigCV.copyTo(fimSegCV);
     }
 
-    FloatImage fimTheta(fimSeg.getWidth(), fimSeg.getHeight());
-    FloatImage fimMag(fimSeg.getWidth(), fimSeg.getHeight());
+    cv::Mat filteredTheta(fimSegCV.size(), CV_32FC1);
+    cv::Mat filteredMag(fimSegCV.size(), CV_32FC1);
 
-#pragma omp parallel for
-    for (int y = 1; y < fimSeg.getHeight() - 1; y++) {
-        for (int x = 1; x < fimSeg.getWidth() - 1; x++) {
-            float Ix = fimSeg.get(x + 1, y) - fimSeg.get(x - 1, y);
-            float Iy = fimSeg.get(x, y + 1) - fimSeg.get(x, y - 1);
+    filteredMag.forEach<float>([&](float &mag, const int position[]) {
+        const int j = position[1];
+        const int i = position[0];
 
-            float mag = Ix * Ix + Iy * Iy;
-#if 0 // kaess: fast version, but maybe less accurate?
-      float theta = MathUtil::fast_atan2(Iy, Ix);
-#else
-            float theta = atan2(Iy, Ix);
-#endif
-
-            fimTheta.set(x, y, theta);
-            fimMag.set(x, y, mag);
+        if (i > 0 && j > 0 && i < fimSegCV.rows - 1 && j < fimSegCV.cols - 1) {
+            const float Ix =
+                fimSegCV.at<float>(i, j + 1) - fimSegCV.at<float>(i, j - 1);
+            const float Iy =
+                fimSegCV.at<float>(i + 1, j) - fimSegCV.at<float>(i - 1, j);
+            mag = Ix * Ix + Iy * Iy;
+            filteredTheta.at<float>(i, j) = std::atan2(Iy, Ix);
         }
-    }
-
-#ifdef DEBUG_APRIL
-    int height_ = fimSeg.getHeight();
-    int width_ = fimSeg.getWidth();
-    cv::Mat image(height_, width_, CV_8UC3);
-    {
-        for (int y = 0; y < height_; y++) {
-            for (int x = 0; x < width_; x++) {
-                cv::Vec3b v;
-                //        float vf = fimMag.get(x,y);
-                float vf = fimOrig.get(x, y);
-                int val = (int)(vf * 255.);
-                if ((val & 0xffff00) != 0) {
-                    printf("problem... %i\n", val);
-                }
-                for (int k = 0; k < 3; k++) {
-                    v(k) = val;
-                }
-                image.at<cv::Vec3b>(y, x) = v;
-            }
-        }
-    }
-#endif
+    });
 
     //================================================================
     // Step three. Extract edges by grouping pixels with similar
     // thetas together. This is a greedy algorithm: we start with
     // the most similar pixels.  We use 4-connectivity.
-    UnionFindSimple uf(fimSeg.getWidth() * fimSeg.getHeight());
+    UnionFindSimple uf(fimSegCV.cols * fimSegCV.rows);
 
-    std::vector<Edge> edges(width * height * 4);
-    size_t nEdges = 0;
+    std::vector<Edge> edges;
+    edges.reserve(width * height * 4);
 
     // Bounds on the thetas assigned to this group. Note that because
     // theta is periodic, these are defined such that the average
@@ -211,9 +104,9 @@ std::vector<TagDetection> TagDetector::extractTags(const cv::Mat &image)
          * images That's already a problem for OS X (default 512KB thread stack
          * size), could be a problem elsewhere for bigger images... so store on
          * heap */
-        std::vector<float> storage(
-            width * height *
-            4); // do all the memory in one big block, exception safe
+        std::vector<float>
+            storage; // do all the memory in one big block, exception safe
+        storage.reserve(width * height * 4);
         float *tmin = &storage[width * height * 0];
         float *tmax = &storage[width * height * 1];
         float *mmin = &storage[width * height * 2];
@@ -221,26 +114,26 @@ std::vector<TagDetection> TagDetector::extractTags(const cv::Mat &image)
 
         for (int y = 0; y + 1 < height; y++) {
             for (int x = 0; x + 1 < width; x++) {
-                float mag0 = fimMag.get(x, y);
+                float mag0 = filteredMag.at<float>(y, x);
                 if (mag0 < Edge::minMag)
                     continue;
                 mmax[y * width + x] = mag0;
                 mmin[y * width + x] = mag0;
 
-                float theta0 = fimTheta.get(x, y);
+                float theta0 = filteredTheta.at<float>(y, x);
                 tmin[y * width + x] = theta0;
                 tmax[y * width + x] = theta0;
 
                 // Calculates then adds edges to 'vector<Edge> edges'
-                Edge::calcEdges(theta0, x, y, fimTheta, fimMag, edges, nEdges);
+                Edge::calcEdges(theta0, x, y, filteredTheta, filteredMag,
+                                edges);
 
-                // XXX Would 8 connectivity help for rotated tags?
+                // TODO Would 8 connectivity help for rotated tags?
                 // Probably not much, so long as input filtering hasn't been
                 // disabled.
             }
         }
 
-        edges.resize(nEdges);
         std::stable_sort(edges.begin(), edges.end());
         Edge::mergeEdges(edges, uf, tmin, tmax, mmin, mmax);
     }
@@ -250,13 +143,14 @@ std::vector<TagDetection> TagDetector::extractTags(const cv::Mat &image)
     // cluster. We will soon fit lines (segments) to these points.
 
     std::map<int, std::vector<XYWeight>> clusters;
-    for (int y = 0; y + 1 < fimSeg.getHeight(); y++) {
-        for (int x = 0; x + 1 < fimSeg.getWidth(); x++) {
-            if (uf.getSetSize(y * fimSeg.getWidth() + x) <
-                Segment::minimumSegmentSize)
+    for (int y = 0; y + 1 < fimSegCV.rows; y++) {
+        for (int x = 0; x + 1 < fimSegCV.cols; x++) {
+            if (uf.getSetSize(y * fimSegCV.cols + x) <
+                Segment::minimumSegmentSize) {
                 continue;
+            }
 
-            int rep = (int)uf.getRepresentative(y * fimSeg.getWidth() + x);
+            int rep = (int)uf.getRepresentative(y * fimSegCV.cols + x);
 
             auto it = clusters.find(rep);
             if (it == clusters.end()) {
@@ -264,8 +158,8 @@ std::vector<TagDetection> TagDetector::extractTags(const cv::Mat &image)
                 it = clusters.find(rep);
             }
             std::vector<XYWeight> &points = it->second;
-            points.push_back(
-                XYWeight{.pos = cv::Point2f(x, y), .weight = fimMag.get(x, y)});
+            points.push_back(XYWeight{.pos = cv::Point2f(x, y),
+                                      .weight = filteredMag.at<float>(x, y)});
         }
     }
 
@@ -278,8 +172,9 @@ std::vector<TagDetection> TagDetector::extractTags(const cv::Mat &image)
 
         // filter short lines
         float length = cv::norm(gseg.p0 - gseg.p1);
-        if (length < Segment::minimumLineLength)
+        if (length < Segment::minimumLineLength) {
             continue;
+        }
 
         float dy = gseg.p1.y - gseg.p0.y;
         float dx = gseg.p1.x - gseg.p0.x;
@@ -298,8 +193,8 @@ std::vector<TagDetection> TagDetector::extractTags(const cv::Mat &image)
 
         float flip = 0, noflip = 0;
         for (const auto &xyw : points) {
-            float theta = fimTheta.get((int)xyw.pos.x, (int)xyw.pos.y);
-            float mag = fimMag.get((int)xyw.pos.x, (int)xyw.pos.y);
+            float theta = filteredTheta.at<float>(xyw.pos);
+            float mag = filteredMag.at<float>(xyw.pos);
 
             // err *should* be +M_PI/2 for the correct winding, but if we
             // got the wrong winding, it'll be around -M_PI/2.
@@ -328,17 +223,6 @@ std::vector<TagDetection> TagDetector::extractTags(const cv::Mat &image)
 
         segments.push_back(seg);
     }
-
-#ifdef DEBUG_APRIL
-    {
-        for (const auto &segment : segments) {
-            long int r = random();
-            cv::line(image, segment.P0(), segment.P1(),
-                     cv::Scalar(r % 0xff, (r % 0xff00) >> 8,
-                                (r % 0xff0000) >> 16, 0));
-        }
-    }
-#endif
 
     // Step six: For each segment, find segments that begin where this segment
     // ends. (We will chain segments together next...) The gridder accelerates
@@ -389,37 +273,11 @@ std::vector<TagDetection> TagDetector::extractTags(const cv::Mat &image)
     // Step seven: Search all connected segments to see if any form a loop of
     // length 4. Add those to the quads list.
     std::vector<Quad> quads;
-
     std::vector<Segment *> tmp(5);
     for (unsigned int i = 0; i < segments.size(); i++) {
         tmp[0] = &segments[i];
-        Quad::search(fimOrig, tmp, segments[i], 0, quads, opticalCenter);
+        Quad::search(tmp, segments[i], 0, quads, opticalCenter);
     }
-
-#ifdef DEBUG_APRIL
-    {
-        for (unsigned int qi = 0; qi < quads.size(); qi++) {
-            Quad &quad = quads[qi];
-            auto &p1 = quad.quadPoints[0];
-            auto &p2 = quad.quadPoints[1];
-            auto &p3 = quad.quadPoints[2];
-            auto &p4 = quad.quadPoints[3];
-            cv::line(image, p1, p2, cv::Scalar(0, 0, 255, 0));
-            cv::line(image, p2, p3, cv::Scalar(0, 0, 255, 0));
-            cv::line(image, p3, p4, cv::Scalar(0, 0, 255, 0));
-            cv::line(image, p4, p1, cv::Scalar(0, 0, 255, 0));
-
-            p1 = quad.interpolate(-1, -1);
-            p2 = quad.interpolate(-1, 1);
-            p3 = quad.interpolate(1, 1);
-            p4 = quad.interpolate(1, -1);
-            cv::circle(image, p1, 3, cv::Scalar(0, 255, 0, 0), 1);
-            cv::circle(image, p2, 3, cv::Scalar(0, 255, 0, 0), 1);
-            cv::circle(image, p3, 3, cv::Scalar(0, 255, 0, 0), 1);
-            cv::circle(image, p4, 3, cv::Scalar(0, 255, 0, 0), 1);
-        }
-    }
-#endif
 
     //================================================================
     // Step eight. Decode the quads. For each quad, we first estimate a
@@ -427,7 +285,7 @@ std::vector<TagDetection> TagDetector::extractTags(const cv::Mat &image)
     // bits and see if they make sense.
 
     std::vector<TagDetection> detections;
-    for (auto &quad : quads) {
+    for (const auto &quad : quads) {
         // Find a threshold
         GrayModel blackModel, whiteModel;
         const int dd = 2 * thisTagFamily.blackBorder + thisTagFamily.dimension;
@@ -441,7 +299,7 @@ std::vector<TagDetection> TagDetector::extractTags(const cv::Mat &image)
                 int iry = (int)(pxy.y + 0.5);
                 if (irx < 0 || irx >= width || iry < 0 || iry >= height)
                     continue;
-                float v = fim.get(irx, iry);
+                float v = fimCV.at<float>(irx, iry);
                 if (iy == -1 || iy == dd || ix == -1 || ix == dd)
                     whiteModel.addObservation(x, y, v);
                 else if (iy == 0 || iy == (dd - 1) || ix == 0 || ix == (dd - 1))
@@ -467,76 +325,63 @@ std::vector<TagDetection> TagDetector::extractTags(const cv::Mat &image)
                 float threshold = (blackModel.interpolate(x, y) +
                                    whiteModel.interpolate(x, y)) *
                                   0.5f;
-                float v = fim.get(irx, iry);
+                float v = fimCV.at<float>(irx, iry);
                 tagCode = tagCode << 1;
                 if (v > threshold)
                     tagCode |= 1;
-#ifdef DEBUG_APRIL
-                {
-                    if (v > threshold)
-                        cv::circle(image, cv::Point2f(irx, iry), 1,
-                                   cv::Scalar(0, 0, 255, 0), 2);
-                    else
-                        cv::circle(image, cv::Point2f(irx, iry), 1,
-                                   cv::Scalar(0, 255, 0, 0), 2);
-                }
-#endif
             }
         }
 
-        if (!bad) {
-            TagDetection thisTagDetection;
-            thisTagFamily.decode(thisTagDetection, tagCode);
+        if (bad) {
+            continue;
+        }
 
-            // compute the homography (and rotate it appropriately)
-            thisTagDetection.homography = quad.homography.getH();
-            thisTagDetection.hxy = quad.homography.getCXY();
+        TagDetection thisTagDetection;
+        thisTagFamily.decode(thisTagDetection, tagCode);
 
-            float c = std::cos(thisTagDetection.rotation * (float)M_PI / 2);
-            float s = std::sin(thisTagDetection.rotation * (float)M_PI / 2);
-            Eigen::Matrix3d R;
-            R.setZero();
-            R(0, 0) = R(1, 1) = c;
-            R(0, 1) = -s;
-            R(1, 0) = s;
-            R(2, 2) = 1;
-            Eigen::Matrix3d tmp;
-            tmp = thisTagDetection.homography * R;
-            thisTagDetection.homography = tmp;
+        // compute the homography (and rotate it appropriately)
+        auto hom = quad.homography;
+        hom.compute();
+        thisTagDetection.homography = hom.getH();
+        thisTagDetection.hxy = hom.getCXY();
 
-            // Rotate points in detection according to decoded
-            // orientation.  Thus the order of the points in the
-            // detection object can be used to determine the
-            // orientation of the target.
-            const auto bottomLeft = thisTagDetection.interpolate(-1, -1);
-            int bestRot = -1;
-            float bestDist = FLT_MAX;
-            for (int i = 0; i < 4; i++) {
-                if (const float dist =
-                        cv::norm(bottomLeft - quad.quadPoints[i]);
-                    dist < bestDist) {
-                    bestDist = dist;
-                    bestRot = i;
-                }
-            }
+        float c = std::cos(thisTagDetection.rotation * (float)M_PI / 2);
+        float s = std::sin(thisTagDetection.rotation * (float)M_PI / 2);
+        Matrix3d R;
+        R.setZero();
+        R(0, 0) = R(1, 1) = c;
+        R(0, 1) = -s;
+        R(1, 0) = s;
+        R(2, 2) = 1;
+        Matrix3d tmp;
+        tmp = thisTagDetection.homography * R;
+        thisTagDetection.homography = tmp;
 
-            for (int i = 0; i < 4; i++) {
-                thisTagDetection.p[i] = quad.quadPoints[(i + bestRot) % 4];
-            }
-
-            if (thisTagDetection.good) {
-                thisTagDetection.cxy = quad.interpolate01(0.5f, 0.5f);
-                thisTagDetection.observedPerimeter = quad.observedPerimeter;
-                detections.push_back(thisTagDetection);
+        // Rotate points in detection according to decoded
+        // orientation.  Thus the order of the points in the
+        // detection object can be used to determine the
+        // orientation of the target.
+        const auto bottomLeft = thisTagDetection.interpolate(-1, -1);
+        int bestRot = -1;
+        float bestDist = FLT_MAX;
+        for (int i = 0; i < 4; i++) {
+            if (const float dist = cv::norm(bottomLeft - quad.quadPoints[i]);
+                dist < bestDist) {
+                bestDist = dist;
+                bestRot = i;
             }
         }
-    }
 
-#ifdef DEBUG_APRIL
-    {
-        cv::imshow("debug_april", image);
+        for (int i = 0; i < 4; i++) {
+            thisTagDetection.p[i] = quad.quadPoints[(i + bestRot) % 4];
+        }
+
+        if (thisTagDetection.good) {
+            thisTagDetection.cxy = quad.interpolate01(0.5f, 0.5f);
+            thisTagDetection.observedPerimeter = quad.observedPerimeter;
+            detections.push_back(thisTagDetection);
+        }
     }
-#endif
 
     //================================================================
     // Step nine: Some quads may be detected more than once, due to
