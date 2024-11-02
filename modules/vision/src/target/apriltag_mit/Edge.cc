@@ -1,79 +1,64 @@
 #include "Edge.h"
 
-#include "FloatImage.h"
 #include "MathUtil.h"
 #include "UnionFindSimple.h"
 
 namespace AprilTags {
 
-float const Edge::minMag = 0.004f;
-float const Edge::maxEdgeCost = 30.f * float(M_PI) / 180.f;
-int const Edge::WEIGHT_SCALE = 100;
-float const Edge::thetaThresh = 100;
-float const Edge::magThresh = 1200;
-
 int Edge::edgeCost(float theta0, float theta1, float mag1)
 {
-    if (mag1 < minMag) // mag0 was checked by the main routine so no need to
-                       // recheck here
+    // mag0 was checked by the main routine so no need to
+    // recheck here
+    if (mag1 < minMag) {
         return -1;
+    }
 
     const float thetaErr = std::abs(MathUtil::mod2pi(theta1 - theta0));
-    if (thetaErr > maxEdgeCost)
+    if (thetaErr > maxEdgeCost) {
         return -1;
+    }
 
     const float normErr = thetaErr / maxEdgeCost;
     return (int)(normErr * WEIGHT_SCALE);
 }
 
-void Edge::calcEdges(float theta0, int x, int y, const FloatImage &theta,
-                     const FloatImage &mag, std::vector<Edge> &edges,
-                     size_t &nEdges)
+void Edge::calcEdges(float theta0, int x, int y, const cv::Mat &theta,
+                     const cv::Mat &mag, std::vector<Edge> &edges)
 {
-    int width = theta.getWidth();
+    int width = theta.cols;
     int thisPixel = y * width + x;
 
     // horizontal edge
-    int cost1 = edgeCost(theta0, theta.get(x + 1, y), mag.get(x + 1, y));
+    int cost1 =
+        edgeCost(theta0, theta.at<float>(x + 1, y), mag.at<float>(x + 1, y));
     if (cost1 >= 0) {
-        edges[nEdges].cost = cost1;
-        edges[nEdges].pixelIdxA = thisPixel;
-        edges[nEdges].pixelIdxB = y * width + x + 1;
-        ++nEdges;
+        edges.emplace_back(thisPixel, y * width + x + 1, cost1);
     }
 
     // vertical edge
-    int cost2 = edgeCost(theta0, theta.get(x, y + 1), mag.get(x, y + 1));
+    int cost2 =
+        edgeCost(theta0, theta.at<float>(x, y + 1), mag.at<float>(x, y + 1));
     if (cost2 >= 0) {
-        edges[nEdges].cost = cost2;
-        edges[nEdges].pixelIdxA = thisPixel;
-        edges[nEdges].pixelIdxB = (y + 1) * width + x;
-        ++nEdges;
+        edges.emplace_back(thisPixel, (y + 1) * width + x, cost2);
     }
 
     // downward diagonal edge
-    int cost3 =
-        edgeCost(theta0, theta.get(x + 1, y + 1), mag.get(x + 1, y + 1));
+    int cost3 = edgeCost(theta0, theta.at<float>(x + 1, y + 1),
+                         mag.at<float>(x + 1, y + 1));
     if (cost3 >= 0) {
-        edges[nEdges].cost = cost3;
-        edges[nEdges].pixelIdxA = thisPixel;
-        edges[nEdges].pixelIdxB = (y + 1) * width + x + 1;
-        ++nEdges;
+        edges.emplace_back(thisPixel, (y + 1) * width + x + 1, cost3);
     }
 
     // updward diagonal edge
     int cost4 = (x == 0) ? -1
-                         : edgeCost(theta0, theta.get(x - 1, y + 1),
-                                    mag.get(x - 1, y + 1));
+                         : edgeCost(theta0, theta.at<float>(x - 1, y + 1),
+                                    mag.at<float>(x - 1, y + 1));
     if (cost4 >= 0) {
-        edges[nEdges].cost = cost4;
-        edges[nEdges].pixelIdxA = thisPixel;
-        edges[nEdges].pixelIdxB = (y + 1) * width + x - 1;
-        ++nEdges;
+        edges.emplace_back(thisPixel, (y + 1) * width + x - 1, cost4);
     }
 }
 
-void Edge::mergeEdges(std::vector<Edge> &edges, UnionFindSimple &uf,
+void Edge::mergeEdges(const std::vector<Edge> &edges, UnionFindSimple &uf,
                       float tmin[], float tmax[], float mmin[], float mmax[])
 {
     for (size_t i = 0; i < edges.size(); i++) {
@@ -83,8 +68,9 @@ void Edge::mergeEdges(std::vector<Edge> &edges, UnionFindSimple &uf,
         ida = uf.getRepresentative(ida);
         idb = uf.getRepresentative(idb);
 
-        if (ida == idb)
+        if (ida == idb) {
             continue;
+        }
 
         int sza = uf.getSetSize(ida);
         int szb = uf.getSetSize(idb);
@@ -104,10 +90,9 @@ void Edge::mergeEdges(std::vector<Edge> &edges, UnionFindSimple &uf,
         float tminab = std::min(tmina, tminb + bshift);
         float tmaxab = std::max(tmaxa, tmaxb + bshift);
 
-        if (tmaxab - tminab >
-            2 * (float)M_PI) // corner case that's probably not too useful to
-                             // handle correctly, oh well.
-            tmaxab = tminab + 2 * (float)M_PI;
+        // corner case that's probably not too useful to
+        // handle correctly, oh well.
+        tmaxab = std::min(tmaxab, tminab + 2 * (float)M_PI);
 
         float mminab = std::min(mmin[ida], mmin[idb]);
         float mmaxab = std::max(mmax[ida], mmax[idb]);

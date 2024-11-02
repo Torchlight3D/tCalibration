@@ -8,7 +8,7 @@ namespace AprilTags {
 struct TagDetection
 {
     TagDetection();
-    TagDetection(int id);
+    explicit TagDetection(int id);
 
     //! Is the detection good enough?
     bool good;
@@ -34,7 +34,7 @@ struct TagDetection
     /*  The points travel counter-clockwise around the target, always
      *  starting from the same corner of the tag.
      */
-    cv::Point2f p[4];
+    std::array<cv::Point2f, 4> p;
 
     //! Center of tag in pixel coordinates.
     cv::Point2f cxy;

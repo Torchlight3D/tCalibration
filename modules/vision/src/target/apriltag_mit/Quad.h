@@ -16,11 +16,12 @@ class Segment;
 class Quad
 {
 public:
-    static const int minimumEdgeLength =
-        6; //!< Minimum size of a tag (in pixels) as measured along edges and
-           //!< diagonals
-    static float const
-        maxQuadAspectRatio; //!< Early pruning of quads with insane ratios.
+    //!< Minimum size of a tag (in pixels) as measured along edges and
+    //!< diagonals
+    inline static constexpr int minimumEdgeLength = 6;
+
+    //!< Early pruning of quads with insane ratios.
+    inline static constexpr float maxQuadAspectRatio = 32.f;
 
     //! Constructor
     /*! (x,y) are the optical center of the camera, which is
@@ -30,11 +31,11 @@ public:
     //! Interpolate given that the lower left corner of the lower left cell is
     //! at (-1,-1) and the upper right corner of the upper right cell is at
     //! (1,1).
-    cv::Point2f interpolate(float x, float y);
+    cv::Point2f interpolate(float x, float y) const;
 
     //! Same as interpolate, except that the coordinates are interpreted between
     //! 0 and 1, instead of -1 and 1.
-    cv::Point2f interpolate01(float x, float y);
+    cv::Point2f interpolate01(float x, float y) const;
 
     //! Points for the quad (in pixel coordinates), in counter clockwise order.
     //! These points are the intersections of segments.
@@ -62,8 +63,8 @@ public:
      *  @param parent the first segment in the quad
      *  @param depth how deep in the search are we?
      */
-    static void search(const FloatImage& fImage, std::vector<Segment*>& path,
-                       Segment& parent, int depth, std::vector<Quad>& quads,
+    static void search(std::vector<Segment*>& path, Segment& parent, int depth,
+                       std::vector<Quad>& quads,
                        const cv::Point2f& opticalCenter);
 
 #ifdef INTERPOLATE
