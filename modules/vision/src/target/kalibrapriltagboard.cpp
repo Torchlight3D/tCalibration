@@ -19,16 +19,16 @@ using Eigen::Vector2d;
 
 struct EdgeCostFunctor
 {
-    cv::Mat raw_img;
-    cv::Mat mask_img;
-    cv::Mat template_img;
+    cv::Mat _image;
+    cv::Mat _mask;
+    cv::Mat _template;
 
-    EdgeCostFunctor(const cv::Mat &rawImg, const cv::Mat &maskImg)
-        : raw_img(rawImg), mask_img(maskImg)
+    EdgeCostFunctor(const cv::Mat &image, const cv::Mat &mask)
+        : _image(image),
+          _mask(mask),
+          _template((cv::Mat_<uchar>(1, 2) << 0, 255))
     {
-        template_img.create(1, 2, CV_8U);
-        template_img.data[0] = 0;
-        template_img.data[1] = 255;
+        ;
     }
 
     template <typename T>
@@ -59,33 +59,34 @@ struct EdgeCostFunctor
     bool operator()(const T *const _edgeNormal, const T *const _edgeOffset,
                     T *residual) const
     {
-        const Eigen::Map<const Eigen::Vector2<T>> edgeNormal(_edgeNormal);
+        using Vec2 = Eigen::Vector2<T>;
+
+        const Eigen::Map<const Vec2> edgeNormal(_edgeNormal);
         const auto &edgeOffset = *_edgeOffset;
 
         const Eigen::Hyperplane<T, 2> line{edgeNormal, edgeOffset};
 
         int residual_index = 0;
-        for (int row = 0; row < raw_img.rows; row++) {
-            const auto raw_img_row_ptr = raw_img.ptr<uint8_t>(row);
-            const auto mask_row_ptr = mask_img.ptr<uint8_t>(row);
+        for (auto row = 0; row < _image.rows; row++) {
+            const auto img_row = _image.ptr<uint8_t>(row);
+            const auto mask_row = _mask.ptr<uint8_t>(row);
 
-            for (int col = 0; col < raw_img.cols; col++) {
-                const auto eval = mask_row_ptr[col];
-
-                if (eval) {
-                    const Vector2d raw_img_pos(col, row);
-                    const double dist_to_line =
-                        line.signedDistance(raw_img_pos);
-
-                    const cv::Point2d template_pt(dist_to_line + 0.5, 0);
-
-                    const double pred_pixel_value =
-                        getSubPixel<double>(template_img, template_pt);
-                    const uint8_t current_pixel_values = raw_img_row_ptr[col];
-                    residual[residual_index] =
-                        pred_pixel_value - current_pixel_values;
-                    residual_index++;
+            for (auto col = 0; col < _image.cols; col++) {
+                const auto eval = mask_row[col];
+                if (!eval) {
+                    continue;
                 }
+
+                const auto dist_to_line = line.signedDistance(Vec2(col, row));
+
+                const cv::Point2d template_pt(dist_to_line + 0.5, 0);
+
+                const double pred_pixel_value =
+                    getSubPixel<double>(_template, template_pt);
+                const uint8_t current_pixel_values = img_row[col];
+                residual[residual_index] =
+                    pred_pixel_value - current_pixel_values;
+                residual_index++;
             }
         }
 
@@ -94,7 +95,7 @@ struct EdgeCostFunctor
 };
 
 void refineCornerPointsByDirectEdgeOptimization(
-    cv::Mat &img, std::vector<AprilTags::TagDetection> &detections)
+    const cv::Mat &img, std::vector<AprilTags::TagDetection> &detections)
 {
     for (auto &detection : detections) {
         const auto bbox = cv::boundingRect(detection.p);
@@ -104,67 +105,55 @@ void refineCornerPointsByDirectEdgeOptimization(
         try {
             const auto roi = bbox & validArea;
 
-            cv::Mat cropped_img = img(roi);
+            const auto mask = img(roi);
 
-            std::array<Vector2d, 4> estimated_edge_normals;
-            std::array<double, 4> estimated_edge_offsets;
-            std::array<cv::Mat, 4> mask_images;
-
-            int line_thickness = 5;
+            std::array<Vector2d, 4> edgeNormals;
+            std::array<double, 4> edgeOffsets;
+            std::array<cv::Mat, 4> masks;
 
             auto nextCornerIndex = [](int i) { return (i + 1) % 4; };
 
             for (auto i{0}; i < 4; i++) {
                 const int j = nextCornerIndex(i);
 
-                const Vector2d roi_offset_vector(roi.x, roi.y);
+                const Vector2d offset(roi.x, roi.y);
 
                 const Vector2d corner_i(detection.p[i].x, detection.p[i].y);
                 const Vector2d corner_j(detection.p[j].x, detection.p[j].y);
 
-                const auto edge_line = Eigen::Hyperplane<double, 2>::Through(
-                    corner_i - roi_offset_vector, corner_j - roi_offset_vector);
+                const auto edgeLine = Eigen::Hyperplane<double, 2>::Through(
+                    corner_i - offset, corner_j - offset);
 
-                estimated_edge_normals[i] = edge_line.normal();
-                estimated_edge_offsets[i] = edge_line.offset();
+                edgeNormals[i] = edgeLine.normal();
+                edgeOffsets[i] = edgeLine.offset();
 
-                mask_images[i].create(cropped_img.rows, cropped_img.cols,
-                                      CV_8U);
-                mask_images[i].setTo(0);
+                masks[i].create(mask.rows, mask.cols, CV_8U);
+                masks[i].setTo(0);
 
-                const cv::Point current_corner_point =
-                    detection.p[i] - cv::Point2f(roi.tl());
-                const cv::Point next_corner_point =
-                    detection.p[j] - cv::Point2f(roi.tl());
+                // Visualize
+                const auto point_i = detection.p[i] - cv::Point2f(roi.tl());
+                const auto point_j = detection.p[j] - cv::Point2f(roi.tl());
 
-                cv::line(mask_images[i], current_corner_point,
-                         next_corner_point, cv::Scalar(255), line_thickness);
-                cv::rectangle(mask_images[i], current_corner_point,
-                              current_corner_point, cv::Scalar(0), 10);
-                cv::rectangle(mask_images[i], next_corner_point,
-                              next_corner_point, cv::Scalar(0), 10);
+                cv::line(masks[i], point_i, point_j, cv::Scalar(255), 5);
+                cv::rectangle(masks[i], point_i, point_i, cv::Scalar(0), 10);
+                cv::rectangle(masks[i], point_j, point_j, cv::Scalar(0), 10);
             }
 
             ceres::Problem problem;
-            ceres::NumericDiffOptions numeric_diff_options;
+            ceres::NumericDiffOptions numericDiffOptions;
 
-            auto addEdgeResidualBlocks = [&problem, &mask_images, &cropped_img,
-                                          &estimated_edge_normals,
-                                          &estimated_edge_offsets,
-                                          &numeric_diff_options,
-                                          &nextCornerIndex](int i) {
-                const int pixel_count = cv::countNonZero(mask_images[i]);
+            auto addEdgeResidualBlocks = [&](int i) {
+                const int numPixels = cv::countNonZero(masks[i]);
 
-                auto *cost = new ceres::NumericDiffCostFunction<
+                auto cost = new ceres::NumericDiffCostFunction<
                     EdgeCostFunctor, ceres::CENTRAL, ceres::DYNAMIC, 2, 1>(
-                    new EdgeCostFunctor(cropped_img, mask_images[i]),
-                    ceres::TAKE_OWNERSHIP, pixel_count, numeric_diff_options);
-                problem.AddResidualBlock(cost, nullptr,
-                                         estimated_edge_normals[i].data(),
-                                         &estimated_edge_offsets[i]);
+                    new EdgeCostFunctor(mask, masks[i]), ceres::TAKE_OWNERSHIP,
+                    numPixels, numericDiffOptions);
+                problem.AddResidualBlock(cost, nullptr, edgeNormals[i].data(),
+                                         &edgeOffsets[i]);
 
                 problem.SetManifold(
-                    estimated_edge_normals[i].data(),
+                    edgeNormals[i].data(),
                     new ceres::SphereManifold<ceres::DYNAMIC>(2));
             };
 
@@ -183,10 +172,10 @@ void refineCornerPointsByDirectEdgeOptimization(
             for (auto i{0}; i < 4; i++) {
                 const int j = nextCornerIndex(i);
 
-                const Eigen::Hyperplane<double, 2> edge_A(
-                    estimated_edge_normals[i], estimated_edge_offsets[i]);
-                const Eigen::Hyperplane<double, 2> edge_B(
-                    estimated_edge_normals[j], estimated_edge_offsets[j]);
+                const Eigen::Hyperplane<double, 2> edge_A(edgeNormals[i],
+                                                          edgeOffsets[i]);
+                const Eigen::Hyperplane<double, 2> edge_B(edgeNormals[j],
+                                                          edgeOffsets[j]);
 
                 const Vector2d estimated_corner_pos_roi =
                     edge_A.intersection(edge_B);

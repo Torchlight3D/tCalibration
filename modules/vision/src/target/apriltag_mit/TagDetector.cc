@@ -30,8 +30,6 @@ std::vector<TagDetection> TagDetector::extractTags(const cv::Mat &image)
     int width = image.cols;
     int height = image.rows;
 
-    // std::pair<int, int> opticalCenter(width / 2, height / 2);
-
     // Normalize image
     cv::Mat fimOrigCV;
     image.convertTo(fimOrigCV, CV_32FC1, 1.0 / 255.0);
@@ -198,7 +196,7 @@ std::vector<TagDetection> TagDetector::extractTags(const cv::Mat &image)
 
             // err *should* be +M_PI/2 for the correct winding, but if we
             // got the wrong winding, it'll be around -M_PI/2.
-            float err = MathUtil::mod2pi(theta - seg.getTheta());
+            float err = MathUtil::mod2pi(theta - seg.theta());
 
             if (err < 0)
                 noflip += mag;
@@ -207,11 +205,11 @@ std::vector<TagDetection> TagDetector::extractTags(const cv::Mat &image)
         }
 
         if (flip > noflip) {
-            seg.setTheta(seg.getTheta() + (float)M_PI);
+            seg.setTheta(seg.theta() + (float)M_PI);
         }
 
         float dot =
-            dx * std::cos(seg.getTheta()) + dy * std::sin(seg.getTheta());
+            dx * std::cos(seg.theta()) + dy * std::sin(seg.theta());
         if (dot > 0) {
             seg.rP0() = gseg.p1;
             seg.rP1() = gseg.p0;
@@ -241,11 +239,10 @@ std::vector<TagDetection> TagDetector::extractTags(const cv::Mat &image)
         // compute length of the line segment
         const GLine2D parentLine{parentseg.P0(), parentseg.P1()};
 
-        Gridder<Segment>::iterator iter =
-            gridder.find(parentseg.P1(), 0.5f * parentseg.getLength());
+        auto iter = gridder.find(parentseg.P1(), 0.5f * parentseg.length());
         while (iter.hasNext()) {
             Segment &child = iter.next();
-            if (MathUtil::mod2pi(child.getTheta() - parentseg.getTheta()) > 0) {
+            if (MathUtil::mod2pi(child.theta() - parentseg.theta()) > 0) {
                 continue;
             }
 
@@ -259,7 +256,7 @@ std::vector<TagDetection> TagDetector::extractTags(const cv::Mat &image)
             float parentDist = cv::norm(p - parentseg.P1());
             float childDist = cv::norm(p - child.P0());
 
-            if (std::max(parentDist, childDist) > parentseg.getLength()) {
+            if (std::max(parentDist, childDist) > parentseg.length()) {
                 // cout << "intersection too far" << endl;
                 continue;
             }
@@ -297,13 +294,18 @@ std::vector<TagDetection> TagDetector::extractTags(const cv::Mat &image)
                 const auto pxy = quad.interpolate01(x, y);
                 int irx = (int)(pxy.x + 0.5);
                 int iry = (int)(pxy.y + 0.5);
-                if (irx < 0 || irx >= width || iry < 0 || iry >= height)
+                if (irx < 0 || irx >= width || iry < 0 || iry >= height) {
                     continue;
+                }
+
                 float v = fimCV.at<float>(irx, iry);
-                if (iy == -1 || iy == dd || ix == -1 || ix == dd)
+                if (iy == -1 || iy == dd || ix == -1 || ix == dd) {
                     whiteModel.addObservation(x, y, v);
-                else if (iy == 0 || iy == (dd - 1) || ix == 0 || ix == (dd - 1))
+                }
+                else if (iy == 0 || iy == (dd - 1) || ix == 0 ||
+                         ix == (dd - 1)) {
                     blackModel.addObservation(x, y, v);
+                }
             }
         }
 
@@ -317,18 +319,18 @@ std::vector<TagDetection> TagDetector::extractTags(const cv::Mat &image)
                 int irx = (int)(pxy.x + 0.5);
                 int iry = (int)(pxy.y + 0.5);
                 if (irx < 0 || irx >= width || iry < 0 || iry >= height) {
-                    // cout << "*** bad:  irx=" << irx << "  iry=" << iry <<
-                    // endl;
                     bad = true;
                     continue;
                 }
+
                 float threshold = (blackModel.interpolate(x, y) +
                                    whiteModel.interpolate(x, y)) *
                                   0.5f;
                 float v = fimCV.at<float>(irx, iry);
                 tagCode = tagCode << 1;
-                if (v > threshold)
+                if (v > threshold) {
                     tagCode |= 1;
+                }
             }
         }
 
@@ -426,11 +428,6 @@ std::vector<TagDetection> TagDetector::extractTags(const cv::Mat &image)
             goodDetections.push_back(thisTagDetection);
         }
     }
-
-    // cout << "AprilTags: edges=" << nEdges << " clusters=" << clusters.size()
-    // << " segments=" << segments.size()
-    //      << " quads=" << quads.size() << " detections=" << detections.size()
-    //      << " unique tags=" << goodDetections.size() << endl;
 
     return goodDetections;
 }

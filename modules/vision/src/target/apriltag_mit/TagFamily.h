@@ -67,8 +67,9 @@ public:
     //! The array of the codes. The id for a code is its index.
     std::vector<unsigned long long> codes;
 
-    static const int popCountTableShift = 12;
-    static const unsigned int popCountTableSize = 1 << popCountTableShift;
+    inline static constexpr int popCountTableShift = 12;
+    inline static constexpr unsigned int popCountTableSize =
+        1 << popCountTableShift;
     static unsigned char popCountTable[popCountTableSize];
 
     //! Initializes the static popCountTable
@@ -77,8 +78,9 @@ public:
     public:
         TableInitializer()
         {
-            for (unsigned int i = 0; i < TagFamily::popCountTableSize; i++)
+            for (unsigned int i = 0; i < TagFamily::popCountTableSize; i++) {
                 TagFamily::popCountTable[i] = TagFamily::popCountReal(i);
+            }
         }
     } initializer;
 };

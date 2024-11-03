@@ -72,7 +72,7 @@ void Quad::search(std::vector<Segment*>& path, Segment& parent, int depth,
                 GLine2D lineb{path[i + 1]->P0(), path[i + 1]->P1()};
 
                 p[i] = linea.intersectionWith(lineb);
-                calculatedPerimeter += path[i]->getLength();
+                calculatedPerimeter += path[i]->length();
 
                 // no intersection? Occurs when the lines are almost parallel.
                 if (p[i].x == -1)
@@ -154,7 +154,7 @@ void Quad::search(std::vector<Segment*>& path, Segment& parent, int depth,
         // points, we can eliminate the redundant detections by
         // requiring that the first corner have the lowest
         // value. We're arbitrarily going to use theta...
-        if (child.getTheta() > path[0]->getTheta()) {
+        if (child.theta() > path[0]->theta()) {
             // cout << "theta failed: " << child.getTheta() << " > " <<
             // path[0]->getTheta() << endl;
             continue;
