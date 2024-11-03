@@ -57,13 +57,13 @@ public:
     /// Candidate feature with a score
     struct Candidate
     {
+        Feature f;
+        float score;
+
         Candidate(int x, int y, int label, float score);
 
         /// Sort candidates with high score to the front
         bool operator<(const Candidate &rhs) const { return score > rhs.score; }
-
-        Feature f;
-        float score;
     };
 
     cv::Mat src;
@@ -77,6 +77,7 @@ public:
     float weak_threshold;
     size_t num_features;
     float strong_threshold;
+
     static bool selectScatteredFeatures(
         const std::vector<Candidate> &candidates,
         std::vector<Feature> &features, size_t num_features, float distance);
@@ -95,11 +96,13 @@ public:
     ColorGradient(float weak_threshold, size_t num_features,
                   float strong_threshold);
 
+    inline static constexpr char kName[] = "ColorGradient";
     std::string name() const;
 
     float weak_threshold;
     size_t num_features;
     float strong_threshold;
+
     void read(const cv::FileNode &fn);
     void write(cv::FileStorage &fs) const;
 
@@ -214,8 +217,29 @@ protected:
         const std::vector<TemplatePyramid> &template_pyramids) const;
 };
 
-class shapeInfo_producer
+class ShapeInfoProducer
 {
+public:
+    struct Info
+    {
+        float angle;
+        float scale;
+    };
+
+    explicit ShapeInfoProducer(cv::Mat src, cv::Mat mask = cv::Mat());
+
+    static cv::Mat transform(cv::InputArray src, float angle, float scale);
+
+    // TODO: These two are JSON, use nlohmann::json later
+    static void save_infos(const std::vector<ShapeInfoProducer::Info> &infos,
+                           const std::string &path = "infos.yaml");
+    static std::vector<Info> load_infos(const std::string &path = "info.yaml");
+
+    void produce_infos();
+
+    cv::Mat src_of(const Info &info) const;
+    cv::Mat mask_of(const Info &info) const;
+
 public:
     cv::Mat src;
     cv::Mat mask;
@@ -227,27 +251,7 @@ public:
     float scale_step = 0.5;
     float eps = 0.00001f;
 
-    struct Info
-    {
-        float angle;
-        float scale;
-    };
     std::vector<Info> infos;
-
-    explicit shapeInfo_producer(cv::Mat src, cv::Mat mask = cv::Mat());
-
-    static cv::Mat transform(cv::InputArray src, float angle, float scale);
-
-    // TODO: These two are JSON, use nlohmann::json later
-    static void save_infos(const std::vector<shapeInfo_producer::Info> &infos,
-                           const std::string &path = "infos.yaml");
-    static std::vector<Info> load_infos(const std::string &path = "info.yaml");
-
-    void produce_infos();
-
-    cv::Mat src_of(const Info &info);
-
-    cv::Mat mask_of(const Info &info);
 };
 
 } // namespace tl
