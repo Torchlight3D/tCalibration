@@ -1,8 +1,5 @@
 #pragma once
 
-#include <vector>
-
-#include <Eigen/Dense>
 #include <opencv2/core/types.hpp>
 
 #include "Homography33.h"
@@ -28,9 +25,8 @@ public:
      *   needed to correctly compute the homography. */
     Quad(const std::vector<cv::Point2f>& p, const cv::Point2f& opticalCenter);
 
-    //! Interpolate given that the lower left corner of the lower left cell is
-    //! at (-1,-1) and the upper right corner of the upper right cell is at
-    //! (1,1).
+    // Interpolate given that the lower left corner of the lower left cell is at
+    // (-1, -1) and the upper right corner of the upper right cell is at (1, 1).
     cv::Point2f interpolate(float x, float y) const;
 
     //! Same as interpolate, except that the coordinates are interpreted between

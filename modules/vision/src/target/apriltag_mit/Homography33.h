@@ -1,8 +1,5 @@
 #pragma once
 
-#include <utility>
-#include <vector>
-
 #include <Eigen/Core>
 #include <opencv2/core/types.hpp>
 

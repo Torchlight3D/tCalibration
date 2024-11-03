@@ -2,25 +2,21 @@
 
 #include <iostream>
 
-/**
-
 // example of instantiation of tag family:
 
-#include "TagFamily.h"
-#include "Tag36h11.h"
-TagFamily *tag36h11 = new TagFamily(tagCodes36h11);
+// #include "TagFamily.h"
+// #include "Tag36h11.h"
+// TagFamily *tag36h11 = new TagFamily(tagCodes36h11);
 
 // available tag families:
 
-#include "Tag16h5.h"
-#include "Tag16h5_other.h"
-#include "Tag25h7.h"
-#include "Tag25h9.h"
-#include "Tag36h11.h"
-#include "Tag36h11_other.h"
-#include "Tag36h9.h"
-
-*/
+// #include "Tag16h5.h"
+// #include "Tag16h5_other.h"
+// #include "Tag25h7.h"
+// #include "Tag25h9.h"
+// #include "Tag36h11.h"
+// #include "Tag36h11_other.h"
+// #include "Tag36h9.h"
 
 namespace AprilTags {
 
@@ -32,9 +28,11 @@ TagFamily::TagFamily(const tl::TagCodes& tagCodes, size_t blackBorder)
       errorRecoveryBits(1),
       codes()
 {
-    if (bits != dimension * dimension)
+    if (bits != dimension * dimension) {
         std::cerr << "Error: TagFamily constructor called with bits=" << bits
-                  << "; must be a square number!" << std::endl;
+                  << "; must be a square number!"
+                     "\n";
+    }
     codes = tagCodes.codes;
 }
 
