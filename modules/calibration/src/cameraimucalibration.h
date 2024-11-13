@@ -6,6 +6,8 @@
 #include <tMotion/ImuIntrinsics>
 #include <tMvs/Scene>
 
+#include "splinetrajectoryestimator.h"
+
 namespace tl {
 
 // TODO: Cleanup here, too messy!!!
@@ -53,7 +55,7 @@ public:
 
     void setCameraId(CameraId id);
 
-    double optimize(int iterations, int flags);
+    double optimize(int iterations, OptimizationFlags flags);
 
     /// Results
     std::vector<double> getCamTimestamps() const;

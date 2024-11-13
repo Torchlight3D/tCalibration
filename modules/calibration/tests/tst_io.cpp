@@ -60,7 +60,7 @@ TEST(IoTest, ImuWrite)
 {
     GTEST_SKIP();
 
-    constexpr imu::Type imu_type = imu::Type::Accelerator;
+    constexpr auto imu_type = ImuType::Accelerator;
     ImuIntrinsics acc_intri{};
     const auto acc_intri_yaml = io::toYamlNode(acc_intri, imu_type);
     LOG(INFO) << acc_intri_yaml;

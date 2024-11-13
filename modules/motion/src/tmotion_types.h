@@ -2,14 +2,10 @@
 
 namespace tl {
 
-namespace imu {
-
-enum class Type
+enum class ImuType
 {
     Accelerator,
     Gyroscope,
 };
-
-}
 
 } // namespace tl

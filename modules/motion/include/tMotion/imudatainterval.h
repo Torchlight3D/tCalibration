@@ -1,1 +1,1 @@
-#include "../../src/type/imudatainterval.h"
+#include "../../src/imudatainterval.h"

@@ -11,6 +11,8 @@ namespace tl {
 using Eigen::VectorXd;
 using Eigen::MatrixX3cd;
 
+namespace {
+
 VectorXd fftfreq(int len, double d)
 {
     const auto val = 1. / (len * d);
@@ -154,6 +156,7 @@ double findUniformKnotSpacingSpectrum(const VectorXd& xhat, const Timeline& t,
         }
     }
 }
+} // namespace
 
 void SplineErrorWeighting::estKnotSpacingAndVariance(
     const ImuReadings& data, double quality, double minSpacing,

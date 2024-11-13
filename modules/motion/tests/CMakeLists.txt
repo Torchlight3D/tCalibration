@@ -4,9 +4,16 @@ add_executable(${IMU_TEST_TARGET})
 
 target_sources(${IMU_TEST_TARGET}
     PRIVATE
+        test_utils.h
+        
         tst_imudata.cpp
         tst_imuintrinsics.cpp
         tst_sew.cpp
+        tst_spline.cpp
+        tst_splinebase.cpp
+        tst_splinese3.cpp
+
+        # main.cpp
 )
 
 set(GTest_DIR ${ACTIVE_DEPENDS_PREFIX}/googletest/1.14.0/lib/cmake/GTest)
