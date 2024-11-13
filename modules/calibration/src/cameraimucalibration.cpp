@@ -4,7 +4,7 @@
 
 #include <json/json.hpp>
 
-#include "splinetrajectoryestimator.h"
+#include <tCore/TimeUtils>
 
 namespace tl {
 
@@ -137,8 +137,8 @@ void CameraImuCalibration::initSpline(const Scene& scene,
     d->spline_weight_data_ = sewData;
     d->m_init_T_i_c = T_i_c_init;
 
-    d->m_trajectory.setTic(T_i_c_init);
-    d->m_trajectory.setIMUIntrinsics(accl_intrinsics, gyro_intrinsics);
+    d->m_trajectory.setCameraToImuTransform(T_i_c_init);
+    d->m_trajectory.setImuIntrinsics(accl_intrinsics, gyro_intrinsics);
 
     // Set camera timestamps and sort them
     for (const auto& id : scene.viewIds()) {
@@ -166,7 +166,7 @@ void CameraImuCalibration::initSpline(const Scene& scene,
     const auto dt_so3 = time::sToNs(d->spline_weight_data_.so3_dt);
     const auto dt_r3 = time::sToNs(d->spline_weight_data_.r3_dt);
 
-    d->m_trajectory.setTimes(dt_so3, dt_r3, start_t, end_t);
+    d->m_trajectory.SetTimes(dt_so3, dt_r3, start_t, end_t);
 
     LOG(INFO) << "Spline initialized with: "
                  "\n"
@@ -189,7 +189,7 @@ void CameraImuCalibration::initSpline(const Scene& scene,
     // after initing times, let's now initialize the knots using the known
     // camera poses (T_w_c)
     d->m_trajectory.setScene(d->m_scene);
-    d->m_trajectory.batchInitSO3R3VisPoses();
+    d->m_trajectory.initCameraPoses();
     // TODO make the bias spline dt configurable
     d->m_trajectory.initBiasSplines(accl_intrinsics.bias(),
                                     gyro_intrinsics.bias(), 10 * 1e9, 10 * 1e9,
@@ -198,12 +198,14 @@ void CameraImuCalibration::initSpline(const Scene& scene,
     LOG(INFO) << "Add visual measurements to spline...";
     if (d->m_init_cam_line_delay != 0.0) { // Rolling shutter
         for (const auto& viewId : scene.viewIds()) {
-            d->m_trajectory.addRSCameraMeasurement(scene.view(viewId), 0.0);
+            d->m_trajectory.addRollingShutterCameraMeasurement(
+                scene.view(viewId), 0.0);
         }
     }
     else { // Global shutter
         for (const auto& viewId : scene.viewIds()) {
-            d->m_trajectory.addGSCameraMeasurement(scene.view(viewId), 0.0);
+            d->m_trajectory.addGlobalShutterCameraMeasurement(
+                scene.view(viewId), 0.0);
         }
     }
 
@@ -237,10 +239,11 @@ void CameraImuCalibration::setKnownGravityDir(const Eigen::Vector3d& gravity)
     d->m_trajectory.setGravity(gravity);
 }
 
-double CameraImuCalibration::optimize(int iterations, int flags)
+double CameraImuCalibration::optimize(int iterations, OptimizationFlags flags)
 {
-    auto summary = d->m_trajectory.optimize(iterations, flags);
-    return d->m_trajectory.calcMeanReprojectionError();
+    auto summary =
+        d->m_trajectory.optimize(iterations, OptimizationFlags{flags});
+    return d->m_trajectory.GetMeanReprojectionError();
 }
 
 void CameraImuCalibration::getScene(Scene& recon) const
@@ -249,7 +252,7 @@ void CameraImuCalibration::getScene(Scene& recon) const
         const auto time = time::sToNs(vis_stamp);
 
         Sophus::SE3d pose;
-        d->m_trajectory.poseAt(time, pose);
+        d->m_trajectory.pose(time, pose);
 
         const auto viewId =
             recon.addView(std::to_string(time), time, kCameraLeftId);
@@ -274,8 +277,8 @@ void CameraImuCalibration::getIMUIntrinsics(ImuIntrinsics& acc_intrinsics,
                                             ImuIntrinsics& gyr_intrinsics,
                                             int64_t time)
 {
-    acc_intrinsics = d->m_trajectory.accelerometerIntrinsicsAt(time);
-    gyr_intrinsics = d->m_trajectory.gyroscopeIntrinsicsAt(time);
+    acc_intrinsics = d->m_trajectory.accelerometerlIntrinsics(time);
+    gyr_intrinsics = d->m_trajectory.gyroscopeIntrinsics(time);
 }
 
 void CameraImuCalibration::setCalibrateRSLineDelay(bool on)
@@ -322,12 +325,12 @@ StampedVector3dList CameraImuCalibration::getAcclMeasurements() const
 
 Eigen::Vector3d CameraImuCalibration::acceleratorBiasAt(int64_t time) const
 {
-    return d->m_trajectory.GetAcclBias(time);
+    return d->m_trajectory.accelerometerBias(time);
 }
 
 Eigen::Vector3d CameraImuCalibration::gyroscopeBiasAt(int64_t time) const
 {
-    return d->m_trajectory.GetGyroBias(time);
+    return d->m_trajectory.gyroscopeBias(time);
 }
 
 Eigen::Vector3d CameraImuCalibration::estimatedGravity() const
@@ -338,8 +341,8 @@ Eigen::Vector3d CameraImuCalibration::estimatedGravity() const
 void CameraImuCalibration::imuToCameraTransform(Eigen::Quaterniond& quat,
                                                 Eigen::Vector3d& trans) const
 {
-    quat = d->m_trajectory.Tic().so3().unit_quaternion();
-    trans = d->m_trajectory.Tic().translation();
+    quat = d->m_trajectory.cameraToImuTransform().so3().unit_quaternion();
+    trans = d->m_trajectory.cameraToImuTransform().translation();
 }
 
 } // namespace tl

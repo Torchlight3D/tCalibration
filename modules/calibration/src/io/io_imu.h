@@ -4,7 +4,7 @@
 #include <yaml-cpp/yaml.h>
 
 #include <tMotion/ImuIntrinsics>
-#include <tMotion/ImuTypes>
+#include <tMotion/Types>
 
 // For nlohmann::json
 namespace tl {
@@ -18,8 +18,8 @@ void from_json(const nlohmann::json& json, ImuNoise& noise);
 
 namespace tl::io {
 
-YAML::Node toYamlNode(const ImuIntrinsics& intrinsics, imu::Type type);
-YAML::Node toYamlNode(const ImuNoise& noise, imu::Type type);
+YAML::Node toYamlNode(const ImuIntrinsics& intrinsics, ImuType type);
+YAML::Node toYamlNode(const ImuNoise& noise, ImuType type);
 
 } // namespace tl::io
 

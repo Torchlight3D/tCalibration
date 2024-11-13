@@ -5,14 +5,12 @@ add_library(${NS_PREFIX}::${IMU_TARGET_NAME} ALIAS ${IMU_TARGET_NAME})
 
 # TODO: use src/CMakeLists.txt to control source files
 file(GLOB IMU_INTERNAL_HEADERS
-    src/type/*.h
-    src/type/*.hpp
     src/algo/*.h
     src/*.h
 )
 file(GLOB IMU_SOURCES
-    src/type/*.cpp
     src/algo/*.cpp
+    src/*.cpp
 )
 
 target_sources(${IMU_TARGET_NAME}
@@ -27,9 +25,14 @@ target_include_directories(${IMU_TARGET_NAME}
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
+# Sophus
+set(Sophus_DIR ${ACTIVE_DEPENDS_PREFIX}/sophus/1.x/share/sophus/cmake)
+find_package(Sophus REQUIRED)
+
 target_link_libraries(${IMU_TARGET_NAME}
     PUBLIC   
         ${NS_PREFIX}::Math
+        Sophus::Sophus
         json
 )
 

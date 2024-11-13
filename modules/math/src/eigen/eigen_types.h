@@ -32,8 +32,8 @@ using eigen_map =
              Eigen::aligned_allocator<std::pair<const Key, Eigen_t>>>;
 
 using Vector2dList = eigen_vector<Eigen::Vector2d>;
-using Vector3dList = eigen_vector<Eigen::Vector3d>;
-using QuaterniondList = eigen_vector<Eigen::Quaterniond>;
+using Vector3dList = std::vector<Eigen::Vector3d>;
+using QuaterniondList = std::vector<Eigen::Quaterniond>;
 using Matrix3dList = eigen_vector<Eigen::Matrix3d>;
 using Matrix4dList = eigen_vector<Eigen::Matrix4d>;
 

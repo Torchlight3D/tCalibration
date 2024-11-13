@@ -7,7 +7,7 @@
 
 #include <tCore/TimeUtils>
 #include <tMotion/ImuData>
-#include <tMotion/SplineErrorWeighting>
+#include <tMotion/Spline/SplineErrorWeighting>
 
 using namespace tl;
 using namespace nlohmann; // json
@@ -57,20 +57,19 @@ TEST(Calibration, SEW)
     ImuDatas datas;
     EXPECT_TRUE(readImuData("imu.json", datas));
 
-    SplineErrorWeighting sew;
     double quality{0.99};
     double accMinSpacing{0.01}, accMaxSpacing{0.2};
     double accSpacing, accVar;
-    sew.estKnotSpacingAndVariance(datas.acc, quality, accMinSpacing,
-                                  accMaxSpacing, accSpacing, accVar);
+    SplineErrorWeighting::estKnotSpacingAndVariance(
+        datas.acc, quality, accMinSpacing, accMaxSpacing, accSpacing, accVar);
     double accFactor = 1. / std::sqrt(accVar);
     EXPECT_NEAR(accSpacing, 0.09, 1e-3);
     EXPECT_NEAR(accFactor, 3.852, 1e-3);
 
     double gyrMinSpacing{0.01}, gyrMaxSpacing{0.15};
     double gyrSpacing, gyrVar;
-    sew.estKnotSpacingAndVariance(datas.gyro, quality, gyrMinSpacing,
-                                  gyrMaxSpacing, gyrSpacing, gyrVar);
+    SplineErrorWeighting::estKnotSpacingAndVariance(
+        datas.gyro, quality, gyrMinSpacing, gyrMaxSpacing, gyrSpacing, gyrVar);
     double gyrFactor = 1. / std::sqrt(gyrVar);
     EXPECT_NEAR(gyrSpacing, 0.05, 1e-3);
     EXPECT_NEAR(gyrFactor, 22.374, 1e-3);

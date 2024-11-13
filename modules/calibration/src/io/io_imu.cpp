@@ -27,15 +27,15 @@ constexpr char kGyrRandomWalk[]{"gyr_random_walk"};
 
 } // namespace key
 
-YAML::Node toYamlNode(const ImuIntrinsics& imu, imu::Type type)
+YAML::Node toYamlNode(const ImuIntrinsics& imu, ImuType type)
 {
     YAML::Node node;
     switch (type) {
-        case imu::Type::Accelerator:
+        case ImuType::Accelerator:
             node[key::kAccIntrinsics] = toCVYamlNode(imu.toCompactMatrix());
             node[key::kAccBias] = toCVYamlNode(imu.bias());
             break;
-        case imu::Type::Gyroscope:
+        case ImuType::Gyroscope:
             node[key::kGyrIntrinsics] = toCVYamlNode(imu.toCompactMatrix());
             node[key::kGyrBias] = toCVYamlNode(imu.bias());
             break;
@@ -46,15 +46,15 @@ YAML::Node toYamlNode(const ImuIntrinsics& imu, imu::Type type)
     return node;
 }
 
-YAML::Node toYamlNode(const ImuNoise& imu, imu::Type type)
+YAML::Node toYamlNode(const ImuNoise& imu, ImuType type)
 {
     YAML::Node node;
     switch (type) {
-        case imu::Type::Accelerator:
+        case ImuType::Accelerator:
             node[key::kAccNoise] = imu.noise();
             node[key::kAccRandomWalk] = imu.randomWalk();
             break;
-        case imu::Type::Gyroscope:
+        case ImuType::Gyroscope:
             node[key::kGyrNoise] = imu.noise();
             node[key::kGyrRandomWalk] = imu.randomWalk();
             break;

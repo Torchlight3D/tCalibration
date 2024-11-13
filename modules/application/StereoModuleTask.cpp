@@ -7,7 +7,7 @@
 #include <tCalibration/CameraIntrinsicsCalibration>
 #include <tCalibration/CameraPoseCalibration>
 #include <tCalibration/InertialBasedScaleEstimation>
-#include <tCalibration/SplineTypes>
+#include <tCalibration/SplineTrajectoryEstimator>
 #include <tCalibration/StereoCameraCalibration>
 #include <tCalibration/StereoRectify>
 #include <tCamera/OmnidirectionalCameraModel>
@@ -17,7 +17,7 @@
 #include <tMath/Eigen/Utils>
 #include <tMotion/ImuIntrinsics>
 #include <tMotion/ImuNoise>
-#include <tMotion/SplineErrorWeighting>
+#include <tMotion/Spline/SplineErrorWeighting>
 #include <tVision/BlurDetection>
 #include <tVision/Target/KalibrAprilTagBoard>
 
@@ -311,14 +311,13 @@ bool StereoModuleTask::Impl::calibCameraImuTransform()
     constexpr double kMinGyrSpacing = 0.01;
     constexpr double kMaxGyrSpacing = 0.2;
 
-    SplineErrorWeighting sew;
     SplineWeightingData sewData;
-    sew.estKnotSpacingAndVariance(m_imuDatas.acc, kAccQuality, kMinAccSpacing,
-                                  kMaxAccSpacing, sewData.r3_dt,
-                                  sewData.r3_var);
-    sew.estKnotSpacingAndVariance(m_imuDatas.gyro, kGyrQuality, kMinGyrSpacing,
-                                  kMaxGyrSpacing, sewData.so3_dt,
-                                  sewData.so3_var);
+    SplineErrorWeighting::estKnotSpacingAndVariance(
+        m_imuDatas.acc, kAccQuality, kMinAccSpacing, kMaxAccSpacing,
+        sewData.r3_dt, sewData.r3_var);
+    SplineErrorWeighting::estKnotSpacingAndVariance(
+        m_imuDatas.gyro, kGyrQuality, kMinGyrSpacing, kMaxGyrSpacing,
+        sewData.so3_dt, sewData.so3_var);
 
     constexpr double kInitRSLineDelay = 0.;
     constexpr int kOptimizeSplineIteration = 50;
@@ -339,9 +338,9 @@ bool StereoModuleTask::Impl::calibCameraImuTransform()
                            kInitRSLineDelay, accIntri, gyrIntri);
 
     const int gravityAxis = 2; // Z
-    int flags = SplineOptimizeType::SPLINE | SplineOptimizeType::T_I_C;
+    auto flags = OptimizationFlags::Spline | OptimizationFlags::TIC;
     if constexpr (kReestimatebiases) {
-        flags |= SplineOptimizeType::IMU_BIASES;
+        flags |= OptimizationFlags::ImuBiases;
     }
 
     if (gravityAxis != -1) {
@@ -350,14 +349,14 @@ bool StereoModuleTask::Impl::calibCameraImuTransform()
         calibCamImu.setKnownGravityDir(gravity);
     }
     else {
-        flags |= SplineOptimizeType::GRAVITY_DIR;
+        flags |= OptimizationFlags::Gravity;
     }
 
     double rpe = calibCamImu.optimize(kOptimizeSplineIteration, flags);
 
     double rpe_after_ld = rpe;
     if constexpr (kCalibrateLineDelay && !kGlobalShutter) {
-        flags = SplineOptimizeType::CAM_LINE_DELAY;
+        flags = OptimizationFlags::LineDelay;
         rpe_after_ld = calibCamImu.optimize(kOptimizeLdIteration, flags);
     }
 
