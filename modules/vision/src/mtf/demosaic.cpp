@@ -108,15 +108,16 @@ void simpleDemosaicRedBlue(cv::Mat& cvimg, cv::Mat& rawimg,
                     int subset = ((row & 1) << 1) | (col & 1);
                     if (subset == first_subset) { // TODO: really should
                         // optimize access pattern
-                        double d1grad = fabs(double(
+                        double d1grad = std::abs(double(
                             (int32_t)cvimg.at<uint16_t>(row - 1, col - 1) -
                             (int32_t)cvimg.at<uint16_t>(row + 1, col + 1)));
-                        double d2grad = fabs(double(
+                        double d2grad = std::abs(double(
                             (int32_t)cvimg.at<uint16_t>(row - 1, col + 1) -
                             (int32_t)cvimg.at<uint16_t>(row + 1, col - 1)));
 
                         if (std::max(d1grad, d2grad) < 1 ||
-                            fabs(d1grad - d2grad) / std::max(d1grad, d2grad) <
+                            std::abs(d1grad - d2grad) /
+                                    std::max(d1grad, d2grad) <
                                 0.001) {
                             cvimg.at<uint16_t>(row, col) =
                                 ((int32_t)cvimg.at<uint16_t>(row - 1, col - 1) +

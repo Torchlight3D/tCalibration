@@ -1,11 +1,14 @@
 #include "mtfrendererannotate.h"
 
+#include <format>
+
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 
 #include "srgbrender.h"
 
-static std::vector<double> calculate_edge_lengths(const Block& block)
+namespace {
+std::vector<double> calculate_edge_lengths(const Block& block)
 {
     std::vector<cv::Point2d> base(4);
     std::vector<cv::Point2d> n(4);
@@ -47,8 +50,8 @@ static std::vector<double> calculate_edge_lengths(const Block& block)
     return lengths;
 }
 
-static double estimate_font_scale(const cv::Mat& img, const char* buffer,
-                                  double edge_length, double mean_edge_length)
+double estimate_font_scale(const cv::Mat& img, const std::string& buffer,
+                           double edge_length, double mean_edge_length)
 {
     int baseline = 0;
     double font_scale = 0.5;
@@ -105,6 +108,7 @@ static double estimate_font_scale(const cv::Mat& img, const char* buffer,
 
     return font_scale;
 }
+} // namespace
 
 Mtf_renderer_annotate::Mtf_renderer_annotate(const cv::Mat& in_img,
                                              const std::string& fname,
@@ -159,18 +163,18 @@ void Mtf_renderer_annotate::render(const std::vector<Block>& blocks)
                     double font_scale = initial_font_scale;
                     if (edge_lengths[k] < quantile_edge_length * 0.9 ||
                         edge_lengths[k] < 50) {
-                        char buffer[30];
+                        std::string buffer;
                         double freq_scale = lpmm_mode ? pixel_size : 1.0;
                         if (val < 1.0) {
                             if (lpmm_mode) {
-                                sprintf(buffer, "%.1lf", val * freq_scale);
+                                buffer = std::format("%.1lf", val * freq_scale);
                             }
                             else {
-                                sprintf(buffer, "%.2lf", val * freq_scale);
+                                buffer = std::format("%.2lf", val * freq_scale);
                             }
                         }
                         else {
-                            sprintf(buffer, "N/A");
+                            buffer = "N/A";
                         }
                         font_scale = std::min(
                             font_scale, estimate_font_scale(out_img, buffer,
@@ -196,20 +200,20 @@ void Mtf_renderer_annotate::write_number(cv::Mat& img, int px, int py,
                                          double val, double quality,
                                          double font_scale)
 {
-    char buffer[10];
+    std::string buffer;
 
     double freq_scale = lpmm_mode ? pixel_size : 1.0;
 
     if (val < 1.0) {
         if (lpmm_mode) {
-            sprintf(buffer, "%.1lf", val * freq_scale);
+            buffer = std::format("%.1lf", val * freq_scale);
         }
         else {
-            sprintf(buffer, "%.2lf", val * freq_scale);
+            buffer = std::format("%.2lf", val * freq_scale);
         }
     }
     else {
-        sprintf(buffer, "N/A");
+        buffer = "N/A";
     }
 
     int baseline = 0;

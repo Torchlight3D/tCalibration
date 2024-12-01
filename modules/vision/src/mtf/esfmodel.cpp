@@ -103,7 +103,7 @@ retry:
             mean[b] += ordered[i].second * w;
             weights[b] += w;
 
-            if (std::fabs(mid) <= double(sample_histo_size) / 16.0) {
+            if (std::abs(mid) <= double(sample_histo_size) / 16.0) {
                 int hist_idx =
                     (ordered[i].first + double(sample_histo_size) / 16.0) * 8;
                 if (hist_idx >= 0 && hist_idx < (int)sample_histo_size) {
@@ -159,19 +159,19 @@ retry:
             sx2 += j * j;
         }
         slopes[idx] = sxy / (sx2);
-        if (fabs(slopes[idx]) > fabs(slopes[peak_slope_idx]) &&
+        if (std::abs(slopes[idx]) > std::abs(slopes[peak_slope_idx]) &&
             idx > fft_left + pw && idx < fft_right - pw - 1) {
             peak_slope_idx = idx;
         }
     }
 
     if (!allow_peak_shift) {
-        if (abs(peak_slope_idx - fft_size / 2) >
-                2 * 8 && // peak is more than 2 pixels from centre
-            abs(peak_slope_idx - fft_size / 2) <
-                12 * 8) { // but not at the edge?
+        // peak is more than 2 pixels from centre
+        //  but not at the edge?
+        if (std::abs(peak_slope_idx - fft_size / 2) > 2 * 8 &&
+            std::abs(peak_slope_idx - fft_size / 2) < 12 * 8) {
             LOG(INFO) << "edge rejected because of shifted peak slope: "
-                      << abs(peak_slope_idx - fft_size / 2) / 8.;
+                      << std::abs(peak_slope_idx - fft_size / 2) / 8.;
             return -1;
         }
     }
@@ -272,25 +272,25 @@ retry:
         double smoothed = (sampled[idx - 2] + sampled[idx - 1] + sampled[idx] +
                            sampled[idx + 1] + sampled[idx + 2]) /
                           5.0;
-        if (fabs((smoothed - dark) - 0.1 * (bright - dark)) < p10err) {
+        if (std::abs((smoothed - dark) - 0.1 * (bright - dark)) < p10err) {
             p10idx = idx;
-            p10err = fabs((smoothed - dark) - 0.1 * (bright - dark));
+            p10err = std::abs((smoothed - dark) - 0.1 * (bright - dark));
         }
-        if (fabs((smoothed - dark) - 0.9 * (bright - dark)) < p90err) {
+        if (std::abs((smoothed - dark) - 0.9 * (bright - dark)) < p90err) {
             p90idx = idx;
-            p90err = fabs((smoothed - dark) - 0.9 * (bright - dark));
+            p90err = std::abs((smoothed - dark) - 0.9 * (bright - dark));
         }
     }
     // we know that mtf50 ~ 1/(p90idx - p10idx) * (1/samples_per_pixel)
     double rise_dist =
-        std::max(double(4), fabs(double(p10idx - p90idx)) * 0.125);
+        std::max(double(4), std::abs(double(p10idx - p90idx)) * 0.125);
     if (p10idx < p90idx) {
         std::swap(p10idx, p90idx);
     }
     p10idx += 4 + 2 * lrint(rise_dist); // advance at least one more full pixel
     p90idx -= 4 + 2 * lrint(rise_dist);
-    twidth = std::max(fabs(double(p10idx - fft_size2)),
-                      fabs(double(p90idx - fft_size2)));
+    twidth = std::max(std::abs(double(p10idx - fft_size2)),
+                      std::abs(double(p90idx - fft_size2)));
 
     // Contrast-to-Noise-Ratio (CNR), effectively SNR for the S-E method
     // Only the esf_model_loess currently uses this, but to good effect
@@ -340,7 +340,7 @@ retry:
     }
     left_sse_count = right_it - left_it;
 
-    left_it = lower_bound(right_it, ordered.end(), cnr_right_pix);
+    left_it = std::lower_bound(right_it, ordered.end(), cnr_right_pix);
     right_it = fft_right_pix >= ordered.back().first
                    ? ordered.end()
                    : lower_bound(left_it, ordered.end(), fft_right_pix);

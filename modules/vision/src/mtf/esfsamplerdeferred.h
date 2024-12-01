@@ -21,8 +21,6 @@ protected:
                                 const cv::Point2d& p, const cv::Point2d& pt);
     cv::Point2d derivative(double t0, const cv::Point2d& l,
                            const cv::Point2d& p);
-    double quadmin(const cv::Point2d& a, const cv::Point2d& b,
-                   const cv::Point2d& c);
 
 private:
     Undistort* undistort_{nullptr};

@@ -68,48 +68,48 @@ void Mtf_renderer_mfprofile::render(
     merged.resize(merged.rows + 100);
 
     // TODO: find a way to sample the values for display purposes?
-    //    for (size_t i = 1; i < points.size(); i += 3) {
-    //        Point2d d = points[i].p - zero;
-    //        Point2d coord(d.x * longitudinal.x + d.y * longitudinal.y,
-    //                      d.x * transverse.x + d.y * transverse.y);
+    // for (size_t i = 1; i < points.size(); i += 3) {
+    //     cv::Point2d d = points[i].p - zero;
+    //     cv::Point2d coord(d.x * longitudinal.x + d.y * longitudinal.y,
+    //                       d.x * transverse.x + d.y * transverse.y);
 
-    //        if (fabs(coord.x - cpx) > covxx * radxf ||
-    //            fabs(coord.y - cpy) > covyy * radyf) {
-    //            continue; // point was excluded
-    //        }
+    //     if (fabs(coord.x - cpx) > covxx * radxf ||
+    //         fabs(coord.y - cpy) > covyy * radyf) {
+    //         continue; // point was excluded
+    //     }
 
-    //        int baseline = 0;
-    //        char buffer[1024];
-    //        sprintf(buffer, "%03d", (int)lrint(points[i].mtf * 1000));
-    //        cv::Size ts = cv::getTextSize(buffer, cv::FONT_HERSHEY_SIMPLEX,
-    //        0.5, 1,
-    //                                      &baseline);
-    //        cv::Point to(-ts.width / 2, ts.height / 2);
-    //        to.x += points[i].p.x;
-    //        to.y += points[i].p.y;
-    //        cv::putText(merged, buffer, to, cv::FONT_HERSHEY_SIMPLEX, 0.5,
-    //                    CV_RGB(20, 20, 20), 2.5, CV_AA);
-    //        cv::putText(merged, buffer, to, cv::FONT_HERSHEY_SIMPLEX, 0.5,
-    //                    CV_RGB(50, 255, 255), 1, CV_AA);
-    //    }
+    //     const auto buffer =
+    //         std::format("%03d", (int)lrint(points[i].mtf * 1000));
+
+    //     int baseline = 0;
+    //     cv::Size ts = cv::getTextSize(buffer, cv::FONT_HERSHEY_SIMPLEX, 0.5,
+    //     1,
+    //                                   &baseline);
+    //     cv::Point to(-ts.width / 2, ts.height / 2);
+    //     to.x += points[i].p.x;
+    //     to.y += points[i].p.y;
+    //     cv::putText(merged, buffer, to, cv::FONT_HERSHEY_SIMPLEX, 0.5,
+    //                 CV_RGB(20, 20, 20), 2.5, cv::LINE_AA);
+    //     cv::putText(merged, buffer, to, cv::FONT_HERSHEY_SIMPLEX, 0.5,
+    //                 CV_RGB(50, 255, 255), 1, cv::LINE_AA);
+    // }
 
     draw_curve(merged, pf.ridge_peaks, cv::Scalar(30, 30, 255), 2, true);
     draw_curve(merged, pf.ridge, cv::Scalar(30, 255, 30), 3);
     draw_curve(merged, pf.ridge_p05, cv::Scalar(100, 100, 200), 1);
     draw_curve(merged, pf.ridge_p95, cv::Scalar(100, 100, 200), 1);
 
-    rectangle(merged, cv::Point2d(0, initial_rows),
-              cv::Point2d(merged.cols, merged.rows), cv::Scalar::all(255),
-              cv::FILLED);
+    cv::rectangle(merged, cv::Point2d(0, initial_rows),
+                  cv::Point2d(merged.cols, merged.rows), cv::Scalar::all(255),
+                  cv::FILLED);
 
-    int font = cv::FONT_HERSHEY_DUPLEX;
-    char tbuffer[1024];
-    sprintf(tbuffer,
-            "Focus peak at depth %.1lf mm [%.1lf,%.1lf] relative to chart "
-            "origin",
-            pf.focus_peak, pf.focus_peak_p05, pf.focus_peak_p95);
+    constexpr int font = cv::FONT_HERSHEY_DUPLEX;
+
     cv::putText(
-        merged, tbuffer,
+        merged,
+        std::format("Focus peak at depth %.1lf mm [%.1lf,%.1lf] relative to "
+                    "chart origin",
+                    pf.focus_peak, pf.focus_peak_p05, pf.focus_peak_p95),
         cv::Point2d(50, initial_rows + (merged.rows - initial_rows) / 2), font,
         1, cv::Scalar::all(0), 1, cv::LINE_AA);
 

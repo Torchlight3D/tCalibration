@@ -10,8 +10,13 @@
 #include "five_point_focal_length_radial_distortion.h"
 #include "pointhelpers.h"
 
+using Eigen::Matrix3d;
+using Eigen::Vector2d;
+using Eigen::Vector3d;
+
 namespace {
 
+// TODO: Maybe duplicated
 int n_choose_k(int n, int k)
 {
     if (k == n) {
@@ -108,7 +113,7 @@ bool t_intersect(double &pix, double &piy, double v1x, double v1y, double d1x,
 {
     double denom = (d2y * d1x - d2x * d1y);
 
-    if (fabs(denom) < 1e-11) {
+    if (std::abs(denom) < 1e-11) {
         // this happens when the lines are parallel
         // the caller handles this correctly by not
         // adding an additional intersection point
@@ -139,20 +144,23 @@ void Distance_scale::construct(Mtf_core &mtf_core, bool pose_based,
     user_provided_focal_ratio = user_focal_ratio;
 
     // At least two, or nothing
-    for (size_t i{0}; i < std::max(size_t{0}, mtf_core.ellipses.size() - 1);
-         i++) {
-        Ellipse_detector &e = mtf_core.ellipses[i];
-        for (size_t j = i + 1; j < mtf_core.ellipses.size(); j++) {
-            Ellipse_detector &f = mtf_core.ellipses[j];
-            double cdist = sqrt(SQR(f.centroid_x - e.centroid_x) +
-                                SQR(f.centroid_y - e.centroid_y));
-            if (cdist < std::min(e.minor_axis, f.minor_axis)) {
-                // keep only the larger fiducial
-                if (e.major_axis > f.major_axis) {
-                    f.valid = false;
-                }
-                else {
-                    e.valid = false;
+    if (mtf_core.ellipses.size() > 1) {
+        for (size_t i{0}; i < mtf_core.ellipses.size() - 1; i++) {
+            auto &e = mtf_core.ellipses[i];
+
+            for (auto j = i + 1; j < mtf_core.ellipses.size(); j++) {
+                auto &f = mtf_core.ellipses[j];
+
+                if (double cdist = sqrt(SQR(f.centroid_x - e.centroid_x) +
+                                        SQR(f.centroid_y - e.centroid_y));
+                    cdist < std::min(e.minor_axis, f.minor_axis)) {
+                    // keep only the larger fiducial
+                    if (e.major_axis > f.major_axis) {
+                        f.valid = false;
+                    }
+                    else {
+                        e.valid = false;
+                    }
                 }
             }
         }
@@ -396,10 +404,10 @@ void Distance_scale::construct(Mtf_core &mtf_core, bool pose_based,
                         +0.000001 * (i + 1) * (i % 2 == 0 ? -1 : 1);
                 }
 
+                // number of distortion parms
                 theia::FivePointFocalLengthRadialDistortion(
-                    feature_points, world_points,
-                    1, // number of distortion parms
-                    &projection_matrices, &radial_distortions);
+                    feature_points, world_points, 1, &projection_matrices,
+                    &radial_distortions);
 
                 for (size_t i{0}; i < projection_matrices.size(); i++) {
                     auto &K = projection_matrices[i];
@@ -414,7 +422,7 @@ void Distance_scale::construct(Mtf_core &mtf_core, bool pose_based,
                     double r3n = (K.block<1, 3>(2, 0)).norm();
                     double w = sqrt((r3n * r3n) / (r1n * r1n));
 
-                    Eigen::MatrixXd RM = K.block<3, 3>(0, 0);
+                    Matrix3d RM = K.block<3, 3>(0, 0);
                     RM.row(2) /= w;
                     RM /= RM.row(0).norm();
 
@@ -439,7 +447,7 @@ void Distance_scale::construct(Mtf_core &mtf_core, bool pose_based,
                                   // lengths on a 36 mm wide sensor
                         std::vector<double> residuals;
 
-                        Eigen::Matrix3d RMM(RM);
+                        Matrix3d RMM(RM);
                         RMM.row(2) *= w;
                         Eigen::VectorXd TV =
                             K.col(3) / K.block<1, 3>(0, 0).norm();
@@ -450,13 +458,13 @@ void Distance_scale::construct(Mtf_core &mtf_core, bool pose_based,
                         // that for the final bundle adjustment
 
                         // COP in world coordinates
-                        Eigen::Vector3d ec_cop = TV;
+                        Vector3d ec_cop = TV;
                         // undo focal length scaling of z-component
                         ec_cop[2] /= w;
 
                         std::vector<int> inliers;
                         for (size_t i = 0; i < ba_img_points.size(); i++) {
-                            Eigen::Vector3d bp = RMM * ba_world_points[i] + TV;
+                            Vector3d bp = RMM * ba_world_points[i] + TV;
                             bp /= bp[2];
 
                             // NB: note the sign of the distortion
@@ -465,9 +473,9 @@ void Distance_scale::construct(Mtf_core &mtf_core, bool pose_based,
                                         (bp[0] * bp[0] + bp[1] * bp[1]);
                             bp /= rad;
 
-                            double err = (ba_img_points[i] -
-                                          Eigen::Vector2d(bp[0], bp[1]))
-                                             .norm();
+                            double err =
+                                (ba_img_points[i] - Vector2d(bp[0], bp[1]))
+                                    .norm();
 
                             if (err * img_scale < inlier_threshold * 0.5) {
                                 residuals.push_back(err);
@@ -611,8 +619,8 @@ void Distance_scale::construct(Mtf_core &mtf_core, bool pose_based,
             // remove focal length from last row
             P.row(2) /= w;
 
-            Eigen::MatrixXd RM = P.block<3, 3>(0, 0);
-            Eigen::Vector3d Pcop = P.col(3);
+            Matrix3d RM = P.block<3, 3>(0, 0);
+            Vector3d Pcop = P.col(3);
 
             if (user_focal_ratio > 0) {
                 w = 1.0 / user_focal_ratio;
@@ -714,18 +722,18 @@ void Distance_scale::construct(Mtf_core &mtf_core, bool pose_based,
             focal_length = 1.0 / w;
 
             // prepare for backprojection
-            Eigen::Matrix3d K;
+            Matrix3d K;
             K << 1, 0, 0, 0, 1, 0, 0, 0, 1.0 / focal_length;
 
             invP = (K * rotation).inverse();
 
             // prepare for forward and backward projection transforms
             fwdP = K * rotation;
-            fwdT = Eigen::Vector3d(translation[0], translation[1],
-                                   translation[2] / focal_length);
+            fwdT = Vector3d(translation[0], translation[1],
+                            translation[2] / focal_length);
 
-            cop = Eigen::Vector3d(translation[0], translation[1],
-                                  translation[2] / focal_length);
+            cop = Vector3d(translation[0], translation[1],
+                           translation[2] / focal_length);
             cop = -invP * cop;
 
             centre_depth = backproject(zero.x, zero.y)[2];
@@ -808,10 +816,10 @@ void Distance_scale::construct(Mtf_core &mtf_core, bool pose_based,
             int bot_i = lblock.get_edge_index(Block::BOTTOM);
             int left_i = lblock.get_edge_index(Block::LEFT);
             int right_i = lblock.get_edge_index(Block::RIGHT);
-            if (fabs(idx_x - 0.5) < fabs(idx_y - 0.5)) {
+            if (std::abs(idx_x - 0.5) < std::abs(idx_y - 0.5)) {
                 // outer rows arranged in columns
-                if (fabs(lblock.get_edge_centroid(top_i).y - median.y) <
-                    fabs(lblock.get_edge_centroid(bot_i).y - median.y)) {
+                if (std::abs(lblock.get_edge_centroid(top_i).y - median.y) <
+                    std::abs(lblock.get_edge_centroid(bot_i).y - median.y)) {
                     // chart is upside down
                     std::swap(top_i, bot_i);
                     std::swap(left_i, right_i);
@@ -822,8 +830,8 @@ void Distance_scale::construct(Mtf_core &mtf_core, bool pose_based,
                 std::swap(bot_i, right_i);
                 std::swap(top_i, left_i);
 
-                if (fabs(lblock.get_edge_centroid(top_i).x - median.x) <
-                    fabs(lblock.get_edge_centroid(bot_i).x - median.x)) {
+                if (std::abs(lblock.get_edge_centroid(top_i).x - median.x) <
+                    std::abs(lblock.get_edge_centroid(bot_i).x - median.x)) {
                     // chart is upside down
                     std::swap(top_i, bot_i);
                     std::swap(left_i, right_i);
@@ -900,19 +908,19 @@ Eigen::Vector3d Distance_scale::backproject(double pixel_x,
 {
     cv::Point2d ic = normalize_img_coords(pixel_x, pixel_y);
 
-    Eigen::Vector3d dv(ic.x, ic.y, 1.0);
+    Vector3d dv(ic.x, ic.y, 1.0);
     dv = invP * dv;
     dv /= dv.norm();
 
     double s = (1 - cop[2]) / dv[2];
-    Eigen::Vector3d ip = cop + s * dv;
+    Vector3d ip = cop + s * dv;
 
     // now we have ip in world coordinates, but we actually want it in
     // camera coordinates
 
     // z-axis sign?
     ip = rotation * ip +
-         Eigen::Vector3d(translation[0], translation[1], -translation[2]);
+         Vector3d(translation[0], translation[1], -translation[2]);
 
     return ip;
 }
@@ -920,16 +928,15 @@ Eigen::Vector3d Distance_scale::backproject(double pixel_x,
 void Distance_scale::estimate_depth_img_coords(double pixel_x, double pixel_y,
                                                double &depth) const
 {
-    Eigen::Vector3d bp = backproject(pixel_x, pixel_y);
+    Vector3d bp = backproject(pixel_x, pixel_y);
     depth = bp[2] - centre_depth;
 }
 
 void Distance_scale::estimate_depth_world_coords(double world_x, double world_y,
                                                  double &depth) const
 {
-    Eigen::Vector3d bp =
-        rotation * Eigen::Vector3d(world_x, world_y, 0) +
-        Eigen::Vector3d(translation[0], translation[1], -translation[2]);
+    Vector3d bp = rotation * Vector3d(world_x, world_y, 0) +
+                  Vector3d(translation[0], translation[1], -translation[2]);
 
     depth = bp[2] - centre_depth;
 }
@@ -939,12 +946,12 @@ cv::Point2d Distance_scale::estimate_world_coords(double pixel_x,
 {
     cv::Point2d ic = normalize_img_coords(pixel_x, pixel_y);
 
-    Eigen::Vector3d dv(ic.x, ic.y, 1.0);
+    Vector3d dv(ic.x, ic.y, 1.0);
     dv = invP * dv;
     dv /= dv.norm();
 
     double s = (1 - cop[2]) / dv[2];
-    Eigen::Vector3d ip = cop + s * dv;
+    Vector3d ip = cop + s * dv;
 
     // ip[2] (=z) will always be in the plane
     return {ip[0], ip[1]};
@@ -953,12 +960,11 @@ cv::Point2d Distance_scale::estimate_world_coords(double pixel_x,
 cv::Point2d Distance_scale::world_to_image(double world_x, double world_y,
                                            double world_z) const
 {
-    Eigen::Vector3d bp =
-        fwdP * Eigen::Vector3d(world_x, world_y, world_z) + fwdT;
+    Vector3d bp = fwdP * Vector3d(world_x, world_y, world_z) + fwdT;
 
     bp /= bp[2];
 
-    double rad = 1 + distortion * (bp[0] * bp[0] + bp[1] * bp[1]);
+    double rad = 1 + distortion * bp.head<2>().squaredNorm();
     bp /= rad;
     bp *= img_scale;
 
@@ -970,7 +976,7 @@ cv::Point2d Distance_scale::world_to_image(double world_x, double world_y,
 
 double Distance_scale::get_normal_angle_z() const
 {
-    return acos(fabs(rotation(2, 2))) / M_PI * 180;
+    return std::cos(std::abs(rotation(2, 2))) / M_PI * 180;
 }
 
 double Distance_scale::get_normal_angle_y() const

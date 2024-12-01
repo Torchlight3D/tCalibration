@@ -13,9 +13,9 @@ Mtf_renderer_blocks::Mtf_renderer_blocks(const cv::Mat& in_img,
 void Mtf_renderer_blocks::render(const std::vector<Block>& blocks)
 {
     cv::Point* pts = new cv::Point[4];
-    for (size_t i = 0; i < blocks.size(); i++) {
+    for (const auto& block : blocks) {
         int npts = 4;
-        const Mrectangle& rect = blocks[i].rect;
+        const Mrectangle& rect = block.rect;
         for (size_t k = 0; k < 4; k++) {
             pts[k] = cv::Point(rect.corners[k].x, rect.corners[k].y);
         }

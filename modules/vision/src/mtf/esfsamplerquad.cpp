@@ -58,19 +58,21 @@ void EsfQuadSampler::sample(Edge_model &edge_model,
     const std::array<double, 3> &qp = edge_model.quad_coeffs();
     std::vector<double> roots;
     roots.reserve(3);
-    for (auto it = scanset.begin(); it != scanset.end(); ++it) {
-        int y = it->first;
-        if (y < border_width || y > geom_img.rows - 1 - border_width)
+    for (const auto &[y, scanline] : scanset) {
+        if (y < border_width || y > geom_img.rows - 1 - border_width) {
             continue;
-        int rowcode = (y & 1) << 1;
+        }
 
-        for (int x = it->second.start; x <= it->second.end; ++x) {
-            if (x < border_width || x > geom_img.cols - 1 - border_width)
+        int rowcode = (y & 1) << 1;
+        for (int x = scanline.start; x <= scanline.end; ++x) {
+            if (x < border_width || x > geom_img.cols - 1 - border_width) {
                 continue;
+            }
 
             int code = 1 << ((rowcode | (x & 1)) ^ 3);
-            if ((code & cfa_mask) == 0)
+            if ((code & cfa_mask) == 0) {
                 continue;
+            }
 
             cv::Point2d d = cv::Point2d(x, y) - edge_model.get_centroid();
             double perp = d.ddot(edge_model.get_normal());
@@ -89,25 +91,23 @@ void EsfQuadSampler::sample(Edge_model &edge_model,
                 cv::Point2d delta = cv::Point2d(x, y) - recon;
                 double dist = std::copysign(
                     norm(delta), delta.ddot(edge_model.get_normal()));
-                if (fabs(dist) < fabs(perp)) {
+                if (std::abs(dist) < std::abs(perp)) {
                     perp = dist;
                 }
             }
 
-            if (fabs(perp) < max_dot) {
+            if (std::abs(perp) < max_dot) {
                 local_ordered.push_back(
                     Ordered_point(perp, sampling_img.at<uint16_t>(y, x)));
                 max_along_edge = std::max(max_along_edge, par);
                 min_along_edge = std::min(min_along_edge, par);
 
-                /*
-                if ((x&1) || (y&1)) {
-                    cv::Vec3b& color = od_img.at<cv::Vec3b>(y, x);
-                    color[0] = 255;
-                    color[1] = 0;
-                    color[2] = 0;
-                }
-                */
+                // if ((x & 1) || (y & 1)) {
+                //     cv::Vec3b &color = od_img.at<cv::Vec3b>(y, x);
+                //     color[0] = 255;
+                //     color[1] = 0;
+                //     color[2] = 0;
+                // }
             }
         }
     }

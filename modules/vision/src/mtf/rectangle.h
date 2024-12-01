@@ -3,15 +3,15 @@
 #include "edgerecord.h"
 #include "gradient.h"
 
-constexpr double rect_il_thresh = 7; // pixels, during initial linear fit
-constexpr double quad_il_thresh = 2; // pixels
-constexpr double quad_severe_outlier_thresh = 4; // pixels
+inline constexpr double rect_il_thresh = 7; // pixels, during initial linear fit
+inline constexpr double quad_il_thresh = 2; // pixels
+inline constexpr double quad_severe_outlier_thresh = 4; // pixels
 const double quad_slope_thresh = tan(5.0 / 180.0 * M_PI);
 const double quad_severe_slope_thresh = tan(15.0 / 180.0 * M_PI);
-constexpr double quad_outlier_ratio_thresh = 0.1;
-constexpr double quad_severe_outlier_ratio_thresh = 0.02;
-constexpr double minimum_object_width = 14; // pixels
-constexpr double adjust = 0.15;
+inline constexpr double quad_outlier_ratio_thresh = 0.1;
+inline constexpr double quad_severe_outlier_ratio_thresh = 0.02;
+inline constexpr double minimum_object_width = 14; // pixels
+inline constexpr double adjust = 0.15;
 
 class Intersection_record
 {
@@ -55,10 +55,6 @@ public:
                bool allow_partial = false);
 
     bool corners_ok() const;
-
-    bool intersect(const cv::Point2d& p1, const cv::Point2d& d1,
-                   const cv::Point2d& p2, const cv::Point2d& d2,
-                   cv::Point2d& isect);
 
     bool is_inside(const cv::Point2d& p) const;
 

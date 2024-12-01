@@ -2,11 +2,13 @@
 
 #include <Eigen/Dense>
 
+namespace {
 inline double tricube(double d)
 {
     double w = (1 - fabs(d) * fabs(d) * fabs(d));
     return w * w * w;
 }
+} // namespace
 
 EsfPiecewiseQuadSampler::EsfPiecewiseQuadSampler(double max_dot,
                                                  Bayer::cfa_mask_t cfa_mask,
@@ -41,8 +43,8 @@ std::vector<double> EsfPiecewiseQuadSampler::piecewise_quadfit(
         reduced[i] = (integral[ui] - integral[li]) * (1.0 / (ui - li));
     }
 
-    const int hw = 3;
-    double sgw[2 * hw + 1] = {
+    constexpr int hw = 3;
+    constexpr double sgw[2 * hw + 1] = {
         5.952381e-02,  6.938894e-18, -3.571429e-02, -4.761905e-02,
         -3.571429e-02, 6.938894e-18, 5.952381e-02,
     };
@@ -67,7 +69,7 @@ std::vector<double> EsfPiecewiseQuadSampler::piecewise_quadfit(
     int i1 = 0;
     for (int i = 0; i < (int)deriv.size() - 1; i++) {
         if (deriv[i].y * deriv[i + 1].y < 0) {
-            if (fabs(deriv[i].x) < fabs(deriv[i1].x)) {
+            if (std::abs(deriv[i].x) < std::abs(deriv[i1].x)) {
                 i1 = i;
             }
         }
@@ -83,7 +85,7 @@ std::vector<double> EsfPiecewiseQuadSampler::piecewise_quadfit(
 
     A.setZero();
 
-    double span = fabs(pts.back().x - pts.front().x);
+    double span = std::abs(pts.back().x - pts.front().x);
     double x_scale = span * 0.5 / sqrt(0.5);
 
     if (crossing < pts.front().x + 0.3 * span ||
@@ -186,19 +188,21 @@ void EsfPiecewiseQuadSampler::sample(Edge_model &edge_model,
 
     std::vector<double> roots;
     roots.reserve(3);
-    for (auto it = scanset.begin(); it != scanset.end(); ++it) {
-        int y = it->first;
-        if (y < border_width || y > geom_img.rows - 1 - border_width)
+    for (const auto &[y, scanline] : scanset) {
+        if (y < border_width || y > geom_img.rows - 1 - border_width) {
             continue;
-        int rowcode = (y & 1) << 1;
+        }
 
-        for (int x = it->second.start; x <= it->second.end; ++x) {
-            if (x < border_width || x > geom_img.cols - 1 - border_width)
+        int rowcode = (y & 1) << 1;
+        for (int x = scanline.start; x <= scanline.end; ++x) {
+            if (x < border_width || x > geom_img.cols - 1 - border_width) {
                 continue;
+            }
 
             int code = 1 << ((rowcode | (x & 1)) ^ 3);
-            if ((code & cfa_mask) == 0)
+            if ((code & cfa_mask) == 0) {
                 continue;
+            }
 
             cv::Point2d d = cv::Point2d(x, y) - edge_model.get_centroid();
             double perp = d.ddot(edge_model.get_normal());
@@ -228,25 +232,23 @@ void EsfPiecewiseQuadSampler::sample(Edge_model &edge_model,
                 cv::Point2d delta = cv::Point2d(x, y) - recon;
                 double dist = std::copysign(
                     norm(delta), delta.ddot(edge_model.get_normal()));
-                if (fabs(dist) < fabs(perp)) {
+                if (std::abs(dist) < std::abs(perp)) {
                     perp = dist;
                 }
             }
 
-            if (fabs(perp) < max_dot) {
+            if (std::abs(perp) < max_dot) {
                 local_ordered.push_back(
                     Ordered_point(perp, sampling_img.at<uint16_t>(y, x)));
                 max_along_edge = std::max(max_along_edge, par);
                 min_along_edge = std::min(min_along_edge, par);
 
-                /*
-                if ((x&1) || (y&1)) {
-                    cv::Vec3b& color = od_img.at<cv::Vec3b>(y, x);
-                    color[0] = 255;
-                    color[1] = 0;
-                    color[2] = 0;
-                }
-                */
+                // if ((x & 1) || (y & 1)) {
+                //     cv::Vec3b &color = od_img.at<cv::Vec3b>(y, x);
+                //     color[0] = 255;
+                //     color[1] = 0;
+                //     color[2] = 0;
+                // }
             }
         }
     }

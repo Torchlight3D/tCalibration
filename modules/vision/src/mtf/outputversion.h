@@ -5,20 +5,20 @@
 class Output_version
 {
 public:
+    enum type
+    {
+        V1 = 1,
+        V2,
+
+        VLAST
+    };
+
     Output_version()
     {
         for (int i = int(V1); i < VLAST; i++) {
             version_vect.push_back(i);
         }
     }
-
-    enum type
-    {
-        V1 = 1,
-        V2,
-
-        VLAST // not used
-    };
 
     static Output_version& instance()
     {

@@ -71,11 +71,14 @@ cv::Point AutoCropper::calcOtsuBound(const std::vector<double>& data,
     }
 
     int dead_right = data.size() - 1;
-    while (data[dead_right] < otsu && dead_right > int(3 * data.size() / 4))
+    while (data[dead_right] < otsu && dead_right > int(3 * data.size() / 4)) {
         dead_right--;
+    }
     if (dead_right > 0.9 * data.size()) {
-        while (data[dead_right] > otsu && dead_right > int(3 * data.size() / 4))
+        while (data[dead_right] > otsu &&
+               dead_right > int(3 * data.size() / 4)) {
             dead_right--;
+        }
     }
     else {
         dead_right = data.size() - 1;
@@ -83,7 +86,7 @@ cv::Point AutoCropper::calcOtsuBound(const std::vector<double>& data,
 
     if (dead_left > 0 || dead_right < (int)data.size() - 1) {
         std::vector<double> dcopy(data);
-        std::sort(dcopy.begin(), dcopy.end());
+        std::ranges::sort(dcopy);
         double median = dcopy[dcopy.size() / 2];
         // replace values above threshold with median?
         dcopy = data;

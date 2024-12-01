@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 #include "bayer.h"
 
 class Job_metadata

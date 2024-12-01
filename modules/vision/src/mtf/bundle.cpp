@@ -5,6 +5,12 @@
 #include "common_types.h"
 #include "ellipse.h"
 
+using Eigen::Matrix3d;
+using Eigen::MatrixXd;
+using Eigen::Vector2d;
+using Eigen::Vector3d;
+using Eigen::VectorXd;
+
 Bundle_adjuster::Bundle_adjuster(Vector2dList& img_points,
                                  Vector3dList& world_points, Eigen::Vector3d& t,
                                  cv::Mat in_rod_angles, double distortion,
@@ -18,8 +24,7 @@ Bundle_adjuster::Bundle_adjuster(Vector2dList& img_points,
       img_scale(img_scale)
 {
     // pack initial parameters
-    Eigen::VectorXd init(8);
-
+    VectorXd init(8);
     init[0] = t[0];
     init[1] = t[1];
     init[2] = t[2];
@@ -34,7 +39,7 @@ Bundle_adjuster::Bundle_adjuster(Vector2dList& img_points,
 
 void Bundle_adjuster::solve()
 {
-    Eigen::VectorXd scale(best_sol.size());
+    VectorXd scale(best_sol.size());
     scale << 1e-6, 1e-6, 0.01, // origin
         1e-3, 1e-3, 1e-3,      // angles
         1e-5,                  // distortion
@@ -48,7 +53,7 @@ void Bundle_adjuster::solve()
 void Bundle_adjuster::unpack(Eigen::Matrix3d& R, Eigen::Vector3d& t,
                              double& distortion, double& w)
 {
-    Eigen::VectorXd& v = best_sol;
+    VectorXd& v = best_sol;
     rod_angles.at<double>(0, 0) = v[3];
     rod_angles.at<double>(1, 0) = v[4];
     rod_angles.at<double>(2, 0) = v[5];
@@ -61,7 +66,7 @@ void Bundle_adjuster::unpack(Eigen::Matrix3d& R, Eigen::Vector3d& t,
         rot_mat.at<double>(2, 0), rot_mat.at<double>(2, 1),
         rot_mat.at<double>(2, 2);
 
-    t = Eigen::Vector3d(v[0], v[1], v[2]);
+    t = Vector3d(v[0], v[1], v[2]);
 
     distortion = v[6];
     w = v[7];
@@ -75,7 +80,7 @@ double Bundle_adjuster::evaluate(const Eigen::VectorXd& v, double penalty)
     cv::Rodrigues(rod_angles, rot_mat);
 
     // global_scale * K * R | t
-    Eigen::Matrix3d R;
+    Matrix3d R;
     R << rot_mat.at<double>(0, 0), rot_mat.at<double>(0, 1),
         rot_mat.at<double>(0, 2), rot_mat.at<double>(1, 0),
         rot_mat.at<double>(1, 1), rot_mat.at<double>(1, 2),
@@ -94,44 +99,43 @@ double Bundle_adjuster::evaluate(const Eigen::VectorXd& v, double penalty)
 
     const double d = fid_diameter;
 
-    Eigen::Vector3d T(v[0], v[1], v[2]);
-    Eigen::Vector3d Cp(0, 0, img_scale / v[7]);
-    Eigen::MatrixXd Jp(3, 2);
+    Vector3d T(v[0], v[1], v[2]);
+    Vector3d Cp(0, 0, img_scale / v[7]);
+    MatrixXd Jp(3, 2);
     Jp << 1, 0, 0, 1, 0, 0;
 
     double rmse = 0;
     for (size_t i = 0; i < world_points.size(); i++) {
-        Eigen::Vector3d Ce = R * world_points[i] + T;
-        Eigen::Vector3d ebar = R.transpose() * (-Ce);
-        Eigen::Vector3d cbar = R.transpose() * Ce;
+        Vector3d Ce = R * world_points[i] + T;
+        Vector3d ebar = R.transpose() * (-Ce);
+        Vector3d cbar = R.transpose() * Ce;
 
-        Eigen::Matrix3d bA;
+        Matrix3d bA;
         bA << 1.0 / (d * d), 0, -ebar[0] / (ebar[2] * d * d), 0, 1.0 / (d * d),
             -ebar[1] / (ebar[2] * d * d), -ebar[0] / (ebar[2] * d * d),
             -ebar[1] / (ebar[2] * d * d),
             (SQR(ebar[0] / d) + SQR(ebar[1] / d) - 1) / SQR(ebar[2]);
 
-        Eigen::Vector3d bB;
+        Vector3d bB;
         bB << 0, 0, 2 / ebar[2];
         double bc = -1;
 
-        Eigen::Matrix3d A = R * bA * R.transpose();
-        Eigen::Vector3d B = R * (bB - 2.0 * bA * cbar);
+        Matrix3d A = R * bA * R.transpose();
+        Vector3d B = R * (bB - 2.0 * bA * cbar);
         double c =
             (cbar.transpose() * bA * cbar - bB.transpose() * cbar)(0, 0) + bc;
 
-        Eigen::MatrixXd hA = Jp.transpose() * A * Jp;
-        Eigen::VectorXd hB = Jp.transpose() * (B + 2 * A * Cp);
+        MatrixXd hA = Jp.transpose() * A * Jp;
+        VectorXd hB = Jp.transpose() * (B + 2 * A * Cp);
         double hc = (Cp.transpose() * A * Cp + B.transpose() * Cp)(0, 0) + c;
 
-        Eigen::Matrix3d EM;
+        Matrix3d EM;
         EM << hA(0, 0), hA(0, 1), 0.5 * hB[0], hA(0, 1), hA(1, 1), 0.5 * hB[1],
             0.5 * hB[0], 0.5 * hB[1], hc;
 
         Ellipse_detector ed;
         ed._matrix_to_ellipse(EM);
-        Eigen::Vector2d srp =
-            1.0 / img_scale * Eigen::Vector2d(ed.centroid_x, ed.centroid_y);
+        Vector2d srp = 1.0 / img_scale * Vector2d(ed.centroid_x, ed.centroid_y);
 
         // apply lens distortion to reconstructed ellipe centre
         double rad = 1 + v[6] * (srp[0] * srp[0] + srp[1] * srp[1]);
@@ -144,7 +148,7 @@ double Bundle_adjuster::evaluate(const Eigen::VectorXd& v, double penalty)
 
     double finit = 1.0 / initial[7];
     double fr = 1.0 / v[7];
-    double fd = fabs(1.0 / v[7] - finit);
+    double fd = std::abs(1.0 / v[7] - finit);
     return rmse +
            penalty *
                ((fr < focal_lower ? (fr - focal_lower) * (fr - focal_lower)
@@ -160,7 +164,7 @@ double Bundle_adjuster::evaluate(const Eigen::VectorXd& v, double penalty)
 void Bundle_adjuster::seed_simplex(Eigen::VectorXd& v,
                                    const Eigen::VectorXd& lambda)
 {
-    np = std::vector<Eigen::VectorXd>(v.size() + 1);
+    np = std::vector<VectorXd>(v.size() + 1);
     // seed the simplex
     for (int i = 0; i < v.size(); i++) {
         np[i] = v;
@@ -168,7 +172,7 @@ void Bundle_adjuster::seed_simplex(Eigen::VectorXd& v,
     }
     np[v.size()] = v;
 
-    ny = Eigen::VectorXd(v.size() + 1);
+    ny = VectorXd(v.size() + 1);
     // now obtain their function values
     for (int i = 0; i < v.size() + 1; i++) {
         ny[i] = evaluate(np[i]);
@@ -188,7 +192,7 @@ void Bundle_adjuster::nelder_mead(double ftol, int& num_evals)
     constexpr int max_allowed_iterations = 5000;
     constexpr double epsilon = 1.0e-10;
 
-    Eigen::VectorXd psum(np[0].size());
+    VectorXd psum(np[0].size());
     num_evals = 0;
     simplex_sum(psum);
 
@@ -209,8 +213,8 @@ void Bundle_adjuster::nelder_mead(double ftol, int& num_evals)
                 inhi = i;
             }
         }
-        double rtol = 2.0 * fabs(ny[ihi] - ny[ilo]) /
-                      (fabs(ny[ihi]) + fabs(ny[ilo]) + epsilon);
+        double rtol = 2.0 * std::abs(ny[ihi] - ny[ilo]) /
+                      (std::abs(ny[ihi]) + std::abs(ny[ilo]) + epsilon);
         if (rtol < ftol) {
             std::swap(ny[0], ny[ilo]);
             for (size_t i = 0; i < (size_t)np[0].size(); i++) {
@@ -253,7 +257,7 @@ double Bundle_adjuster::try_solution(Eigen::VectorXd& psum, int ihi, double fac)
 {
     double fac1 = (1.0 - fac) / double(psum.size());
     double fac2 = fac1 - fac;
-    Eigen::VectorXd ptry = psum * fac1 - np[ihi] * fac2;
+    VectorXd ptry = psum * fac1 - np[ihi] * fac2;
     double ytry = evaluate(ptry);
 
     if (ytry < ny[ihi]) {

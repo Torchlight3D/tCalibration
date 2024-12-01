@@ -7,6 +7,132 @@
 #include "common_types.h"
 #include "loessfit.h"
 #include "mtfcore.h"
+#include "utils.h"
+
+namespace {
+
+double IQR(const std::vector<double> &counts, int start, int end)
+{
+    std::vector<double> sorted;
+    start = std::max(0, start);
+    end = std::min(counts.size() - 1, size_t(end));
+    for (size_t i = start; i < size_t(end); i++) {
+        sorted.push_back(counts[i]);
+    }
+    std::ranges::sort(sorted);
+    return sorted[lrint(sorted.size() * 0.75)] -
+           sorted[lrint(sorted.size() * 0.25)];
+}
+
+double median(const std::vector<double> &counts, int start, int end)
+{
+    std::vector<double> sorted;
+    start = std::max(0, start);
+    end = std::min(counts.size() - 1, size_t(end));
+    for (size_t i = start; i < size_t(end); i++) {
+        sorted.push_back(counts[i]);
+    }
+    std::ranges::sort(sorted);
+    return sorted[lrint(sorted.size() * 0.5)];
+}
+
+void extract_row_maxima(std::map<int, double> &row_max,
+                        const std::vector<Block> &blocks, bool transpose)
+{
+    row_max.clear();
+    for (size_t i = 0; i < blocks.size(); i++) {
+        for (size_t k = 0; k < 4; k++) {
+            double val = blocks[i].get_mtf50_value(k);
+            double angle = blocks[i].get_edge_angle(k);
+            double mindiff = 0;
+
+            if (val == 1.0)
+                continue; // skip N/A blocks
+
+            if (transpose) {
+                mindiff = std::min(tl::angular_diff(angle, 0) / M_PI * 180,
+                                   tl::angular_diff(angle, M_PI) / M_PI * 180);
+            }
+            else {
+                mindiff =
+                    std::min(tl::angular_diff(angle, M_PI / 2) / M_PI * 180,
+                             tl::angular_diff(angle, -M_PI / 2) / M_PI * 180);
+            }
+
+            if (val > 0 && blocks[i].get_quality(k) >= 0.5 && mindiff < 30) {
+                cv::Point2d cent = blocks[i].get_edge_centroid(k);
+
+                int y = 0;
+
+                if (transpose) {
+                    y = lrint(cent.x);
+                }
+                else {
+                    y = lrint(cent.y);
+                }
+
+                auto it = row_max.find(y);
+                if (it == row_max.end()) {
+                    row_max[y] = val;
+                }
+                else {
+                    if (val >= row_max[y]) {
+                        row_max[y] = val;
+                    }
+                }
+            }
+        }
+    }
+}
+
+bool test_for_bimodal_distribution(const std::map<int, double> &data)
+{
+    int minval = data.begin()->first;
+    int maxval = data.rbegin()->first;
+    int span = maxval - minval;
+
+    if (span == 0) { // all the samples are in a perfectly straight line, so
+        // we have to take the transpose
+        return true;
+    }
+
+    int nbins = 60;
+
+    // bin coarser
+    std::vector<double> counts(nbins, 0);
+    for (auto it = data.begin(); it != data.end(); ++it) {
+        int idx = (it->first - minval) * nbins / (span);
+        idx = std::max(0, idx);
+        idx = std::min(nbins - 1, idx);
+        counts[idx] = std::max(it->second, counts[idx]);
+    }
+
+    // find two breakpoints in density; we are looking for a -_- shape,
+    // which indicates that the chart has been rotated
+    double min_cost = 1e50;
+    int min_start = 0;
+    int min_end = 0;
+    for (int b_start = 10; b_start < 2 * nbins / 3; b_start += 2) {
+        for (int b_end = std::max(nbins / 2, b_start + 4); b_end < nbins - 10;
+             b_end += 2) {
+            double cost = IQR(counts, 0, b_start) +
+                          10 * IQR(counts, b_start, b_end) +
+                          IQR(counts, b_end, nbins);
+            if (cost < min_cost) {
+                min_cost = cost;
+                min_start = b_start;
+                min_end = b_end;
+            }
+        }
+    }
+    double first_segment = median(counts, 0, min_start);
+    double middle_segment = median(counts, min_start, min_end);
+    double last_segment = median(counts, min_end, nbins);
+
+    return middle_segment <= first_segment && middle_segment <= last_segment;
+}
+
+} // namespace
 
 Mtf_renderer_profile::Mtf_renderer_profile(const std::string &img_filename,
                                            const std::string &wdir,
@@ -283,133 +409,4 @@ void Mtf_renderer_profile::set_gnuplot_warning(bool gnuplot)
     gnuplot_warning = gnuplot;
 }
 
-bool Mtf_renderer_profile::gnuplot_failed() { return gnuplot_failure; }
-
-double Mtf_renderer_profile::angular_diff(double a, double b)
-{
-    return acos(cos(a) * cos(b) + sin(a) * sin(b));
-}
-
-bool Mtf_renderer_profile::test_for_bimodal_distribution(
-    const std::map<int, double> &data)
-{
-    int minval = data.begin()->first;
-    int maxval = data.rbegin()->first;
-    int span = maxval - minval;
-
-    if (span == 0) { // all the samples are in a perfectly straight line, so
-        // we have to take the transpose
-        return true;
-    }
-
-    int nbins = 60;
-
-    // bin coarser
-    std::vector<double> counts(nbins, 0);
-    for (auto it = data.begin(); it != data.end(); ++it) {
-        int idx = (it->first - minval) * nbins / (span);
-        idx = std::max(0, idx);
-        idx = std::min(nbins - 1, idx);
-        counts[idx] = std::max(it->second, counts[idx]);
-    }
-
-    // find two breakpoints in density; we are looking for a -_- shape,
-    // which indicates that the chart has been rotated
-    double min_cost = 1e50;
-    int min_start = 0;
-    int min_end = 0;
-    for (int b_start = 10; b_start < 2 * nbins / 3; b_start += 2) {
-        for (int b_end = std::max(nbins / 2, b_start + 4); b_end < nbins - 10;
-             b_end += 2) {
-            double cost = IQR(counts, 0, b_start) +
-                          10 * IQR(counts, b_start, b_end) +
-                          IQR(counts, b_end, nbins);
-            if (cost < min_cost) {
-                min_cost = cost;
-                min_start = b_start;
-                min_end = b_end;
-            }
-        }
-    }
-    double first_segment = median(counts, 0, min_start);
-    double middle_segment = median(counts, min_start, min_end);
-    double last_segment = median(counts, min_end, nbins);
-
-    return middle_segment <= first_segment && middle_segment <= last_segment;
-}
-
-double Mtf_renderer_profile::IQR(const std::vector<double> &counts, int start,
-                                 int end)
-{
-    std::vector<double> sorted;
-    start = std::max(0, start);
-    end = std::min(counts.size() - 1, size_t(end));
-    for (size_t i = start; i < size_t(end); i++) {
-        sorted.push_back(counts[i]);
-    }
-    sort(sorted.begin(), sorted.end());
-    return sorted[lrint(sorted.size() * 0.75)] -
-           sorted[lrint(sorted.size() * 0.25)];
-}
-
-double Mtf_renderer_profile::median(const std::vector<double> &counts,
-                                    int start, int end)
-{
-    std::vector<double> sorted;
-    start = std::max(0, start);
-    end = std::min(counts.size() - 1, size_t(end));
-    for (size_t i = start; i < size_t(end); i++) {
-        sorted.push_back(counts[i]);
-    }
-    std::sort(sorted.begin(), sorted.end());
-    return sorted[lrint(sorted.size() * 0.5)];
-}
-
-void Mtf_renderer_profile::extract_row_maxima(std::map<int, double> &row_max,
-                                              const std::vector<Block> &blocks,
-                                              bool transpose)
-{
-    row_max.clear();
-    for (size_t i = 0; i < blocks.size(); i++) {
-        for (size_t k = 0; k < 4; k++) {
-            double val = blocks[i].get_mtf50_value(k);
-            double angle = blocks[i].get_edge_angle(k);
-            double mindiff = 0;
-
-            if (val == 1.0)
-                continue; // skip N/A blocks
-
-            if (transpose) {
-                mindiff = std::min(angular_diff(angle, 0) / M_PI * 180,
-                                   angular_diff(angle, M_PI) / M_PI * 180);
-            }
-            else {
-                mindiff = std::min(angular_diff(angle, M_PI / 2) / M_PI * 180,
-                                   angular_diff(angle, -M_PI / 2) / M_PI * 180);
-            }
-
-            if (val > 0 && blocks[i].get_quality(k) >= 0.5 && mindiff < 30) {
-                cv::Point2d cent = blocks[i].get_edge_centroid(k);
-
-                int y = 0;
-
-                if (transpose) {
-                    y = lrint(cent.x);
-                }
-                else {
-                    y = lrint(cent.y);
-                }
-
-                auto it = row_max.find(y);
-                if (it == row_max.end()) {
-                    row_max[y] = val;
-                }
-                else {
-                    if (val >= row_max[y]) {
-                        row_max[y] = val;
-                    }
-                }
-            }
-        }
-    }
-}
+bool Mtf_renderer_profile::gnuplot_failed() const { return gnuplot_failure; }

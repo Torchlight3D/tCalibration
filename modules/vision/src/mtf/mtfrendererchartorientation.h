@@ -10,8 +10,7 @@ public:
     Mtf_renderer_chart_orientation(const std::string& img_filename,
                                    const std::string& wdir,
                                    const std::string& co_fname,
-                                   [[maybe_unused]] const cv::Mat& img,
-                                   [[maybe_unused]] int gnuplot_width,
+                                   const cv::Mat& img, int gnuplot_width,
                                    Distance_scale& distance_scale,
                                    cv::Rect* dimension_correction = nullptr);
 

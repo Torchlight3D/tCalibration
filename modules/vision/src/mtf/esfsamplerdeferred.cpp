@@ -1,5 +1,15 @@
 #include "esfsamplerdeferred.h"
 
+namespace {
+double quadmin(const cv::Point2d &a, const cv::Point2d &b, const cv::Point2d &c)
+{
+    double denom = (b.x - a.x) * (b.y - c.y) - (b.x - c.x) * (b.y - a.y);
+    double num = (b.x - a.x) * (b.x - a.x) * (b.y - c.y) -
+                 (b.x - c.x) * (b.x - c.x) * (b.y - a.y);
+    return b.x - 0.5 * num / denom;
+}
+} // namespace
+
 EsfDeferredSampler::EsfDeferredSampler(Undistort *undistort, double max_dot,
                                        Bayer::cfa_mask_t cfa_mask,
                                        double border_width)
@@ -72,15 +82,6 @@ cv::Point2d EsfDeferredSampler::derivative(double t0, const cv::Point2d &l,
     cv::Point2d p_t = undistort_->transform_point(t0 * l + p);
     cv::Point2d p_th = undistort_->transform_point((t0 + epsilon) * l + p);
     return (1.0 / epsilon) * (p_th - p_t);
-}
-
-double EsfDeferredSampler::quadmin(const cv::Point2d &a, const cv::Point2d &b,
-                                   const cv::Point2d &c)
-{
-    double denom = (b.x - a.x) * (b.y - c.y) - (b.x - c.x) * (b.y - a.y);
-    double num = (b.x - a.x) * (b.x - a.x) * (b.y - c.y) -
-                 (b.x - c.x) * (b.x - c.x) * (b.y - a.y);
-    return b.x - 0.5 * num / denom;
 }
 
 void EsfDeferredSampler::sample(Edge_model &edge_model,

@@ -3,9 +3,10 @@
 #include <format>
 
 #include <glog/logging.h>
+#include <opencv2/imgproc.hpp>
 
 #include "common_types.h"
-#include "peakdetector.h"
+#include "utils.h"
 
 namespace {
 
@@ -19,6 +20,31 @@ inline cv::Point2d perp(const cv::Point2d& a) { return {-a.y, a.x}; }
 inline cv::Point2d avg(const cv::Point2d& a, const cv::Point2d& b)
 {
     return (a + b) / 2.;
+}
+
+bool intersect(const cv::Point2d& p1, const cv::Point2d& d1,
+               const cv::Point2d& p2, const cv::Point2d& d2, cv::Point2d& isect)
+{
+    double dk1 = p1.ddot(d1);
+    double dk2 = p2.ddot(d2);
+
+    double a1 = d1.x;
+    double a2 = d2.x;
+    double b1 = d1.y;
+    double b2 = d2.y;
+
+    double det = (a1 * b2 - a2 * b1);
+
+    if (std::abs(det) < 1e-12) {
+        // lines are actually parallel. this is impossible?
+        LOG(INFO) << std::format("Warning: determinant near-zero: {}, {}",
+                                 __FILE__, __LINE__);
+        return false;
+    }
+
+    isect.x = (b2 * dk1 - b1 * dk2) / det;
+    isect.y = (a1 * dk2 - a2 * dk1) / det;
+    return true;
 }
 
 } // namespace
@@ -115,7 +141,7 @@ Mrectangle::Mrectangle(const Mrectangle& b, size_t k, double width)
         cv::Point2d dv = new_corners[i] - ecent;
         orient[i] = std::make_pair(-atan2(dv.y, dv.x), int(i));
     }
-    std::sort(orient.begin(), orient.end());
+    std::ranges::sort(orient);
 
     for (size_t i = 0; i < 4; i++) {
         corners[i] = new_corners[orient[i].second];
@@ -138,21 +164,17 @@ Mrectangle::Mrectangle(const Mrectangle& b, size_t k, double width)
     tl.y = 1e50;
     br.y = -1e50;
     for (size_t k = 0; k < 4; k++) {
-        cv::Point2d& c = corners[k];
-        if (c.x < tl.x)
-            tl.x = c.x;
-        if (c.x > br.x)
-            br.x = c.x;
-        if (c.y < tl.y)
-            tl.y = c.y;
-        if (c.y > br.y)
-            br.y = c.y;
+        const auto& c = corners[k];
+        tl.x = std::min(tl.x, c.x);
+        br.x = std::max(br.x, c.x);
+        tl.y = std::min(tl.y, c.y);
+        br.y = std::max(br.y, c.y);
     }
 
-    tl.x = floor(tl.x);
-    br.x = ceil(br.x);
-    tl.y = floor(tl.y);
-    br.y = ceil(br.y);
+    tl.x = std::floor(tl.x);
+    br.x = std::ceil(br.x);
+    tl.y = std::floor(tl.y);
+    br.y = std::ceil(br.y);
 }
 
 // reposition a rectangle using new estimates of the centroids and normals
@@ -184,7 +206,7 @@ Mrectangle::Mrectangle(const Mrectangle& b,
         normals[k] =
             cv::Point2d(cos(edge_records[k].angle), sin(edge_records[k].angle));
         cv::Point2d delta = centroids[k] - sq_centre;
-        delta *= 1.0 / (norm(delta));
+        delta *= 1.0 / cv::norm(delta);
         double dot = normals[k].x * delta.x + normals[k].y * delta.y;
         // do we still want to flip the normals?
         if (dot < 0) {
@@ -202,12 +224,11 @@ Mrectangle::Mrectangle(const Mrectangle& b,
     std::vector<Intersection_record> isections;
     for (size_t k1 = 0; k1 < 3; k1++) {
         for (size_t k2 = k1 + 1; k2 < 4; k2++) {
-            cv::Point2d isect(0.0, 0.0);
-            bool result = intersect(centroids[k1], normals[k1], centroids[k2],
-                                    normals[k2], isect);
-            if (result) {
-                double distance = std::min(norm(centroids[k1] - isect),
-                                           norm(centroids[k2] - isect));
+            cv::Point2d isect{};
+            if (intersect(centroids[k1], normals[k1], centroids[k2],
+                          normals[k2], isect)) {
+                double distance = std::min(cv::norm(centroids[k1] - isect),
+                                           cv::norm(centroids[k2] - isect));
                 isections.push_back(
                     Intersection_record(distance, isect, k1, k2));
             }
@@ -235,7 +256,7 @@ Mrectangle::Mrectangle(const Mrectangle& b,
         cv::Point2d dv = isections[i].intersection - ccent;
         orient[i] = std::make_pair(-atan2(dv.y, dv.x), int(i));
     }
-    sort(orient.begin(), orient.end());
+    std::ranges::sort(orient);
 
     // visit the corners in the winding order
     for (size_t i = 0; i < 4; i++) {
@@ -298,8 +319,7 @@ Mrectangle::Mrectangle(const std::vector<double>& in_thetas,
             }
 
             for (size_t k = 0; k < 4; k++) {
-                if (Peak_detector::angular_diff(data_thetas[i], thetas[k]) <
-                    thresh) {
+                if (tl::angular_diff(data_thetas[i], thetas[k]) < thresh) {
                     double w = g.grad_magnitude(points[i].x, points[i].y);
                     centroids[k].x += points[i].x * w;
                     centroids[k].y += points[i].y * w;
@@ -333,9 +353,8 @@ Mrectangle::Mrectangle(const std::vector<double>& in_thetas,
             int min_edge = 0;
             double min_dist = 1e50;
             for (size_t k = 0; k < 4; k++) {
-                cv::Point2d v(points[i].x - centroids[k].x,
-                              points[i].y - centroids[k].y);
-                double dist = fabs(v.ddot(normals[k]));
+                const auto v = points[i] - centroids[k];
+                double dist = std::abs(v.ddot(normals[k]));
                 if (dist < min_dist) {
                     min_dist = dist;
                     min_edge = k;
@@ -347,8 +366,8 @@ Mrectangle::Mrectangle(const std::vector<double>& in_thetas,
             }
             else {
                 // an inlier that has the right orientation ...
-                if (Peak_detector::angular_diff(
-                        data_thetas[i], thetas[min_edge]) < 4 * thresh) {
+                if (tl::angular_diff(data_thetas[i], thetas[min_edge]) <
+                    4 * thresh) {
                     associated_edge[i] = min_edge;
                 }
             }
@@ -512,7 +531,7 @@ Mrectangle::Mrectangle(const std::vector<double>& in_thetas,
                     D[k][0][2] *
                         (D[k][1][0] * D[k][2][1] - D[k][1][1] * D[k][2][0]);
 
-                if (fabs(det_D) < 1e-12) {
+                if (std::abs(det_D) < 1e-12) {
                     valid = false;
                     return;
                 }
@@ -605,10 +624,10 @@ Mrectangle::Mrectangle(const std::vector<double>& in_thetas,
 
             int violation_count = 0;
             for (size_t k = 0; k < 4; k++) {
-                if (fabs(max_recon[k].x - min_recon[k].x) != 0) {
-                    cv::Point3d deviation(
-                        0.0, fabs(max_recon[k].y - min_recon[k].y),
-                        fabs(max_recon[k].x - min_recon[k].x));
+                const auto diff = max_recon[k] - min_recon[k];
+                if (std::abs(diff.x) != 0) {
+                    cv::Point3d deviation(0., std::abs(diff.y),
+                                          std::abs(diff.x));
                     double slope = deviation.x = deviation.y / deviation.z;
                     line_deviation[k] = deviation;
                     if (slope > quad_slope_thresh) {
@@ -626,19 +645,16 @@ Mrectangle::Mrectangle(const std::vector<double>& in_thetas,
 
             boundary_length = points.size();
             std::vector<Intersection_record> isections;
-
             for (size_t k1 = 0; k1 < 3; k1++) {
                 for (size_t k2 = k1 + 1; k2 < 4; k2++) {
-                    double dot = normals[k1].ddot(normals[k2]);
-                    if (fabs(dot) < 0.86603) { // exclude near-parallel lines
-                        cv::Point2d isect(0.0, 0.0);
-                        bool result =
-                            intersect(centroids[k1], normals[k1], centroids[k2],
-                                      normals[k2], isect);
-                        if (result) {
+                    // exclude near-parallel lines
+                    if (std::abs(normals[k1].ddot(normals[k2])) < 0.86603) {
+                        cv::Point2d isect{};
+                        if (intersect(centroids[k1], normals[k1], centroids[k2],
+                                      normals[k2], isect)) {
                             double distance =
-                                std::min(norm(centroids[k1] - isect),
-                                         norm(centroids[k2] - isect));
+                                std::min(cv::norm(centroids[k1] - isect),
+                                         cv::norm(centroids[k2] - isect));
                             isections.push_back(
                                 Intersection_record(distance, isect, k1, k2));
                         }
@@ -669,7 +685,7 @@ Mrectangle::Mrectangle(const std::vector<double>& in_thetas,
                 cv::Point2d dv = isections[i].intersection - ccent;
                 orient[i] = std::make_pair(-atan2(dv.y, dv.x), int(i));
             }
-            sort(orient.begin(), orient.end());
+            std::sort(orient.begin(), orient.end());
 
             // visit the corners in the winding order
             for (size_t i = 0; i < 4; i++) {
@@ -686,7 +702,7 @@ Mrectangle::Mrectangle(const std::vector<double>& in_thetas,
         }
         else {
             // check that the target is not too thin (e.g., minor axis < 14)
-            double min_side = norm(corners[0] - corners[1]);
+            double min_side = cv::norm(corners[0] - corners[1]);
             for (size_t k = 1; k < 4; k++) {
                 min_side =
                     std::min(min_side, norm(corners[k] - corners[(k + 1) % 4]));
@@ -694,10 +710,10 @@ Mrectangle::Mrectangle(const std::vector<double>& in_thetas,
             valid = min_side > minimum_object_width;
 
             // estimate area using the right triangle areas
-            area = 0.5 * norm(corners[0] - corners[1]) *
-                       norm(corners[2] - corners[1]) +
-                   0.5 * norm(corners[0] - corners[3]) *
-                       norm(corners[2] - corners[3]);
+            area = 0.5 * cv::norm(corners[0] - corners[1]) *
+                       cv::norm(corners[2] - corners[1]) +
+                   0.5 * cv::norm(corners[0] - corners[3]) *
+                       cv::norm(corners[2] - corners[3]);
 
             tl.x = 1e50;
             br.x = -1e50;
@@ -728,51 +744,23 @@ Mrectangle::Mrectangle(const std::vector<double>& in_thetas,
 
 bool Mrectangle::corners_ok() const
 {
-    bool ok = true;
     if (corner_map.size() != 4) {
         return false;
     }
+
+    bool ok = true;
     for (int k = 0; k < 4; k++) {
         ok &= corner_map[k].size() == 2;
     }
     return ok;
 }
 
-bool Mrectangle::intersect(const cv::Point2d& p1, const cv::Point2d& d1,
-                           const cv::Point2d& p2, const cv::Point2d& d2,
-                           cv::Point2d& isect)
-{
-    double dk1 = p1.ddot(d1);
-    double dk2 = p2.ddot(d2);
-
-    double a1 = d1.x;
-    double a2 = d2.x;
-    double b1 = d1.y;
-    double b2 = d2.y;
-
-    double det = (a1 * b2 - a2 * b1);
-
-    if (fabs(det) < 1e-12) {
-        // lines are actually parallel. this is impossible?
-        LOG(INFO) << std::format("Warning: determinant near-zero: {}, {}",
-                                 __FILE__, __LINE__);
-        return false;
-    }
-
-    isect.x = (b2 * dk1 - b1 * dk2) / det;
-    isect.y = (a1 * dk2 - a2 * dk1) / det;
-    return true;
-}
-
 bool Mrectangle::is_inside(const cv::Point2d& p) const
 {
     // a point is inside the rectangle if it falls along the positive
     // direction of each normal
-
     for (size_t k = 0; k < 4; k++) {
-        cv::Point2d ldir(p.x - centroids[k].x, p.y - centroids[k].y);
-        double dot = ldir.ddot(normals[k]);
-        if (dot < 0) {
+        if ((p - centroids[k]).ddot(normals[k]) < 0.) {
             return false;
         }
     }

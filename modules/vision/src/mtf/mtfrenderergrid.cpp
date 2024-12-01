@@ -8,6 +8,10 @@
 #include "gridinterpolator.h"
 #include "mtf50edgequalityrating.h"
 
+namespace {
+
+} // namespace
+
 class Grid_functor_mtf : public Grid_functor
 {
 public:
@@ -354,9 +358,4 @@ double Mtf_renderer_grid::predict(const std::vector<Eigen::VectorXd>& solutions,
                   sol[4] * row * row + sol[5] * col * col;
 
     return pred;
-}
-
-double Mtf_renderer_grid::angular_diff(double a, double b)
-{
-    return acos(cos(a) * cos(b) + sin(a) * sin(b));
 }

@@ -8,7 +8,8 @@
 
 namespace tl {
 
-static std::vector<double> binned_lsf(std::vector<Ordered_point>& ordered)
+namespace {
+std::vector<double> binned_lsf(std::vector<Ordered_point>& ordered)
 {
     std::vector<double> lsf(512, 0.0);
 
@@ -86,10 +87,10 @@ static std::vector<double> binned_lsf(std::vector<Ordered_point>& ordered)
 
     // apply Masaoka's interpolation method to take care of zero-count bins
     for (int idx = 0; idx < (int)lsf.size(); idx++) {
-        if (fabs(lsf[idx] - missing) < 1e-6) {
+        if (std::abs(lsf[idx] - missing) < 1e-6) {
             int prev_present = idx - 1;
             int next_present = idx;
-            while (fabs(lsf[next_present] - missing) < 1e-6) {
+            while (std::abs(lsf[next_present] - missing) < 1e-6) {
                 next_present++;
             }
             int j;
@@ -142,7 +143,7 @@ double estimate_centroid(const std::vector<double>& a)
         sqsum += x * x * a[i] * w;
         wsum += a[i] * w;
     }
-    double var = std::min(256.0, std::max(1.0, fabs(sqsum / wsum)));
+    double var = std::min(256.0, std::max(1.0, std::abs(sqsum / wsum)));
 
     double delta_centroid = 50;
     size_t iters = 0;
@@ -159,10 +160,11 @@ double estimate_centroid(const std::vector<double>& a)
         }
         delta_centroid = centroid_x - sum / wsum;
         centroid_x = sum / wsum;
-    } while (fabs(delta_centroid) > 1e-3 && iters++ < 10);
+    } while (std::abs(delta_centroid) > 1e-3 && iters++ < 10);
 
     return centroid_x;
 }
+} // namespace
 
 void Ca_core::set_rgb_channels(std::vector<cv::Mat> in_channels)
 {

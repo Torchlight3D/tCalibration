@@ -48,7 +48,7 @@ public:
 
         cv::Point2d d(p - base);
         return d.dot(dir) >= 0 && d.dot(dir) <= len &&
-               fabs(d.dot(n)) <= half_width;
+               std::abs(d.dot(n)) <= half_width;
     }
 
     inline bool inside(int x, int y) const { return inside(cv::Point2d(x, y)); }
@@ -215,9 +215,8 @@ void Mtf_core::search_borders(const cv::Point2d &cent, int label)
                     color[2] = 0;
                 }
 
-                char buffer[20];
+                const auto buffer = std::to_string(e.code);
                 int baseline = 0;
-                sprintf(buffer, "%d", e.code);
                 cv::Size ts = cv::getTextSize(buffer, cv::FONT_HERSHEY_SIMPLEX,
                                               0.5, 1, &baseline);
                 cv::Point to(-ts.width / 2, ts.height / 2);
@@ -285,7 +284,7 @@ void Mtf_core::search_borders(const cv::Point2d &cent, int label)
             max_edge_len = std::max(max_edge_len, el);
             min_perp_dist = std::min(min_perp_dist, el);
             double par_dist =
-                fabs(
+                std::abs(
                     (nr.corners[kk] - rrect.centroids[k]).dot(rrect.edges[k])) /
                 cv::norm(rrect.edges[k]);
             par_dist_bias = std::max(par_dist_bias, par_dist);
@@ -310,34 +309,35 @@ void Mtf_core::search_borders(const cv::Point2d &cent, int label)
         for (double y = nr.tl.y; y < nr.br.y; y += 1.0) {
             for (double x = nr.tl.x; x < nr.br.x; x += 1.0) {
                 cv::Point2d p(x, y);
+                if (!nr.is_inside(p)) {
+                    continue;
+                }
+
                 cv::Point2d d = p - rrect.centroids[k];
-                double dot =
-                    d.x * rrect.normals[k].x + d.y * rrect.normals[k].y;
-                if (nr.is_inside(p)) {
-                    int iy = lrint(y);
-                    int ix = lrint(x);
-                    if (iy >= 0 && iy < img.rows && ix >= 0 && ix < img.cols &&
-                        fabs(dot) < perp_threshold) {
-                        edge_record[k].add_point(x, y, fabs(g.grad_x(ix, iy)),
-                                                 fabs(g.grad_y(ix, iy)));
-                    }
 
-                    if (iy >= 0 && iy < img.rows && ix >= 0 && ix < img.cols) {
-                        emk->add_point(x, y, g.grad_magnitude(ix, iy),
-                                       perp_threshold);
-                    }
+                int iy = lrint(y);
+                int ix = lrint(x);
+                if (iy >= 0 && iy < img.rows && ix >= 0 && ix < img.cols &&
+                    std::abs(d.ddot(rrect.normals[k])) < perp_threshold) {
+                    edge_record[k].add_point(x, y, fabs(g.grad_x(ix, iy)),
+                                             fabs(g.grad_y(ix, iy)));
+                }
 
-                    auto it = scansets[k].find(iy);
-                    if (it == scansets[k].end()) {
-                        scanline sl(ix, ix);
-                        scansets[k].insert(std::make_pair(iy, sl));
-                    }
-                    if (ix < scansets[k][iy].start) {
-                        scansets[k][iy].start = ix;
-                    }
-                    if (ix > scansets[k][iy].end) {
-                        scansets[k][iy].end = ix;
-                    }
+                if (iy >= 0 && iy < img.rows && ix >= 0 && ix < img.cols) {
+                    emk->add_point(x, y, g.grad_magnitude(ix, iy),
+                                   perp_threshold);
+                }
+
+                auto it = scansets[k].find(iy);
+                if (it == scansets[k].end()) {
+                    scanline sl(ix, ix);
+                    scansets[k].insert(std::make_pair(iy, sl));
+                }
+                if (ix < scansets[k][iy].start) {
+                    scansets[k][iy].start = ix;
+                }
+                if (ix > scansets[k][iy].end) {
+                    scansets[k][iy].end = ix;
                 }
             }
         }
@@ -367,36 +367,36 @@ void Mtf_core::search_borders(const cv::Point2d &cent, int label)
             for (double y = nr.tl.y; y < nr.br.y; y += 1.0) {
                 for (double x = nr.tl.x; x < nr.br.x; x += 1.0) {
                     cv::Point2d p(x, y);
-                    if (nr.is_inside(p)) {
-                        int iy = lrint(y);
-                        int ix = lrint(x);
-                        if (iy >= 0 && iy < img.rows && ix >= 0 &&
-                            ix < img.cols) {
-                            cv::Point2d d = p - newrect.centroids[k];
-                            double dot = d.x * newrect.normals[k].x +
-                                         d.y * newrect.normals[k].y;
+                    if (!nr.is_inside(p)) {
+                        continue;
+                    }
 
-                            if (fabs(dot) < perp_threshold) {
-                                edge_record[k].add_point(
-                                    x, y, fabs(g.grad_x(ix, iy)),
-                                    fabs(g.grad_y(ix, iy)));
-                            }
+                    int iy = lrint(y);
+                    int ix = lrint(x);
+                    if (iy < 0 || iy >= img.rows || ix < 0 || ix >= img.cols) {
+                        continue;
+                    }
 
-                            auto it = scansets[k].find(iy);
-                            if (it == scansets[k].end()) {
-                                scanline sl(ix, ix);
-                                scansets[k].insert(std::make_pair(iy, sl));
-                            }
-                            if (ix < scansets[k][iy].start) {
-                                scansets[k][iy].start = ix;
-                            }
-                            if (ix > scansets[k][iy].end) {
-                                scansets[k][iy].end = ix;
-                            }
-                        }
+                    cv::Point2d d = p - newrect.centroids[k];
+                    if (std::abs(d.ddot(newrect.normals[k])) < perp_threshold) {
+                        edge_record[k].add_point(x, y, fabs(g.grad_x(ix, iy)),
+                                                 fabs(g.grad_y(ix, iy)));
+                    }
+
+                    auto it = scansets[k].find(iy);
+                    if (it == scansets[k].end()) {
+                        scanline sl(ix, ix);
+                        scansets[k].insert(std::make_pair(iy, sl));
+                    }
+                    if (ix < scansets[k][iy].start) {
+                        scansets[k][iy].start = ix;
+                    }
+                    if (ix > scansets[k][iy].end) {
+                        scansets[k][iy].end = ix;
                     }
                 }
             }
+
             cv::Point2d ocx = edge_record[k].centroid;
             reduce_success &= edge_record[k].reduce();
             cv::Point2d ncx = edge_record[k].centroid;
@@ -427,33 +427,33 @@ void Mtf_core::search_borders(const cv::Point2d &cent, int label)
             for (double y = nr.tl.y; y < nr.br.y; y += 1.0) {
                 for (double x = nr.tl.x; x < nr.br.x; x += 1.0) {
                     cv::Point2d p(x, y);
-                    if (nr.is_inside(p)) {
-                        int iy = lrint(y);
-                        int ix = lrint(x);
-                        if (iy >= 0 && iy < img.rows && ix >= 0 &&
-                            ix < img.cols) {
-                            cv::Point2d d = p - newrect.centroids[k];
-                            double dot = d.x * newrect.normals[k].x +
-                                         d.y * newrect.normals[k].y;
+                    if (!nr.is_inside(p)) {
+                        continue;
+                    }
 
-                            if (fabs(dot) < perp_threshold) {
-                                edge_record[k].add_point(
-                                    x, y, fabs(g.grad_x(ix, iy)),
-                                    fabs(g.grad_y(ix, iy)));
-                            }
+                    int iy = lrint(y);
+                    int ix = lrint(x);
+                    if (iy < 0 || iy >= img.rows || ix < 0 || ix >= img.cols) {
+                        continue;
+                    }
 
-                            auto it = scansets[k].find(iy);
-                            if (it == scansets[k].end()) {
-                                scanline sl(ix, ix);
-                                scansets[k].insert(std::make_pair(iy, sl));
-                            }
-                            if (ix < scansets[k][iy].start) {
-                                scansets[k][iy].start = ix;
-                            }
-                            if (ix > scansets[k][iy].end) {
-                                scansets[k][iy].end = ix;
-                            }
-                        }
+                    cv::Point2d d = p - newrect.centroids[k];
+                    if (std::abs(d.ddot(newrect.normals[k])) < perp_threshold) {
+                        edge_record[k].add_point(x, y,
+                                                 std::abs(g.grad_x(ix, iy)),
+                                                 std::abs(g.grad_y(ix, iy)));
+                    }
+
+                    auto it = scansets[k].find(iy);
+                    if (it == scansets[k].end()) {
+                        scanline sl(ix, ix);
+                        scansets[k].insert(std::make_pair(iy, sl));
+                    }
+                    if (ix < scansets[k][iy].start) {
+                        scansets[k][iy].start = ix;
+                    }
+                    if (ix > scansets[k][iy].end) {
+                        scansets[k][iy].end = ix;
                     }
                 }
             }
@@ -571,20 +571,22 @@ void Mtf_core::search_borders(const cv::Point2d &cent, int label)
 
 std::vector<Block> &Mtf_core::get_blocks()
 {
-    if (!detected_blocks.empty()) {
-        // make a copy into an STL container if necessary
-        detected_blocks.reserve(shared_blocks_map.size());
-        for (const auto &[_, block] : shared_blocks_map) {
-            bool allzero = true;
-            for (int k = 0; k < 4 && allzero; k++) {
-                if (fabs(block.get_mtf50_value(k)) > 1e-6) {
-                    allzero = false;
-                }
-            }
+    if (detected_blocks.empty()) {
+        return detected_blocks;
+    }
 
-            if (block.valid && !allzero) {
-                detected_blocks.push_back(block);
+    // make a copy into an STL container if necessary
+    detected_blocks.reserve(shared_blocks_map.size());
+    for (const auto &[_, block] : shared_blocks_map) {
+        bool allzero = true;
+        for (int k = 0; k < 4 && allzero; k++) {
+            if (fabs(block.get_mtf50_value(k)) > 1e-6) {
+                allzero = false;
             }
+        }
+
+        if (block.valid && !allzero) {
+            detected_blocks.push_back(block);
         }
     }
 
@@ -807,7 +809,7 @@ double Mtf_core::compute_mtf(Edge_model &edge_model,
 
         // undo and sign changes we introduced above to remove a "bounce"
         for (int idx = 0; idx < NYQUIST_FREQ * 4; idx++) {
-            magnitude[idx] = fabs(magnitude[idx]);
+            magnitude[idx] = std::abs(magnitude[idx]);
         }
     }
 
@@ -998,12 +1000,11 @@ void Mtf_core::process_with_sliding_window(Mrectangle &rrect)
             for (double x = tl.x; x < br.x; x += 1.0) {
                 cv::Point2d p(x, y);
                 cv::Point2d gd = p - b[side];
-                double dot = gd.x * n.x + gd.y * n.y;
-                double pdot = gd.x * dir.x + gd.y * dir.y;
+                double pdot = gd.ddot(dir);
 
-                if (fabs(dot) < 12 && pdot > 5 &&
-                    pdot < (edge_len - 5)) { // TODO: making the window narrow
-                                             // here helps a bit ...
+                // TODO: making the window narrow here helps a bit ...
+                if (std::abs(gd.ddot(n)) < 12 && pdot > 5 &&
+                    pdot < (edge_len - 5)) {
                     int iy = lrint(y);
                     int ix = lrint(x);
                     edge_record.add_point(x, y, fabs(g.grad_x(ix, iy)),
@@ -1015,8 +1016,7 @@ void Mtf_core::process_with_sliding_window(Mrectangle &rrect)
         edge_record.reduce(); // we can now move the ROI if we have to ...
 
         cv::Point2d nd(sin(edge_record.angle), -cos(edge_record.angle));
-        double dot = nd.x * dir.x + nd.y * dir.y;
-        if (dot < 0) {
+        if (nd.ddot(dir) < 0) {
             nd = -nd;
         }
 
@@ -1030,9 +1030,9 @@ void Mtf_core::process_with_sliding_window(Mrectangle &rrect)
         const double buffer = 5; // pixels to ignore near edge of block?
         double steplen = 4;
         cv::Point2d dir(d[side]);
-        double edge_len = norm(dir);
+        double edge_len = cv::norm(dir);
 
-        int steps = floor((edge_len - winlen) / steplen) + 1;
+        int steps = std::floor((edge_len - winlen) / steplen) + 1;
 
         if (samples_per_edge != 0) {
             steps = std::max(2, std::min(steps, samples_per_edge));
@@ -1089,16 +1089,15 @@ void Mtf_core::process_with_sliding_window(Mrectangle &rrect)
                 for (double x = tl.x; x < br.x; x += 1.0) {
                     cv::Point2d p(x, y);
                     cv::Point2d gd = p - b[side];
-                    double dot = gd.x * n.x + gd.y * n.y;
-                    double pdot = gd.x * dir.x + gd.y * dir.y;
+                    double pdot = gd.ddot(dir);
                     cv::Point2d ld = p - start;
-                    double ldot = (ld.x * dir.x + ld.y * dir.y) / winlen;
+                    double ldot = (ld.ddot(dir)) / winlen;
 
                     if (pdot > buffer && pdot < (edge_len - buffer) &&
                         ldot > 0 && ldot < 1) {
                         int iy = lrint(y);
                         int ix = lrint(x);
-                        if (fabs(dot) < 14) {
+                        if (std::abs(gd.ddot(n)) < 14) {
                             edge_record.add_point(x, y, fabs(g.grad_x(ix, iy)),
                                                   fabs(g.grad_y(ix, iy)));
                         }
@@ -1120,25 +1119,26 @@ void Mtf_core::process_with_sliding_window(Mrectangle &rrect)
                 for (double x = tl.x; x < br.x; x += 1.0) {
                     cv::Point2d p(x, y);
                     cv::Point2d wd = p - newcent;
-                    double dot = wd.x * n.x + wd.y * n.y;
+                    double dot = wd.ddot(n);
 
                     cv::Point2d ld = p - start;
-                    double ldot = (ld.x * dir.x + ld.y * dir.y) / winlen;
+                    double ldot = (ld.ddot(dir)) / winlen;
 
                     cv::Point2d gd = p - b[side];
-                    double pdot = gd.x * dir.x + gd.y * dir.y;
+                    double pdot = gd.ddot(dir);
 
                     if (pdot > buffer && pdot < (edge_len - buffer) &&
                         ldot > 0 && ldot < 1) {
                         int iy = lrint(y);
                         int ix = lrint(x);
 
-                        if (fabs(dot) < 12) {
-                            edge_record.add_point(x, y, fabs(g.grad_x(ix, iy)),
-                                                  fabs(g.grad_y(ix, iy)));
+                        if (std::abs(dot) < 12) {
+                            edge_record.add_point(x, y,
+                                                  std::abs(g.grad_x(ix, iy)),
+                                                  std::abs(g.grad_y(ix, iy)));
                         }
 
-                        if (fabs(dot) < (max_dot + 1)) {
+                        if (std::abs(dot) < (max_dot + 1)) {
                             auto it = scanset.find(iy);
                             if (it == scanset.end()) {
                                 scanline sl(ix, ix);
@@ -1240,49 +1240,47 @@ void Mtf_core::process_image_as_roi(const cv::Rect &bounds,
         int y = it->first;
         for (int x = it->second.start; x <= it->second.end; ++x) {
             cv::Point2d d((x)-cent.x, (y)-cent.y);
-            double dot = d.ddot(mean_grad);
-
-            int idot = lrint(dot * 2) + max_dot;
+            int idot = lrint(d.ddot(mean_grad) * 2) + max_dot;
             if (idot >= 0 && idot < (int)binned_gradient.size()) {
                 binned_gradient[idot].push_back(g.grad_magnitude(x, y));
             }
         }
     }
-    for (size_t k = 0; k < binned_gradient.size(); k++) {
-        auto &b = binned_gradient[k];
-        sort(b.begin(), b.end());
+
+    for (auto &b : binned_gradient) {
+        std::ranges::sort(b);
     }
+
     std::vector<int> skiplist;
-    for (auto it = scanset.begin(); it != scanset.end(); ++it) {
-        int y = it->first;
-        for (int x = it->second.start; x <= it->second.end; ++x) {
+    for (const auto &[y, scanline] : scanset) {
+        for (int x = scanline.start; x <= scanline.end; ++x) {
             cv::Point2d d((x)-cent.x, (y)-cent.y);
             double dot = d.ddot(mean_grad);
-
-            if (fabs(dot) <= 2) {
-                // do nothing
+            if (std::abs(dot) <= 2) {
+                continue;
             }
-            else {
-                int idot = lrint(dot * 2) + max_dot;
-                if (idot >= 0 && idot < (int)binned_gradient.size() &&
-                    binned_gradient[idot].size() > 3) {
-                    double upper = binned_gradient[idot][(int)floor(
-                        binned_gradient[idot].size() * 0.95)];
-                    if (binned_gradient[idot].back() -
-                            binned_gradient[idot]
-                                           [binned_gradient[idot].size() - 2] <
-                        0.001) {
-                        continue;
-                    }
 
-                    if (g.grad_magnitude(x, y) >= upper) {
-                        skiplist.push_back(y * img.cols + x);
-                    }
-                }
+            int idot = lrint(dot * 2) + max_dot;
+            if (idot < 0 || idot >= (int)binned_gradient.size() ||
+                binned_gradient[idot].size() <= 3) {
+                continue;
+            }
+
+            double upper = binned_gradient[idot][(int)std::floor(
+                binned_gradient[idot].size() * 0.95)];
+            if (binned_gradient[idot].back() -
+                    binned_gradient[idot][binned_gradient[idot].size() - 2] <
+                0.001) {
+                continue;
+            }
+
+            if (g.grad_magnitude(x, y) >= upper) {
+                skiplist.push_back(y * img.cols + x);
             }
         }
     }
-    sort(skiplist.begin(), skiplist.end());
+
+    std::ranges::sort(skiplist);
 
     // iterate the edge record to both centre the edge, as well as refine the
     // edge orientation
@@ -1291,9 +1289,8 @@ void Mtf_core::process_image_as_roi(const cv::Rect &bounds,
     scanset.clear();
     er.clear();
 
-    std::shared_ptr<Edge_model> em(
-        new Edge_model(cent, cv::Point2d(-normal.y, normal.x)));
-    Edge_model *em_p = em.get();
+    auto em =
+        std::make_shared<Edge_model>(cent, cv::Point2d(-normal.y, normal.x));
 
     double diag_len =
         sqrt(bounds.height * bounds.height + bounds.width * bounds.width);
@@ -1303,19 +1300,18 @@ void Mtf_core::process_image_as_roi(const cv::Rect &bounds,
 
     for (int row = bounds.y; row < bounds.height; row++) {
         for (int col = bounds.x; col < bounds.width; col++) {
-            if (!roi.inside(col, row))
+            if (!roi.inside(col, row)) {
                 continue;
+            }
 
             cv::Point2d p(col, row);
             cv::Point2d d = p - cent;
-            double dot = d.x * normal.x + d.y * normal.y;
-
-            if (fabs(dot) < 12) {
+            if (std::abs(d.ddot(normal)) < 12) {
                 int idx = row * img.cols + col;
                 if (!binary_search(skiplist.begin(), skiplist.end(), idx)) {
                     er.add_point(col, row, fabs(g.grad_x(col, row)),
                                  fabs(g.grad_y(col, row)));
-                    em_p->add_point(col, row, g.grad_magnitude(col, row), 12);
+                    em->add_point(col, row, g.grad_magnitude(col, row), 12);
                 }
             }
 

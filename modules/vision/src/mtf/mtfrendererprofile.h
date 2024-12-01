@@ -15,20 +15,7 @@ public:
 
     void set_gnuplot_warning(bool gnuplot);
 
-    bool gnuplot_failed();
-
-private:
-    static double angular_diff(double a, double b);
-
-    bool test_for_bimodal_distribution(const std::map<int, double> &data);
-
-    double IQR(const std::vector<double> &counts, int start, int end);
-
-    double median(const std::vector<double> &counts, int start, int end);
-
-    void extract_row_maxima(std::map<int, double> &row_max,
-                            const std::vector<Block> &blocks,
-                            bool transpose = false);
+    bool gnuplot_failed() const;
 
 private:
     std::string wdir;

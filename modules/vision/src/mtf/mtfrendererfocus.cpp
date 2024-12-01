@@ -4,6 +4,7 @@
 
 #include <glog/logging.h>
 #include <opencv2/imgcodecs.hpp>
+#include <opencv2/imgproc.hpp>
 
 #include <magic_enum/magic_enum.hpp>
 
@@ -235,7 +236,7 @@ void Mtf_renderer_focus::render(const std::vector<Mtf_profile_sample>& samples,
             val += sgw[w + sh] * data[i + w].y;
         }
 
-        if (fabs(val - data[i].y) / val < 0.04) {
+        if (std::abs(val - data[i].y) / val < 0.04) {
             ndata.push_back(data[i]);
         }
     }
@@ -267,8 +268,9 @@ void Mtf_renderer_focus::render(const std::vector<Mtf_profile_sample>& samples,
         errsum /= wsum;
         LOG(INFO) << std::format("iter {} err: {} dc={}", iter, errsum,
                                  dccount / double(data.size()));
-        cf.order_m =
-            2; // reset the denominator order, it will be reduced if necessary
+
+        // reset the denominator order, it will be reduced if necessary
+        cf.order_m = 2;
         sol = rpfit(cf);
         if (iter > 0 && (prev_err - errsum) / prev_err < 0.0001) {
             LOG(INFO) << "bailing out at iter " << iter;
@@ -277,11 +279,12 @@ void Mtf_renderer_focus::render(const std::vector<Mtf_profile_sample>& samples,
 
         prev_err = errsum;
     }
+
     double errsum = 0;
     double wsum = 0;
     for (size_t k = 0; k < data.size(); k++) {
         double y = cf.rpeval(sol, cf.scale(data[k].x)) / cf.ysf;
-        double e = fabs(y - data[k].y);
+        double e = std::abs(y - data[k].y);
         errsum += e * data[k].yweight;
         wsum += data[k].yweight;
     }
@@ -340,12 +343,14 @@ void Mtf_renderer_focus::render(const std::vector<Mtf_profile_sample>& samples,
     if (ellipses) {
         cv::Scalar ellipse_col(200, 200, 0);
         cv::Scalar vec_col(50, 50, 200);
-        constexpr double error_tolerance =
-            1.5; // allow roughly 1 pixel error in each axis, with a little bit
-                 // of a tolerance
-        for (auto e : *ellipses) {
-            if (!e.valid)
+
+        // allow roughly 1 pixel error in each axis, with a little bit
+        // of a tolerance
+        constexpr double error_tolerance = 1.5;
+        for (const auto& e : *ellipses) {
+            if (!e.valid) {
                 continue;
+            }
 
             int fid_idx = -1;
             for (size_t li = 0; li < distance_scale.fid_img_points.size();
@@ -355,6 +360,7 @@ void Mtf_renderer_focus::render(const std::vector<Mtf_profile_sample>& samples,
                     fid_idx = li;
                 }
             }
+
             cv::Point2d fid_offset(0, 0);
             if (fid_idx >= 0) {
                 cv::Point3d& p3d = distance_scale.fid_world_points[fid_idx];
@@ -363,9 +369,10 @@ void Mtf_renderer_focus::render(const std::vector<Mtf_profile_sample>& samples,
                 fid_offset =
                     backproj_pt - distance_scale.fid_img_points[fid_idx];
             }
+
+            // skip this fiducial since the error is small enough
             if (cv::norm(fid_offset) < error_tolerance) {
-                fid_idx =
-                    -1; // skip this fiducial since the error is small enough
+                fid_idx = -1;
             }
 
             cv::Point2d prev(0, 0);
@@ -484,70 +491,68 @@ void Mtf_renderer_focus::render(const std::vector<Mtf_profile_sample>& samples,
         distance_scale.world_to_image(-180 * psf, -135 * psf, zmax * psf));
     draw.curve(curve, axisdark, 2, axisdark);
 
-    int font = cv::FONT_HERSHEY_DUPLEX;
-    char tbuffer[1024];
+    constexpr int font = cv::FONT_HERSHEY_DUPLEX;
 
     draw.text(-178 * psf, 135 * psf, 0, axisdark, "Y");
     draw.text(180 * psf, -133 * psf, 0, axislight, "X");
     draw.text(-180 * psf, -132 * psf, zmax * psf, axisdark, "Z");
 
     cv::Scalar resultcolour(255, 255, 30);
-    sprintf(tbuffer, "%.3lf (c/p)", mtf_peak_value);
+
+    const auto text = std::format("%.3lf (c/p)", mtf_peak_value);
     int tbaseline = 0;
-    cv::Size tsize = cv::getTextSize(tbuffer, font, 1.0, 2, &tbaseline);
+    cv::Size tsize = cv::getTextSize(text, font, 1.0, 2, &tbaseline);
     cv::Point2d textpos = distance_scale.world_to_image(peak_wx, -20 * psf);
     textpos -= cv::Point2d(tsize.width / 2.0, 0);
-    cv::putText(merged, tbuffer, textpos, font, 1, CV_RGB(20, 20, 20), 2,
+    cv::putText(merged, text, textpos, font, 1, CV_RGB(20, 20, 20), 2,
                 cv::LINE_AA);
-    cv::putText(merged, tbuffer, textpos, font, 1, resultcolour, 1,
-                cv::LINE_AA);
+    cv::putText(merged, text, textpos, font, 1, resultcolour, 1, cv::LINE_AA);
+
     double prev_line_height = tsize.height;
 
-    sprintf(tbuffer, "%.1lf mm", focus_peak);
-    tsize = cv::getTextSize(tbuffer, font, 1.0, 2, &tbaseline);
+    const auto text2 = std::format("%.1lf mm", focus_peak);
+    tsize = cv::getTextSize(text2, font, 1.0, 2, &tbaseline);
     textpos = distance_scale.world_to_image(peak_wx, -20 * psf);
     textpos -= cv::Point2d(tsize.width / 2.0, -prev_line_height * 1.5);
-    cv::putText(merged, tbuffer, textpos, font, 1, CV_RGB(20, 20, 20), 2,
+    cv::putText(merged, text2, textpos, font, 1, CV_RGB(20, 20, 20), 2,
                 cv::LINE_AA);
-    cv::putText(merged, tbuffer, textpos, font, 1, resultcolour, 1,
-                cv::LINE_AA);
+    cv::putText(merged, text2, textpos, font, 1, resultcolour, 1, cv::LINE_AA);
 
     // blank out the text region (again)
-    rectangle(merged, cv::Point2d(0, img.rows),
-              cv::Point2d(merged.cols, merged.rows), cv::Scalar::all(255),
-              cv::FILLED);
+    cv::rectangle(merged, cv::Point2d(0, img.rows),
+                  cv::Point2d(merged.cols, merged.rows), cv::Scalar::all(255),
+                  cv::FILLED);
 
     cv::Scalar red(30, 30, 200);
     cv::Scalar yellow(40, 187, 255);
     cv::Scalar black(0, 0, 0);
     cv::Scalar green(30, 200, 30);
 
-    sprintf(
-        tbuffer,
+    const auto text3 = std::format(
         "Focus peak at depth %.1lf mm [%.1lf,%.1lf] relative to chart origin.",
         focus_peak, mc_p5, mc_p95);
     int baseline = 0;
-    cv::Size ts = cv::getTextSize(tbuffer, font, 1, 1, &baseline);
-    draw.text(cv::Point2d(50, initial_rows + ts.height * 1.75), black, "%s",
-              tbuffer);
+    cv::Size ts = cv::getTextSize(text3, font, 1, 1, &baseline);
+    draw.text(cv::Point2d(50, initial_rows + ts.height * 1.75), black, text3);
 
     draw.text(cv::Point2d(50, initial_rows + ts.height * 2 * 1.75), black,
-              "Estimated chart distance=%.2lf mm.",
-              distance_scale.centre_depth);
+              std::format("Estimated chart distance=%.2lf mm.",
+                          distance_scale.centre_depth));
 
+    std::string text4;
     if (distance_scale.bundle_rmse >= 1.5) {
-        sprintf(tbuffer,
-                "Test chart not flat? Large geom. calib. error of %.1lf pixels",
-                distance_scale.bundle_rmse);
+        text4 = std::format(
+            "Test chart not flat? Large geom. calib. error of %.1lf pixels",
+            distance_scale.bundle_rmse);
     }
     else {
-        sprintf(tbuffer, "Bundle adjustment RMSE=%.3lf pixels (ideal < 1)",
-                distance_scale.bundle_rmse);
+        text4 = std::format("Bundle adjustment RMSE=%.3lf pixels (ideal < 1)",
+                            distance_scale.bundle_rmse);
     }
-    draw.text(cv::Point2d(50, initial_rows + ts.height * 3 * 1.75), black, "%s",
-              tbuffer);
+    draw.text(cv::Point2d(50, initial_rows + ts.height * 3 * 1.75), black,
+              text4);
 
-    ts = cv::getTextSize(tbuffer, font, 1, 1, &baseline);
+    ts = cv::getTextSize(text4, font, 1, 1, &baseline);
     double col2 = ts.width + 150;
     cv::Scalar rmse_col = green;
     if (distance_scale.bundle_rmse < 1.5) {
@@ -565,8 +570,8 @@ void Mtf_renderer_focus::render(const std::vector<Mtf_profile_sample>& samples,
     double rpy = initial_rows + ts.height * 4 * 1.75;
     double rpx = 50;
     draw.text(cv::Point2d(rpx, rpy), black,
-              "Chart z-angle=%.1lf degrees (ideal = 45)",
-              distance_scale.get_normal_angle_z());
+              std::format("Chart z-angle=%.1lf degrees (ideal = 45)",
+                          distance_scale.get_normal_angle_z()));
 
     cv::Scalar zang_col = green;
     if (fabs(distance_scale.get_normal_angle_z() - 45) < 10) {
@@ -581,8 +586,8 @@ void Mtf_renderer_focus::render(const std::vector<Mtf_profile_sample>& samples,
 
     rpy = initial_rows + ts.height * 5 * 1.75;
     draw.text(cv::Point2d(rpx, rpy), black,
-              "Chart y-angle=%.1lf degrees (ideal = 0)",
-              distance_scale.get_normal_angle_y());
+              std::format("Chart y-angle=%.1lf degrees (ideal = 0)",
+                          distance_scale.get_normal_angle_y()));
 
     cv::Scalar yang_col = green;
     if (fabs(distance_scale.get_normal_angle_y()) < 2) {
@@ -603,14 +608,16 @@ void Mtf_renderer_focus::render(const std::vector<Mtf_profile_sample>& samples,
 
     rpx = col2;
     rpy = initial_rows + ts.height * 3 * 1.75;
+
+    std::string text5;
     if (white_clip > 5) {
-        sprintf(tbuffer, "Probable highlight clipping, severity=%.1lf%%",
-                white_clip);
+        text5 = std::format("Probable highlight clipping, severity=%.1lf%%",
+                            white_clip);
     }
     else {
-        sprintf(tbuffer, "No highlight clipping detected");
+        text5 = "No highlight clipping detected";
     }
-    draw.text(cv::Point2d(rpx, rpy), black, "%s", tbuffer);
+    draw.text(cv::Point2d(rpx, rpy), black, text5);
 
     cv::Scalar wc_col = green;
     if (white_clip < 10) {
@@ -622,14 +629,16 @@ void Mtf_renderer_focus::render(const std::vector<Mtf_profile_sample>& samples,
     }
 
     rpy = initial_rows + ts.height * 4 * 1.75;
+
+    std::string text6;
     if (black_clip > 5) {
-        sprintf(tbuffer, "Probable shadow clipping, severity=%.1lf%%",
-                black_clip);
+        text6 = std::format("Probable shadow clipping, severity=%.1lf%%",
+                            black_clip);
     }
     else {
-        sprintf(tbuffer, "No shadow clipping detected");
+        text6 = "No shadow clipping detected";
     }
-    draw.text(cv::Point2d(rpx, rpy), black, "%s", tbuffer);
+    draw.text(cv::Point2d(rpx, rpy), black, text6);
 
     cv::Scalar bc_col = green;
     if (black_clip < 10) {
@@ -643,7 +652,8 @@ void Mtf_renderer_focus::render(const std::vector<Mtf_profile_sample>& samples,
     rpy = initial_rows + ts.height * 5 * 1.75;
     if (overexposure > 0) {
         draw.text(cv::Point2d(rpx, rpy), black,
-                  "Probable overexposure, severity=%.1lf%%", overexposure);
+                  std::format("Probable overexposure, severity=%.1lf%%",
+                              overexposure));
         draw.crossmark(cv::Point2d(rpx - 15, rpy - 0.25 * 1.75 * ts.height),
                        red);
     }
@@ -698,12 +708,13 @@ Eigen::VectorXd Mtf_renderer_focus::rpfit(Ratpoly_fit& cf, bool scale,
                 }
 
                 for (int col = 0; col < tdim; col++) {
-                    for (int icol = 0; icol < tdim;
-                         icol++) { // build covariance of design matrix : A'*A
+                    // build covariance of design matrix : A'*A
+                    for (int icol = 0; icol < tdim; icol++) {
                         cov(col, icol) += a[col] * a[icol];
                     }
-                    b[col] += cf.base_value * a[col] * sp.y * cf.ysf *
-                              w; // build rhs of system : A'*b
+
+                    // build rhs of system : A'*b
+                    b[col] += cf.base_value * a[col] * sp.y * cf.ysf * w;
                 }
             }
 
@@ -752,8 +763,7 @@ void Mtf_renderer_focus::exposure_checks(const cv::Point2d& dims,
     }
 
     cv::Mat mask(img.rows, img.cols, CV_8UC1, cv::Scalar::all(0));
-    cv::fillConvexPoly(mask, (const cv::Point*)roi.data(), roi.size(),
-                       cv::Scalar::all(255));
+    cv::fillConvexPoly(mask, roi, cv::Scalar::all(255));
 
     // we could (in theory) mask out all the objects we used (ellipses and
     // blocks) that should take care of most of the gradients?
