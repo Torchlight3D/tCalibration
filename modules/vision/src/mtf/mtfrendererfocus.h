@@ -17,8 +17,7 @@ public:
         Distance_scale& distance_scale,
         const std::vector<std::pair<cv::Point2d, cv::Point2d>>& sliding_edges,
         const std::string& wdir, const std::string& prof_fname,
-        const cv::Mat& img, [[maybe_unused]] bool lpmm_mode = false,
-        [[maybe_unused]] double pixel_size = 1.0);
+        const cv::Mat& img, bool lpmm_mode = false, double pixel_size = 1.0);
 
     void render(const std::vector<Block>&);
 

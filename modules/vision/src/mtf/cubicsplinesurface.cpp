@@ -23,7 +23,7 @@ inline double B3(double t)
 
 inline size_t find_knot(const std::vector<double>& knots, double x)
 {
-    int idx = std::upper_bound(knots.begin(), knots.end(), x) - knots.begin();
+    int idx = std::ranges::upper_bound(knots, x) - knots.begin();
     return std::max(0, idx - 1);
 }
 } // namespace

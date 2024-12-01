@@ -68,14 +68,12 @@ cv::Point2d Undistort::transform_point(double c, double r)
 void Undistort::build_radmap()
 {
     radmap.clear();
-    double maxrad =
-        1.1 *
-        sqrt(centre.x * centre.x +
-             centre.y *
-                 centre.y); // TODO: add better support for non-centered CoD
+
+    // TODO: add better support for non-centered CoD
+    double maxrad = 1.1 * cv::norm(centre);
     for (int rad = 0; rad <= 2 * (maxrad + 2); rad++) { // half-pixel spacing
         cv::Point2d tp = slow_transform_point(centre.x + 0.5 * rad, centre.y);
-        double rd = norm(tp - cv::Point2d(centre.x, centre.y));
+        double rd = cv::norm(tp - cv::Point2d(centre.x, centre.y));
         radmap.push_back(rd);
     }
 }
@@ -107,13 +105,12 @@ cv::Mat Undistort::unmap_base(const cv::Mat &in_src, cv::Mat &rawimg,
 
     build_radmap();
 
-    cv::Mat map_x(src.rows, src.cols, CV_32FC1);
-    cv::Mat map_y(src.rows, src.cols, CV_32FC1);
-
     cv::Mat blurred;
     cv::blur(src, blurred, cv::Size(3, 3));
 
     cv::Point2d prev;
+    cv::Mat map_x(src.rows, src.cols, CV_32FC1);
+    cv::Mat map_y(src.rows, src.cols, CV_32FC1);
     for (int r = 0; r < src.rows; r++) {
         prev = transform_point(-1, r);
         for (int c = 0; c < src.cols; c++) {
@@ -124,7 +121,7 @@ cv::Mat Undistort::unmap_base(const cv::Mat &in_src, cv::Mat &rawimg,
             // add some blurring to suppress noise before magnification
             // this avoids the edges becoming so rough that the rectangle
             // test on the undistorted image fails
-            double stretch = norm(prev - tp);
+            double stretch = cv::norm(prev - tp);
             if (stretch > 0.9) {
                 blurred.at<uint16_t>(r, c) = src.at<uint16_t>(r, c);
             }
@@ -154,8 +151,8 @@ void Undistort::estimate_padding(const cv::Mat &src, int &pad_left,
     // (say 20 pixels) this becomes the cut-off on the longest edge, which also
     // defines the short edge cut-off
 
-    const double src_w = 80;  // pixels
-    const double dest_w = 20; // do not try to expand beyond this
+    constexpr double src_w = 80;  // pixels
+    constexpr double dest_w = 20; // do not try to expand beyond this
 
     cv::Point2d extreme = inverse_transform_point(1, 1);
 

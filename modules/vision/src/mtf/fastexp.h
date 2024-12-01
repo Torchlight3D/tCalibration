@@ -5,7 +5,7 @@
 // Underflow of exponential is common practice in numerical routines,
 // so handle it here.
 
-static inline float fastpow2(float p)
+inline float fastpow2(float p)
 {
     float offset = (p < 0) ? 1.0f : 0.0f;
     float clipp = (p < -126) ? -126.0f : p;
@@ -22,4 +22,4 @@ static inline float fastpow2(float p)
     return v.f;
 }
 
-static inline float fastexp(float p) { return fastpow2(1.442695040f * p); }
+inline float fastexp(float p) { return fastpow2(1.442695040f * p); }

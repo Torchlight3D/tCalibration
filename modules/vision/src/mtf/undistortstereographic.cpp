@@ -31,10 +31,10 @@ cv::Point2d Undistort_stereographic::inverse_transform_point(double col,
 {
     double px = (col + offset.x - centre.x) * pitch;
     double py = (row + offset.y - centre.y) * pitch;
-    double ru = sqrt(px * px + py * py); // radial distance in mm
+    double ru = std::sqrt(px * px + py * py); // radial distance in mm
 
     if (ru == 0) {
-        return cv::Point2d(centre.x - offset.x, centre.y - offset.y);
+        return {centre.x - offset.x, centre.y - offset.y};
     }
 
     double theta = atan(0.5 * ru / f);

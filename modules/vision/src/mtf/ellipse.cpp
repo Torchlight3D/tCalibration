@@ -19,6 +19,24 @@ using Matrix5d = Eigen::Matrix<double, 5, 5>;
 using Vector5d = Eigen::Matrix<double, 5, 1>;
 using RowVector5d = Eigen::Matrix<double, 1, 5>;
 
+Ellipse_detector::Ellipse_detector()
+    : centroid_x(0),
+      centroid_y(0),
+      major_axis(1),
+      minor_axis(1),
+      angle(0),
+      quality(0),
+      fg_fraction(0),
+      valid(false),
+      solid(false),
+      code(-1),
+      _C(3, 3)
+{
+    _C.setZero();
+}
+
+Ellipse_detector::~Ellipse_detector() = default;
+
 cv::Point2d Ellipse_detector::centroid() const
 {
     return {centroid_x, centroid_y};

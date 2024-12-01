@@ -15,9 +15,6 @@ public:
     void select_best_n(std::vector<double>& best, size_t in_n,
                        double il_thresh = 0.03);
 
-    // TODO: Duplicated code
-    static double angular_diff(double a, double b);
-
 private:
     size_t nbins;
     const std::vector<double>& data;

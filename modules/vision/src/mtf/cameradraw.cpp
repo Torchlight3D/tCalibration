@@ -1,6 +1,7 @@
 #include "cameradraw.h"
 
 #include <opencv2/imgcodecs.hpp>
+#include <opencv2/imgproc.hpp>
 
 #include "srgbrender.h"
 
@@ -20,7 +21,7 @@ Camera_draw::Camera_draw(const cv::Mat& img,
 }
 
 void Camera_draw::arc_with_arrow(int axis, double rad, double offset,
-                                 cv::Scalar colour, bool tp)
+                                 const cv::Scalar& color, bool tp)
 {
     std::vector<cv::Point2d> cpts;
 
@@ -53,7 +54,8 @@ void Camera_draw::arc_with_arrow(int axis, double rad, double offset,
             distance_scale.world_to_image(psf * x, psf * y, psf * z));
     }
     curve(cpts, cv::Scalar(20, 20, 20), 4, cv::Scalar(20, 20, 20));
-    curve(cpts, colour, 2, colour);
+    curve(cpts, color, 2, color);
+
     {
         const double th = 0; // angle orientation, could be 180 to flip arrow?
         const double dth = 25.0 / 180.0 * M_PI;
@@ -65,7 +67,7 @@ void Camera_draw::arc_with_arrow(int axis, double rad, double offset,
             {(rad - aw) * cos(th + dth), (rad - aw) * sin(th + dth)},
             {(rad - aw) * cos(th - dth), (rad - aw) * sin(th - dth)}};
 
-        cv::Point pts[3];
+        std::array<cv::Point, 3> pts;
         for (int i = 0; i < 3; i++) {
             cv::Point2d pt;
             switch (axis) {
@@ -94,8 +96,8 @@ void Camera_draw::arc_with_arrow(int axis, double rad, double offset,
             cv::line(rimg, pts[i], pts[(i + 1) % 3], cv::Scalar(20, 20, 20), 2,
                      cv::LINE_AA);
         }
-        cv::fillConvexPoly(rimg, (const cv::Point*)&pts, 3, colour,
-                           cv::LINE_AA);
+
+        cv::fillConvexPoly(rimg, pts, color, cv::LINE_AA);
     }
 }
 
@@ -118,45 +120,41 @@ cv::Mat Camera_draw::gray_to_colour(const cv::Mat& ig_img, double sfactor,
         initial_rows = merged.rows;
         // TODO: maybe merge right column if image is too narrow
         merged.resize(merged.rows + pad);
-        rectangle(merged, cv::Point2d(0, g_img.rows),
-                  cv::Point2d(merged.cols, merged.rows), cv::Scalar::all(255),
-                  cv::FILLED);
+        cv::rectangle(merged, cv::Point2d(0, g_img.rows),
+                      cv::Point2d(merged.cols, merged.rows),
+                      cv::Scalar::all(255), cv::FILLED);
     }
 
     return merged;
 }
 
-void Camera_draw::curve(const std::vector<cv::Point2d>& data, cv::Scalar col,
-                        double width, cv::Scalar col2)
+void Camera_draw::curve(const std::vector<cv::Point2d>& data,
+                        const cv::Scalar& color1, double width,
+                        const cv::Scalar& color2)
 {
-    int prevx = 0;
-    int prevy = 0;
-
     double total_l = 0;
-    for (size_t i = 1; i < data.size(); i++) {
-        double dx = data[i].x - data[i - 1].x;
-        double dy = data[i].y - data[i - 1].y;
-        total_l += sqrt(dx * dx + dy * dy);
+    for (size_t i{1}; i < data.size(); i++) {
+        total_l += cv::norm(data[i] - data[i - 1]);
     }
 
-    bool shade = col2[0] != 0 || col2[1] != 0 || col2[1] != 0;
-    cv::Scalar blended_col = col;
+    bool shade = color2[0] != 0 || color2[1] != 0 || color2[1] != 0;
+    cv::Scalar blended_col = color1;
 
     cv::Rect bounds(0, 0, img.cols, img.rows + 5);
 
+    int prevx = 0;
+    int prevy = 0;
     double running_l = 0;
     for (size_t i = 0; i < data.size(); i++) {
         if (i > 1) {
-            double dx = data[i].x - data[i - 1].x;
-            double dy = data[i].y - data[i - 1].y;
-            running_l += sqrt(dx * dx + dy * dy);
+            running_l += cv::norm(data[i] - data[i - 1]);
         }
 
         double progress = running_l / total_l;
 
         if (shade) {
             for (int k = 0; k < 3; k++) {
-                blended_col[k] = col[k] + (col2[k] - col[k]) * progress;
+                blended_col[k] = color1[k] + (color2[k] - color1[k]) * progress;
             }
         }
 
@@ -175,29 +173,29 @@ void Camera_draw::curve(const std::vector<cv::Point2d>& data, cv::Scalar col,
 
 void Camera_draw::chart_centre_marker()
 {
-    cv::Scalar mark_col(0, 127 - 20, 255 - 20);
-    cv::Point2d czero = distance_scale.world_to_image(0, 0);
+    const cv::Scalar markerColor(0, 127 - 20, 255 - 20);
+    const cv::Point2d czero = distance_scale.world_to_image(0, 0);
 
     for (int i = 0; i < 4; i++) {
         cv::Point2d wp(psf * 10 * cos(2.0 * i * M_PI / 4.0),
                        psf * 10 * sin(2.0 * i * M_PI / 4.0));
         cv::Point2d pt = distance_scale.world_to_image(wp.x, wp.y);
-        cv::line(rimg, czero, pt, mark_col, 2, cv::LINE_AA);
+        cv::line(rimg, czero, pt, markerColor, 2, cv::LINE_AA);
     }
-    cv::circle(rimg, czero, 10, mark_col, 2, cv::LINE_AA);
+    cv::circle(rimg, czero, 10, markerColor, 2, cv::LINE_AA);
 
     int j = 0;
     for (double th = 0; j < 4; th += 2 * M_PI / 4.0, j++) {
-        const double dth = 10.0 / 180.0 * M_PI;
-        double rad = 10;
-        const double aw = 2.0;
+        constexpr double dth = 10.0 / 180.0 * M_PI;
+        constexpr double rad = 10;
+        constexpr double aw = 2.0;
 
         cv::Point2d dpts[3] = {
             {(rad + aw) * cos(th), (rad + aw) * sin(th)},
             {(rad - aw) * cos(th + dth), (rad - aw) * sin(th + dth)},
             {(rad - aw) * cos(th - dth), (rad - aw) * sin(th - dth)}};
 
-        cv::Point pts[3];
+        std::array<cv::Point, 3> pts;
         for (int i = 0; i < 3; i++) {
             cv::Point2d pt =
                 distance_scale.world_to_image(psf * dpts[i].x, psf * dpts[i].y);
@@ -205,135 +203,141 @@ void Camera_draw::chart_centre_marker()
             pts[i].y = lrint(pt.y);
         }
 
-        cv::fillConvexPoly(rimg, (const cv::Point*)&pts, 3, mark_col,
-                           cv::LINE_AA);
+        cv::fillConvexPoly(rimg, pts, markerColor, cv::LINE_AA);
     }
 }
 
 void Camera_draw::camera_centre_marker(double dc_x, double dc_y)
 {
-    cv::Scalar reticle_col(0, 127 - 50, 255 - 50);
-    cv::Point centre(dc_x, dc_y);
+    const cv::Scalar reticle_col(0, 127 - 50, 255 - 50);
+    const cv::Point centre(dc_x, dc_y);
 
-    const double rad = 25;
-    cv::circle(rimg, centre, rad, cv::Scalar(20, 20, 20), 4, cv::LINE_AA);
+    constexpr double rad = 25;
+    cv::circle(rimg, centre, rad, CV_RGB(20, 20, 20), 4, cv::LINE_AA);
+
     int i = 0;
     for (double th = M_PI / 2; i < 4; th += 2 * M_PI / 4.0, i++) {
-        const double dth = 12.5 / 180.0 * M_PI;
+        constexpr double dth = 12.5 / 180.0 * M_PI;
 
-        cv::Point pts[3] = {
-            {int((double)centre.x + (rad - 9) * cos(th)),
-             int((double)centre.y + (rad - 9) * sin(th))},
+        const std::array<cv::Point, 3> pts{
+            cv::Point{int((double)centre.x + (rad - 9) * cos(th)),
+                      int((double)centre.y + (rad - 9) * sin(th))},
             {int((double)centre.x + (rad + 8) * cos(th + dth)),
              int((double)centre.y + (rad + 8) * sin(th + dth))},
             {int((double)centre.x + (rad + 8) * cos(th - dth)),
              int((double)centre.y + (rad + 8) * sin(th - dth))}};
 
-        cv::fillConvexPoly(rimg, (const cv::Point*)&pts, 3,
-                           cv::Scalar(20, 20, 20), cv::LINE_AA);
+        cv::fillConvexPoly(rimg, pts, CV_RGB(20, 20, 20), cv::LINE_AA);
     }
+
     cv::circle(rimg, centre, rad, reticle_col, 2, cv::LINE_AA);
+
     i = 0;
     for (double th = M_PI / 2; i < 4; th += 2 * M_PI / 4.0, i++) {
         const double dth = 10.0 / 180.0 * M_PI;
 
-        cv::Point pts[3] = {
-            {int((double)centre.x + (rad - 7) * cos(th)),
-             int((double)centre.y + (rad - 7) * sin(th))},
+        const std::array<cv::Point, 3> pts{
+            cv::Point{int((double)centre.x + (rad - 7) * cos(th)),
+                      int((double)centre.y + (rad - 7) * sin(th))},
             {int((double)centre.x + (rad + 7) * cos(th + dth)),
              int((double)centre.y + (rad + 7) * sin(th + dth))},
             {int((double)centre.x + (rad + 7) * cos(th - dth)),
              int((double)centre.y + (rad + 7) * sin(th - dth))}};
 
-        cv::fillConvexPoly(rimg, (const cv::Point*)&pts, 3, reticle_col,
-                           cv::LINE_AA);
+        cv::fillConvexPoly(rimg, pts, reticle_col, cv::LINE_AA);
     }
 }
 
 void Camera_draw::fail_circle()
 {
-    cv::Point2d cent(rimg.cols / 2, rimg.rows / 2);
-    double rad = std::min(rimg.rows, rimg.cols) / 2.0 - 20;
-    cv::Scalar red(30, 30, 255);
-
+    const cv::Point2d cent(rimg.cols / 2, rimg.rows / 2);
+    const double rad = std::min(rimg.rows, rimg.cols) / 2.0 - 20;
+    const cv::Scalar red(30, 30, 255);
     cv::circle(rimg, cent, rad, red, 10, cv::LINE_AA);
-    cv::Point2d dir(rad * sqrt(0.5) - 2, rad * sqrt(0.5) - 2);
+    const cv::Point2d dir(rad * std::sqrt(0.5) - 2, rad * std::sqrt(0.5) - 2);
     cv::line(rimg, cent - dir, cent + dir, red, 10, cv::LINE_AA);
 }
 
 void Camera_draw::fail_with_message(const std::string& path,
-                                    const std::string& s)
+                                    const std::string& message)
 {
     fail_circle();
 
-    char tbuffer[1024];
-    int font = cv::FONT_HERSHEY_DUPLEX;
-    sprintf(tbuffer, "%s", s.c_str());
-    cv::putText(rimg, tbuffer,
+    constexpr int font = cv::FONT_HERSHEY_DUPLEX;
+
+    cv::putText(rimg, message,
                 cv::Point2d(50, initial_rows + (rimg.rows - initial_rows) / 2),
                 font, 1, cv::Scalar::all(0), 1, cv::LINE_AA);
 
     cv::imwrite(path, rimg);
 }
 
-void Camera_draw::checkmark(const cv::Point2d& pos, const cv::Scalar& colour)
+void Camera_draw::checkmark(const cv::Point2d& pos, const cv::Scalar& color)
 {
-    cv::Point tri[5];
+    const cv::Point start(pos);
 
-    cv::Point start(pos.x, pos.y);
+    {
+        std::array<cv::Point, 4> tri;
+        tri[0] = start;
+        tri[1].x = tri[0].x + 5 * std::cos(45.0 / 180.0 * M_PI);
+        tri[1].y = tri[0].y + 5 * std::sin(45.0 / 180.0 * M_PI);
+        tri[2].x = tri[1].x + 20 * std::cos(-45.0 / 180.0 * M_PI);
+        tri[2].y = tri[1].y + 20 * std::sin(-45.0 / 180.0 * M_PI);
+        tri[3].x = tri[2].x + 1 * std::cos((180 + 45.0) / 180.0 * M_PI);
+        tri[3].y = tri[2].y + 1 * std::sin((180 + 45.0) / 180.0 * M_PI);
 
-    tri[0].x = start.x;
-    tri[0].y = start.y;
-    tri[1].x = tri[0].x + 5 * cos(45.0 / 180.0 * M_PI);
-    tri[1].y = tri[0].y + 5 * sin(45.0 / 180.0 * M_PI);
-    tri[2].x = tri[1].x + 20 * cos(-45.0 / 180.0 * M_PI);
-    tri[2].y = tri[1].y + 20 * sin(-45.0 / 180.0 * M_PI);
-    tri[3].x = tri[2].x + 1 * cos((180 + 45.0) / 180.0 * M_PI);
-    tri[3].y = tri[2].y + 1 * sin((180 + 45.0) / 180.0 * M_PI);
+        cv::fillConvexPoly(rimg, tri, color, cv::LINE_AA);
+    }
 
-    cv::fillConvexPoly(rimg, (const cv::Point*)&tri, 4, colour, cv::LINE_AA);
+    {
+        std::array<cv::Point, 4> tri;
+        tri[0] = start;
+        tri[1].x = tri[0].x + 5 * std::cos(-45.0 / 180.0 * M_PI);
+        tri[1].y = tri[0].y + 5 * std::sin(-45.0 / 180.0 * M_PI);
+        tri[2].x = tri[1].x - 5 * std::cos(45.0 / 180.0 * M_PI);
+        tri[2].y = tri[1].y - 5 * std::sin(45.0 / 180.0 * M_PI);
+        tri[3].x = tri[2].x + 5 * std::cos((180 - 45.0) / 180.0 * M_PI);
+        tri[3].y = tri[2].y + 5 * std::sin((180 - 45.0) / 180.0 * M_PI);
 
-    tri[0].x = start.x;
-    tri[0].y = start.y;
-    tri[1].x = tri[0].x + 5 * cos(-45.0 / 180.0 * M_PI);
-    tri[1].y = tri[0].y + 5 * sin(-45.0 / 180.0 * M_PI);
-    tri[2].x = tri[1].x - 5 * cos(45.0 / 180.0 * M_PI);
-    tri[2].y = tri[1].y - 5 * sin(45.0 / 180.0 * M_PI);
-    tri[3].x = tri[2].x + 5 * cos((180 - 45.0) / 180.0 * M_PI);
-    tri[3].y = tri[2].y + 5 * sin((180 - 45.0) / 180.0 * M_PI);
-
-    cv::fillConvexPoly(rimg, (const cv::Point*)&tri, 4, colour, cv::LINE_AA);
+        cv::fillConvexPoly(rimg, tri, color, cv::LINE_AA);
+    }
 }
 
-void Camera_draw::crossmark(const cv::Point2d& pos, const cv::Scalar& colour)
+void Camera_draw::crossmark(const cv::Point2d& pos, const cv::Scalar& color)
 {
-    cv::Point tri[5];
+    const cv::Point cent(pos);
 
-    cv::Point cent(pos.x, pos.y);
+    {
+        const cv::Point2d dir(std::cos(M_PI * 0.25), std::sin(M_PI * 0.25));
 
-    cv::Point2d dir(cos(M_PI / 4), sin(M_PI / 4));
-    tri[0].x = cent.x - 10 * dir.x + 2.5 * dir.y;
-    tri[0].y = cent.y - 10 * dir.y - 2.5 * dir.x;
-    tri[1].x = tri[0].x - 5 * dir.y;
-    tri[1].y = tri[0].y + 5 * dir.x;
-    tri[2].x = tri[1].x + 20 * dir.x;
-    tri[2].y = tri[1].y + 20 * dir.y;
-    tri[3].x = tri[2].x + 5 * dir.y;
-    tri[3].y = tri[2].y - 5 * dir.x;
+        std::array<cv::Point, 4> tri;
+        tri[0].x = cent.x - 10 * dir.x + 2.5 * dir.y;
+        tri[0].y = cent.y - 10 * dir.y - 2.5 * dir.x;
+        tri[1].x = tri[0].x - 5 * dir.y;
+        tri[1].y = tri[0].y + 5 * dir.x;
+        tri[2].x = tri[1].x + 20 * dir.x;
+        tri[2].y = tri[1].y + 20 * dir.y;
+        tri[3].x = tri[2].x + 5 * dir.y;
+        tri[3].y = tri[2].y - 5 * dir.x;
 
-    cv::fillConvexPoly(rimg, (const cv::Point*)&tri, 4, colour, cv::LINE_AA);
+        cv::fillConvexPoly(rimg, tri, color, cv::LINE_AA);
+    }
 
-    dir = cv::Point2d(cos(M_PI / 4 + M_PI / 2), sin(M_PI / 4 + M_PI / 2));
-    tri[0].x = cent.x - 10 * dir.x + 2.5 * dir.y;
-    tri[0].y = cent.y - 10 * dir.y - 2.5 * dir.x;
-    tri[1].x = tri[0].x - 5 * dir.y;
-    tri[1].y = tri[0].y + 5 * dir.x;
-    tri[2].x = tri[1].x + 20 * dir.x;
-    tri[2].y = tri[1].y + 20 * dir.y;
-    tri[3].x = tri[2].x + 5 * dir.y;
-    tri[3].y = tri[2].y - 5 * dir.x;
+    {
+        const cv::Point2d dir(std::cos(M_PI * 0.75), std::sin(M_PI * 0.75));
 
-    cv::fillConvexPoly(rimg, (const cv::Point*)&tri, 4, colour, cv::LINE_AA);
+        std::array<cv::Point, 4> tri;
+        tri[0].x = cent.x - 10 * dir.x + 2.5 * dir.y;
+        tri[0].y = cent.y - 10 * dir.y - 2.5 * dir.x;
+        tri[1].x = tri[0].x - 5 * dir.y;
+        tri[1].y = tri[0].y + 5 * dir.x;
+        tri[2].x = tri[1].x + 20 * dir.x;
+        tri[2].y = tri[1].y + 20 * dir.y;
+        tri[3].x = tri[2].x + 5 * dir.y;
+        tri[3].y = tri[2].y - 5 * dir.x;
+
+        cv::fillConvexPoly(rimg, tri, color, cv::LINE_AA);
+    }
 }
 
 void Camera_draw::alpha_block(const cv::Point2d& p, const cv::Size& s,
@@ -346,4 +350,66 @@ void Camera_draw::alpha_block(const cv::Point2d& p, const cv::Size& s,
     cv::Mat roi = rimg(cv::Rect(p.x, s_row, e_width, e_row - s_row));
     cv::Mat cblock(roi.size(), CV_8UC3, col);
     cv::addWeighted(cblock, alpha, roi, 1.0 - alpha, 0.0, roi);
+}
+
+void Camera_draw::text(double x, double y, double z, const cv::Scalar& color,
+                       const std::string& text)
+{
+    // x, y and z are in world coordinates
+
+    constexpr int font = cv::FONT_HERSHEY_DUPLEX;
+
+    const auto textpos = distance_scale.world_to_image(x, y, z);
+    cv::putText(rimg, text, textpos, font, 1, CV_RGB(50, 50, 50), 3,
+                cv::LINE_AA);
+    cv::putText(rimg, text, textpos, font, 1, CV_RGB(20, 20, 20), 2,
+                cv::LINE_AA);
+    cv::putText(rimg, text, textpos, font, 1, color, 1, cv::LINE_AA);
+}
+
+void Camera_draw::text(const cv::Point2d& pos, const cv::Scalar& color,
+                       const std::string& text)
+{
+    // pos is in pixel coordinates
+    constexpr int font = cv::FONT_HERSHEY_DUPLEX;
+
+    cv::putText(rimg, text, pos, font, 1, color, 1, cv::LINE_AA);
+}
+
+void Camera_draw::text_block(double x, double y, double z,
+                             const cv::Scalar& color, const std::string& text)
+{
+    constexpr int font = cv::FONT_HERSHEY_DUPLEX;
+
+    const auto textpos = distance_scale.world_to_image(x, y, z);
+
+    int baseline;
+    const auto ts = cv::getTextSize(text, font, 1, 3, &baseline);
+
+    alpha_block(textpos, ts, CV_RGB(255, 255, 255), 0.5);
+    cv::putText(rimg, text, textpos, font, 1, CV_RGB(50, 50, 50), 3,
+                cv::LINE_AA);
+    cv::putText(rimg, text, textpos, font, 1, CV_RGB(20, 20, 20), 2,
+                cv::LINE_AA);
+    cv::putText(rimg, text, textpos, font, 1, color, 1, cv::LINE_AA);
+}
+
+void Camera_draw::text_block_ra(double x, double y, double z,
+                                const cv::Scalar& color,
+                                const std::string& text)
+{
+    constexpr int font = cv::FONT_HERSHEY_DUPLEX;
+
+    auto textpos = distance_scale.world_to_image(x, y, z);
+
+    int baseline;
+    const auto ts = cv::getTextSize(text, font, 1, 3, &baseline);
+    textpos.x -= ts.width;
+
+    alpha_block(textpos, ts, CV_RGB(255, 255, 255), 0.5);
+    cv::putText(rimg, text, textpos, font, 1, CV_RGB(50, 50, 50), 3,
+                cv::LINE_AA);
+    cv::putText(rimg, text, textpos, font, 1, CV_RGB(20, 20, 20), 2,
+                cv::LINE_AA);
+    cv::putText(rimg, text, textpos, font, 1, color, 1, cv::LINE_AA);
 }

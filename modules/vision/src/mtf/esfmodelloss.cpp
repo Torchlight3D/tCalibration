@@ -5,17 +5,21 @@
 #include "fastexp.h"
 #include "pava.h"
 
-// Note: The kernel function is used during ESF construction, but remember that
-// this kernel is not used (at all) when calculating MTF corrections
-static inline double local_kernel(double d, double alpha, double w = 0.125)
+using Eigen::MatrixXd;
+using Eigen::VectorXd;
+
+namespace {
+// Note: The kernel function is used during ESF construction, but remember
+// that this kernel is not used (at all) when calculating MTF corrections
+inline double local_kernel(double d, double alpha, double w = 0.125)
 {
-    if (fabs(d) < w)
-        return 1.0;
-    return fastexp(-fabs(fabs(d) - w) * alpha);
+    if (std::abs(d) < w)
+        return 1.;
+    return fastexp(-std::abs(std::abs(d) - w) * alpha);
 }
 
-static double interpolate(double cnr,
-                          const std::vector<std::pair<double, double>>& lut)
+double interpolate(double cnr,
+                   const std::vector<std::pair<double, double>>& lut)
 {
     if (cnr < lut.back().first) {
         if (cnr > lut.front().first) {
@@ -38,19 +42,22 @@ static double interpolate(double cnr,
     return lut.back().second;
 }
 
-static void local_moving_average_smoother(std::vector<double>& smoothed,
-                                          double* sampled, int fft_size,
-                                          int fft_left, int fft_right,
-                                          int left_trans, int right_trans,
-                                          int width)
+void local_moving_average_smoother(std::vector<double>& smoothed,
+                                   double* sampled, int fft_size, int fft_left,
+                                   int fft_right, int left_trans,
+                                   int right_trans, int width)
 {
-    if (width < 1)
+    if (width < 1) {
         return;
+    }
+
     width = std::min(width, 32);
-    if (left_trans - fft_left <= 1)
+    if (left_trans - fft_left <= 1) {
         return;
-    if (fft_right - right_trans <= 1)
+    }
+    if (fft_right - right_trans <= 1) {
         return;
+    }
 
     smoothed[0] = sampled[0];
     for (int idx = 1; idx < fft_size; idx++) {
@@ -84,9 +91,9 @@ static void local_moving_average_smoother(std::vector<double>& smoothed,
     }
 }
 
-static void gauss_smooth(std::vector<double>& smoothed, double* sampled,
-                         size_t start_idx, size_t end_idx, int strength = 1,
-                         double edge_value = 0.5)
+void gauss_smooth(std::vector<double>& smoothed, double* sampled,
+                  size_t start_idx, size_t end_idx, int strength = 1,
+                  double edge_value = 0.5)
 {
     const int sgh = std::min(strength, 8);
     double w[2 * 8 + 1] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
@@ -109,6 +116,7 @@ static void gauss_smooth(std::vector<double>& smoothed, double* sampled,
         sampled[idx] = smoothed[idx];
     }
 }
+} // namespace
 
 EsfModelLoss::EsfModelLoss(double in_alpha, [[maybe_unused]] double ridge)
 {
@@ -128,24 +136,22 @@ int EsfModelLoss::build_esf(std::vector<Ordered_point>& ordered,
         sampled[i] = missing;
     }
 
-    int rval = 0;
-
     int fft_left = 0;
     int fft_right = fft_size - 1;
     int twidth = 32;
-
-    rval = estimate_esf_clipping(ordered, sampled, fft_size, allow_peak_shift,
-                                 max_distance_from_edge, mean, weights,
-                                 fft_left, fft_right, twidth, snr);
+    int rval = estimate_esf_clipping(
+        ordered, sampled, fft_size, allow_peak_shift, max_distance_from_edge,
+        mean, weights, fft_left, fft_right, twidth, snr);
 
     double cnr = snr.mean_cnr();
     double contrast = snr.contrast();
 
-    if (rval < 0)
+    if (rval < 0) {
         return rval;
+    }
 
-    fill(weights.begin(), weights.end(), 0.0);
-    fill(mean.begin(), mean.end(), 0.0);
+    std::fill(weights.begin(), weights.end(), 0.0);
+    std::fill(mean.begin(), mean.end(), 0.0);
 
     auto left_it = ordered.begin();
     auto right_it = ordered.end();
@@ -167,9 +173,10 @@ int EsfModelLoss::build_esf(std::vector<Ordered_point>& ordered,
         double mid = (b - fft_size / 2) * 0.125;
 
         constexpr double loess_span = 4.5;
-        left_it =
-            lower_bound(ordered.begin(), ordered.end(), mid - 0.5 * loess_span);
-        right_it = lower_bound(left_it, ordered.end(), mid + 0.5 * loess_span);
+        left_it = std::lower_bound(ordered.begin(), ordered.end(),
+                                   mid - 0.5 * loess_span);
+        right_it =
+            std::lower_bound(left_it, ordered.end(), mid + 0.5 * loess_span);
 
         size_t npts = right_it - left_it;
         if (npts < (order + 1)) {
@@ -177,12 +184,12 @@ int EsfModelLoss::build_esf(std::vector<Ordered_point>& ordered,
             weights[b] = 0;
         }
         else {
-            if (fabs(mid) < 0.125 * twidth + model_switch_bias) {
-                Eigen::MatrixXd design(npts, order + 1);
-                Eigen::VectorXd v(npts);
+            if (std::abs(mid) < 0.125 * twidth + model_switch_bias) {
+                MatrixXd design(npts, order + 1);
+                VectorXd v(npts);
 
                 double fw = 0.125;
-                if (fabs(mid) >= 0.125 * 0.5 * twidth) {
+                if (std::abs(mid) >= 0.125 * 0.5 * twidth) {
                     fw = 0.250;
                 }
 
@@ -208,12 +215,11 @@ int EsfModelLoss::build_esf(std::vector<Ordered_point>& ordered,
                     design(row, 6) = w * (32 * x6 - 48 * x4 + 18 * x2 - 1);
                 }
                 const double phi =
-                    (fabs(mid) > 0.75 * twidth * 0.125) ? ridge_parm : 5e-8;
-                Eigen::VectorXd sol =
-                    (design.transpose() * design +
-                     phi * Eigen::MatrixXd::Identity(order + 1, order + 1))
-                        .llt()
-                        .solve(design.transpose() * v);
+                    (std::abs(mid) > 0.75 * twidth * 0.125) ? ridge_parm : 5e-8;
+                VectorXd sol = (design.transpose() * design +
+                                phi * MatrixXd::Identity(order + 1, order + 1))
+                                   .llt()
+                                   .solve(design.transpose() * v);
 
                 mean[b] = (sol[0] + sol[4]) * contrast -
                           (sol[2] + sol[6]) * contrast + mean[b - 1];
@@ -225,9 +231,8 @@ int EsfModelLoss::build_esf(std::vector<Ordered_point>& ordered,
                 const double upper_thresh = 2.25 * 0.125 * twidth;
                 const double mid_thresh = 2.0 * 0.125 * twidth;
                 const double lower_thresh = 0.125 * twidth + model_switch_bias;
-                constexpr double min_span =
-                    0.24; // such a narrow interval can produce empty bins,
-                          // handled below
+                // such a narrow interval can produce empty bins, handled below
+                constexpr double min_span = 0.24;
                 constexpr double mid_span = 1.0;
                 constexpr double max_span = 1.5;
                 double span = min_span;
@@ -235,19 +240,19 @@ int EsfModelLoss::build_esf(std::vector<Ordered_point>& ordered,
                     span = max_span;
                 }
                 else {
-                    if (fabs(mid) >= mid_thresh) {
-                        double t = (fabs(mid) - mid_thresh) /
+                    if (std::abs(mid) >= mid_thresh) {
+                        double t = (std::abs(mid) - mid_thresh) /
                                    (upper_thresh - mid_thresh);
                         span = mid_span + t * (max_span - mid_span);
                     }
                     else {
-                        double t = (fabs(mid) - lower_thresh) /
+                        double t = (std::abs(mid) - lower_thresh) /
                                    (mid_thresh - lower_thresh);
                         span = min_span + t * (mid_span - min_span);
                     }
                 }
-                left_it = lower_bound(left_it, right_it, mid - span);
-                right_it = lower_bound(left_it, right_it, mid + span);
+                left_it = std::lower_bound(left_it, right_it, mid - span);
+                right_it = std::lower_bound(left_it, right_it, mid + span);
 
                 double sum = 0;
                 for (auto it = left_it; it != right_it; it++) {

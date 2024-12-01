@@ -5,6 +5,8 @@
 
 #include <glog/logging.h>
 
+using Eigen::VectorXd;
+
 namespace {
 
 // we can safely reduce the number of ridge points because of the
@@ -71,7 +73,7 @@ Distortion_optimizer::Distortion_optimizer(const std::vector<Block>& in_blocks,
     LOG(INFO) << "maxrad = " << maxrad;
 
     // pack initial parameters
-    Eigen::VectorXd init(2);
+    VectorXd init(2);
 
     init[0] = 0;
     init[1] = 0;
@@ -83,8 +85,7 @@ cv::Point2d Distortion_optimizer::get_max_val() const { return max_val; }
 
 void Distortion_optimizer::solve()
 {
-    Eigen::VectorXd scale(best_sol.size());
-
+    VectorXd scale(best_sol.size());
     scale << 1e-2, 1e-2;
 
     double initial_err = evaluate(best_sol, 0.0);
@@ -92,7 +93,7 @@ void Distortion_optimizer::solve()
 
     // TODO: this could be parallelised
     double minerr = 1e30;
-    Eigen::VectorXd v(2);
+    VectorXd v(2);
     for (double k1 = -2; k1 < 2; k1 += 0.5) {
         v[0] = k1;
         for (double k2 = -2; k2 < 2; k2 += 0.5) {
@@ -179,17 +180,15 @@ void Distortion_optimizer::solve()
 cv::Point2d Distortion_optimizer::inv_warp(const cv::Point2d& p,
                                            const Eigen::VectorXd& v)
 {
-    double px = (p.x - prin.x);
-    double py = (p.y - prin.y);
+    auto pt_u = p - prin;
 
-    const double rd = sqrt((px) * (px) + (py) * (py)) / radius_norm;
+    const double rd = cv::norm(pt_u) / radius_norm;
     const double r2 = rd * rd;
     double ru = 1 + (v[0] + v[1] * r2) * r2;
 
-    px = px / ru + prin.x;
-    py = py / ru + prin.y;
+    pt_u = pt_u / ru + prin;
 
-    return {px, py};
+    return pt_u;
 }
 
 double Distortion_optimizer::model_not_invertible(const Eigen::VectorXd& v)
@@ -231,7 +230,7 @@ double Distortion_optimizer::model_not_invertible(const Eigen::VectorXd& v)
 
 double Distortion_optimizer::medcouple(std::vector<float>& x)
 {
-    sort(x.begin(), x.end());
+    std::ranges::sort(x);
 
     double xm = x[x.size() / 2];
     double xscale = 2 * x.back();
@@ -266,19 +265,6 @@ double Distortion_optimizer::medcouple(std::vector<float>& x)
 
     nth_element(h.begin(), h.begin() + h.size() / 2, h.end());
     return h[h.size() / 2];
-}
-
-double weight_penalty(double x)
-{
-    x = fabs(x);
-    if (x > 0.05)
-        return 0.01;
-    if (x < 0.005)
-        return x;
-
-    constexpr double c = 0.05 / 0.045;
-    constexpr double m = -1.0 / 0.045;
-    return x * ((x - 0.005) * m + c + 0.01);
 }
 
 double Distortion_optimizer::evaluate(const Eigen::VectorXd& v, double penalty)
@@ -351,6 +337,20 @@ double Distortion_optimizer::evaluate(const Eigen::VectorXd& v, double penalty)
         }
     }
 
+    auto weight_penalty = [](double x) -> double {
+        x = std::abs(x);
+        if (x > 0.05) {
+            return 0.01;
+        }
+        if (x < 0.005) {
+            return x;
+        }
+
+        constexpr double c = 0.05 / 0.045;
+        constexpr double m = -1.0 / 0.045;
+        return x * ((x - 0.005) * m + c + 0.01);
+    };
+
     merr /= count;
     return merr + penalty * (model_not_invertible(v) * 1e4 +
                              merr * (weight_penalty(v[0]) / 100.0 +
@@ -360,7 +360,7 @@ double Distortion_optimizer::evaluate(const Eigen::VectorXd& v, double penalty)
 void Distortion_optimizer::seed_simplex(Eigen::VectorXd& v,
                                         const Eigen::VectorXd& lambda)
 {
-    np = std::vector<Eigen::VectorXd>(v.size() + 1);
+    np = std::vector<VectorXd>(v.size() + 1);
     // seed the simplex
     for (int i = 0; i < v.size(); i++) {
         np[i] = v;
@@ -368,7 +368,7 @@ void Distortion_optimizer::seed_simplex(Eigen::VectorXd& v,
     }
     np[v.size()] = v;
 
-    ny = Eigen::VectorXd(v.size() + 1);
+    ny = VectorXd(v.size() + 1);
     // now obtain their function values
     for (int i = 0; i < v.size() + 1; i++) {
         ny[i] = evaluate(np[i]);
@@ -388,7 +388,7 @@ void Distortion_optimizer::nelder_mead(double ftol, int& num_evals)
     constexpr int max_allowed_iterations = 5000;
     constexpr double epsilon = 1.0e-10;
 
-    Eigen::VectorXd psum(np[0].size());
+    VectorXd psum(np[0].size());
     num_evals = 0;
     simplex_sum(psum);
 
@@ -425,9 +425,9 @@ void Distortion_optimizer::nelder_mead(double ftol, int& num_evals)
         num_evals += 2;
 
         double ytry = try_solution(psum, ihi, -1.0);
+        // expansion should also be modified
         if (ytry <= ny[ilo]) {
-            ytry = try_solution(psum, ihi,
-                                2.0); // expansion should also be modified
+            ytry = try_solution(psum, ihi, 2.0);
         }
         else {
             if (ytry >= ny[inhi]) {
@@ -456,7 +456,7 @@ double Distortion_optimizer::try_solution(Eigen::VectorXd& psum, int ihi,
 {
     double fac1 = (1.0 - fac) / double(psum.size());
     double fac2 = fac1 - fac;
-    Eigen::VectorXd ptry = psum * fac1 - np[ihi] * fac2;
+    VectorXd ptry = psum * fac1 - np[ihi] * fac2;
     double ytry = evaluate(ptry);
 
     if (ytry < ny[ihi]) {

@@ -2,10 +2,109 @@
 
 #include <format>
 
+#include <Eigen/Dense>
 #include <glog/logging.h>
 
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
+
+Ratpoly_fit::Ratpoly_fit(const std::vector<Sample>& data, int order_n,
+                         int order_m, bool silent)
+    : data(data),
+      order_n(order_n),
+      order_m(order_m),
+      base_value(1.0),
+      ysf(1),
+      pscale(0.1),
+      silent(silent),
+      evaluation_count(0)
+{
+}
+
+int Ratpoly_fit::dimension() const { return (order_n + 1 + order_m); }
+
+double Ratpoly_fit::rpeval(const Eigen::VectorXd& v, double x) const
+{
+    double top_val = v[0];
+    double p = x;
+    for (int n = 1; n <= order_n; n++) {
+        top_val += cheb(n, p) * v[n];
+    }
+    double bot_val = base_value;
+    p = x;
+    for (int m = 0; m < order_m; m++) {
+        bot_val += cheb(m + 1, p) * v[m + order_n + 1];
+    }
+
+    return top_val / bot_val;
+}
+
+Eigen::VectorXd Ratpoly_fit::rp_deriv(const Eigen::VectorXd& v, double x,
+                                      double& f) const
+{
+    // if x falls on a pole, we are in trouble
+    // and should probably just return the zero vector?
+
+    // TODO: we can probably combine this function with rp_deriv_eval ??
+
+    VectorXd dp = VectorXd::Zero(v.rows());
+    VectorXd dq = VectorXd::Zero(v.rows());
+
+    double top_val = v[0];
+    dp[0] = 1;
+    for (int n = 1; n <= order_n; n++) {
+        dp[n] = cheb(n, x);
+        top_val += cheb(n, x) * v[n];
+    }
+    double bot_val = base_value;
+    for (int m = 0; m < order_m; m++) {
+        dq[m + order_n + 1] = cheb(m + 1, x);
+        bot_val += cheb(m + 1, x) * v[m + order_n + 1];
+    }
+
+    double den = bot_val * bot_val;
+    if (den < 1e-12) {
+        return VectorXd::Zero(v.rows());
+    }
+
+    f = top_val / bot_val;
+    den = 1.0 / den;
+
+    return (dp * bot_val - top_val * dq) * den;
+}
+
+double Ratpoly_fit::cheb(int order, double x) const
+{
+    double y = 0;
+    switch (order) {
+        case 0:
+            y = 1;
+            break;
+        case 1:
+            y = x;
+            break;
+        case 2:
+            y = 2 * x * x - 1;
+            break;
+        case 3:
+            y = 4 * x * x * x - 3 * x;
+            break;
+        case 4:
+            y = 8 * x * x * x * x - 8 * x * x + 1;
+            break;
+        case 5:
+            y = 16 * x * x * x * x * x - 20 * x * x * x + 5 * x;
+            break;
+        case 6:
+            y = 32 * x * x * x * x * x * x - 48 * x * x * x * x + 18 * x * x -
+                1;
+            break;
+        default:
+            fprintf(stderr, "Unsupported Cheb poly order requested!\n");
+            break;
+    }
+    return y;
+}
 
 double Ratpoly_fit::evaluate(Eigen::VectorXd& v)
 {
@@ -20,8 +119,9 @@ double Ratpoly_fit::evaluate(Eigen::VectorXd& v)
     return err * 0.5;
 }
 
-VectorXd Ratpoly_fit::gauss_newton_direction(VectorXd& v, VectorXd& deriv,
-                                             double& fsse)
+Eigen::VectorXd Ratpoly_fit::gauss_newton_direction(Eigen::VectorXd& v,
+                                                    Eigen::VectorXd& deriv,
+                                                    double& fsse)
 {
     MatrixXd J(data.size(), v.rows());
     J.setZero();
@@ -47,7 +147,7 @@ VectorXd Ratpoly_fit::gauss_newton_direction(VectorXd& v, VectorXd& deriv,
     return direction;
 }
 
-VectorXd Ratpoly_fit::gauss_newton_armijo(VectorXd& v)
+Eigen::VectorXd Ratpoly_fit::gauss_newton_armijo(Eigen::VectorXd& v)
 {
     const double tau = 0.5;
     const double c = 1e-4;
@@ -62,11 +162,11 @@ VectorXd Ratpoly_fit::gauss_newton_armijo(VectorXd& v)
 
         double target = fx + c * alpha * pk.dot(grad);
 
+        // iteratively step close until we have a
+        // sufficient decrease (Armijo condition)
         int max_steps = 30;
         next = v + alpha * pk;
-        while (evaluate(next) > target &&
-               --max_steps > 0) { // iteratively step close until we have a
-                                  // sufficient decrease (Armijo condition)
+        while (evaluate(next) > target && --max_steps > 0) {
             target = fx + c * alpha * pk.dot(grad);
             alpha *= tau;
             next = v + alpha * pk;
@@ -81,7 +181,7 @@ VectorXd Ratpoly_fit::gauss_newton_armijo(VectorXd& v)
     return v;
 }
 
-double Ratpoly_fit::peak(const VectorXd& v)
+double Ratpoly_fit::peak(const Eigen::VectorXd& v) const
 {
     double xmin = 1e50;
     double xmax = -1e50;
@@ -89,6 +189,7 @@ double Ratpoly_fit::peak(const VectorXd& v)
         xmin = std::min(data[i].x, xmin);
         xmax = std::max(data[i].x, xmax);
     }
+
     // bracket the maximum
     double peak_z = 0;
     double peak_x = (xmin + xmax) * 0.5;
@@ -102,7 +203,7 @@ double Ratpoly_fit::peak(const VectorXd& v)
     }
 
     // golden section search
-    const double phi = 0.61803398874989;
+    constexpr double phi = 0.61803398874989;
     double lower = peak_x - 2 * step;
     double upper = peak_x + 2 * step;
     double c = upper - phi * (upper - lower);
@@ -125,7 +226,7 @@ double Ratpoly_fit::peak(const VectorXd& v)
     return 0.5 * (upper + lower);
 }
 
-bool Ratpoly_fit::has_poles(const VectorXd& v)
+bool Ratpoly_fit::has_poles(const Eigen::VectorXd& v) const
 {
     double xmin = 1e50;
     double xmax = -1e50;

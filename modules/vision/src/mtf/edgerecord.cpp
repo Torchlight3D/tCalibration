@@ -13,14 +13,14 @@ void Edge_record::pool_edges(Edge_record& a, Edge_record& b)
     m.weights.resize(a.weights.size() + b.weights.size());
 
     for (size_t i = 0; i < a.points.size(); i++) {
-        m.points[i].first = a.points[i].first - a.centroid.x;
-        m.points[i].second = a.points[i].second - a.centroid.y;
+        m.points[i].x = a.points[i].x - a.centroid.x;
+        m.points[i].y = a.points[i].y - a.centroid.y;
         m.weights[i] = a.weights[i];
     }
     size_t as = a.points.size();
     for (size_t i = 0; i < b.points.size(); i++) {
-        m.points[i + as].first = b.points[i].first - b.centroid.x;
-        m.points[i + as].second = b.points[i].second - b.centroid.y;
+        m.points[i + as].x = b.points[i].x - b.centroid.x;
+        m.points[i + as].y = b.points[i].y - b.centroid.y;
         m.weights[i + as] = b.weights[i];
     }
 
@@ -42,8 +42,8 @@ bool Edge_record::compatible(const Edge_record& b)
         Z = (slope - b.slope) / sqrt(sB * sB + b.sB * b.sB);
     }
 
-    return fabs(Z) <
-           1.66; // ~90% confidence interval on t-distribution with ~80 dof
+    // ~90% confidence interval on t-distribution with ~80 dof
+    return std::abs(Z) < 1.66;
 }
 
 double Edge_record::relative_orientation(const Edge_record& b)
@@ -51,12 +51,12 @@ double Edge_record::relative_orientation(const Edge_record& b)
     cv::Point2d d1(cos(angle), sin(angle));
     cv::Point2d d2(cos(b.angle), sin(b.angle));
 
-    return fabs(d1.x * d2.x + d1.y * d2.y);
+    return std::abs(d1.ddot(d2));
 }
 
 void Edge_record::add_point(double x, double y, double gx, double gy)
 {
-    points.push_back(std::make_pair(x, y));
+    points.push_back(cv::Point2d(x, y));
     double mag = (gx * gx + gy * gy);
     weights.push_back(mag);
 }
@@ -75,8 +75,8 @@ std::pair<double, double> Edge_record::compute_eigenvector_angle()
 
         if (w > 0) {
             double temp = w + wsum;
-            double delta_x = points[i].first - centroid.x;
-            double delta_y = points[i].second - centroid.y;
+            double delta_x = points[i].x - centroid.x;
+            double delta_y = points[i].y - centroid.y;
             double rx = delta_x * w / temp;
             double ry = delta_y * w / temp;
             centroid.x += rx;
@@ -131,14 +131,16 @@ std::pair<double, double> Edge_record::compute_eigenvector_angle()
 
     angle = atan2(-ev[0], ev[1]);
 
-    return std::make_pair(std::sqrt(std::max(fabs(l1), fabs(l2))),
-                          std::sqrt(std::min(fabs(l1), fabs(l2))));
+    return std::make_pair(std::sqrt(std::max(std::abs(l1), std::abs(l2))),
+                          std::sqrt(std::min(std::abs(l1), std::abs(l2))));
 }
 
 bool Edge_record::reduce()
-{ // compute orientation, and remove weak points
-    if (weights.size() <
-        20) { // not enough points to really extract an edge here
+{
+    // compute orientation, and remove weak points
+
+    // not enough points to really extract an edge here
+    if (weights.size() < 20) {
         angle = 0;
         rsq = 1.0;
         return false;
@@ -155,8 +157,8 @@ bool Edge_record::reduce()
     double total_weight = 0;
 
     for (size_t i = 0; i < points.size(); i++) {
-        double dx = points[i].first - centroid.x;
-        double dy = points[i].second - centroid.y;
+        double dx = points[i].x - centroid.x;
+        double dy = points[i].y - centroid.y;
 
         double dot = dx * dir.x + dy * dir.y;
 
@@ -231,8 +233,8 @@ bool Edge_record::reduce()
 
     // trim weights to 10%-90% region?
     for (size_t i = 0; i < points.size(); i++) {
-        double dx = points[i].first - centroid.x;
-        double dy = points[i].second - centroid.y;
+        double dx = points[i].x - centroid.x;
+        double dy = points[i].y - centroid.y;
 
         double dot = dx * dir.x + dy * dir.y;
         weights[i] = 0;

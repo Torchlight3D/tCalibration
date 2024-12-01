@@ -23,11 +23,6 @@ public:
                std::vector<Ordered_point>& spread, int recon_samples = 64);
 
 private:
-    double angle_reduce(double x);
-
-    double polyeval(double x, const std::vector<double>& a) const;
-
-private:
     std::string wdir;
     std::string prname;
     std::string pfname;

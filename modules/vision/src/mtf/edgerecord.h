@@ -34,7 +34,7 @@ private:
     void renormalize_weights();
 
 private:
-    std::vector<std::pair<double, double>> points;
+    std::vector<cv::Point2d> points;
     std::vector<double> weights;
 
     double wsum;

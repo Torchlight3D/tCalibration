@@ -8,6 +8,29 @@
 #include "samplingrate.h"
 #include "savitzkygolaytables.h"
 
+namespace {
+double angle_reduce(double x)
+{
+    double quad1 = fabs(fmod(x, M_PI / 2.0));
+    if (quad1 > M_PI / 4.0) {
+        quad1 = M_PI / 2.0 - quad1;
+    }
+    quad1 = quad1 / M_PI * 180;
+    return quad1;
+}
+
+double polyeval(double x, const std::vector<double>& a)
+{
+    double px = x;
+    double s = a[0];
+    for (size_t i = 1; i < a.size(); i++) {
+        s += a[i] * px;
+        px *= x;
+    }
+    return s;
+}
+} // namespace
+
 Mtf_renderer_lensprofile::Mtf_renderer_lensprofile(
     const std::string& img_filename, const std::string& wdir,
     const std::string& prof_fname, const std::string& gnuplot_binary,
@@ -72,12 +95,12 @@ void Mtf_renderer_lensprofile::render(const std::vector<Block>& blocks)
                 // contrast /= sin(resolution[j]*M_PI)/(resolution[j]*M_PI); //
                 // TODO: optionally remove photosite aperture / AA MTF
 
-                if (acos(fabs(delta)) / M_PI * 180.0 <
+                if (std::acos(std::abs(delta)) / M_PI * 180.0 <
                     angle_thresh) { // edge perp to tangent
                     meridional[j].push_back(
                         Ordered_point(radial_len, contrast));
                 }
-                if (acos(fabs(delta)) / M_PI * 180 >
+                if (std::acos(std::abs(delta)) / M_PI * 180 >
                     (90 -
                      angle_thresh)) { // edge perp to radial : TODO: check math
                     sagittal[j].push_back(Ordered_point(radial_len, contrast));
@@ -384,13 +407,14 @@ void Mtf_renderer_lensprofile::lsfit(const std::vector<Ordered_point>& in_data,
         for (size_t r = lower_idx; r < upper_idx; r++) {
             double sh = 1.0 / scale;
             double x = (data[r].first - xmid) / x_span;
-            if (fabs(x) > 1)
-                x /= fabs(x);
-            double w = fabs(x) * fabs(x) * fabs(x) / (sh * sh * sh);
-            w = fabs(x) < sh ? (1 - w) * (1 - w) * (1 - w) : 0;
-            w +=
-                sparse_chart ? 0.25 : 0; // if we have very few samples, we must
-                                         // try to use them to bridge the gaps
+            if (std::abs(x) > 1) {
+                x /= std::abs(x);
+            }
+            double w = std::abs(x) * std::abs(x) * std::abs(x) / (sh * sh * sh);
+            w = std::abs(x) < sh ? (1 - w) * (1 - w) * (1 - w) : 0;
+            // if we have very few samples, we must try to use them to bridge
+            // the gaps
+            w += sparse_chart ? 0.25 : 0;
 
             a[0] = w;
             double px = x;
@@ -577,26 +601,4 @@ void Mtf_renderer_lensprofile::lsfit(const std::vector<Ordered_point>& in_data,
         spread[spread.size() - 1 - q].first = recon[q].first;
         spread[spread.size() - 1 - q].second = recon[q].second - smoothed[q];
     }
-}
-
-double Mtf_renderer_lensprofile::angle_reduce(double x)
-{
-    double quad1 = fabs(fmod(x, M_PI / 2.0));
-    if (quad1 > M_PI / 4.0) {
-        quad1 = M_PI / 2.0 - quad1;
-    }
-    quad1 = quad1 / M_PI * 180;
-    return quad1;
-}
-
-double Mtf_renderer_lensprofile::polyeval(double x,
-                                          const std::vector<double>& a) const
-{
-    double px = x;
-    double s = a[0];
-    for (size_t i = 1; i < a.size(); i++) {
-        s += a[i] * px;
-        px *= x;
-    }
-    return s;
 }

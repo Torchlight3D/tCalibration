@@ -170,9 +170,10 @@ void Mtf_renderer_edges::render(const std::vector<Block>& blocks)
                 double min_dist = std::numeric_limits<double>::max();
                 size_t min_edge = 0;
                 for (size_t j = 0; j < 4; j++) {
-                    double perp_dist = fabs((blocks[i].get_edge_centroid(j) -
-                                             blocks[i].get_corner(corder[k]))
-                                                .dot(corn_n));
+                    double perp_dist =
+                        std::abs((blocks[i].get_edge_centroid(j) -
+                                  blocks[i].get_corner(corder[k]))
+                                     .dot(corn_n));
                     if (perp_dist < min_dist) {
                         min_edge = j;
                         min_dist = perp_dist;

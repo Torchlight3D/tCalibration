@@ -19,22 +19,25 @@ void EsfLineSampler::sample(Edge_model &edge_model,
     double min_along_edge = 1e50;
 
     for (const auto &[y, scanline] : scanset) {
-        if (y < border_width || y > geom_img.rows - 1 - border_width)
+        if (y < border_width || y > geom_img.rows - 1 - border_width) {
             continue;
+        }
 
         int rowcode = (y & 1) << 1;
         for (int x = scanline.start; x <= scanline.end; ++x) {
-            if (x < border_width || x > geom_img.cols - 1 - border_width)
+            if (x < border_width || x > geom_img.cols - 1 - border_width) {
                 continue;
+            }
 
             int code = 1 << ((rowcode | (x & 1)) ^ 3);
-            if ((code & cfa_mask) == 0)
+            if ((code & cfa_mask) == 0) {
                 continue;
+            }
 
             cv::Point2d d = cv::Point2d(x, y) - edge_model.get_centroid();
             double perp = d.ddot(edge_model.get_normal());
             double par = d.ddot(edge_model.get_direction());
-            if (fabs(perp) < max_dot && fabs(par) < max_edge_length) {
+            if (std::abs(perp) < max_dot && std::abs(par) < max_edge_length) {
                 local_ordered.push_back(
                     Ordered_point(perp, sampling_img.at<uint16_t>(y, x)));
                 max_along_edge = std::max(max_along_edge, par);

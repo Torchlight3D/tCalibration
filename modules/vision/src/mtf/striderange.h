@@ -8,7 +8,6 @@ public:
     Stride_range(size_t start, size_t end, size_t stride);
 
     size_t begin() const;
-
     size_t end() const;
 
     size_t& increment(size_t& v) const;

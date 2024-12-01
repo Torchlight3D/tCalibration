@@ -1,5 +1,11 @@
 #include "peakdetector.h"
 
+#include "utils.h"
+
+namespace {
+
+} // namespace
+
 Peak_detector::Peak_detector(const std::vector<double>& in_data, size_t in_bins,
                              double in_min_data, double in_max_data)
     : nbins(in_bins),
@@ -80,9 +86,10 @@ void Peak_detector::select_best_n(std::vector<double>& best, size_t in_n,
     std::vector<std::vector<double>> members(4);
     for (const auto& val : data) {
         for (size_t k = 0; k < best.size(); k++) {
-            if (angular_diff(val, best[k]) < il_thresh * range) {
-                if (angular_diff(best[k], min_data) < il_thresh * range &&
-                    val < 0) { // close to minimum
+            if (tl::angular_diff(val, best[k]) < il_thresh * range) {
+                // close to minimum
+                if (tl::angular_diff(best[k], min_data) < il_thresh * range &&
+                    val < 0) {
                     // shift the origin if the peak is anywhere near -pi
                     members[k].push_back(val + 2 * M_PI);
                 }
@@ -107,9 +114,4 @@ void Peak_detector::select_best_n(std::vector<double>& best, size_t in_n,
         }
         best[k] = best_sum / best_count;
     }
-}
-
-double Peak_detector::angular_diff(double a, double b)
-{
-    return acos(cos(a) * cos(b) + sin(a) * sin(b));
 }

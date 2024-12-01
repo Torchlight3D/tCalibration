@@ -294,7 +294,7 @@ bool Block::serialize(FILE *fout) const
             corner_dist[j] = std::pair<double, size_t>(
                 cv::norm(edge_centroids[k] - get_corner(j)), j);
         }
-        std::sort(corner_dist.begin(), corner_dist.end());
+        std::ranges::sort(corner_dist);
         geometric_length[k] = cv::norm(get_corner(corner_dist[0].second) -
                                        get_corner(corner_dist[1].second));
     }

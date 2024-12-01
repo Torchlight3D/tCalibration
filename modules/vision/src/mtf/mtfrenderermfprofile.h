@@ -12,8 +12,7 @@ public:
     Mtf_renderer_mfprofile(Distance_scale& distance_scale,
                            const std::string& wdir,
                            const std::string& prof_fname, const cv::Mat& img,
-                           [[maybe_unused]] bool lpmm_mode = false,
-                           [[maybe_unused]] double pixel_size = 1.0);
+                           bool lpmm_mode = false, double pixel_size = 1.0);
 
     void render(const std::vector<Block>&) override;
 

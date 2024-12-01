@@ -9,19 +9,21 @@
 #include "pava.h"
 #include "samplingrate.h"
 
-// Note: we avoid a virtual call by explicitly calling an inline version of the
-// kernel function
-static inline double local_kernel(double x, double alpha, double scale)
+namespace {
+// Note: we avoid a virtual call by explicitly calling an inline version of
+// the kernel function
+inline double local_kernel(double x, double alpha, double scale)
 {
     constexpr double c = 1.0 / 16.0;
     double ss = alpha * scale;
     const double norm = 1 - fastexp(-ss * c);
-    if (fabs(x) < c) {
+    if (std::abs(x) < c) {
         double base = 2 - 2 * fastexp(-ss * c) * cosh(ss * x);
         return base / (2 * sinh(ss * c) * norm);
     }
-    return fastexp(-ss * fabs(x)) / norm;
+    return fastexp(-ss * std::abs(x)) / norm;
 }
+} // namespace
 
 // Note: this is the generic version of the kernel function that we end up
 // using to construct the MTF correction table
@@ -89,35 +91,34 @@ int EsfModelKernel::build_esf(std::vector<Ordered_point>& ordered,
                 mean[b] += ordered[i].second;
                 weights[b] += 1.0;
             }
+            continue;
         }
-        else {
-            for (int b = left; b <= right; b++) {
-                double w = 1; // in extreme tails, just plain box filter
-                if (std::abs(b - fft_size2) < bwidth * twidth) {
-                    double mid = (b - fft_size2) * 0.125;
-                    if (std::abs(b - fft_size2) < twidth * lwidth) {
-                        // edge transition itself, use preferred low-pass
-                        // function
-                        w = local_kernel(ordered[i].first - mid, kernel_alpha,
-                                         1.0);
-                    }
-                    else {
-                        constexpr double start_factor = 1;
-                        constexpr double end_factor = 0.01;
-                        double alpha =
-                            (fabs(double(b - fft_size2)) / twidth - lwidth) /
-                            (bwidth - lwidth);
-                        double sfactor =
-                            start_factor * (1 - alpha) + end_factor * alpha;
-                        // between edge and tail region, use slightly wider
-                        // low-pass function
-                        w = local_kernel(ordered[i].first - mid, kernel_alpha,
-                                         sfactor);
-                    }
+
+        for (int b = left; b <= right; b++) {
+            double w = 1; // in extreme tails, just plain box filter
+            if (std::abs(b - fft_size2) < bwidth * twidth) {
+                double mid = (b - fft_size2) * 0.125;
+                if (std::abs(b - fft_size2) < twidth * lwidth) {
+                    // edge transition itself, use preferred low-pass
+                    // function
+                    w = local_kernel(ordered[i].first - mid, kernel_alpha, 1.0);
                 }
-                mean[b] += ordered[i].second * w;
-                weights[b] += w;
+                else {
+                    constexpr double start_factor = 1;
+                    constexpr double end_factor = 0.01;
+                    double alpha =
+                        (fabs(double(b - fft_size2)) / twidth - lwidth) /
+                        (bwidth - lwidth);
+                    double sfactor =
+                        start_factor * (1 - alpha) + end_factor * alpha;
+                    // between edge and tail region, use slightly wider
+                    // low-pass function
+                    w = local_kernel(ordered[i].first - mid, kernel_alpha,
+                                     sfactor);
+                }
             }
+            mean[b] += ordered[i].second * w;
+            weights[b] += w;
         }
     }
 
@@ -128,13 +129,17 @@ int EsfModelKernel::build_esf(std::vector<Ordered_point>& ordered,
     for (int i = 0; i < fft_size; i++) {
         sampled[i] = 0;
     }
+
     for (int idx = fft_left - 1; idx <= fft_right + 1; idx++) {
         if (weights[idx] > 0) {
             sampled[idx] = mean[idx] / weights[idx];
+
+            // first non-missing value from left
             if (!left_non_missing) {
-                left_non_missing = idx; // first non-missing value from left
+                left_non_missing = idx;
             }
-            right_non_missing = idx; // last non-missing value
+            // last non-missing value
+            right_non_missing = idx;
         }
         else {
             sampled[idx] = missing;

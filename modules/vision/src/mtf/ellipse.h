@@ -23,24 +23,10 @@ class Component_labeller;
 class Ellipse_detector
 {
 public:
-    Ellipse_detector()
-        : centroid_x(0),
-          centroid_y(0),
-          major_axis(1),
-          minor_axis(1),
-          angle(0),
-          quality(0),
-          fg_fraction(0),
-          valid(false),
-          solid(false),
-          code(-1),
-          _C(3, 3)
-    {
-        _C.setZero();
-    }
+    Ellipse_detector();
+    ~Ellipse_detector();
 
-    ~Ellipse_detector() {}
-
+    // TODO: Not implement?
     static cv::Point2d calculate_centroid(Pointlist& points);
     cv::Point2d centroid() const;
 

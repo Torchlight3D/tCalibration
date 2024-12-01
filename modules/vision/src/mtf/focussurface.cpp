@@ -49,8 +49,9 @@ Focus_surface::Focus_surface(std::vector<Mtf_profile_sample> &data, int order_n,
                 // points
                 double dy = midy - data[i].p.y;
                 // at least 5 mm from centre of chart
-                if (fabs(dy) < 15 && fabs(data[i].p.y) > 5 &&
-                    fabs(data[i].p.x) < 175 && fabs(data[i].p.y) < 136) {
+                if (std::abs(dy) < 15 && std::abs(data[i].p.y) > 5 &&
+                    std::abs(data[i].p.x) < 175 &&
+                    std::abs(data[i].p.y) < 136) {
                     // sdev of 3 mm in y direction
                     double yw = exp(-dy * dy / (2 * 3 * 3));
                     pts_row.push_back(
@@ -66,11 +67,11 @@ Focus_surface::Focus_surface(std::vector<Mtf_profile_sample> &data, int order_n,
             }
 
             // now filter out the really bad outliers
-            const int sh = 4;
-            const double sgw[] = {-21 / 231.0, 14 / 231.0, 39 / 231.0,
-                                  54 / 231.0,  59 / 231.0, 54 / 231.0,
-                                  39 / 231.0,  14 / 231.0, -21 / 231.0};
-            sort(pts_row.begin(), pts_row.end());
+            constexpr int sh = 4;
+            constexpr double sgw[] = {-21 / 231.0, 14 / 231.0, 39 / 231.0,
+                                      54 / 231.0,  59 / 231.0, 54 / 231.0,
+                                      39 / 231.0,  14 / 231.0, -21 / 231.0};
+            std::sort(pts_row.begin(), pts_row.end());
 
             // just pretend our samples are equally spaced
             std::vector<Sample> ndata;
@@ -118,7 +119,8 @@ Focus_surface::Focus_surface(std::vector<Mtf_profile_sample> &data, int order_n,
                                          midy);
                 min_fit_err = merr;
             }
-            if (fabs(midy) < 20 && fabs(merr - min_fit_err) / merr < 1) {
+            if (std::abs(midy) < 20 &&
+                std::abs(merr - min_fit_err) / merr < 1) {
                 best_sol = sol;
                 dummy_data = pts_row;
                 best_fit.order_n = cf.order_n;
@@ -168,7 +170,7 @@ Focus_surface::Focus_surface(std::vector<Mtf_profile_sample> &data, int order_n,
         double wsum = 0;
         for (size_t i = 0; i < peak_pts.size(); i++) {
             double y = cf.rpeval(sol, cf.scale(peak_pts[i].x)) / cf.ysf;
-            double e = fabs(y - peak_pts[i].y);
+            double e = std::abs(y - peak_pts[i].y);
             peak_pts[i].yweight = iweights[i] / std::max(0.0001, e);
 
             if (iter > 3 && e > 20) {
@@ -218,13 +220,12 @@ Focus_surface::Focus_surface(std::vector<Mtf_profile_sample> &data, int order_n,
             mc_curve[y].push_back(x);
         }
     }
-    sort(mc_pf.begin(), mc_pf.end());
-    for (auto it = mc_curve.begin(); it != mc_curve.end(); it++) {
-        sort(it->second.begin(), it->second.end());
-        ridge_p05.push_back(
-            cv::Point2d(it->second[0.05 * it->second.size()], it->first));
-        ridge_p95.push_back(
-            cv::Point2d(it->second[0.95 * it->second.size()], it->first));
+    std::ranges::sort(mc_pf);
+
+    for (auto &[y, curve] : mc_curve) {
+        std::ranges::sort(curve);
+        ridge_p05.push_back(cv::Point2d(curve[0.05 * curve.size()], y));
+        ridge_p95.push_back(cv::Point2d(curve[0.95 * curve.size()], y));
     }
 
     for (double y = -maxy; y < maxy; y += 1) {
@@ -319,12 +320,12 @@ Eigen::VectorXd Focus_surface::rpfit(Ratpoly_fit &cf, bool scale, bool refine)
             }
 
             for (int col = 0; col < tdim; col++) {
-                for (int icol = 0; icol < tdim;
-                     icol++) { // build covariance of design matrix : A'*A
+                for (int icol = 0; icol < tdim; icol++) {
+                    // build covariance of design matrix : A'*A
                     cov(col, icol) += a[col] * a[icol];
                 }
-                b[col] += cf.base_value * a[col] * sp.y * cf.ysf *
-                          w; // build rhs of system : A'*b
+                // build rhs of system : A'*b
+                b[col] += cf.base_value * a[col] * sp.y * cf.ysf * w;
             }
         }
 
