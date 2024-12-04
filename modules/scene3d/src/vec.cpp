@@ -36,9 +36,11 @@ constexpr char kZ[]{"z"};
 Vec Vec::orthogonalVec() const
 {
     // Find smallest component. Keep equal case for null values.
-    if ((fabs(y) >= 0.9 * fabs(x)) && (fabs(z) >= 0.9 * fabs(x)))
+    if ((std::abs(y) >= 0.9 * std::abs(x)) &&
+        (std::abs(z) >= 0.9 * std::abs(x)))
         return {0.0, -z, y};
-    if ((fabs(x) >= 0.9 * fabs(y)) && (fabs(z) >= 0.9 * fabs(y)))
+    if ((std::abs(x) >= 0.9 * std::abs(y)) &&
+        (std::abs(z) >= 0.9 * std::abs(y)))
         return {-z, 0.0, x};
 
     return {-y, x, 0.0};

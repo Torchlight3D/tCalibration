@@ -12,9 +12,9 @@ Focus_surface::Focus_surface(std::vector<Mtf_profile_sample> &data, int order_n,
 {
     double miny = 1e50;
     for (size_t i = 0; i < data.size(); i++) {
-        maxx = std::max(fabs(data[i].p.x), maxx);
-        maxy = std::max(fabs(data[i].p.y), maxy);
-        miny = std::min(fabs(data[i].p.y), miny);
+        maxx = std::max(std::abs(data[i].p.x), maxx);
+        maxy = std::max(std::abs(data[i].p.y), maxy);
+        miny = std::min(std::abs(data[i].p.y), miny);
     }
 
     LOG(INFO) << std::format("chart extents: y:({}, {}) mm, x:({}) mm", miny,
@@ -81,7 +81,7 @@ Focus_surface::Focus_surface(std::vector<Mtf_profile_sample> &data, int order_n,
                     val += sgw[w + sh] * pts_row[i + w].y;
                 }
 
-                if (fabs(val - pts_row[i].y) / val < 0.05) {
+                if (std::abs(val - pts_row[i].y) / val < 0.05) {
                     ndata.push_back(pts_row[i]);
                 }
             }
@@ -119,6 +119,7 @@ Focus_surface::Focus_surface(std::vector<Mtf_profile_sample> &data, int order_n,
                                          midy);
                 min_fit_err = merr;
             }
+
             if (std::abs(midy) < 20 &&
                 std::abs(merr - min_fit_err) / merr < 1) {
                 best_sol = sol;
@@ -287,7 +288,7 @@ Eigen::VectorXd Focus_surface::rpfit(Ratpoly_fit &cf, bool scale, bool refine)
         for (size_t i = 0; i < pts_row.size(); i++) {
             xmin = std::min(xmin, pts_row[i].x);
             xmax = std::max(xmax, pts_row[i].x);
-            ysf = std::max(ysf, fabs(pts_row[i].y));
+            ysf = std::max(ysf, std::abs(pts_row[i].y));
         }
         cf.xs_min = 0.5 * (xmin + xmax);
         cf.xs_scale = 2.0 / (xmax - xmin);

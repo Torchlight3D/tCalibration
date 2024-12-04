@@ -831,8 +831,8 @@ void MultiCheckerBoardDetector::Impl::findModesMeanShift(
         }
     }
 
-    std::sort(modes.begin(), modes.end(),
-              [](const auto &a, const auto &b) { return a.first > b.first; });
+    std::ranges::sort(
+        modes, [](const auto &a, const auto &b) { return a.first > b.first; });
 }
 
 float MultiCheckerBoardDetector::Impl::scoreCorner(

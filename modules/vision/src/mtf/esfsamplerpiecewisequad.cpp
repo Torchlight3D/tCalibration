@@ -5,7 +5,7 @@
 namespace {
 inline double tricube(double d)
 {
-    double w = (1 - fabs(d) * fabs(d) * fabs(d));
+    double w = (1 - std::abs(d) * std::abs(d) * std::abs(d));
     return w * w * w;
 }
 } // namespace

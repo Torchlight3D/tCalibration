@@ -285,13 +285,13 @@ Quaternion Quaternion::slerp(const Quaternion &a, const Quaternion &b, qreal t,
 
     qreal c1, c2;
     // Linear interpolation for close orientations
-    if ((1.0 - fabs(cosAngle)) < 0.01) {
+    if ((1.0 - std::abs(cosAngle)) < 0.01) {
         c1 = 1.0 - t;
         c2 = t;
     }
     else {
         // Spherical interpolation
-        qreal angle = acos(fabs(cosAngle));
+        qreal angle = std::acos(std::abs(cosAngle));
         qreal sinAngle = sin(angle);
         c1 = sin(angle * (1.0 - t)) / sinAngle;
         c2 = sin(angle * t) / sinAngle;

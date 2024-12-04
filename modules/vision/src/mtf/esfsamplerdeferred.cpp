@@ -179,7 +179,7 @@ void EsfDeferredSampler::sample(Edge_model &edge_model,
 
                 perp = (pd - ppd).ddot(lnorm);
             }
-            if (fabs(perp) < max_dot) {
+            if (std::abs(perp) < max_dot) {
                 local_ordered.push_back(
                     Ordered_point(perp, sampling_img.at<uint16_t>(y, x)));
                 max_along_edge = std::max(max_along_edge, par);

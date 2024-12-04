@@ -172,7 +172,7 @@ Eigen::VectorXd Ratpoly_fit::gauss_newton_armijo(Eigen::VectorXd& v)
             next = v + alpha * pk;
         }
 
-        double stepsize = pk.array().abs().maxCoeff() * fabs(alpha);
+        double stepsize = pk.array().abs().maxCoeff() * std::abs(alpha);
         if (stepsize < 5e-8) {
             break;
         }

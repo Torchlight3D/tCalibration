@@ -36,7 +36,7 @@ double Vector2::squareNorm() const
 
 double Vector2::infNorm() const
 {
-    return std::max(fabs(_xyz[0]), fabs(_xyz[1]));
+    return std::max(std::abs(_xyz[0]), std::abs(_xyz[1]));
 }
 
 Vector2 Vector2::mini(const Vector2& v1, const Vector2& v2)

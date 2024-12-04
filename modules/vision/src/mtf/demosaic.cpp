@@ -452,17 +452,17 @@ void simpleDemosaicGreen(cv::Mat& cvimg, cv::Mat& rawimg, bool unbalanced_scene,
                     uint64_t cidx = row * cvimg.cols + col;
                     uint16_t* cvp = cv_base + cidx;
                     if (subset == tss1 || subset == tss2) {
-                        double hgrad = fabs(
+                        double hgrad = std::abs(
                             double(int32_t(cvp[-3]) + 3 * int32_t(cvp[-1]) -
                                    3 * int32_t(cvp[1]) - int32_t(cvp[3])));
                         double vgrad =
-                            fabs(double(int32_t(cvp[-3 * cvimg.cols]) +
-                                        3 * int32_t(cvp[-cvimg.cols]) -
-                                        3 * int32_t(cvp[cvimg.cols]) -
-                                        int32_t(cvp[3 * cvimg.cols])));
+                            std::abs(double(int32_t(cvp[-3 * cvimg.cols]) +
+                                            3 * int32_t(cvp[-cvimg.cols]) -
+                                            3 * int32_t(cvp[cvimg.cols]) -
+                                            int32_t(cvp[3 * cvimg.cols])));
 
                         if (std::max(hgrad, vgrad) < 1 ||
-                            fabs(hgrad - vgrad) / std::max(hgrad, vgrad) <
+                            std::abs(hgrad - vgrad) / std::max(hgrad, vgrad) <
                                 0.1) {
                             *cvp = (int32_t(cvp[-cvimg.cols]) +
                                     int32_t(cvp[cvimg.cols]) +
@@ -473,9 +473,8 @@ void simpleDemosaicGreen(cv::Mat& cvimg, cv::Mat& rawimg, bool unbalanced_scene,
                             double l = (hgrad * hgrad + vgrad * vgrad);
                             if (hgrad > vgrad) {
                                 l = hgrad * hgrad / l;
-                                if (l >
-                                    0.92388 *
-                                        0.92388) { // more horizontal than not
+                                // more horizontal than not
+                                if (l > 0.92388 * 0.92388) {
                                     *cvp = (int32_t(cvp[-cvimg.cols]) +
                                             int32_t(cvp[cvimg.cols])) /
                                            2;
@@ -705,18 +704,18 @@ void geometricDemosaic(cv::Mat& cvimg, cv::Mat& rawimg,
                 int gi_estimate = 0;
 
                 double hgrad =
-                    fabs(double(cvimg.at<uint16_t>(row, col - 3) +
-                                3 * cvimg.at<uint16_t>(row, col - 1) -
-                                3 * cvimg.at<uint16_t>(row, col + 1) -
-                                cvimg.at<uint16_t>(row, col + 3)));
+                    std::abs(double(cvimg.at<uint16_t>(row, col - 3) +
+                                    3 * cvimg.at<uint16_t>(row, col - 1) -
+                                    3 * cvimg.at<uint16_t>(row, col + 1) -
+                                    cvimg.at<uint16_t>(row, col + 3)));
                 double vgrad =
-                    fabs(double(cvimg.at<uint16_t>(row - 3, col) +
-                                3 * cvimg.at<uint16_t>(row - 1, col) -
-                                3 * cvimg.at<uint16_t>(row + 1, col) -
-                                cvimg.at<uint16_t>(row + 3, col)));
+                    std::abs(double(cvimg.at<uint16_t>(row - 3, col) +
+                                    3 * cvimg.at<uint16_t>(row - 1, col) -
+                                    3 * cvimg.at<uint16_t>(row + 1, col) -
+                                    cvimg.at<uint16_t>(row + 3, col)));
 
                 if (std::max(hgrad, vgrad) < 1 ||
-                    fabs(hgrad - vgrad) / std::max(hgrad, vgrad) < 0.001) {
+                    std::abs(hgrad - vgrad) / std::max(hgrad, vgrad) < 0.001) {
                     gi_estimate = (cvimg.at<uint16_t>(row - 1, col) +
                                    cvimg.at<uint16_t>(row + 1, col) +
                                    cvimg.at<uint16_t>(row, col - 1) +
@@ -824,7 +823,7 @@ void geometricDemosaic(cv::Mat& cvimg, cv::Mat& rawimg,
                     double nweight = (n > 4) ? ((n > 8) ? 0.125 : 0.25) : 1;
                     if (botsums[n] > 0) {
                         double a = topsums[n] / botsums[n];
-                        if (fabs(a - a1_0) < 0.5 && a * a1_0 > 0) {
+                        if (std::abs(a - a1_0) < 0.5 && a * a1_0 > 0) {
                             nweight = 1;
                             nneighbours++;
                         }
@@ -837,23 +836,23 @@ void geometricDemosaic(cv::Mat& cvimg, cv::Mat& rawimg,
 
                 double ndiff = 0.;
                 ndiff = std::max(
-                    ndiff, fabs(double(cvimg.at<uint16_t>(row, col - 1)) -
-                                double(cvimg.at<uint16_t>(row, col + 1))));
+                    ndiff, std::abs(double(cvimg.at<uint16_t>(row, col - 1)) -
+                                    double(cvimg.at<uint16_t>(row, col + 1))));
                 ndiff = std::max(
-                    ndiff, fabs(double(cvimg.at<uint16_t>(row, col - 1)) -
-                                double(cvimg.at<uint16_t>(row - 1, col))));
+                    ndiff, std::abs(double(cvimg.at<uint16_t>(row, col - 1)) -
+                                    double(cvimg.at<uint16_t>(row - 1, col))));
                 ndiff = std::max(
-                    ndiff, fabs(double(cvimg.at<uint16_t>(row, col - 1)) -
-                                double(cvimg.at<uint16_t>(row + 1, col))));
+                    ndiff, std::abs(double(cvimg.at<uint16_t>(row, col - 1)) -
+                                    double(cvimg.at<uint16_t>(row + 1, col))));
                 ndiff = std::max(
-                    ndiff, fabs(double(cvimg.at<uint16_t>(row, col + 1)) -
-                                double(cvimg.at<uint16_t>(row - 1, col))));
+                    ndiff, std::abs(double(cvimg.at<uint16_t>(row, col + 1)) -
+                                    double(cvimg.at<uint16_t>(row - 1, col))));
                 ndiff = std::max(
-                    ndiff, fabs(double(cvimg.at<uint16_t>(row, col + 1)) -
-                                double(cvimg.at<uint16_t>(row + 1, col))));
+                    ndiff, std::abs(double(cvimg.at<uint16_t>(row, col + 1)) -
+                                    double(cvimg.at<uint16_t>(row + 1, col))));
                 ndiff = std::max(
-                    ndiff, fabs(double(cvimg.at<uint16_t>(row - 1, col)) -
-                                double(cvimg.at<uint16_t>(row + 1, col))));
+                    ndiff, std::abs(double(cvimg.at<uint16_t>(row - 1, col)) -
+                                    double(cvimg.at<uint16_t>(row + 1, col))));
 
                 double a1 = 0.25;
                 double a2 = 0.25;
@@ -886,7 +885,7 @@ void geometricDemosaic(cv::Mat& cvimg, cv::Mat& rawimg,
 
                 // difference between two interpolants should be small, or we
                 // fall back on the simpler gradient interpolant
-                if (fabs(interp - gi_estimate) > 2 * ndiff) {
+                if (std::abs(interp - gi_estimate) > 2 * ndiff) {
                     outlier_count++;
                     interp = gi_estimate;
                 }
@@ -895,7 +894,8 @@ void geometricDemosaic(cv::Mat& cvimg, cv::Mat& rawimg,
 
                 int proposed = lrint(interp);
 
-                maderr += fabs(double(cvimg.at<uint16_t>(row, col) - proposed));
+                maderr +=
+                    std::abs(double(cvimg.at<uint16_t>(row, col) - proposed));
                 interp_count++;
 
                 cvimg.at<uint16_t>(row, col) = proposed;

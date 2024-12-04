@@ -36,8 +36,8 @@ void EsfQuadSampler::quad_tangency(const cv::Point2d &p,
                         pa / 3.0);
     }
     else { // one real root, two complex roots
-        double A =
-            -std::copysign(std::cbrt(fabs(R) + sqrt(R * R - Q * Q * Q)), R);
+        double A = -std::copysign(
+            std::cbrt(std::abs(R) + std::sqrt(R * R - Q * Q * Q)), R);
         double B = A == 0 ? 0 : Q / A;
         roots.push_back(A + B - pa / 3.0);
     }

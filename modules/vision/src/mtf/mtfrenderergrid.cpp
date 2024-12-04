@@ -110,7 +110,7 @@ void Mtf_renderer_grid::render(const std::vector<Block>& blocks)
         return;
     }
 
-    sort(allvals.begin(), allvals.end());
+    std::ranges::sort(allvals);
     m_upper = allvals[97 * allvals.size() / 100];
     m_lower = allvals[5 * allvals.size() / 100];
 

@@ -495,7 +495,7 @@ int estimateAlignment(const Eigen::ArrayXXd& in_qtVis,
     double d = a + (b - a) / gRatio;
     int iter = 0;
 
-    while (fabs(c - d) > tolerance) {
+    while (std::abs(c - d) > tolerance) {
         // Evaluate function at f(c) and f(d)
         Matrix3d Rsc, Rsd;
         MatrixXd biasc, biasd;

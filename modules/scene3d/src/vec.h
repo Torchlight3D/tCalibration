@@ -70,7 +70,7 @@ public:
     friend Vec operator/(const Vec &a, qreal k)
     {
 #ifndef QT_NO_DEBUG
-        if (fabs(k) < 1.0e-10)
+        if (std::abs(k) < 1.0e-10)
             qWarning("Vec::operator / : dividing by a null value (%f)", k);
 #endif
         return Vec(a.x / k, a.y / k, a.z / k);
@@ -110,7 +110,7 @@ public:
     Vec &operator/=(qreal k)
     {
 #ifndef QT_NO_DEBUG
-        if (fabs(k) < 1.0e-10)
+        if (std::abs(k) < 1.0e-10)
             qWarning("Vec::operator /= : dividing by a null value (%f)", k);
 #endif
         x /= k;

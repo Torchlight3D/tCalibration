@@ -68,7 +68,7 @@ void lroots(const std::vector<cplex>& a, std::vector<cplex>& roots, bool polish)
             ad_v[jj] = ad[jj];
         }
         laguerre(ad_v, x, its);
-        if (fabs(x.imag()) <= 2.0 * EPS * fabs(x.real())) {
+        if (std::abs(x.imag()) <= 2.0 * EPS * std::abs(x.real())) {
             x = cplex(x.real(), 0.0);
         }
         roots[j] = x;

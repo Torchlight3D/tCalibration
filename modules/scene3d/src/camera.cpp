@@ -237,13 +237,14 @@ void Camera::setFrame(ManipulatedCameraFrame *const mcf)
 
 qreal Camera::distanceToSceneCenter() const
 {
-    return fabs((frame()->coordinatesOf(sceneCenter())).z);
+    return std::abs((frame()->coordinatesOf(sceneCenter())).z);
 }
 
 void Camera::getOrthoWidthHeight(GLdouble &halfWidth,
                                  GLdouble &halfHeight) const
 {
-    const qreal dist = orthoCoef_ * fabs(cameraCoordinatesOf(pivotPoint()).z);
+    const qreal dist =
+        orthoCoef_ * std::abs(cameraCoordinatesOf(pivotPoint()).z);
     // fitScreenRegion
     halfWidth = dist * ((aspectRatio() < 1.0) ? 1.0 : aspectRatio());
     halfHeight = dist * ((aspectRatio() < 1.0) ? 1.0 / aspectRatio() : 1.0);
@@ -251,8 +252,9 @@ void Camera::getOrthoWidthHeight(GLdouble &halfWidth,
 
 void Camera::computeProjectionMatrix() const
 {
-    if (projectionMatrixIsUpToDate_)
+    if (projectionMatrixIsUpToDate_) {
         return;
+    }
 
     const qreal ZNear = zNear();
     const qreal ZFar = zFar();
@@ -526,7 +528,7 @@ bool Camera::setSceneCenterFromPixel(const QPoint &pixel)
 
 void Camera::setPivotPoint(const Vec &point)
 {
-    const qreal prevDist = fabs(cameraCoordinatesOf(pivotPoint()).z);
+    const qreal prevDist = std::abs(cameraCoordinatesOf(pivotPoint()).z);
 
     // If frame's RAP is set directly, projectionMatrixIsUpToDate_ should also
     // be set to false to ensure proper recomputation of the ORTHO projection
@@ -536,7 +538,7 @@ void Camera::setPivotPoint(const Vec &point)
     // orthoCoef_ is used to compensate for changes of the pivotPoint, so that
     // the image does not change when the pivotPoint is changed in ORTHOGRAPHIC
     // mode.
-    const qreal newDist = fabs(cameraCoordinatesOf(pivotPoint()).z);
+    const qreal newDist = std::abs(cameraCoordinatesOf(pivotPoint()).z);
     // Prevents division by zero when rap is set to camera position
     if ((prevDist > 1e-9) && (newDist > 1e-9)) {
         orthoCoef_ *= prevDist / newDist;
@@ -558,7 +560,7 @@ qreal Camera::pixelGLRatio(const Vec &position) const
 {
     switch (type()) {
         case Type::Perspective:
-            return 2.0 * fabs((frame()->coordinatesOf(position)).z) *
+            return 2.0 * std::abs((frame()->coordinatesOf(position)).z) *
                    tan(fieldOfView() / 2.0) / screenHeight();
         case Type::Orthographic: {
             GLdouble w, h;
@@ -704,8 +706,8 @@ void Camera::fitSphere(const Vec &center, qreal radius)
 
 void Camera::fitBoundingBox(const Vec &min, const Vec &max)
 {
-    qreal diameter = qMax(fabs(max[1] - min[1]), fabs(max[0] - min[0]));
-    diameter = qMax(fabs(max[2] - min[2]), diameter);
+    qreal diameter = qMax(std::abs(max[1] - min[1]), std::abs(max[0] - min[0]));
+    diameter = qMax(std::abs(max[2] - min[2]), diameter);
     fitSphere(0.5 * (min + max), 0.5 * diameter);
 }
 
@@ -943,17 +945,17 @@ void Camera::setFromProjectionMatrix(const qreal matrix[12])
 // void Camera::setFromProjectionMatrix(const GLdouble *projectionMatrix)
 //{
 //     QString message;
-//     if ((fabs(projectionMatrix[1]) > 1e-3) ||
-//         (fabs(projectionMatrix[2]) > 1e-3) ||
-//         (fabs(projectionMatrix[3]) > 1e-3) ||
-//         (fabs(projectionMatrix[4]) > 1e-3) ||
-//         (fabs(projectionMatrix[6]) > 1e-3) ||
-//         (fabs(projectionMatrix[7]) > 1e-3) ||
-//         (fabs(projectionMatrix[8]) > 1e-3) ||
-//         (fabs(projectionMatrix[9]) > 1e-3))
+//     if ((std::abs(projectionMatrix[1]) > 1e-3) ||
+//         (std::abs(projectionMatrix[2]) > 1e-3) ||
+//         (std::abs(projectionMatrix[3]) > 1e-3) ||
+//         (std::abs(projectionMatrix[4]) > 1e-3) ||
+//         (std::abs(projectionMatrix[6]) > 1e-3) ||
+//         (std::abs(projectionMatrix[7]) > 1e-3) ||
+//         (std::abs(projectionMatrix[8]) > 1e-3) ||
+//         (std::abs(projectionMatrix[9]) > 1e-3))
 //         message = "Non null coefficient in projection matrix - Aborting";
-//     else if ((fabs(projectionMatrix[11] + 1.0) < 1e-5) &&
-//              (fabs(projectionMatrix[15]) < 1e-5)) {
+//     else if ((std::abs(projectionMatrix[11] + 1.0) < 1e-5) &&
+//              (std::abs(projectionMatrix[15]) < 1e-5)) {
 //         if (projectionMatrix[5] < 1e-4) {
 //             message =
 //                 "Negative field of view in Camera::setFromProjectionMatrix";
@@ -962,8 +964,8 @@ void Camera::setFromProjectionMatrix(const qreal matrix[12])
 //             setType(Camera::Perspective);
 //         }
 //     }
-//     else if ((fabs(projectionMatrix[11]) < 1E-5) &&
-//              (fabs(projectionMatrix[15] - 1.0) < 1E-5)) {
+//     else if ((std::abs(projectionMatrix[11]) < 1E-5) &&
+//              (std::abs(projectionMatrix[15] - 1.0) < 1E-5)) {
 //         setType(Camera::Orthographic);
 //     }
 //     else {

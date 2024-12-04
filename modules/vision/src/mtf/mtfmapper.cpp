@@ -1007,7 +1007,7 @@ int main(int argc, char** argv)
                 }
             }
 
-            std::sort(resolutions.begin(), resolutions.end());
+            std::ranges::sort(resolutions);
 
             Mtf_renderer_lensprofile printer(
                 img_filename, wdir, std::string("lensprofile.txt"),

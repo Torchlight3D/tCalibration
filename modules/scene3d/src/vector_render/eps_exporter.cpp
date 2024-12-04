@@ -118,9 +118,9 @@ void EPSExporter::spewPolygone(const Polygone* P, QTextStream& out)
         smooth = false;
 
         for (int i = 1; i < nvertices && !smooth; i++)
-            if (fabs(red - P->sommet3DColor(i).red()) > 0.01 ||
-                fabs(green - P->sommet3DColor(i).green()) > 0.01 ||
-                fabs(blue - P->sommet3DColor(i).blue()) > 0.01)
+            if (std::abs(red - P->sommet3DColor(i).red()) > 0.01 ||
+                std::abs(green - P->sommet3DColor(i).green()) > 0.01 ||
+                std::abs(blue - P->sommet3DColor(i).blue()) > 0.01)
                 smooth = true;
 
         if (smooth && !_blackAndWhite) {
@@ -198,9 +198,9 @@ void EPSExporter::spewSegment(const Segment* S, QTextStream& out)
 
         distance = sqrt(dx * dx + dy * dy);
 
-        absR = fabs(dr);
-        absG = fabs(dg);
-        absB = fabs(db);
+        absR = std::abs(dr);
+        absG = std::abs(dg);
+        absB = std::abs(db);
 
         colormax = std::max(absR, std::max(absG, absB));
         steps = int(

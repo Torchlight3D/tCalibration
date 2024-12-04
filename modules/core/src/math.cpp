@@ -8,7 +8,7 @@ double fast_atan2(double y, double x)
 {
     double coeff_1 = four_pi<double>;
     double coeff_2 = 3 * coeff_1;
-    double abs_y = fabs(y) + 1e-10; // kludge to prevent 0/0 condition
+    double abs_y = std::abs(y) + 1e-10; // kludge to prevent 0/0 condition
 
     double angle;
 

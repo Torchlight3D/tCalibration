@@ -6,20 +6,7 @@
 
 #include "edgeinfo.h"
 #include "orderedpoint.h"
-
-namespace {
-
-double angle_reduce(double x)
-{
-    double quad1 = fabs(fmod(x, M_PI / 2.0));
-    if (quad1 > M_PI / 4.0) {
-        quad1 = M_PI / 2.0 - quad1;
-    }
-    quad1 = quad1 / M_PI * 180;
-    return quad1;
-}
-
-} // namespace
+#include "utils.h"
 
 Mtf_renderer_edges::Mtf_renderer_edges(const std::string& fname,
                                        const std::string& sfrname,
@@ -39,7 +26,7 @@ Mtf_renderer_edges::Mtf_renderer_edges(const std::string& fname,
 {
     // TODO: this is a bit hacky; we should have a separate flag for units ?
     this->metadata.pixel_pitch =
-        fabs(pixel_size - 1) < 1e-6 ? 1000.0 : 1000.0 / pixel_size;
+        std::abs(pixel_size - 1) < 1e-6 ? 1000.0 : 1000.0 / pixel_size;
 }
 
 void Mtf_renderer_edges::render(const std::vector<Block>& blocks)
@@ -197,7 +184,7 @@ void Mtf_renderer_edges::render(const std::vector<Block>& blocks)
                     corners[k].first += 2.0 * M_PI;
                 }
             }
-            sort(corners.begin(), corners.end());
+            std::sort(corners.begin(), corners.end());
             for (size_t k = 0; k < 4; k++) {
                 eorder[k] = int(corners[k].second);
             }
@@ -250,19 +237,19 @@ void Mtf_renderer_edges::render(const std::vector<Block>& blocks)
 
             double edge_angle =
                 atan2(-blocks[i].get_normal(l).x, blocks[i].get_normal(l).y);
-            fprintf(sfrout, "%lf ", angle_reduce(edge_angle));
+            fprintf(sfrout, "%lf ", tl::angle_reduce(edge_angle));
 
             cv::Point2d cent = blocks[i].get_edge_centroid(l);
 
             cv::Point2d dir = cent - centr;
-            if (fabs(norm(dir)) > 1e-12) {
+            if (std::abs(norm(dir)) > 1e-12) {
                 dir = dir * (1.0 / norm(dir));
             }
 
             cv::Point2d norm = blocks[i].get_normal(l);
 
             double delta = dir.x * norm.x + dir.y * norm.y;
-            fprintf(sfrout, "%lf ", acos(fabs(delta)) / M_PI * 180.0);
+            fprintf(sfrout, "%lf ", std::acos(std::abs(delta)) / M_PI * 180.0);
 
             if (output_version >= Output_version::V2) {
                 fprintf(sfrout,

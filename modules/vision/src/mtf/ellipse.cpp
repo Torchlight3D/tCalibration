@@ -125,15 +125,16 @@ int Ellipse_detector::fit(const Component_labeller &cl,
     double i_min = std::min(sqrt(2 * l1), sqrt(2 * l2));
 
     double h = SQR(i_maj - i_min) / SQR(i_maj + i_min);
+
+    // Ramanujan's approximation
     double ell_circ =
-        M_PI * (i_maj + i_min) *
-        (1 + 3 * h / (10 + sqrt(4 - 3 * h))); // Ramanujan's approximation
+        M_PI * (i_maj + i_min) * (1 + 3 * h / (10 + sqrt(4 - 3 * h)));
 
     // early exit when the curve circumference is too different from the
     // expected circumference of a best-fit ellipse estimated using PCA
-    if (fabs(circ / ell_circ - 1) >
-        0.25) { // this might be a fairly tight bound ... maybe it should depend
-                // on the size of the ellipse?
+    // this might be a fairly tight bound ... maybe it should depend
+    // on the size of the ellipse?
+    if (std::abs(circ / ell_circ - 1) > 0.25) {
         return 0;
     }
 
@@ -451,8 +452,8 @@ int Ellipse_detector::_matrix_to_ellipse(Matrix3d &C)
     double Ru = -wCentre / Auu;
     double Rv = -wCentre / Avv;
 
-    Ru = sqrt(fabs(Ru)) * (Ru < 0 ? -1 : 1);
-    Rv = sqrt(fabs(Rv)) * (Rv < 0 ? -1 : 1);
+    Ru = std::sqrt(std::abs(Ru)) * (Ru < 0 ? -1 : 1);
+    Rv = std::sqrt(std::abs(Rv)) * (Rv < 0 ? -1 : 1);
 
     centroid_x = uCentre;
     centroid_y = vCentre;
@@ -501,8 +502,8 @@ bool Ellipse_detector::gradient_check(
         phi_diff.push_back(phi / M_PI * 180 - 90);
     }
 
-    std::sort(phi_diff.begin(), phi_diff.end());
-    const double phi_percentile = 0.9;
+    std::ranges::sort(phi_diff);
+    constexpr double phi_percentile = 0.9;
 
     double phi_delta = phi_diff[phi_percentile * phi_diff.size()];
 

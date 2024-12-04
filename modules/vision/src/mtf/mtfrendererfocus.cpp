@@ -10,6 +10,9 @@
 
 #include "mtf50edgequalityrating.h"
 
+using Eigen::MatrixXd;
+using Eigen::VectorXd;
+
 Mtf_renderer_focus::Mtf_renderer_focus(
     Distance_scale& distance_scale,
     const std::vector<std::pair<cv::Point2d, cv::Point2d>>& sliding_edges,
@@ -72,7 +75,7 @@ void Mtf_renderer_focus::render(const std::vector<Mtf_profile_sample>& samples,
             cv::Point2d wc = distance_scale.estimate_world_coords(
                 samples[i].p.x, samples[i].p.y);
 
-            if (fabs(wc.y) < 20 * psf && fabs(wc.x) < 180 * psf) {
+            if (std::abs(wc.y) < 20 * psf && std::abs(wc.x) < 180 * psf) {
                 mean_y += coord.y;
 
                 double depth = 0;
@@ -226,7 +229,7 @@ void Mtf_renderer_focus::render(const std::vector<Mtf_profile_sample>& samples,
     const double sgw[] = {-21 / 231.0, 14 / 231.0, 39 / 231.0,
                           54 / 231.0,  59 / 231.0, 54 / 231.0,
                           39 / 231.0,  14 / 231.0, -21 / 231.0};
-    sort(data.begin(), data.end());
+    std::sort(data.begin(), data.end());
 
     // just pretend our samples are equally spaced
     std::vector<Sample> ndata;
@@ -245,7 +248,7 @@ void Mtf_renderer_focus::render(const std::vector<Mtf_profile_sample>& samples,
     data = ndata;
 
     Ratpoly_fit cf(data, 4, 2);
-    Eigen::VectorXd sol = rpfit(cf);
+    VectorXd sol = rpfit(cf);
 
     // perform a few steps of IRLS
     double prev_err = 1e50;
@@ -256,7 +259,7 @@ void Mtf_renderer_focus::render(const std::vector<Mtf_profile_sample>& samples,
         dccount = 0;
         for (size_t k = 0; k < data.size(); k++) {
             double y = cf.rpeval(sol, cf.scale(data[k].x)) / cf.ysf;
-            double e = fabs(y - data[k].y);
+            double e = std::abs(y - data[k].y);
             errsum += e * data[k].yweight;
             wsum += data[k].yweight;
             data[k].yweight = 1.0;
@@ -300,12 +303,12 @@ void Mtf_renderer_focus::render(const std::vector<Mtf_profile_sample>& samples,
             mc_data.push_back(data[j]);
         }
         Ratpoly_fit mc_cf(mc_data, 4, 2, true);
-        Eigen::VectorXd mc_sol = rpfit(mc_cf);
+        VectorXd mc_sol = rpfit(mc_cf);
 
         double mc_peak = mc_cf.peak(mc_sol);
         mc_peaks.push_back(mc_peak);
     }
-    sort(mc_peaks.begin(), mc_peaks.end());
+    std::ranges::sort(mc_peaks);
     double mc_p5 = mc_peaks[lrint(n_mc * 0.05)];
     double mc_p95 = mc_peaks[lrint(n_mc * 0.95)];
 
@@ -574,8 +577,8 @@ void Mtf_renderer_focus::render(const std::vector<Mtf_profile_sample>& samples,
                           distance_scale.get_normal_angle_z()));
 
     cv::Scalar zang_col = green;
-    if (fabs(distance_scale.get_normal_angle_z() - 45) < 10) {
-        if (fabs(distance_scale.get_normal_angle_z() - 45) > 5) {
+    if (std::abs(distance_scale.get_normal_angle_z() - 45) < 10) {
+        if (std::abs(distance_scale.get_normal_angle_z() - 45) > 5) {
             zang_col = yellow;
         }
         draw.checkmark(cv::Point2d(25, rpy), zang_col);
@@ -590,8 +593,8 @@ void Mtf_renderer_focus::render(const std::vector<Mtf_profile_sample>& samples,
                           distance_scale.get_normal_angle_y()));
 
     cv::Scalar yang_col = green;
-    if (fabs(distance_scale.get_normal_angle_y()) < 2) {
-        if (fabs(distance_scale.get_normal_angle_y()) > 1) {
+    if (std::abs(distance_scale.get_normal_angle_y()) < 2) {
+        if (std::abs(distance_scale.get_normal_angle_y()) > 1) {
             yang_col = yellow;
         }
         draw.checkmark(cv::Point2d(25, rpy), yang_col);
@@ -673,21 +676,21 @@ Eigen::VectorXd Mtf_renderer_focus::rpfit(Ratpoly_fit& cf, bool scale,
         for (size_t i = 0; i < pts_row.size(); i++) {
             xmin = std::min(xmin, pts_row[i].x);
             xmax = std::max(xmax, pts_row[i].x);
-            ysf = std::max(ysf, fabs(pts_row[i].y));
+            ysf = std::max(ysf, std::abs(pts_row[i].y));
         }
         cf.xs_min = 0.5 * (xmin + xmax);
         cf.xs_scale = 2.0 / (xmax - xmin);
         cf.ysf = ysf = 1.0 / ysf;
     }
 
-    Eigen::VectorXd sol;
+    VectorXd sol;
     bool done = false;
 
     while (!done) {
         int tdim = cf.dimension();
-        Eigen::MatrixXd cov = Eigen::MatrixXd::Zero(tdim, tdim);
-        Eigen::VectorXd b = Eigen::VectorXd::Zero(tdim);
-        Eigen::VectorXd a = Eigen::VectorXd::Zero(tdim);
+        MatrixXd cov = MatrixXd::Zero(tdim, tdim);
+        VectorXd b = VectorXd::Zero(tdim);
+        VectorXd a = VectorXd::Zero(tdim);
 
         for (int iter = 0; iter < 1; iter++) {
             cov.setZero();

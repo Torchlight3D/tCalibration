@@ -35,7 +35,7 @@ bool Edge_record::compatible(const Edge_record& b)
 {
     double Z;
 
-    if (fabs(slope) > 2) {
+    if (std::abs(slope) > 2) {
         Z = (1.0 / slope - 1.0 / b.slope) / sqrt(sB * sB + b.sB * b.sB);
     }
     else {
@@ -111,7 +111,7 @@ std::pair<double, double> Edge_record::compute_eigenvector_angle()
     assert(l >= 0);
 
     double ev[2];
-    if (fabs(covxy) > 1e-10) {
+    if (std::abs(covxy) > 1e-10) {
         ev[0] = l - covyy;
         ev[1] = covxy;
         slope = ev[0] / ev[1]; // TODO: check this?
@@ -210,13 +210,15 @@ bool Edge_record::reduce()
     total_weight = csum;
     int p10idx = 0;
     for (size_t i = 1; i < histo.size(); i++) {
-        if (fabs(histo[i] - 0.1 * csum) < fabs(histo[p10idx] - 0.1 * csum)) {
+        if (std::abs(histo[i] - 0.1 * csum) <
+            std::abs(histo[p10idx] - 0.1 * csum)) {
             p10idx = i;
         }
     }
     int p90idx = histo.size() - 1;
     for (size_t i = histo.size() - 2; i > 0; i--) {
-        if (fabs(histo[i] - 0.9 * csum) < fabs(histo[p90idx] - 0.9 * csum)) {
+        if (std::abs(histo[i] - 0.9 * csum) <
+            std::abs(histo[p90idx] - 0.9 * csum)) {
             p90idx = i;
         }
     }
@@ -239,7 +241,8 @@ bool Edge_record::reduce()
         double dot = dx * dir.x + dy * dir.y;
         weights[i] = 0;
         if (dot >= lower && dot <= upper) {
-            weights[i] = SQR(SQR(inweights[i])) * (1.0 / (10.0 + fabs(dot)));
+            weights[i] =
+                SQR(SQR(inweights[i])) * (1.0 / (10.0 + std::abs(dot)));
         }
     }
     dims = compute_eigenvector_angle();

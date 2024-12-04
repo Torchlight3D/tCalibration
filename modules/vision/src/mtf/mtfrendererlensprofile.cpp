@@ -9,15 +9,6 @@
 #include "savitzkygolaytables.h"
 
 namespace {
-double angle_reduce(double x)
-{
-    double quad1 = fabs(fmod(x, M_PI / 2.0));
-    if (quad1 > M_PI / 4.0) {
-        quad1 = M_PI / 2.0 - quad1;
-    }
-    quad1 = quad1 / M_PI * 180;
-    return quad1;
-}
 
 double polyeval(double x, const std::vector<double>& a)
 {
@@ -350,7 +341,7 @@ void Mtf_renderer_lensprofile::lsfit(const std::vector<Ordered_point>& in_data,
             in_data[in_data.size() - 1 - i].first + 0.015 * x_span,
             in_data[in_data.size() - 1 - i - 1].second));
     }
-    sort(data.begin(), data.end());
+    std::sort(data.begin(), data.end());
 
     int tdim = 2;
     double scale = 5.0;
@@ -482,25 +473,25 @@ void Mtf_renderer_lensprofile::lsfit(const std::vector<Ordered_point>& in_data,
                 // only compute residuals on really close points?
                 double cent_x = data[r].first - xmid;
 
-                if (fabs(cent_x) < 2 * bin_width) {
+                if (std::abs(cent_x) < 2 * bin_width) {
                     double delta =
                         data[r].second - polyeval(cent_x / x_span, x);
-                    residuals.push_back(fabs(delta));
+                    residuals.push_back(std::abs(delta));
                 }
             }
             if (residuals.size() < 10) {
                 for (size_t r = lower_idx; r < upper_idx; r++) {
                     double cent_x = data[r].first - xmid;
 
-                    if (fabs(cent_x) < 4 * bin_width) {
+                    if (std::abs(cent_x) < 4 * bin_width) {
                         double delta =
                             data[r].second - polyeval(cent_x / x_span, x);
-                        residuals.push_back(fabs(delta));
+                        residuals.push_back(std::abs(delta));
                     }
                 }
             }
             if (residuals.size() > 2) {
-                sort(residuals.begin(), residuals.end());
+                std::ranges::sort(residuals);
                 double p90 = residuals[lrint((residuals.size() - 1) * 0.9)];
                 spread[q].first = spread[q].second = p90;
             }

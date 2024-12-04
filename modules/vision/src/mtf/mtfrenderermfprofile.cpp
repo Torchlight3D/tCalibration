@@ -73,8 +73,8 @@ void Mtf_renderer_mfprofile::render(
     //     cv::Point2d coord(d.x * longitudinal.x + d.y * longitudinal.y,
     //                       d.x * transverse.x + d.y * transverse.y);
 
-    //     if (fabs(coord.x - cpx) > covxx * radxf ||
-    //         fabs(coord.y - cpy) > covyy * radyf) {
+    //     if (std::abs(coord.x - cpx) > covxx * radxf ||
+    //         std::abs(coord.y - cpy) > covyy * radyf) {
     //         continue; // point was excluded
     //     }
 

@@ -31,11 +31,12 @@ bool lagsolve(double ru, double k1, double k2, double& root)
     // P(r) = ru*k2*root^4 + ru*k1*root^2 - root + ru = 0
     // we would prefer the smallest positive root
 
-    if (fabs(k1) < 1e-8 && fabs(k2) < 1e-8) {
+    if (std::abs(k1) < 1e-8 && std::abs(k2) < 1e-8) {
         root = ru;
     }
     else {
-        if (fabs(k2) < 1e-8) { // we only have a quadratic
+        // we only have a quadratic
+        if (std::abs(k2) < 1e-8) {
             // a == 1
             double b = -1.0 / (k1 * ru);
             double c = 1.0 / k1;
@@ -47,12 +48,7 @@ bool lagsolve(double ru, double k1, double k2, double& root)
                 root = r2;
             }
             else {
-                if (r2 < 0) {
-                    root = r1;
-                }
-                else {
-                    root = std::min(r1, r2);
-                }
+                root = r2 < 0 ? r1 : std::min(r1, r2);
             }
         }
         else {

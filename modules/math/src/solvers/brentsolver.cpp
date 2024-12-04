@@ -31,7 +31,7 @@ double BrentSolver::solve(Function func, double a, double b)
     double d = e;
 
     while (true) {
-        if (std::fabs(fc) < std::fabs(fb)) {
+        if (std::abs(fc) < std::abs(fb)) {
             a1 = b1;
             b1 = c;
             c = a1;
@@ -40,14 +40,14 @@ double BrentSolver::solve(Function func, double a, double b)
             fc = fa;
         }
 
-        tolerance = 2.0 * kDoubleEps * std::fabs(b1) + t;
+        tolerance = 2.0 * kDoubleEps * std::abs(b1) + t;
         m = 0.5 * (c - b1);
 
-        if ((std::fabs(m) <= tolerance) || (fb == 0.0)) {
+        if ((std::abs(m) <= tolerance) || (fb == 0.0)) {
             break;
         }
 
-        if ((std::fabs(e) < tolerance) || (std::fabs(fa) <= std::fabs(fb))) {
+        if ((std::abs(e) < tolerance) || (std::abs(fa) <= std::abs(fb))) {
             e = m;
             d = e;
         }
@@ -75,8 +75,8 @@ double BrentSolver::solve(Function func, double a, double b)
             s = e;
             e = d;
 
-            if ((2.0 * p < 3.0 * m * q - std::fabs(tolerance * q)) &&
-                (p < std::fabs(0.5 * s * q))) {
+            if ((2.0 * p < 3.0 * m * q - std::abs(tolerance * q)) &&
+                (p < std::abs(0.5 * s * q))) {
                 d = p / q;
             }
             else {
@@ -88,7 +88,7 @@ double BrentSolver::solve(Function func, double a, double b)
         a1 = b1;
         fa = fb;
 
-        if (tolerance < std::fabs(d)) {
+        if (tolerance < std::abs(d)) {
             b1 += d;
         }
         else if (0.0 < m) {

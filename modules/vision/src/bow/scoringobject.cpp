@@ -24,7 +24,7 @@ double L1Scoring::score(const BowVector &v1, const BowVector &v2) const
         const WordValue &wi = v2_it->second;
 
         if (v1_it->first == v2_it->first) {
-            score += fabs(vi - wi) - fabs(vi) - fabs(wi);
+            score += std::abs(vi - wi) - std::abs(vi) - std::abs(wi);
 
             // move v1 and v2 forward
             ++v1_it;

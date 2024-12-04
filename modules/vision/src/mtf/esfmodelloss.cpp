@@ -195,7 +195,7 @@ int EsfModelLoss::build_esf(std::vector<Ordered_point>& ordered,
 
                 size_t row = 0;
                 for (auto it = left_it; it != right_it; it++, row++) {
-                    double d = fabs(it->first - mid);
+                    double d = std::abs(it->first - mid);
                     double w = local_kernel(d, alpha, fw);
 
                     double x = (it->first - mid) / (0.5 * loess_span);
@@ -236,7 +236,7 @@ int EsfModelLoss::build_esf(std::vector<Ordered_point>& ordered,
                 constexpr double mid_span = 1.0;
                 constexpr double max_span = 1.5;
                 double span = min_span;
-                if (fabs(mid) >= upper_thresh) {
+                if (std::abs(mid) >= upper_thresh) {
                     span = max_span;
                 }
                 else {

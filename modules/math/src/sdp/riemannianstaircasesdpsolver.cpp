@@ -270,8 +270,8 @@ bool RiemannianStaircase::EscapeSaddle(double lambda_min,
     // the local second-order model), or at least 2^4 times the minimum
     // admissible. steplength,
     double alpha_min = 1e-6; // Minimum stepsize
-    double alpha =
-        std::max(16 * alpha_min, 10 * gradient_tolerance / fabs(lambda_min));
+    double alpha = std::max(16 * alpha_min,
+                            10 * gradient_tolerance / std::abs(lambda_min));
 
     // Vectors of trial stepsizes and corresponding function values
     std::vector<double> alphas;

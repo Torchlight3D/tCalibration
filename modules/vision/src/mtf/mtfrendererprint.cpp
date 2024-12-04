@@ -24,8 +24,8 @@ void Mtf_renderer_print::render(const std::vector<Block>& blocks)
             if (filter) {
                 double ba = block.get_edge_angle(k);
                 double ad = acos(cos(angle) * cos(ba) + sin(angle) * sin(ba));
-                if (fabs(ad) < 5.0 / 180.0 * M_PI ||
-                    fabs(ad - M_PI) < 5.0 / 180.0 * M_PI) {
+                if (std::abs(ad) < 5.0 / 180.0 * M_PI ||
+                    std::abs(ad - M_PI) < 5.0 / 180.0 * M_PI) {
                     fprintf(fout, "%lf ", val);
                 }
             }

@@ -91,7 +91,7 @@ void Frame::getWorldMatrix(GLdouble m[16]) const
 
 void Frame::setFromMatrix(const GLdouble m[4][4])
 {
-    if (fabs(m[3][3]) < 1e-8) {
+    if (std::abs(m[3][3]) < 1e-8) {
         qWarning("Frame::setFromMatrix: Null homogeneous coefficient");
         return;
     }
@@ -704,7 +704,8 @@ void Frame::alignWithFrame(const Frame *const frame, bool move, qreal threshold)
     index[0] = index[1] = 0;
     for (int i{0}; i < 3; ++i) {
         for (int j{0}; j < 3; ++j) {
-            if ((proj = fabs(directions[0][i] * directions[1][j])) >= maxProj) {
+            if ((proj = std::abs(directions[0][i] * directions[1][j])) >=
+                maxProj) {
                 index[0] = i;
                 index[1] = j;
                 maxProj = proj;
@@ -716,7 +717,7 @@ void Frame::alignWithFrame(const Frame *const frame, bool move, qreal threshold)
     old = *this;
 
     qreal coef = directions[0][index[0]] * directions[1][index[1]];
-    if (fabs(coef) >= threshold) {
+    if (std::abs(coef) >= threshold) {
         const Vec axis =
             cross(directions[0][index[0]], directions[1][index[1]]);
         qreal angle = asin(axis.norm());
@@ -732,7 +733,7 @@ void Frame::alignWithFrame(const Frame *const frame, bool move, qreal threshold)
 
         qreal max{0.};
         for (int i{0}; i < 3; ++i) {
-            qreal proj = fabs(directions[0][i] * dir);
+            qreal proj = std::abs(directions[0][i] * dir);
             if (proj > max) {
                 index[0] = i;
                 max = proj;
@@ -741,7 +742,7 @@ void Frame::alignWithFrame(const Frame *const frame, bool move, qreal threshold)
 
         if (max >= threshold) {
             const Vec axis = cross(directions[0][index[0]], dir);
-            qreal angle = asin(axis.norm());
+            qreal angle = std::asin(axis.norm());
             if (directions[0][index[0]] * dir >= 0.0) {
                 angle = -angle;
             }

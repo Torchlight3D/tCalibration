@@ -102,7 +102,7 @@ void Peak_detector::select_best_n(std::vector<double>& best, size_t in_n,
 
     // compute trimmed mean, discarding <5 and >95 percentiles
     for (size_t k = 0; k < best.size(); k++) {
-        std::sort(members[k].begin(), members[k].end());
+        std::ranges::sort(members[k]);
         double best_sum = 0.0;
         double best_count = 0.0;
         size_t lower = members[k].size() / 20;
