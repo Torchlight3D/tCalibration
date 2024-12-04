@@ -195,9 +195,9 @@ void ManipulatedCameraFrame::zoom(qreal delta, const Camera *const camera)
             translate(delta * direction);
     }
     else {
-        const qreal coef =
-            qMax(fabs((camera->frame()->coordinatesOf(camera->pivotPoint())).z),
-                 qreal(0.2) * sceneRadius);
+        const qreal coef = qMax(
+            std::abs((camera->frame()->coordinatesOf(camera->pivotPoint())).z),
+            qreal(0.2) * sceneRadius);
         Vec trans(0.0, 0.0, -coef * delta);
         translate(inverseTransformOf(trans));
     }
@@ -216,7 +216,8 @@ void ManipulatedCameraFrame::mouseMoveEvent(QMouseEvent *const event,
                 case Camera::Type::Perspective:
                     trans *=
                         2.0 * tan(camera->fieldOfView() / 2.0) *
-                        fabs((camera->frame()->coordinatesOf(pivotPoint())).z) /
+                        std::abs(
+                            (camera->frame()->coordinatesOf(pivotPoint())).z) /
                         camera->screenHeight();
                     break;
                 case Camera::Type::Orthographic: {
@@ -355,7 +356,8 @@ void ManipulatedCameraFrame::mouseMoveEvent(QMouseEvent *const event,
                 case Camera::Type::Perspective:
                     trans *=
                         2.0 * tan(camera->fieldOfView() / 2.0) *
-                        fabs((camera->frame()->coordinatesOf(pivotPoint())).z) /
+                        std::abs(
+                            (camera->frame()->coordinatesOf(pivotPoint())).z) /
                         camera->screenHeight();
                     break;
                 case Camera::Type::Orthographic: {

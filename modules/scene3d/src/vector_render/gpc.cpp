@@ -70,7 +70,7 @@ Copyright: (C) 1997-2004, Advanced Interfaces Group,
 ===========================================================================
 */
 
-#define EQ(a, b) (fabs((a) - (b)) <= GPC_EPSILON)
+#define EQ(a, b) (std::abs((a) - (b)) <= GPC_EPSILON)
 
 #define PREV_INDEX(i, n) ((i - 1 + n) % n)
 #define NEXT_INDEX(i, n) ((i + 1) % n)
@@ -659,7 +659,7 @@ static void add_st_edge(st_node **st, it_node **it, edge_node *edge, double dy)
 
         /* If new edge and ST edge don't cross */
         if ((edge->xt >= (*st)->xt) || (edge->dx == (*st)->dx) ||
-            (fabs(den) <= DBL_EPSILON)) {
+            (std::abs(den) <= DBL_EPSILON)) {
             /* No intersection - insert edge here (before the ST edge) */
             existing_node = *st;
             MALLOC(*st, sizeof(st_node), "ST insertion", st_node);
@@ -1374,9 +1374,9 @@ void gpc_polygon_clip(gpc_op op, gpc_polygon *subj, gpc_polygon *clip,
                         default:
                             break;
                     } /* End of switch */
-                }     /* End of contributing conditional */
-            }         /* End of edge exists conditional */
-        }             /* End of AET loop */
+                } /* End of contributing conditional */
+            } /* End of edge exists conditional */
+        } /* End of AET loop */
 
         /* Delete terminating edges from the AET, otherwise compute xt */
         for (edge = aet; edge; edge = edge->next) {
@@ -1552,7 +1552,7 @@ void gpc_polygon_clip(gpc_op op, gpc_polygon *subj, gpc_polygon *clip,
                         default:
                             break;
                     } /* End of switch */
-                }     /* End of contributing intersection conditional */
+                } /* End of contributing intersection conditional */
 
                 /* Swap bundle sides in response to edge crossing */
                 if (e0->bundle[ABOVE][CLIP])
@@ -1994,9 +1994,9 @@ void gpc_tristrip_clip(gpc_op op, gpc_polygon *subj, gpc_polygon *clip,
                         default:
                             break;
                     } /* End of switch */
-                }     /* End of contributing conditional */
-            }         /* End of edge exists conditional */
-        }             /* End of AET loop */
+                } /* End of contributing conditional */
+            } /* End of edge exists conditional */
+        } /* End of AET loop */
 
         /* Delete terminating edges from the AET, otherwise compute xt */
         for (edge = aet; edge; edge = edge->next) {
@@ -2201,7 +2201,7 @@ void gpc_tristrip_clip(gpc_op op, gpc_polygon *subj, gpc_polygon *clip,
                         default:
                             break;
                     } /* End of switch */
-                }     /* End of contributing intersection conditional */
+                } /* End of contributing intersection conditional */
 
                 /* Swap bundle sides in response to edge crossing */
                 if (e0->bundle[ABOVE][CLIP])

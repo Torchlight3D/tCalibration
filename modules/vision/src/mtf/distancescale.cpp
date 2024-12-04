@@ -238,8 +238,7 @@ void Distance_scale::construct(Mtf_core &mtf_core, bool pose_based,
                     std::make_pair(distance, e.code));
             }
 
-            std::sort(by_distance_from_zero.begin(),
-                      by_distance_from_zero.end());
+            std::ranges::sort(by_distance_from_zero);
 
             // TODO: we should add a check here to discard fiducials that
             // are much further than expected something like a ratio of the
@@ -251,7 +250,7 @@ void Distance_scale::construct(Mtf_core &mtf_core, bool pose_based,
                 first_four.push_back(by_distance_from_zero[i].second);
             }
 
-            std::sort(first_four.begin(), first_four.end());
+            std::ranges::sort(first_four);
             LOG(INFO) << std::format("first four fiducials are: {} {} {} {}",
                                      first_four[0], first_four[1],
                                      first_four[2], first_four[3]);
@@ -437,14 +436,14 @@ void Distance_scale::construct(Mtf_core &mtf_core, bool pose_based,
                     double rot_err = 0;
                     for (int rr = 0; rr < 3; rr++) {
                         for (int cc = 0; cc < 3; cc++) {
-                            rot_err += fabs(rot_matrix.at<double>(rr, cc) -
-                                            RM(rr, cc));
+                            rot_err += std::abs(rot_matrix.at<double>(rr, cc) -
+                                                RM(rr, cc));
                         }
                     }
 
-                    if (rot_err < 0.01 && w > 0.01 &&
-                        w < 18) { // roughly allow 2 mm to 3600 mm focal
-                                  // lengths on a 36 mm wide sensor
+                    // roughly allow 2 mm to 3600 mm focal lengths on a 36 mm
+                    // wide sensor
+                    if (rot_err < 0.01 && w > 0.01 && w < 18) {
                         std::vector<double> residuals;
 
                         Matrix3d RMM(RM);
@@ -542,8 +541,8 @@ void Distance_scale::construct(Mtf_core &mtf_core, bool pose_based,
             LOG(INFO) << std::format(
                 "total solutions: {}, max inlier solutions: {} (#{})",
                 solutions.size(), bpe_list.size(), most_inliers);
-            sort(focal_ratio_list.begin(), focal_ratio_list.end());
-            sort(bpe_list.begin(), bpe_list.end());
+            std::ranges::sort(focal_ratio_list);
+            std::ranges::sort(bpe_list);
 
             double bpe_threshold = bpe_list[0.35 * bpe_list.size()];
             double focal_ratio_min =
@@ -678,13 +677,13 @@ void Distance_scale::construct(Mtf_core &mtf_core, bool pose_based,
                 ba.focal_upper = focal_ratio_max * 1.1;
                 // TODO: a bit crude ...
                 ba.focal_mode_constraint =
-                    acos(fabs(RM(2, 2))) / M_PI * 180 < 15 ? 1.0 : 0.0;
+                    std::acos(std::abs(RM(2, 2))) / M_PI * 180 < 15 ? 1.0 : 0.0;
             }
             else {
                 ba.focal_lower = user_focal_ratio / 1.1;
                 ba.focal_upper = user_focal_ratio * 1.1;
                 ba.focal_mode_constraint =
-                    acos(fabs(RM(2, 2))) / M_PI * 180 < 15 ? 1.0 : 0.0;
+                    std::acos(std::abs(RM(2, 2))) / M_PI * 180 < 15 ? 1.0 : 0.0;
             }
 
             LOG(INFO) << std::format("focal mode = {}, f={}",
@@ -780,7 +779,7 @@ void Distance_scale::construct(Mtf_core &mtf_core, bool pose_based,
             for (size_t i = 0; i < blocks.size(); i++) {
                 by_size.push_back(std::make_pair(blocks[i].get_area(), int(i)));
             }
-            sort(by_size.begin(), by_size.end());
+            std::ranges::sort(by_size);
 
             const int sstart = 5;
             delta_1 = by_size[by_size.size() - 1].first /
@@ -799,13 +798,13 @@ void Distance_scale::construct(Mtf_core &mtf_core, bool pose_based,
                 xp.push_back(blocks[i].centroid.x);
                 yp.push_back(blocks[i].centroid.y);
             }
-            sort(xp.begin(), xp.end());
-            sort(yp.begin(), yp.end());
+            std::ranges::sort(xp);
+            std::ranges::sort(yp);
             double idx_x =
-                (find(xp.begin(), xp.end(), lblock.centroid.x) - xp.begin()) /
+                (std::ranges::find(xp, lblock.centroid.x) - xp.begin()) /
                 double(xp.size());
             double idx_y =
-                (find(yp.begin(), yp.end(), lblock.centroid.y) - yp.begin()) /
+                (std::ranges::find(yp, lblock.centroid.y) - yp.begin()) /
                 double(yp.size());
             LOG(INFO) << std::format("xfrac={}, yfrac={}", idx_x, idx_y);
 
@@ -985,7 +984,7 @@ double Distance_scale::get_normal_angle_y() const
     // what the chart orientation is relative to the sensor,
     // i.e., a 90-degree rotation of the chart (or sensor)
     // is already factored out
-    double yrot = std::max(fabs(rotation(0, 1)), fabs(rotation(1, 1)));
+    double yrot = std::max(std::abs(rotation(0, 1)), std::abs(rotation(1, 1)));
     return acos(yrot) / M_PI * 180;
 }
 

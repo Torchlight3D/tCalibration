@@ -221,7 +221,7 @@ void BSPNode::Classify(Segment *S, Segment *&moins_, Segment *&plus_)
             return;
         }
 
-        double t = fabs(Z1 / (Z2 - Z1));
+        double t = std::abs(Z1 / (Z2 - Z1));
         if ((t < 0.0) || (t > 1.0)) {
             if (t > 1.0) {
                 t = 0.999;
@@ -411,7 +411,7 @@ void BSPNode::Classify(Polygone *P, Polygone *&moins_, Polygone *&plus_)
             double Z1 = Zvals[(k + dep - 1) % n];
             double Z2 = Zvals[(k + dep) % n];
 
-            double t = fabs(Z1 / (Z2 - Z1));
+            double t = std::abs(Z1 / (Z2 - Z1));
 
             if ((t < 0.0) || (t > 1.0)) {
                 if (t > 1.0)

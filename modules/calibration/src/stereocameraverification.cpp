@@ -412,7 +412,7 @@ double StereoCameraVerification::Impl::calcRelativeSizeErrMedian()
     errors.reserve(real_chess_dis_.size());
     for (size_t i{0}; i < real_chess_dis_.size(); i++) {
         errors.emplace_back(
-            fabs(triangulated_chess_dis_[i] / real_chess_dis_[i] - 1.));
+            std::abs(triangulated_chess_dis_[i] / real_chess_dis_[i] - 1.));
     }
 
     return con::FindMedian(errors);

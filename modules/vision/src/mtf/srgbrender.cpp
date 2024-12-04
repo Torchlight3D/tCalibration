@@ -38,7 +38,7 @@ cv::Mat Srgb_render::linear_to_sRGB(const cv::Mat& img)
         csum += histo[minval];
     }
 
-    if (fabs(double(maxval - minval)) < 0.05 * (maximum - minimum)) {
+    if (std::abs(double(maxval - minval)) < 0.05 * (maximum - minimum)) {
         // we are probably looking at a synthetic image with insufficient dark
         // areas to make the 2% threshold meaningful just go with the min/max
         minval = minimum;

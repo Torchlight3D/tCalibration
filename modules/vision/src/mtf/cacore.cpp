@@ -203,17 +203,17 @@ void Ca_core::calculate_ca(Block& block)
         cv::Point2d dir = block.get_edge_centroid(k) - img_centre;
         dir = dir * (1.0 / norm(dir));
         double delta = dir.dot(block.get_normal(k));
-
-        if (fabs(delta) > angle_threshold || mtf_core.is_single_roi() ||
-            allow_all_edges) { // only process CA on tangential edges, unless we
-                               // override this behaviour explicitly
+        // only process CA on tangential edges, unless we
+        // override this behaviour explicitly
+        if (std::abs(delta) > angle_threshold || mtf_core.is_single_roi() ||
+            allow_all_edges) {
             double green_centroid = estimate_centroid(green_lsf[k]);
             double red_ca = estimate_centroid(red_lsf[k]) - green_centroid;
             double blue_ca = estimate_centroid(blue_lsf[k]) - green_centroid;
 
             // choose the correct sign for CA shift, depending on edge
             // orientation
-            if (fabs(delta) > angle_threshold && delta < 0) {
+            if (std::abs(delta) > angle_threshold && delta < 0) {
                 red_ca *= -1;
                 blue_ca *= -1;
             }
@@ -240,12 +240,11 @@ void Ca_core::extract_rgb_lsf_bayer(Block& block, const cv::Mat& img,
         dir = dir * (1.0 / norm(dir));
         double delta = dir.dot(block.get_normal(k));
 
+        // only process CA on tangential edges, unless we override this
+        // behaviour explicitly
         if (!block.get_edge_valid(k) ||
-            (fabs(delta) <= angle_threshold &&
-             !(mtf_core.is_single_roi() ||
-               allow_all_edges))) { // only process CA on tangential edges,
-                                    // unless we override this behaviour
-                                    // explicitly
+            (std::abs(delta) <= angle_threshold &&
+             !(mtf_core.is_single_roi() || allow_all_edges))) {
             continue;
         }
 
@@ -289,12 +288,11 @@ void Ca_core::extract_rgb_lsf(Block& block, const cv::Mat& img,
         dir = dir * (1.0 / norm(dir));
         double delta = dir.dot(block.get_normal(k));
 
+        // only process CA on tangential edges, unless we override this
+        // behaviour explicitly
         if (!block.get_edge_valid(k) ||
-            (fabs(delta) <= angle_threshold &&
-             !(mtf_core.is_single_roi() ||
-               allow_all_edges))) { // only process CA on tangential edges,
-                                    // unless we override this behaviour
-                                    // explicitly
+            (std::abs(delta) <= angle_threshold &&
+             !(mtf_core.is_single_roi() || allow_all_edges))) {
             continue;
         }
 

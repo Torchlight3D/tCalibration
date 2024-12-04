@@ -322,14 +322,14 @@ bool PrimitivePositioning::intersectSegments_XY(const Vector2 &P1,
     double d2 = a2 * (Q1x - P1x) + b2 * (Q1y - P1y);
     double d1 = a1 * (Q2x - P2x) + b1 * (Q2y - P2y);
 
-    if ((fabs(d2) <= fabs(I_EPS)) ||
-        (fabs(d1) <= fabs(I_EPS))) // les segments sont paralleles
-    {
-        if (fabs(a2 * P1x + b2 * P1y - c2) >= I_EPS)
+    // les segments sont paralleles
+    if ((std::abs(d2) <= std::abs(I_EPS)) ||
+        (std::abs(d1) <= std::abs(I_EPS))) {
+        if (std::abs(a2 * P1x + b2 * P1y - c2) >= I_EPS) {
             return false;
+        }
 
         double tP1, tQ1;
-
         if (P1x != Q1x) {
             tP1 = (P2x - P1x) / (Q1x - P1x);
             tQ1 = (Q2x - P1x) / (Q1x - P1x);
@@ -549,7 +549,7 @@ void PrimitivePositioning::split(Polygone *P, const NVector3 &v, double C,
             double Z1 = Zvals[(j + dep - 1) % n];
             double Z2 = Zvals[(j + dep) % n];
 
-            double t = fabs(Z1 / (Z2 - Z1));
+            double t = std::abs(Z1 / (Z2 - Z1));
 
             if ((t < 0.0) || (t > 1.0)) {
                 if (t > 1.0)
@@ -685,7 +685,7 @@ void PrimitivePositioning::split(Segment *S, const NVector3 &v, double C,
     double Z1 = Zvals[0];
     double Z2 = Zvals[1];
 
-    double t = fabs(Z1 / (Z2 - Z1));
+    double t = std::abs(Z1 / (Z2 - Z1));
 
     if ((t < 0.0) || (t > 1.0)) {
         if (t > 1.0)

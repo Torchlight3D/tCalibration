@@ -47,8 +47,6 @@ public:
 protected:
     double get_alpha() const;
 
-    double sinc(double x);
-
 protected:
     double alpha = 13.5;
     std::vector<double> w; // MTF correction weight

@@ -358,7 +358,7 @@ TEST_F(cocFisheyeCameraFixture, CamOdoCalReprojectConsistency)
     int count{0};
     for (int i = 0; i < 100; ++i) {
         Eigen::Vector3d point = Eigen::Vector3d::Random();
-        point(2) = fabs(point(2));
+        point(2) = std::abs(point(2));
 
         Eigen::Vector2d px;
         _camera_coc.spaceToPlane(point, px);

@@ -54,8 +54,8 @@ void ManipulatedFrame::checkIfGrabsMouse(int x, int y,
 {
     const int thresold = 10;
     const Vec proj = camera->projectedCoordinatesOf(position());
-    setGrabsMouse(keepsGrabbingMouse_ || ((fabs(x - proj.x) < thresold) &&
-                                          (fabs(y - proj.y) < thresold)));
+    setGrabsMouse(keepsGrabbingMouse_ || ((std::abs(x - proj.x) < thresold) &&
+                                          (std::abs(y - proj.y) < thresold)));
 }
 
 namespace key {
@@ -208,7 +208,7 @@ qreal ManipulatedFrame::deltaWithPrevPos(QMouseEvent *const event,
     qreal dy =
         qreal(event->position().y() - prevPos_.y()) / camera->screenHeight();
 
-    qreal value = fabs(dx) > fabs(dy) ? dx : dy;
+    qreal value = std::abs(dx) > std::abs(dy) ? dx : dy;
     return value * zoomSensitivity();
 }
 
@@ -258,7 +258,7 @@ void ManipulatedFrame::mouseMoveEvent(QMouseEvent *const event,
                 case Camera::Type::Perspective:
                     trans *=
                         2.0 * tan(camera->fieldOfView() / 2.0) *
-                        fabs((camera->frame()->coordinatesOf(position())).z) /
+                        std::abs(camera->frame()->coordinatesOf(position()).z) /
                         camera->screenHeight();
                     break;
                 case Camera::Type::Orthographic: {
@@ -314,8 +314,8 @@ void ManipulatedFrame::mouseMoveEvent(QMouseEvent *const event,
             switch (camera->type()) {
                 case Camera::Type::Perspective:
                     trans *=
-                        2.0 * tan(camera->fieldOfView() / 2.0) *
-                        fabs((camera->frame()->coordinatesOf(position())).z) /
+                        2.0 * std::tan(camera->fieldOfView() / 2.0) *
+                        std::abs(camera->frame()->coordinatesOf(position()).z) /
                         camera->screenHeight();
                     break;
                 case Camera::Type::Orthographic: {

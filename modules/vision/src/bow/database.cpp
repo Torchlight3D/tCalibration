@@ -443,7 +443,7 @@ void Database::queryKL(const BowVector &vec, QueryResults &ret, int max_results,
             const IFRow &row = m_ifile[vit->first];
 
             if (vi != 0) {
-                if (row.end() == find(row.begin(), row.end(), eid)) {
+                if (row.end() == std::find(row.begin(), row.end(), eid)) {
                     value += vi * (log(vi) - GeneralScoring::LOG_EPS);
                 }
             }

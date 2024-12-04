@@ -4,6 +4,12 @@
 #include <unsupported/Eigen/KroneckerProduct>
 #include <opencv2/core/mat.hpp>
 
+using Eigen::MatrixXd;
+using Eigen::Vector2d;
+using Eigen::Vector3d;
+using Eigen::Vector4d;
+using Eigen::VectorXd;
+
 namespace {
 
 inline double B3(double t)
@@ -47,11 +53,11 @@ Eigen::MatrixXd Cubic_spline_surface::spline_fit(
     const std::vector<Eigen::Vector3d>& in_data, double lambda,
     const Eigen::Vector2d& img_dims, int pruning_threshold)
 {
-    std::vector<Eigen::Vector4d> data(in_data.size());
+    std::vector<Vector4d> data(in_data.size());
 
-    Eigen::Vector2d dmin(0, 0);
-    Eigen::Vector2d dmax(img_dims[0], img_dims[1]);
-    Eigen::MatrixXd occupied(knots_y.size(), knots_x.size());
+    Vector2d dmin(0, 0);
+    Vector2d dmax(img_dims[0], img_dims[1]);
+    MatrixXd occupied(knots_y.size(), knots_x.size());
     occupied.setZero();
 
     cv::Mat occ_count(knots_y.size(), knots_x.size(), CV_32FC1,
@@ -145,8 +151,8 @@ Eigen::MatrixXd Cubic_spline_surface::spline_fit(
         for (int c = 0; c < occupied.cols(); c++) {
             double fill_value = first_val.at<float>(r, c);
             if (occupied(r, c) == 0) {
-                data.push_back(Eigen::Vector4d(
-                    knots_x[c] + 0.5, knots_y[r] + 0.5, fill_value, small_wt));
+                data.push_back(Vector4d(knots_x[c] + 0.5, knots_y[r] + 0.5,
+                                        fill_value, small_wt));
             }
         }
     }
@@ -154,12 +160,12 @@ Eigen::MatrixXd Cubic_spline_surface::spline_fit(
     size_t L = knots_x.size();
     size_t K = knots_y.size();
     size_t m = data.size();
-    Eigen::MatrixXd Bx(m, L);
-    Eigen::MatrixXd By(m, K);
+    MatrixXd Bx(m, L);
+    MatrixXd By(m, K);
 
     // TODO: Actually, we do not need Bx and By at all, and we can probably do
     // an in-place construction directly into C ...
-    Eigen::MatrixXd C;
+    MatrixXd C;
     {
         for (size_t col = 0; col < L; col++) {
             for (size_t row = 0; row < m; row++) {
@@ -172,17 +178,17 @@ Eigen::MatrixXd Cubic_spline_surface::spline_fit(
             }
         }
 
-        C = Eigen::kroneckerProduct(Bx, Eigen::MatrixXd::Ones(1, K))
+        C = Eigen::kroneckerProduct(Bx, MatrixXd::Ones(1, K))
                 .cwiseProduct(
-                    Eigen::kroneckerProduct(Eigen::MatrixXd::Ones(1, L), By));
+                    Eigen::kroneckerProduct(MatrixXd::Ones(1, L), By));
     }
 
-    Eigen::MatrixXd P;
+    MatrixXd P;
     {
-        Eigen::MatrixXd Px;
-        Eigen::MatrixXd Py;
+        MatrixXd Px;
+        MatrixXd Py;
         {
-            Eigen::MatrixXd Dx = Eigen::MatrixXd::Zero(L - 1, L);
+            MatrixXd Dx = MatrixXd::Zero(L - 1, L);
             for (size_t col = 0; col < L - 1; col++) {
                 double scale = knots_x[col] >= -1 ? 1.0 : 0.5;
                 Dx(col, col) = -scale;
@@ -192,7 +198,7 @@ Eigen::MatrixXd Cubic_spline_surface::spline_fit(
         }
 
         {
-            Eigen::MatrixXd Dy = Eigen::MatrixXd::Zero(K - 1, K);
+            MatrixXd Dy = MatrixXd::Zero(K - 1, K);
             for (size_t col = 0; col < K - 1; col++) {
                 double scale = knots_y[col] >= -1 ? 1.0 : 0.5;
                 Dy(col, col) = -scale;
@@ -201,12 +207,12 @@ Eigen::MatrixXd Cubic_spline_surface::spline_fit(
             Py = Dy.transpose() * Dy;
         }
 
-        P = Eigen::kroneckerProduct(Eigen::MatrixXd::Identity(K, K), Px) +
-            Eigen::kroneckerProduct(Eigen::MatrixXd::Identity(L, L), Py);
+        P = Eigen::kroneckerProduct(MatrixXd::Identity(K, K), Px) +
+            Eigen::kroneckerProduct(MatrixXd::Identity(L, L), Py);
     }
 
-    Eigen::VectorXd rhs(m);
-    Eigen::VectorXd W(m);
+    VectorXd rhs(m);
+    VectorXd W(m);
     for (size_t i = 0; i < data.size(); i++) {
         rhs[i] = data[i][2];
         W[i] = data[i][3];
@@ -218,11 +224,11 @@ Eigen::MatrixXd Cubic_spline_surface::spline_fit(
         lambda *= 10;
     }
 
-    Eigen::VectorXd sol = (C.transpose() * W.asDiagonal() * C + lambda * P)
-                              .colPivHouseholderQr()
-                              .solve(C.transpose() * W.asDiagonal() * rhs);
+    VectorXd sol = (C.transpose() * W.asDiagonal() * C + lambda * P)
+                       .colPivHouseholderQr()
+                       .solve(C.transpose() * W.asDiagonal() * rhs);
 
-    Eigen::MatrixXd grid(ncells_y, ncells_x);
+    MatrixXd grid(ncells_y, ncells_x);
     grid.setZero();
     for (size_t gc = 0; gc < (size_t)grid.cols(); gc++) {
         double px = double(gc) * kmax_x / (grid.cols());

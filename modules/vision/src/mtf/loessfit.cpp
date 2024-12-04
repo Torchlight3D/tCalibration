@@ -26,7 +26,7 @@ double loess_core(std::vector<Ordered_point>& ordered, size_t start_idx,
                            mid - ordered[start_idx].first);
     std::vector<double> sig(n, 1.0);
     for (int i = 0; i < n; i++) {
-        double d = fabs((ordered[i + start_idx].first - mid) / span) / 1.2;
+        double d = std::abs((ordered[i + start_idx].first - mid) / span) / 1.2;
         if (d > 1.0) {
             sig[i] = 20;
         }
@@ -61,7 +61,7 @@ double loess_core(std::vector<Ordered_point>& ordered, size_t start_idx,
     for (int i = 0; i < n; i++) {
         double r = (ordered[i + start_idx].first * sol.y + sol.x) -
                    ordered[i + start_idx].second;
-        rsq += fabs(r); // m-estimate of goodness-of-fit
+        rsq += std::abs(r); // m-estimate of goodness-of-fit
     }
     return rsq / double(n);
 }

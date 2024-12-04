@@ -7,6 +7,11 @@
 
 #include "samplingrate.h"
 
+namespace {
+// TODO: Put into math module
+inline double sinc(double x) { return x == 0 ? 1 : std::sin(x) / x; }
+} // namespace
+
 const std::array<std::string, 2> EsfModel::esf_model_names = {
     {"kernel", "loess"}};
 
@@ -179,18 +184,17 @@ retry:
     // compute central peak magnitude and sign
     double central_peak = 0;
     for (int w = -16; w <= 16; w++) {
-        if (fabs(slopes[fft_size2 + w]) > fabs(central_peak)) {
+        if (std::abs(slopes[fft_size2 + w]) > std::abs(central_peak)) {
             central_peak = slopes[fft_size2 + w];
         }
     }
-
-    double peak_threshold =
-        fabs(central_peak * 0.001); // must be negative by at least a little bit
+    // must be negative by at least a little bit
+    double peak_threshold = std::abs(central_peak * 0.001);
     // scan for significant slope sign change
     bool clipped = false;
     for (int idx = fft_size2 - 16; idx >= fft_left + 4; idx--) {
         if (slopes[idx] * central_peak < 0 &&
-            fabs(slopes[idx]) > peak_threshold) {
+            std::abs(slopes[idx]) > peak_threshold) {
             // check if a fair number of the remaining slopes are also negative
             // (relative to peak)
             int below = 0;
@@ -199,11 +203,12 @@ retry:
             for (int j = idx; j >= fft_left; j--) {
                 if (slopes[j] * central_peak < 0) {
                     below++;
-                    maxdev = std::max(maxdev, fabs(slopes[j]));
+                    maxdev = std::max(maxdev, std::abs(slopes[j]));
                 }
                 scount++;
             }
-            if ((below > scount * 0.4 && maxdev / fabs(central_peak) > 0.25) ||
+            if ((below > scount * 0.4 &&
+                 maxdev / std::abs(central_peak) > 0.25) ||
                 (below > 0.9 * scount && scount > 16)) {
                 fft_left = std::min(idx, fft_size2 - 2 * 8);
                 clipped = true;
@@ -213,7 +218,7 @@ retry:
     }
     for (int idx = fft_size2 + 16; idx < fft_right - 4; idx++) {
         if (slopes[idx] * central_peak < 0 &&
-            fabs(slopes[idx]) > peak_threshold) {
+            std::abs(slopes[idx]) > peak_threshold) {
             // check if a fair number of the remaining slopes are also negative
             // (relative to peak)
             int below = 0;
@@ -222,11 +227,12 @@ retry:
             for (int j = idx; j < fft_right; j++) {
                 if (slopes[j] * central_peak < 0) {
                     below++;
-                    maxdev = std::max(maxdev, fabs(slopes[j]));
+                    maxdev = std::max(maxdev, std::abs(slopes[j]));
                 }
                 scount++;
             }
-            if ((below > scount * 0.4 && maxdev / fabs(central_peak) > 0.25) ||
+            if ((below > scount * 0.4 &&
+                 maxdev / std::abs(central_peak) > 0.25) ||
                 (below > 0.9 * scount && scount > 16)) {
                 fft_right = std::max(idx, fft_size2 + 2 * 8);
                 clipped = true;
@@ -406,6 +412,3 @@ const std::vector<double>& EsfModel::get_correction() const { return w; }
 void EsfModel::set_monotonic_filter(bool b) { apply_monotonic_filter = b; }
 
 double EsfModel::get_alpha() const { return alpha; }
-
-// TODO: Put into math module
-double EsfModel::sinc(double x) { return x == 0 ? 1 : sin(x) / x; }

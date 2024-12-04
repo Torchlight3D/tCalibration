@@ -32,7 +32,7 @@ void interpolate_grid(const Grid_functor& ftor, Edge_type target_edge_type,
 
                 Edge_type edge_type = NEITHER;
                 if (target_edge_type == MERIDIONAL) {
-                    if (fabs(delta) > cos(45.0 / 180 * M_PI)) {
+                    if (std::abs(delta) > cos(45.0 / 180 * M_PI)) {
                         edge_type = MERIDIONAL;
                     }
                     else {
@@ -40,7 +40,7 @@ void interpolate_grid(const Grid_functor& ftor, Edge_type target_edge_type,
                     }
                 }
                 else if (target_edge_type == SAGITTAL) {
-                    if (fabs(delta) > cos(45.0 / 180 * M_PI)) {
+                    if (std::abs(delta) > cos(45.0 / 180 * M_PI)) {
                         edge_type = MERIDIONAL;
                     }
                     else {
@@ -51,8 +51,9 @@ void interpolate_grid(const Grid_functor& ftor, Edge_type target_edge_type,
                 int ly = lrint(cent.y * (grid_fine.rows - 1) / img_dims.height);
                 int lx = lrint(cent.x * (grid_fine.cols - 1) / img_dims.width);
 
-                if ((fabs(grid_fine.at<float>(ly, ly) - ftor.nodata()) < 1e-6 ||
-                     fabs(val) > fabs(grid_fine.at<float>(ly, lx))) &&
+                if ((std::abs(grid_fine.at<float>(ly, ly) - ftor.nodata()) <
+                         1e-6 ||
+                     std::abs(val) > std::abs(grid_fine.at<float>(ly, lx))) &&
                     edge_type == target_edge_type) { // max composite
                     grid_fine.at<float>(ly, lx) = val;
                 }
@@ -79,7 +80,7 @@ void interpolate_grid(const Grid_functor& ftor, Edge_type target_edge_type,
         }
     }
 
-    std::sort(all_vals.begin(), all_vals.end());
+    std::ranges::sort(all_vals);
     double m_upper = all_vals[97 * all_vals.size() / 100];
     double m_lower = all_vals[5 * all_vals.size() / 100];
     m_upper = upper < -100 ? global_max : upper;

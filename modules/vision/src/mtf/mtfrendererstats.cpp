@@ -83,8 +83,8 @@ void Mtf_renderer_stats::render(const std::vector<Mtf_profile_sample>& samples)
 void Mtf_renderer_stats::print_stats(std::vector<double>& unfiltered,
                                      std::vector<double>& filtered)
 {
-    sort(filtered.begin(), filtered.end());
-    sort(unfiltered.begin(), unfiltered.end());
+    std::ranges::sort(filtered);
+    std::ranges::sort(unfiltered);
 
     LOG(INFO) << std::format(
         "    Quantiles ->                   %5d%% %5d%% %5d%% "

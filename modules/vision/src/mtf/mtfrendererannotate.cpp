@@ -38,8 +38,8 @@ std::vector<double> calculate_edge_lengths(const Block& block)
             for (size_t j = 0; j < 4; j++) {
                 cv::Point2d delta = block.get_edge_centroid(k) - base[j];
                 double dist = delta.dot(n[j]) / (n[j].dot(n[j]));
-                if (fabs(dist) < min_dist) {
-                    min_dist = fabs(dist);
+                if (std::abs(dist) < min_dist) {
+                    min_dist = std::abs(dist);
                     min_j = j;
                 }
             }
@@ -135,7 +135,7 @@ void Mtf_renderer_annotate::render(const std::vector<Block>& blocks)
             }
         }
     }
-    sort(edge_length_stats.begin(), edge_length_stats.end());
+    std::ranges::sort(edge_length_stats);
     double quantile_edge_length = 0;
     if (edge_length_stats.size() > 0) {
         quantile_edge_length =
@@ -148,7 +148,7 @@ void Mtf_renderer_annotate::render(const std::vector<Block>& blocks)
     for (size_t i = 0; i < blocks.size(); i++) {
         std::vector<double>& edge_lengths = all_edge_lengths[i];
         std::vector<double> ordered_edge_lengths(edge_lengths);
-        std::sort(ordered_edge_lengths.begin(), ordered_edge_lengths.end());
+        std::ranges::sort(ordered_edge_lengths);
         double mean_edge_length =
             (ordered_edge_lengths[0] +
              ordered_edge_lengths[1 % ordered_edge_lengths.size()] +

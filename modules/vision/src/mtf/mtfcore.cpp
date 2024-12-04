@@ -19,11 +19,14 @@
 #include "mtf50edgequalityrating.h"
 #include "peakdetector.h"
 #include "pointhelpers.h"
-
 #include "savitzkygolaytables.h"
+#include "utils.h"
 
+namespace {
 // global lock to prevent race conditions on detected_blocks
 static std::mutex global_mutex;
+
+} // namespace
 
 class Rect_roi
 {
@@ -319,8 +322,8 @@ void Mtf_core::search_borders(const cv::Point2d &cent, int label)
                 int ix = lrint(x);
                 if (iy >= 0 && iy < img.rows && ix >= 0 && ix < img.cols &&
                     std::abs(d.ddot(rrect.normals[k])) < perp_threshold) {
-                    edge_record[k].add_point(x, y, fabs(g.grad_x(ix, iy)),
-                                             fabs(g.grad_y(ix, iy)));
+                    edge_record[k].add_point(x, y, std::abs(g.grad_x(ix, iy)),
+                                             std::abs(g.grad_y(ix, iy)));
                 }
 
                 if (iy >= 0 && iy < img.rows && ix >= 0 && ix < img.cols) {
@@ -379,8 +382,9 @@ void Mtf_core::search_borders(const cv::Point2d &cent, int label)
 
                     cv::Point2d d = p - newrect.centroids[k];
                     if (std::abs(d.ddot(newrect.normals[k])) < perp_threshold) {
-                        edge_record[k].add_point(x, y, fabs(g.grad_x(ix, iy)),
-                                                 fabs(g.grad_y(ix, iy)));
+                        edge_record[k].add_point(x, y,
+                                                 std::abs(g.grad_x(ix, iy)),
+                                                 std::abs(g.grad_y(ix, iy)));
                     }
 
                     auto it = scansets[k].find(iy);
@@ -479,7 +483,7 @@ void Mtf_core::search_borders(const cv::Point2d &cent, int label)
         }
     }
 
-    std::sort(pairs.begin(), pairs.end());
+    std::ranges::sort(pairs);
     for (const auto &pair : pairs) {
         int e1 = pair.second.first;
         int e2 = pair.second.second;
@@ -537,7 +541,7 @@ void Mtf_core::search_borders(const cv::Point2d &cent, int label)
                                 edge_length, sfr, esf, snr);
         }
 
-        allzero &= fabs(mtf50) < 1e-6;
+        allzero &= std::abs(mtf50) < 1e-6;
 
         if (mtf50 <= 1.2) { // reject mtf values above 1.2, since these are
                             // impossible, and likely to be erroneous
@@ -580,7 +584,7 @@ std::vector<Block> &Mtf_core::get_blocks()
     for (const auto &[_, block] : shared_blocks_map) {
         bool allzero = true;
         for (int k = 0; k < 4 && allzero; k++) {
-            if (fabs(block.get_mtf50_value(k)) > 1e-6) {
+            if (std::abs(block.get_mtf50_value(k)) > 1e-6) {
                 allzero = false;
             }
         }
@@ -617,7 +621,7 @@ bool Mtf_core::extract_rectangle(const cv::Point2d &cent, int label,
 
     Peak_detector pd(thetas, 360 / 5.0);
     pd.select_best_n(main_thetas, 4);
-    std::sort(main_thetas.begin(), main_thetas.end());
+    std::ranges::sort(main_thetas);
 
     rect = Mrectangle(main_thetas, thetas, points, g, label, 5.0 / 180.0 * M_PI,
                       allow_partial);
@@ -647,16 +651,6 @@ bool Mtf_core::homogenous(const cv::Point2d & /*cent*/, int label,
     return !fail;
 }
 
-static double angle_reduce(double x)
-{
-    double quad1 = fabs(fmod(x, M_PI / 2.0));
-    if (quad1 > M_PI / 4.0) {
-        quad1 = M_PI / 2.0 - quad1;
-    }
-    quad1 = quad1 / M_PI * 180;
-    return quad1;
-}
-
 double Mtf_core::compute_mtf(Edge_model &edge_model,
                              const std::map<int, scanline> &scanset,
                              double &quality, double &edge_length,
@@ -680,7 +674,7 @@ double Mtf_core::compute_mtf(Edge_model &edge_model,
 #ifdef MDEBUG
     // The noise is added sequentially, row-by-row, which should be most similar
     // to the way noise is added in mtf_generate_rectangle
-    if (fabs(noise_sd) > 1e-8) {
+    if (std::abs(noise_sd) > 1e-8) {
         std::mt19937 mt(noise_seed);
         std::normal_distribution<double> d(0.0, 65536.0 * noise_sd);
         for (auto it = ordered.begin(); it != ordered.end(); it++) {
@@ -689,7 +683,7 @@ double Mtf_core::compute_mtf(Edge_model &edge_model,
     }
 #endif
 
-    sort(ordered.begin(), ordered.end());
+    std::sort(ordered.begin(), ordered.end());
 
     if (ordered.size() < 10) {
         quality = 0; // this edge is not usable in any way
@@ -709,10 +703,10 @@ double Mtf_core::compute_mtf(Edge_model &edge_model,
     }
     afft.realfft(fft_out_buffer.data());
 
-    double quad = angle_reduce(
-        atan2(edge_model.get_direction().y, edge_model.get_direction().x));
+    double quad = tl::angle_reduce(
+        std::atan2(edge_model.get_direction().y, edge_model.get_direction().x));
 
-    double n0 = fabs(fft_out_buffer[0]);
+    double n0 = std::abs(fft_out_buffer[0]);
     magnitude[0] = 1.0;
     for (int i = 1; i < NYQUIST_FREQ * 4; i++) {
         magnitude[i] =
@@ -745,7 +739,7 @@ double Mtf_core::compute_mtf(Edge_model &edge_model,
                 uw_phase[2] = 0;
             }
 
-            if (idx > 3 && fabs(uw_phase[2] - uw_phase[0]) > M_PI / 2.0 &&
+            if (idx > 3 && std::abs(uw_phase[2] - uw_phase[0]) > M_PI / 2.0 &&
                 last_change < idx - 1 && magnitude[idx] < 0.5) {
                 current_sign *= -1;
                 last_change = idx;
@@ -800,8 +794,8 @@ double Mtf_core::compute_mtf(Edge_model &edge_model,
                 smoothed[idx] = magnitude[idx];
             }
 
-            assert(fabs(magnitude[0] - 1.0) < 1e-6);
-            assert(fabs(smoothed[0] - 1.0) < 1e-6);
+            assert(std::abs(magnitude[0] - 1.0) < 1e-6);
+            assert(std::abs(smoothed[0] - 1.0) < 1e-6);
             for (int idx = 0; idx < NYQUIST_FREQ * 4; idx++) {
                 magnitude[idx] = smoothed[idx] / smoothed[0];
             }
@@ -876,7 +870,7 @@ double Mtf_core::compute_mtf(Edge_model &edge_model,
         }
     }
 
-    if (!done || fabs(quad) < 0.1) {
+    if (!done || std::abs(quad) < 0.1) {
         mtf50 = 0.125;
     }
     mtf50 *= 8;
@@ -897,7 +891,7 @@ double Mtf_core::compute_mtf(Edge_model &edge_model,
         quality = poor_quality;
     }
 
-    if (fabs(quad - 26.565051) < 1) {
+    if (std::abs(quad - 26.565051) < 1) {
         quality = medium_quality;
     }
 
@@ -930,7 +924,7 @@ void Mtf_core::process_with_sliding_window(Mrectangle &rrect)
         dims.push_back(std::make_pair(
             norm(corners[corner_map[k][0]] - corners[corner_map[k][1]]), k));
     }
-    sort(dims.begin(), dims.end());
+    std::ranges::sort(dims);
 
     int v1 = dims[3].second;
     int v2 = dims[2].second;
@@ -1007,8 +1001,8 @@ void Mtf_core::process_with_sliding_window(Mrectangle &rrect)
                     pdot < (edge_len - 5)) {
                     int iy = lrint(y);
                     int ix = lrint(x);
-                    edge_record.add_point(x, y, fabs(g.grad_x(ix, iy)),
-                                          fabs(g.grad_y(ix, iy)));
+                    edge_record.add_point(x, y, std::abs(g.grad_x(ix, iy)),
+                                          std::abs(g.grad_y(ix, iy)));
                 }
             }
         }
@@ -1098,8 +1092,9 @@ void Mtf_core::process_with_sliding_window(Mrectangle &rrect)
                         int iy = lrint(y);
                         int ix = lrint(x);
                         if (std::abs(gd.ddot(n)) < 14) {
-                            edge_record.add_point(x, y, fabs(g.grad_x(ix, iy)),
-                                                  fabs(g.grad_y(ix, iy)));
+                            edge_record.add_point(x, y,
+                                                  std::abs(g.grad_x(ix, iy)),
+                                                  std::abs(g.grad_y(ix, iy)));
                         }
 
                         min_p = std::min(min_p, pdot);
@@ -1215,8 +1210,8 @@ void Mtf_core::process_image_as_roi(const cv::Rect &bounds,
             if (!roi.inside(col, row))
                 continue;
 
-            er.add_point(col, row, fabs(g.grad_x(col, row)),
-                         fabs(g.grad_y(col, row)));
+            er.add_point(col, row, std::abs(g.grad_x(col, row)),
+                         std::abs(g.grad_y(col, row)));
 
             if (scanset.find(row) == scanset.end()) {
                 scanset[row] = scanline(col, col);
@@ -1309,8 +1304,8 @@ void Mtf_core::process_image_as_roi(const cv::Rect &bounds,
             if (std::abs(d.ddot(normal)) < 12) {
                 int idx = row * img.cols + col;
                 if (!binary_search(skiplist.begin(), skiplist.end(), idx)) {
-                    er.add_point(col, row, fabs(g.grad_x(col, row)),
-                                 fabs(g.grad_y(col, row)));
+                    er.add_point(col, row, std::abs(g.grad_x(col, row)),
+                                 std::abs(g.grad_y(col, row)));
                     em->add_point(col, row, g.grad_magnitude(col, row), 12);
                 }
             }

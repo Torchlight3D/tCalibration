@@ -229,8 +229,8 @@ bool initializeDoubleSphereModel(const std::vector<Feature2D3D>& corres,
                 continue;
             }
 
-            double nz = sqrt(1.0 - nx * nx - ny * ny);
-            double gamma = fabs(C(2) * d / nz);
+            double nz = std::sqrt(1.0 - nx * nx - ny * ny);
+            double gamma = std::abs(C(2) * d / nz);
 
             // Undistort points with intrinsic guess
             Camera cam;

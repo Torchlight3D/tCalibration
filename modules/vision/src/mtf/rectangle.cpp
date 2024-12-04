@@ -432,7 +432,7 @@ Mrectangle::Mrectangle(const std::vector<double>& in_thetas,
 
                 // only update the normal if we have x-y correlation
                 cv::Point2d ev;
-                if (fabs(covxy[k]) > 1e-10) {
+                if (std::abs(covxy[k]) > 1e-10) {
                     ev.x = l - covyy[k];
                     ev.y = covxy[k];
                     ev *= 1.0 / norm(ev);
@@ -472,7 +472,7 @@ Mrectangle::Mrectangle(const std::vector<double>& in_thetas,
                 }
                 else {
                     x_scale[k] =
-                        fabs(extrema[k].y - extrema[k].x) * 0.5 / sqrt(0.5);
+                        std::abs(extrema[k].y - extrema[k].x) * 0.5 / sqrt(0.5);
                 }
 
                 // catch the case where only one point is associated with this
@@ -578,7 +578,7 @@ Mrectangle::Mrectangle(const std::vector<double>& in_thetas,
                     double recon_perp = quad_coeffs[k][0] * par * par +
                                         quad_coeffs[k][1] * par +
                                         quad_coeffs[k][2];
-                    double err = fabs(recon_perp - delta.ddot(normals[k]));
+                    double err = std::abs(recon_perp - delta.ddot(normals[k]));
                     if (err < min_err) {
                         min_err = err;
                         best_edge = k;
@@ -685,7 +685,7 @@ Mrectangle::Mrectangle(const std::vector<double>& in_thetas,
                 cv::Point2d dv = isections[i].intersection - ccent;
                 orient[i] = std::make_pair(-atan2(dv.y, dv.x), int(i));
             }
-            std::sort(orient.begin(), orient.end());
+            std::ranges::sort(orient);
 
             // visit the corners in the winding order
             for (size_t i = 0; i < 4; i++) {

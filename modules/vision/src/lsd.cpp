@@ -106,8 +106,8 @@ inline bool double_equal(double a, double b)
         return true;
     }
 
-    double abs_diff = std::fabs(a - b);
-    double abs_max = std::max(std::fabs(a), std::fabs(b));
+    double abs_diff = std::abs(a - b);
+    double abs_max = std::max(std::abs(a), std::abs(b));
 
     if (abs_max < DBL_MIN)
         abs_max = DBL_MIN;
@@ -532,7 +532,7 @@ double LineSegmentDetector::get_theta(
 
     // Compute angle
     double theta =
-        (std::fabs(Ixx) > std::fabs(Iyy))
+        (std::abs(Ixx) > std::abs(Iyy))
             ? double(cv::fastAtan2(float(lambda - Ixx), float(Ixy)))
             : double(cv::fastAtan2(float(Ixy), float(lambda - Iyy))); // in degs
     theta *= DEG_TO_RADS;

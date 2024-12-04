@@ -192,7 +192,7 @@ void Mtf_renderer_profile::render(const std::vector<Block> &blocks)
     for (auto it = row_max.begin(); it != row_max.end(); ++it) {
         mtf50_values.push_back(it->second);
     }
-    sort(mtf50_values.begin(), mtf50_values.end());
+    std::ranges::sort(mtf50_values);
     // pick 95% percentile
     double effective_max = mtf50_values[0.98 * mtf50_values.size()];
     // adjust it upwards a little
@@ -229,7 +229,7 @@ void Mtf_renderer_profile::render(const std::vector<Block> &blocks)
         for (; start != end; ++start) {
             medwin.push_back(start->second);
         }
-        sort(medwin.begin(), medwin.end());
+        std::ranges::sort(medwin);
         med_filt_mtf[i++] = medwin[medwin.size() / 2];
         double ex = (it->first - img.cols / 2) / double(img.cols) * max_dot;
         ordered.push_back(Ordered_point(ex, medwin[medwin.size() / 2]));
@@ -318,8 +318,8 @@ void Mtf_renderer_profile::render(const std::vector<Block> &blocks)
     double mean_mtf50_at_ref_edge = 0;
     min_dist = 1e50;
     i = 0;
-    for (auto it = row_max.begin(); it != row_max.end(); ++it) {
-        double dist = fabs(it->first - ref_edge_position);
+    for (const auto &[pos, _] : row_max) {
+        double dist = std::abs(pos - ref_edge_position);
         if (dist < min_dist) {
             min_dist = dist;
             mean_mtf50_at_ref_edge = med_filt_mtf[i++];
