@@ -1,0 +1,30 @@
+﻿#include <winver.h>
+#include "../version.h"
+
+VS_VERSION_INFO VERSIONINFO
+FILEVERSION     APP_VERSION_MAJOR, APP_VERSION_MINOR, APP_VERSION_PATCH, 0
+PRODUCTVERSION  APP_VERSION_MAJOR, APP_VERSION_MINOR, APP_VERSION_PATCH, 0
+FILEOS          VOS_NT_WINDOWS32
+FILETYPE        VFT_APP
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "000004B0"
+        BEGIN
+            VALUE "FileVersion",      APP_VERSION_STRING
+            VALUE "ProductVersion",   APP_VERSION_STRING
+            VALUE "FileDescription",  "Sensor Calibration Tool"
+            VALUE "ProductName",      "Sensor Calibration Tool"
+            VALUE "InternalName",     "CalibrationTool"
+            VALUE "OriginalFilename", "CalibrationTool.exe"
+            VALUE "CompanyName",      "Torchlight"
+            VALUE "LegalCopyright",   "Copyright © 2024 Torchlight Inc."
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x0000, 0x04B0
+    END
+END
+
+IDI_ICON1      ICON  DISCARDABLE  "logo/logo.ico"

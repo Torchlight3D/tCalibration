@@ -1,0 +1,27 @@
+﻿<RCC>
+    <qresource>
+        <file>icons/log/critical.png</file>
+        <file>icons/log/debug.png</file>
+        <file>icons/log/error.png</file>
+        <file>icons/log/info.png</file>
+        <file>icons/log/trace.png</file>
+        <file>icons/log/warn.png</file>
+        <file>icons/cog.png</file>
+        <file>icons/folder.png</file>
+        <file>icons/minus.png</file>
+        <file>icons/pause.png</file>
+        <file>icons/play.png</file>
+        <file>icons/player-fast-forward.png</file>
+        <file>icons/player-next.png</file>
+        <file>icons/player-play.png</file>
+        <file>icons/player-rewind.png</file>
+        <file>icons/player-prev.png</file>
+        <file>icons/plus.png</file>
+        <file>icons/record.png</file>
+        <file>icons/refresh.png</file>
+        <file>icons/stop.png</file>
+        <file>icons/th-list.png</file>
+        <file>icons/to-left.png</file>
+        <file>logo/logo.png</file>
+    </qresource>
+</RCC>
