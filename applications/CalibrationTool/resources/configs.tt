@@ -1,0 +1,255 @@
+﻿{
+    "version": "0.9.0",
+    "home_pages": [
+        "MonoCalibration",
+        "MonoVerification",
+        "StereoCalibration",
+        "StereoVerification"
+    ],
+    "app": {
+        "home_page": 2,
+        "dev_mode": true
+    },
+    "products": [],
+    "supported_target_samples": [
+        {
+            "type": "AprilTagOfficial",
+            "options": {
+                "family": 0,
+                "num_threads": 1,
+                "quad_decimate": 2.0,
+                "quad_sigma": 2.0,
+                "refine_edges": true,
+                "decode_sharpening": 0.25
+            }
+        },
+        {
+            "type": "AprilTagKalibr",
+            "options": {
+                "family": 0,
+                "border_bit": 2,
+                "max_subpix_displacement": 1.224745,
+                "min_detect_rate": 0.05,
+                "min_border_distance": 4.0
+            }
+        }
+    ],
+    "supported_camera_models": [
+        "Fisheye",
+        "Omnidirectional"
+    ],
+    "mono_camera_calibration": {
+        "product": "",
+        "target": {
+            "type": "AprilTagOfficial",
+            "options": {
+                "family": 2,
+                "num_threads": null,
+                "quad_decimate": 1.0,
+                "quad_sigma": 0.0,
+                "refine_edges": true,
+                "decode_sharpening": 0.25
+            }
+        },
+        "task_options": {
+            "max_num_views": 200,
+            "min_num_views": 80,
+            "skip_step": 2,
+            "refine_corners": false,
+            "mcmb": {
+                "image_size": {
+                    "width": 640,
+                    "height": 480
+                },
+                "intrinsic_models": [
+                    1
+                ],
+                "board_options": [
+                    {
+                        "tag_dim": {
+                            "width": 8,
+                            "height": 8
+                        },
+                        "tag_size": 0.12,
+                        "tag_spacing_ratio": 0.3,
+                        "start_tag_id": 100,
+                        "use_local_corner_index": true
+                    },
+                    {
+                        "tag_dim": {
+                            "width": 7,
+                            "height": 7
+                        },
+                        "tag_size": 0.15,
+                        "tag_spacing_ratio": 0.2,
+                        "start_tag_id": 0,
+                        "use_local_corner_index": true
+                    },
+                    {
+                        "tag_dim": {
+                            "width": 8,
+                            "height": 8
+                        },
+                        "tag_size": 0.12,
+                        "tag_spacing_ratio": 0.3,
+                        "start_tag_id": 200,
+                        "use_local_corner_index": true
+                    }
+                ],
+                "min_detect_rate_in_board": 0.2,
+                "error_threshold": 3.0,
+                "num_iterations": 100,
+                "fix_intrinsics": false,
+                "use_quaternion_average": true
+            }
+        },
+        "task_reference": {
+            "max_rpe": 0.5,
+            "focal_length_tolerance": 20.0,
+            "principal_point_tolerance": [
+                25.0,
+                25.0
+            ],
+            "imu_camera_rotation_tolerance": 3.0,
+            "max_imu_camera_time_offset": 15.0
+        }
+    },
+    "mono_camera_verification": {
+        "product": "",
+        "target": {
+            "type": "Chessboard",
+            "options": {
+                "rows": 11,
+                "cols": 8,
+                "row_spacing": 0.045,
+                "col_spacing": 0.045
+            }
+        },
+        "verify_options": {}
+    },
+    "stereo_camera_calibration": {
+        "product": "",
+        "target": {
+            "type": "AprilTagOfficial",
+            "options": {
+                "family": 2,
+                "num_threads": null,
+                "quad_decimate": 1.0,
+                "quad_sigma": 0.0,
+                "refine_edges": true,
+                "decode_sharpening": 0.25
+            }
+        },
+        "task_options": {
+            "max_num_views": 400,
+            "min_num_views": 150,
+            "skip_step": 2,
+            "refine_corners": false,
+            "mcmb": {
+                "image_size": {
+                    "width": 640,
+                    "height": 480
+                },
+                "intrinsic_models": [
+                    1,
+                    1
+                ],
+                "board_options": [
+                    {
+                        "tag_dim": {
+                            "width": 7,
+                            "height": 7
+                        },
+                        "tag_size": 0.15,
+                        "tag_spacing_ratio": 0.2,
+                        "start_tag_id": 0,
+                        "use_local_corner_index": true
+                    },
+                    {
+                        "tag_dim": {
+                            "width": 8,
+                            "height": 8
+                        },
+                        "tag_size": 0.12,
+                        "tag_spacing_ratio": 0.3,
+                        "start_tag_id": 100,
+                        "use_local_corner_index": true
+                    },
+                    {
+                        "tag_dim": {
+                            "width": 8,
+                            "height": 8
+                        },
+                        "tag_size": 0.12,
+                        "tag_spacing_ratio": 0.3,
+                        "start_tag_id": 200,
+                        "use_local_corner_index": true
+                    }
+                ],
+                "min_detect_rate_in_board": 0.2,
+                "error_threshold": 3.0,
+                "num_iterations": 100,
+                "fix_intrinsics": false,
+                "use_quaternion_average": true
+            }
+        },
+        "task_reference": {
+            "max_rpe": 0.5,
+            "focal_length_tolerance": 20.0,
+            "principal_point_tolerance": [
+                25.0,
+                25.0
+            ],
+            "max_principal_point_diff": [
+                100.0,
+                25.0
+            ],
+            "baseline_tolerance": 0.0025,
+            "inter_camera_rotation_tolerance": 3.0,
+            "imu_camera_rotation_tolerance": 3.0,
+            "max_imu_camera_time_offset": 15.0
+        }
+    },
+    "stereo_camera_verification": {
+        "product": "",
+        "target": {
+            "type": "Chessboard",
+            "options": {
+                "rows": 11,
+                "cols": 8,
+                "row_spacing": 0.045,
+                "col_spacing": 0.045
+            }
+        },
+        "verify_options": {},
+        "verify_reference": {
+            "sharpness": {
+                "min": 0.88
+            },
+            "tracker_reject_rate": {
+                "max": 0.0
+            },
+            "tracker_error_mean": {
+                "max": 2.0
+            },
+            "tracker_error_max": {
+                "max": 2.0
+            },
+            "estimator_reject_rate": {
+                "max": 0.0
+            },
+            "stereo_opt_cost": {
+                "max": 20.0
+            },
+            "rel_size_diff_med": {
+                "max": 0.006
+            },
+            "rel_pos_diff_med": {
+                "max": 0.006
+            },
+            "stereo_matching_diff_y": {
+                "max": 0.3
+            }
+        }
+    }
+}
