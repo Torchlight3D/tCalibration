@@ -21,16 +21,6 @@ public:
     {
         friend T;
 
-        static bool registerType()
-        {
-            const auto name = demangle(typeid(T).name());
-            Factory::creatrorsMap()[name] =
-                [](Args... args) -> std::unique_ptr<Base> {
-                return std::make_unique<T>(std::forward<Args>(args)...);
-            };
-
-            return true;
-        }
         static bool registered;
 
     private:
@@ -74,7 +64,13 @@ private:
 
 template <class Base, class... Args>
 template <class T>
-bool Factory<Base, Args...>::Registry<T>::registered =
-    Factory<Base, Args...>::Registry<T>::registerType();
+bool Factory<Base, Args...>::Registry<T>::registered = []() {
+    const auto name = demangle(typeid(T).name());
+    Factory::creatrorsMap()[name] = [](Args... args) -> std::unique_ptr<Base> {
+        return std::make_unique<T>(std::forward<Args>(args)...);
+    };
+
+    return true;
+}();
 
 } // namespace tl
