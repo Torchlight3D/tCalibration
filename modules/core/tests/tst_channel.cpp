@@ -1,3 +1,5 @@
+#include <algorithm>
+
 #include <gtest/gtest.h>
 
 #include <tCore/Channel>
@@ -195,8 +197,7 @@ TEST(Channel, Multithreading)
     cond_wait.wait(lock,
                    [&wait_counter]() { return wait_counter.load() == 0; });
 
-    std::for_each(threads.begin(), threads.end(),
-                  [](std::thread& thread) { thread.join(); });
+    std::ranges::for_each(threads, [](auto& thread) { thread.join(); });
 
     EXPECT_EQ(expected, sum_numbers);
 }

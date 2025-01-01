@@ -1,5 +1,7 @@
 #include "peakdetector.h"
 
+#include <algorithm>
+
 #include "utils.h"
 
 namespace {
