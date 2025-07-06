@@ -4,6 +4,7 @@
 #include <sstream>
 
 #include <QColor>
+#include <QIcon>
 #include <QPixmap>
 #include <QString>
 

@@ -39,6 +39,7 @@ target_sources(${MVS_TARGET_NAME}
 )
 
 # Sophus
+set(Eigen3_DIR ${ACTIVE_DEPENDS_PREFIX}/eigen/3.4.0/share/eigen3/cmake)
 set(Sophus_DIR ${ACTIVE_DEPENDS_PREFIX}/sophus/1.x/share/sophus/cmake)
 find_package(Sophus REQUIRED)
 
