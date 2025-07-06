@@ -66,6 +66,7 @@ target_link_libraries(${CALIBRATION_TARGET_NAME}
         ${NS_PREFIX}::Vision
         Sophus::Sophus
         yaml-cpp::yaml-cpp
+        Graaf::Graaf
     PRIVATE
         ${OpenCVLibs}
         magic_enum::magic_enum

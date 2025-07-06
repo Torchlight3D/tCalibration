@@ -26,19 +26,10 @@ target_compile_features(csv-parser
         cxx_std_17
 )
 
-# graaf
-add_library(graaf INTERFACE)
-
-target_include_directories(graaf
-    INTERFACE
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/extern>
-)
-
-target_compile_features(graaf
-    INTERFACE
-        cxx_std_20
-)
+set(SKIP_EXAMPLES ON CACHE BOOL "Disable Graaf examples" FORCE)
+set(SKIP_TESTS ON CACHE BOOL "Disable Graaf tests" FORCE)
+set(SKIP_BENCHMARKS ON CACHE BOOL "Disable Graaf benchmark" FORCE)
+add_subdirectory(graaf EXCLUDE_FROM_ALL)
 
 add_subdirectory(json EXCLUDE_FROM_ALL)
 
@@ -111,7 +102,6 @@ install(
     TARGETS
         argparse
         csv-parser
-        graaf
         mipp
         nanoflann
         stduuid
@@ -131,16 +121,6 @@ install(
 
 install(
     DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/csv-parser/
-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/extern
-)
-
-install(
-    DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/graaflib/
-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/extern
-)
-
-install(
-    DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/magic_enum/
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/extern
 )
 
@@ -166,7 +146,8 @@ install(
 
 install(
     TARGETS
-        nlohmann_json
+        Graaf
         magic_enum
+        nlohmann_json
     EXPORT ExternTargets
 )

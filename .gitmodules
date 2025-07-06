@@ -5,3 +5,6 @@
 [submodule "modules/externs/magic_enum"]
 	path = modules/externs/magic_enum
 	url = https://github.com/Neargye/magic_enum
+[submodule "modules/externs/graaf"]
+	path = modules/externs/graaf
+	url = https://github.com/Torchlight3D/graaf.git
