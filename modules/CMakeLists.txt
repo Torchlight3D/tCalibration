@@ -62,7 +62,7 @@ if(BUILD_TEST)
     enable_testing()
 endif()
 
-add_subdirectory(extern)
+add_subdirectory(externs)
 
 add_subdirectory(core)
 add_subdirectory(math)
