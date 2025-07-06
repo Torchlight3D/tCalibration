@@ -32,7 +32,7 @@ target_link_libraries(${CAMERA_TARGET_NAME}
     PUBLIC
         ${NS_PREFIX}::Core
         ${NS_PREFIX}::Math
-        magic_enum
+        magic_enum::magic_enum
     PRIVATE
 )
 

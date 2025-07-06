@@ -42,14 +42,7 @@ target_compile_features(graaf
 
 add_subdirectory(json EXCLUDE_FROM_ALL)
 
-# magic_enum
-add_library(magic_enum INTERFACE)
-
-target_include_directories(magic_enum 
-    INTERFACE
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/extern>
-)
+add_subdirectory(magic_enum EXCLUDE_FROM_ALL)
 
 target_compile_features(magic_enum 
     INTERFACE
@@ -119,7 +112,6 @@ install(
         argparse
         csv-parser
         graaf
-        magic_enum
         mipp
         nanoflann
         stduuid
@@ -175,5 +167,6 @@ install(
 install(
     TARGETS
         nlohmann_json
+        magic_enum
     EXPORT ExternTargets
 )

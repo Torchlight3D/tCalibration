@@ -63,7 +63,7 @@ target_link_libraries(${VIO_TARGET_NAME}
         yaml-cpp::yaml-cpp
     PRIVATE
         ${OpenCVLibs}
-        magic_enum
+        magic_enum::magic_enum
         nlohmann_json::nlohmann_json
 )
 

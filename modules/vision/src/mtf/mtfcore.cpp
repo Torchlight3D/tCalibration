@@ -6,9 +6,8 @@
 #include <mutex>
 
 #include <glog/logging.h>
-#include <opencv2/imgproc.hpp>
-
 #include <magic_enum/magic_enum.hpp>
+#include <opencv2/imgproc.hpp>
 
 #include "edgemodel.h"
 #include "ellipsedecoder.h"

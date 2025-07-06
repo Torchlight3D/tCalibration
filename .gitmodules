@@ -2,3 +2,6 @@
 	path = modules/externs/json
 	url = https://github.com/nlohmann/json
 
+[submodule "modules/externs/magic_enum"]
+	path = modules/externs/magic_enum
+	url = https://github.com/Neargye/magic_enum
