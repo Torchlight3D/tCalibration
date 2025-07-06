@@ -1,6 +1,11 @@
 #include "viewer.h"
 
+#ifdef _WIN32
+#include <windows.h>
 #include <GL/glu.h>
+#elif
+#include <GL/glu.h>
+#endif
 
 #include <QApplication>
 #include <QDateTime>

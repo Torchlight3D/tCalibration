@@ -1,7 +1,7 @@
-set(IMGPROC_TARGET_NAME Vision)
+set(VISION_TARGET_NAME Vision)
 
-add_library(${IMGPROC_TARGET_NAME})
-add_library(${NS_PREFIX}::${IMGPROC_TARGET_NAME} ALIAS ${IMGPROC_TARGET_NAME})
+add_library(${VISION_TARGET_NAME})
+add_library(${NS_PREFIX}::${VISION_TARGET_NAME} ALIAS ${VISION_TARGET_NAME})
 
 file(GLOB CALIBTARGET_INTERNAL_HEADERS
     src/*.h
@@ -20,7 +20,7 @@ file(GLOB CALIBTARGET_SOURCES
     src/target/apriltag_mit/*.cc
 )
 
-target_sources(${IMGPROC_TARGET_NAME}
+target_sources(${VISION_TARGET_NAME}
     PRIVATE
         ${CALIBTARGET_INTERNAL_HEADERS}
         ${CALIBTARGET_SOURCES}
@@ -57,7 +57,7 @@ endif()
 set(apriltag_DIR ${ACTIVE_DEPENDS_PREFIX}/apriltag/3.4.2/share/apriltag/cmake)
 find_package(apriltag REQUIRED)
 
-target_include_directories(${IMGPROC_TARGET_NAME}
+target_include_directories(${VISION_TARGET_NAME}
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/>
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
@@ -65,7 +65,7 @@ target_include_directories(${IMGPROC_TARGET_NAME}
         ${OpenCV_INCLUDE_DIRS}
 )
 
-target_link_libraries(${IMGPROC_TARGET_NAME}
+target_link_libraries(${VISION_TARGET_NAME}
     PUBLIC
         ${OpenCVLibs}
         ${NS_PREFIX}::Core
@@ -77,8 +77,8 @@ target_link_libraries(${IMGPROC_TARGET_NAME}
 )
 
 install(
-    TARGETS ${IMGPROC_TARGET_NAME}
-    EXPORT ${IMGPROC_TARGET_NAME}Config
+    TARGETS ${VISION_TARGET_NAME}
+    EXPORT ${VISION_TARGET_NAME}Config
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
 
@@ -88,7 +88,7 @@ install(
 )
 
 install(
-    EXPORT ${IMGPROC_TARGET_NAME}Config
+    EXPORT ${VISION_TARGET_NAME}Config
     NAMESPACE ${NS_PREFIX}::
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
 )
