@@ -6,7 +6,7 @@
 #include <opencv2/videoio.hpp>
 
 #include <csv-parser/csv.hpp>
-#include <json/json.hpp>
+#include <nlohmann/json.hpp>
 
 #include <tMotion/ImuData>
 

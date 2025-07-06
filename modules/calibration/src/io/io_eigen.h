@@ -1,9 +1,7 @@
 #pragma once
 
-#include <string>
-
 #include <Eigen/Core>
-#include <json/json.hpp>
+#include <nlohmann/json.hpp>
 #include <yaml-cpp/yaml.h>
 
 namespace tl::io {

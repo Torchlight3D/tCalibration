@@ -2,7 +2,7 @@
 
 #include <glog/logging.h>
 
-#include <json/json.hpp>
+#include <nlohmann/json.hpp>
 
 #include "chessboard.h"
 #include "circlegridboard.h"

@@ -1,9 +1,8 @@
 #pragma once
 
+#include <nlohmann/json.hpp>
 #include <yaml-cpp/yaml.h>
 #include <QCoreApplication>
-
-#include <json/json.hpp>
 
 #include <tCalib/MCMB/Calibration>
 

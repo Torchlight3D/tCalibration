@@ -1,5 +1,3 @@
-# TODO: make a cmake function
-
 # argparse
 add_library(argparse INTERFACE)
 
@@ -42,19 +40,7 @@ target_compile_features(graaf
         cxx_std_20
 )
 
-# json
-add_library(json INTERFACE)
-
-target_include_directories(json
-    INTERFACE
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/extern>
-)
-
-target_compile_features(json
-    INTERFACE
-        cxx_std_17
-)
+add_subdirectory(json EXCLUDE_FROM_ALL)
 
 # magic_enum
 add_library(magic_enum INTERFACE)
@@ -133,7 +119,6 @@ install(
         argparse
         csv-parser
         graaf
-        json
         magic_enum
         mipp
         nanoflann
@@ -163,11 +148,6 @@ install(
 )
 
 install(
-    DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/json/
-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/extern
-)
-
-install(
     DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/magic_enum/
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/extern
 )
@@ -192,4 +172,8 @@ install(
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/extern
 )
 
-
+install(
+    TARGETS
+        nlohmann_json
+    EXPORT ExternTargets
+)

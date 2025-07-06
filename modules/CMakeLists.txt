@@ -64,6 +64,13 @@ endif()
 
 add_subdirectory(externs)
 
+install(
+    EXPORT ExternTargets
+    FILE externs-config.cmake
+    NAMESPACE extern::
+    DESTINATION lib/cmake/externs
+)
+
 add_subdirectory(core)
 add_subdirectory(math)
 add_subdirectory(motion)

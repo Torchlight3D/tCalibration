@@ -2,8 +2,7 @@
 
 #include <ceres/ceres.h>
 #include <glog/logging.h>
-
-#include <json/json.hpp>
+#include <nlohmann/json.hpp>
 
 #include <tCore/Math>
 #include <tMotion/ImuIntegration>

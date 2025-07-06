@@ -1,8 +1,7 @@
 #pragma once
 
+#include <nlohmann/json.hpp>
 #include <opencv2/core/mat.hpp>
-
-#include <json/json.hpp>
 
 #include <tCore/EnumUtils>
 #include <tCore/Global>

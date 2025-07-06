@@ -5,8 +5,8 @@
 
 #include <opencv2/core.hpp>
 
-#include <json/json.hpp>
 #include <magic_enum/magic_enum.hpp>
+#include <nlohmann/json.hpp>
 
 #include <tCamera/Camera>
 #include <tCamera/DivisionUndistortionCameraModel>

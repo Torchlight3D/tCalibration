@@ -1,8 +1,7 @@
 ﻿#include "cameraimurotationcalibration.h"
 
 #include <glog/logging.h>
-
-#include <json/json.hpp>
+#include <nlohmann/json.hpp>
 
 #include <tCore/Math>
 #include <tMath/Eigen/Utils>

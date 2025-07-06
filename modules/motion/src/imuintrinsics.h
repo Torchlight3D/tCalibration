@@ -2,7 +2,7 @@
 
 #include <Eigen/Core>
 
-#include <json/json.hpp>
+#include <nlohmann/json.hpp>
 
 namespace tl {
 

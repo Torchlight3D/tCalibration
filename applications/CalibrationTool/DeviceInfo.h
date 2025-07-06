@@ -1,8 +1,7 @@
 #pragma once
 
+#include <nlohmann/json.hpp>
 #include <yaml-cpp/yaml.h>
-
-#include <json/json.hpp>
 
 namespace tl {
 

@@ -54,7 +54,7 @@ target_link_libraries(${DEVICE_TARGET_NAME}
     PRIVATE
         ${OpenCVLibs}
         csv-parser
-        json
+        nlohmann_json::nlohmann_json
 )
 
 install(
