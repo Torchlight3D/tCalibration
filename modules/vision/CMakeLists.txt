@@ -73,6 +73,7 @@ target_link_libraries(${VISION_TARGET_NAME}
         nlohmann_json::nlohmann_json
     PRIVATE
         apriltag::apriltag
+        magic_enum::magic_enum
         mipp
 )
 

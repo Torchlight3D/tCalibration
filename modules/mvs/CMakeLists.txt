@@ -56,7 +56,7 @@ target_link_libraries(${MVS_TARGET_NAME}
         ${NS_PREFIX}::Math
         ${NS_PREFIX}::Vision
     PRIVATE
-        magic_enum
+        magic_enum::magic_enum
         Sophus::Sophus
 )
 
