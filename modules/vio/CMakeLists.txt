@@ -64,7 +64,7 @@ target_link_libraries(${VIO_TARGET_NAME}
     PRIVATE
         ${OpenCVLibs}
         magic_enum
-        json
+        nlohmann_json::nlohmann_json
 )
 
 install(

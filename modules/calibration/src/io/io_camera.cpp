@@ -1,7 +1,7 @@
 #include "io_camera.h"
 
 #include <magic_enum/magic_enum.hpp>
-#include <json/json.hpp>
+#include <nlohmann/json.hpp>
 
 #include <tCamera/Camera>
 #include <tCamera/DivisionUndistortionCameraModel>
@@ -280,8 +280,7 @@ bool CameraConverter::decode(const Node& node, tl::Camera& camera)
     // Assume all the keys in intrinsics node are exist.
     const auto typeName =
         intriNode[key::kCameraIntrinsicsType].as<std::string>();
-    const auto type =
-        magic_enum::enum_cast<tl::CameraIntrinsicsType>(typeName);
+    const auto type = magic_enum::enum_cast<tl::CameraIntrinsicsType>(typeName);
     if (!type.has_value()) {
         return false;
     }

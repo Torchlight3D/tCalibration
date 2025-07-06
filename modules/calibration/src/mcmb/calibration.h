@@ -1,9 +1,8 @@
 #pragma once
 
 #include <Eigen/Geometry>
+#include <nlohmann_json/json.hpp>
 #include <opencv2/core/mat.hpp>
-
-#include <json/json.hpp>
 
 #include <tVision/Target/AprilTag>
 #include <tCore/Global>

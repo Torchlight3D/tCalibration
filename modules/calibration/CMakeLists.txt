@@ -69,7 +69,7 @@ target_link_libraries(${CALIBRATION_TARGET_NAME}
     PRIVATE
         ${OpenCVLibs}
         magic_enum
-        json
+        nlohmann_json::nlohmann_json
 
 )
 

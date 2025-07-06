@@ -2,7 +2,7 @@
 
 #include "calibboardbase.h"
 
-#include <json/json.hpp>
+#include <nlohmann/json.hpp>
 
 namespace tl {
 

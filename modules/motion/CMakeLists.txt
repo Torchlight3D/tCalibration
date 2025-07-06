@@ -34,7 +34,7 @@ target_link_libraries(${MOTION_TARGET_NAME}
     PUBLIC   
         ${NS_PREFIX}::Math
         Sophus::Sophus
-        json
+        nlohmann_json::nlohmann_json
 )
 
 install(

@@ -24,7 +24,7 @@ target_link_libraries(${IMU_TEST_TARGET}
         ${NS_PREFIX}::Motion
         GTest::gtest
         GTest::gtest_main
-        json
+        nlohmann_json::nlohmann_json
 )
 
 gtest_discover_tests(${IMU_TEST_TARGET}

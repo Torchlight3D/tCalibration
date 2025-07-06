@@ -1,6 +1,6 @@
 #pragma once
 
-#include <json/json.hpp>
+#include <nlohmann/json.hpp>
 #include <yaml-cpp/yaml.h>
 
 #include <tMotion/ImuIntrinsics>

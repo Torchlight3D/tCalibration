@@ -2,7 +2,7 @@
 
 #include <string>
 
-#include <json/json.hpp>
+#include <nlohmann/json.hpp>
 #include <yaml-cpp/yaml.h>
 
 namespace tl {
