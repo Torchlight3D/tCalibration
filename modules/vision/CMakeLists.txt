@@ -3,7 +3,7 @@ set(VISION_TARGET_NAME Vision)
 add_library(${VISION_TARGET_NAME})
 add_library(${NS_PREFIX}::${VISION_TARGET_NAME} ALIAS ${VISION_TARGET_NAME})
 
-file(GLOB CALIBTARGET_INTERNAL_HEADERS
+file(GLOB VISION_INTERNAL_HEADERS
     src/*.h
     src/bow/*.h
     src/mtf/*.h
@@ -12,7 +12,7 @@ file(GLOB CALIBTARGET_INTERNAL_HEADERS
     src/target/codec/*.h
 
 )
-file(GLOB CALIBTARGET_SOURCES
+file(GLOB VISION_SOURCES
     src/*.cpp
     src/bow/*.cpp
     src/mtf/*.cpp
@@ -22,8 +22,8 @@ file(GLOB CALIBTARGET_SOURCES
 
 target_sources(${VISION_TARGET_NAME}
     PRIVATE
-        ${CALIBTARGET_INTERNAL_HEADERS}
-        ${CALIBTARGET_SOURCES}
+        ${VISION_INTERNAL_HEADERS}
+        ${VISION_SOURCES}
 )
 
 # OpenCV, apt default 4.2

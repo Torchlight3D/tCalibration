@@ -4,19 +4,19 @@ add_library(${MOTION_TARGET_NAME})
 add_library(${NS_PREFIX}::${MOTION_TARGET_NAME} ALIAS ${MOTION_TARGET_NAME})
 
 # TODO: use src/CMakeLists.txt to control source files
-file(GLOB IMU_INTERNAL_HEADERS
+file(GLOB MOTION_HEADERS
     src/algo/*.h
     src/*.h
 )
-file(GLOB IMU_SOURCES
+file(GLOB MOTION_SOURCES
     src/algo/*.cpp
     src/*.cpp
 )
 
 target_sources(${MOTION_TARGET_NAME}
     PRIVATE
-        ${IMU_INTERNAL_HEADERS}
-        ${IMU_SOURCES}
+        ${MOTION_HEADERS}
+        ${MOTION_SOURCES}
 )
 
 target_include_directories(${MOTION_TARGET_NAME}
