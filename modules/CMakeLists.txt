@@ -79,6 +79,7 @@ add_subdirectory(vision)
 add_subdirectory(mvs)
 add_subdirectory(calibration)
 # add_subdirectory(vio)
+add_subdirectory(space)
 add_subdirectory(device)
 add_subdirectory(scene3d)
 
