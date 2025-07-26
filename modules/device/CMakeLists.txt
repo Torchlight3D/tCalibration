@@ -24,19 +24,13 @@ if(MSVC)
 elseif()
     set(OpenCV_DIR ${ACTIVE_DEPENDS_PREFIX}/opencv/4.10.0x/lib/cmake/opencv4)
 endif()
-set(OpenCVModules
-    core
-    imgproc
-    videoio
-)
-
-foreach(OpenCVModule ${OpenCVModules})
-    set(OpenCVLibs ${OpenCVLibs} opencv_${OpenCVModule})
-endforeach()
 
 find_package(OpenCV REQUIRED
     COMPONENTS
-        ${OpenCVModules}
+        core
+        imgcodecs
+        imgproc
+        videoio
 )
 
 target_include_directories(${DEVICE_TARGET_NAME}
@@ -51,8 +45,11 @@ target_link_libraries(${DEVICE_TARGET_NAME}
     PUBLIC
         ${NS_PREFIX}::Core
         ${NS_PREFIX}::Motion
+        opencv_core
+        opencv_imgcodecs
+        opencv_imgproc
+        opencv_videoio
     PRIVATE
-        ${OpenCVLibs}
         csv-parser
         nlohmann_json::nlohmann_json
 )
