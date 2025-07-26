@@ -15,7 +15,9 @@ file(GLOB VISION_INTERNAL_HEADERS
 file(GLOB VISION_SOURCES
     src/*.cpp
     src/bow/*.cpp
+    src/bow/*.c
     src/mtf/*.cpp
+    src/mtf/*.cc
     src/target/*.cpp
     src/target/apriltag_mit/*.cc
 )

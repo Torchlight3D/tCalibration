@@ -31,17 +31,11 @@ if(MSVC)
 elseif()
     set(OpenCV_DIR ${ACTIVE_DEPENDS_PREFIX}/opencv/4.10.0x/lib/cmake/opencv4)
 endif()
-set(OpenCVModules
-    ccalib
-)
-
-foreach(OpenCVModule ${OpenCVModules})
-    set(OpenCVLibs ${OpenCVLibs} opencv_${OpenCVModule})
-endforeach()
 
 find_package(OpenCV REQUIRED
     COMPONENTS
-        ${OpenCVModules}
+        calib3d
+        ccalib
 )
 
 # yaml-cpp, apt default 0.6.0.
@@ -52,8 +46,6 @@ target_include_directories(${CALIBRATION_TARGET_NAME}
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/>
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-    PRIVATE
-        ${OpenCV_INCLUDE_DIRS}
 )
 
 target_link_libraries(${CALIBRATION_TARGET_NAME}
@@ -67,11 +59,11 @@ target_link_libraries(${CALIBRATION_TARGET_NAME}
         Sophus::Sophus
         yaml-cpp::yaml-cpp
         Graaf::Graaf
+        opencv_calib3d
+        opencv_ccalib
     PRIVATE
-        ${OpenCVLibs}
         magic_enum::magic_enum
         nlohmann_json::nlohmann_json
-
 )
 
 install(
