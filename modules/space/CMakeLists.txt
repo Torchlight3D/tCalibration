@@ -5,10 +5,12 @@ add_library(${NS_PREFIX}::${SPACE_TARGET_NAME} ALIAS ${SPACE_TARGET_NAME})
 
 set(SPACE_HEADERS
     src/ikdtree.h
+    src/ioctree.h
 
 )
 set(SPACE_SOURCES
     src/ikdtree.cpp
+    src/ioctree.cpp
 )
 
 target_sources(${SPACE_TARGET_NAME}
