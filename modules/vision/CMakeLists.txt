@@ -10,6 +10,7 @@ file(GLOB VISION_INTERNAL_HEADERS
     src/target/*.h
     src/target/apriltag_mit/*.h
     src/target/codec/*.h
+    src/target/pitag/*.h
 
 )
 file(GLOB VISION_SOURCES
@@ -20,6 +21,7 @@ file(GLOB VISION_SOURCES
     src/mtf/*.cc
     src/target/*.cpp
     src/target/apriltag_mit/*.cc
+    src/target/pitag/*.cpp
 )
 
 target_sources(${VISION_TARGET_NAME}
@@ -64,7 +66,7 @@ target_include_directories(${VISION_TARGET_NAME}
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/>
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
     PRIVATE
-        ${OpenCV_INCLUDE_DIRS}
+        # ${OpenCV_INCLUDE_DIRS}
 )
 
 target_link_libraries(${VISION_TARGET_NAME}
